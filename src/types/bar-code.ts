@@ -1,0 +1,33 @@
+export type BarCode = {
+  id: string;
+  name: string;
+  description: string;
+  sku: string;
+  barcode: number;
+  price: number;
+  cost: number;
+  status: string;
+  type: string;
+  minStock: number;
+  maxStock: number;
+  unit: string;
+  weight: number;
+  dimensions: string;
+  image: string;
+  company: string;
+  store: string;
+  category: string;
+  tax?: {
+    id: string;
+    name: string;
+    rate: number;
+    type: string;
+  };
+  createdAt: string;
+  updatedAt: string;
+  hasExpiry: boolean;
+  expiryDate: string;
+  daysToExpiry: number;
+  quantity: number;
+  reserved: number;
+};
