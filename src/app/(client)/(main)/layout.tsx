@@ -3,6 +3,8 @@ import { TrialBanner } from "@/components/shared";
 import { NotificationDetail } from "@/components/shared/notifications";
 import { RouteProtector } from "@/contexts";
 import { FeatureGateProvider, StoreProvider } from "@/providers";
+import { STAFF_ROLES } from "@/constants/roles";
+import { Role } from "@/types";
 
 type Props = {
   children: React.ReactNode;
@@ -10,7 +12,7 @@ type Props = {
 
 export default function ClientLayout({ children }: Props) {
   return (
-    <RouteProtector allowed={["OWNER", "MANAGER"]} checkPlan={false}>
+    <RouteProtector allowed={STAFF_ROLES as Role[]} checkPlan={false}>
       <StoreProvider>
         <FeatureGateProvider>
           <AppSidebar />

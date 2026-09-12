@@ -125,7 +125,7 @@ export function SupplierStockHistory({ supplierId }: { supplierId: string }) {
         header: "Custo/Und.",
         className: "text-right",
         render: (val) => (
-          <span className="font-semibold whitespace-nowrap">{formatCurrency(val)}</span>
+          <span className="font-medium whitespace-nowrap">{formatCurrency(val)}</span>
         ),
       },
       {
@@ -142,7 +142,7 @@ export function SupplierStockHistory({ supplierId }: { supplierId: string }) {
               {diff !== 0 && (
                 <span
                   className={cn(
-                    "text-xs font-semibold flex items-center gap-0.5",
+                    "text-xs font-medium flex items-center gap-0.5",
                     isUp && "text-red-500 dark:text-red-400",
                     isDown && "text-emerald-600 dark:text-emerald-400"
                   )}
@@ -159,7 +159,7 @@ export function SupplierStockHistory({ supplierId }: { supplierId: string }) {
       {
         key: "total",
         header: "Total",
-        className: "text-right font-bold text-foreground whitespace-nowrap",
+        className: "text-right font-medium text-foreground whitespace-nowrap",
         render: (_, row) => formatCurrency(row.costAtEntry * row.quantity),
       },
     ],

@@ -11,6 +11,7 @@
  */
 export function redirectToLogin(): void {
     if (typeof window === "undefined") return;
+    if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") return;
     if (window.location.pathname === "/auth/login") return;
     window.location.replace("/auth/login");
 }

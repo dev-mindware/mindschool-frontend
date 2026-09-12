@@ -1,3 +1,184 @@
+import { Role } from "./auth";
+
+/* ========================================================================== */
+/*  MindSchool Educational Role-Adaptive Dashboard Contracts                  */
+/* ========================================================================== */
+
+/**
+ * Supported academic period filters for the dashboard
+ */
+export type DashboardPeriodFilter =
+  | "1_TRIMESTRE"
+  | "2_TRIMESTRE"
+  | "3_TRIMESTRE"
+  | "ANNUAL";
+
+/**
+ * Educational cycles under the Angolan General Education System (Decreto Presidencial 424/25)
+ */
+export type AcademicCycle = "PRIMARY" | "CYCLE_1" | "CYCLE_2";
+
+/**
+ * Performance metrics by academic cycle
+ */
+export interface CyclePerformanceData {
+  cycle: AcademicCycle;
+  label: string;
+  totalStudents: number;
+  approvedCount: number;
+  appealCount: number; // Em recurso / prova de exame
+  failedCount: number; // Retidos / reprovados
+  approvalRate: number; // Percentage 0-100
+}
+
+/**
+ * Pautas closure status metrics
+ */
+export interface PautaStatusSummary {
+  totalClasses: number;
+  openPautas: number;
+  submittedPautas: number;
+  approvedPautas: number;
+  closedPautas: number;
+  closingProgressPercent: number;
+}
+
+/**
+ * Teacher daily QR punch clock metrics
+ */
+export interface TeacherAttendanceKpi {
+  totalTeachers: number;
+  checkedInToday: number;
+  absentToday: number;
+  lateArrivals: number;
+  punctualityRate: number;
+  lastCheckInTime?: string;
+  myStatusToday?: {
+    hasCheckedIn: boolean;
+    checkInTime?: string;
+    plannedClassesToday: number;
+    completedClassesToday: number;
+  };
+}
+
+/**
+ * Early dropout risk alert item (Notion 14.1 / UC-10)
+ */
+export interface DropoutRiskAlertItem {
+  id: string;
+  studentName: string;
+  studentNumber: string;
+  className: string;
+  cycle: string;
+  riskScore: number;
+  riskLevel: "LOW" | "MEDIUM" | "HIGH" | "CRITICAL";
+  unjustifiedAbsences: number;
+  failingSubjectsCount: number;
+  recommendedAction: string;
+}
+
+/**
+ * Secretary queue item (Certificates, admissions, and enrollments)
+ */
+export interface SecretaryQueueItem {
+  id: string;
+  title: string;
+  requesterName: string;
+  type: "CERTIFICATE" | "DECLARATION" | "ADMISSION_VALIDATION" | "ENROLLMENT_CONFIRMATION";
+  requestedAt: string;
+  status: "PENDING" | "PROCESSING" | "READY" | "REJECTED";
+  urgency: "NORMAL" | "HIGH" | "URGENT";
+}
+
+/**
+ * Financial tuition collection metrics (Kz)
+ */
+export interface TuitionFinancialKpi {
+  monthName: string;
+  expectedRevenueAoa: number;
+  collectedRevenueAoa: number;
+  collectionRatePercent: number;
+  overdueStudentsCount: number;
+  overdueTotalAoa: number;
+  certifiedInvoicesCount: number;
+  monthlyEvolution: Array<{
+    month: string;
+    expected: number;
+    collected: number;
+  }>;
+}
+
+/**
+ * Student individual mini-bulletin for guardian/student portal
+ */
+export interface StudentSubjectGrade {
+  subjectName: string;
+  teacherName: string;
+  mac: number; // Média de Avaliação Contínua
+  cpp: number; // Prova de Professor
+  ct: number;  // Classificação Trimestral
+  absences: number;
+  status: "APROVADO" | "ATENCAO" | "REPROVADO";
+}
+
+export interface StudentDashboardSummary {
+  studentName: string;
+  studentNumber: string;
+  className: string;
+  academicYear: string;
+  generalAverage: number;
+  totalAbsences: number;
+  tuitionStatus: "REGULAR" | "PENDING" | "OVERDUE";
+  grades: StudentSubjectGrade[];
+  upcomingExams: Array<{
+    title: string;
+    subject: string;
+    date: string;
+    type: "ONLINE" | "PRESENTIAL";
+  }>;
+}
+
+/**
+ * Quick action link item for the dashboard toolbar
+ */
+export interface DashboardQuickAction {
+  id: string;
+  label: string;
+  description: string;
+  href: string;
+  icon: string;
+  badge?: string;
+  variant?: "primary" | "secondary" | "outline" | "terracotta";
+}
+
+/**
+ * Consolidated role-specific dashboard payload
+ */
+export interface RoleDashboardData {
+  role: Role;
+  period: DashboardPeriodFilter;
+  kpis: Array<{
+    title: string;
+    value: string | number;
+    description: string;
+    variation?: number;
+    icon: string;
+    trend?: "up" | "down" | "neutral";
+  }>;
+  quickActions: DashboardQuickAction[];
+  cyclePerformance?: CyclePerformanceData[];
+  pautaStatus?: PautaStatusSummary;
+  teacherAttendance?: TeacherAttendanceKpi;
+  dropoutAlerts?: DropoutRiskAlertItem[];
+  secretaryQueue?: SecretaryQueueItem[];
+  tuitionFinancial?: TuitionFinancialKpi;
+  studentSummary?: StudentDashboardSummary;
+}
+
+/* ========================================================================== */
+/*  Legacy POS / Reports Dashboard Interfaces (Preserved for compatibility)    */
+/* ========================================================================== */
+
 export interface DashboardSummaryItem {
   total?: number;
   amount?: number;
@@ -56,11 +237,6 @@ export interface OwnerDashboardData extends ManagerDashboardData {
   storesBreakdown: StoreBreakdown[];
 }
 
-/* -------------------------------------------------------------------------- */
-/*  Dashboard Overview (Visão Geral)                                          */
-/*  Contrato acordado com o backend — actualmente servido por mock.           */
-/* -------------------------------------------------------------------------- */
-
 export type DashboardPeriodType = "month" | "quarter" | "year";
 
 export interface DashboardPeriod {
@@ -70,7 +246,6 @@ export interface DashboardPeriod {
   endDate: string;
 }
 
-/** Métrica de topo: valor absoluto + variação face ao período anterior. */
 export interface DashboardMetric {
   label: string;
   value: number;
@@ -158,9 +333,7 @@ export interface DashboardActivity {
   amount: number | null;
   currency: string | null;
   createdAt: string;
-  /** Referência humana do documento/entidade (ex.: "FT 00234"). */
   reference?: string;
-  /** Id da entidade de origem, para navegação a partir do item. */
   entityId?: string;
 }
 
@@ -183,6 +356,5 @@ export interface DashboardOverview {
   stockOverview: DashboardStockOverview;
   recentActivity: DashboardActivity[];
   monthlyGoal: DashboardMonthlyGoal;
-  /** Apenas no âmbito global (OWNER). Ausente na vista de loja. */
   storesBreakdown?: StoreBreakdown[];
 }

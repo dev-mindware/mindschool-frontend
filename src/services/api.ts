@@ -246,6 +246,9 @@ api.interceptors.response.use(
     // CASO 2: 404 em rota crítica de auth = sessão morta
     // ------------------------------------------------------------------------
     if (status === 404 && isAuthCriticalRoute(original.url)) {
+      if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
+        return Promise.reject(err);
+      }
       console.warn("🚨 [API] 404 em rota crítica de auth. Forçando logout.");
       resetAccessTokenCache();
       try {
@@ -262,6 +265,9 @@ api.interceptors.response.use(
     // CASO 3: 401 → tenta refresh transparente
     // ------------------------------------------------------------------------
     if (status === 401) {
+      if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
+        return Promise.reject(err);
+      }
       // Já tem refresh em andamento → entra na fila
       if (isRefreshing) {
         return new Promise<string>((resolve, reject) => {

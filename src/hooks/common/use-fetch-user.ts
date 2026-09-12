@@ -22,7 +22,7 @@ export function useFetchUser({ enabled = true }: UseFetchUserOptions = {}) {
   const query = useQuery({
     queryKey: ["user"],
     queryFn: fetchCurrentUser,
-    enabled,
+    enabled: enabled && process.env.NEXT_PUBLIC_BYPASS_AUTH !== "true",
     retry: false, // ✅ FIX: não retry para evitar múltiplos requests em loop
     staleTime: 5 * 60 * 1000,
   });
@@ -94,6 +94,7 @@ export function useFetchUser({ enabled = true }: UseFetchUserOptions = {}) {
   // Listener para evento de sessão expirada (vindo do interceptor axios)
   useEffect(() => {
     function handleSessionExpired() {
+      if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") return;
       setUser(null);
       setIsAuthenticating(false);
       if (

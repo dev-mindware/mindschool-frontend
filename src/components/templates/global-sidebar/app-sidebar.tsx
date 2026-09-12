@@ -35,30 +35,29 @@ export function AppSidebar() {
     // Show only POS menu items
     baseMenuItems = baseMenuItems.filter((item) => item.url.startsWith("/pos"));
 
-    // Add "Voltar ao Dashboard" link for OWNER and MANAGER
-    if (user.role === "OWNER" || user.role === "MANAGER") {
+    // Add "Voltar ao Dashboard" link for administrative roles
+    if (
+      user.role === "OWNER" ||
+      user.role === "MANAGER" ||
+      user.role === "DIRECTOR_GENERAL" ||
+      user.role === "PEDAGOGIC_DIRECTOR"
+    ) {
       baseMenuItems.push({
         name: "Voltar ao Dashboard",
         url: "/dashboard",
         icon: <Icon name="ArrowLeft" className="w-5 h-5" />,
-        roles: ["OWNER", "MANAGER"],
+        roles: [
+          "OWNER",
+          "MANAGER",
+          "DIRECTOR_GENERAL",
+          "PEDAGOGIC_DIRECTOR",
+        ],
         minPlan: "Smart",
       });
     }
   } else {
     // Show all except POS menu items
     baseMenuItems = baseMenuItems.filter((item) => !item.url.startsWith("/pos"));
-
-    // Add "Acessar POS" link for OWNER and MANAGER
-    if (user.role === "OWNER" || user.role === "MANAGER") {
-      baseMenuItems.push({
-        name: "Acessar POS",
-        url: "/pos/settings",
-        icon: <Icon name="Computer" className="w-5 h-5" />,
-        roles: ["OWNER", "MANAGER"],
-        minPlan: "Smart",
-      });
-    }
   }
 
   const filteredMenu = getSidebarForUser(baseMenuItems, user.role, user.company?.subscription, plan);

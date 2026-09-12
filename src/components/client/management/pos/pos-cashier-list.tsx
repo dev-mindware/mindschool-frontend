@@ -106,18 +106,18 @@ export function PosCashierList({
     {
       key: "openingCash",
       header: "Cap. Inicial",
-      render: (value) => <span className="font-bold font-mono">{formatCurrency(value)}</span>,
+      render: (value) => <span className="font-medium font-mono">{formatCurrency(value)}</span>,
     },
     {
       key: "totalSales",
       header: "Vendas",
-      render: (value) => <span className="font-bold text-primary font-mono">{formatCurrency(value)}</span>,
+      render: (value) => <span className="font-medium text-primary font-mono">{formatCurrency(value)}</span>,
     },
     {
       key: "cashDifference",
       header: "Diferença",
       render: (value) => (
-        <span className={cn("font-bold font-mono", value < 0 ? "text-destructive" : value > 0 ? "text-green-500" : "")}>
+        <span className={cn("font-medium font-mono", value < 0 ? "text-destructive" : value > 0 ? "text-green-500" : "")}>
           {formatCurrency(value)}
         </span>
       ),

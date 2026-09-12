@@ -125,16 +125,16 @@ export function CreditNoteTemplate({ data }: Props) {
         <table className="w-full">
           <thead className="bg-muted/70">
             <tr className="text-muted-foreground border-b text-[11px]">
-              <th className="px-3 py-2.5 text-left font-semibold uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-left font-medium uppercase tracking-wider">
                 Item
               </th>
-              <th className="px-3 py-2.5 text-right font-semibold uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right font-medium uppercase tracking-wider">
                 Qtd
               </th>
-              <th className="px-3 py-2.5 text-right font-semibold uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right font-medium uppercase tracking-wider">
                 Preço
               </th>
-              <th className="px-3 py-2.5 text-right font-semibold uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right font-medium uppercase tracking-wider">
                 Total Creditado
               </th>
             </tr>
@@ -152,7 +152,7 @@ export function CreditNoteTemplate({ data }: Props) {
                 <td className="px-3 py-2.5 text-right font-mono">
                   {formatCurrency(Number(item.price))}
                 </td>
-                <td className="px-3 py-2.5 text-right font-mono font-semibold text-foreground">
+                <td className="px-3 py-2.5 text-right font-mono font-medium text-foreground">
                   {formatCurrency(Number(item.total))}
                 </td>
               </tr>

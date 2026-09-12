@@ -59,5 +59,11 @@ export function getSidebarForUser(
         const planOk = !sub.minPlan || currentPlanLevel >= subPlanLevel;
         return roleOk && planOk;
       }),
-    }));
+    }))
+    .filter((item) => {
+      if (item.url === "#" && Array.isArray(item.items) && item.items.length === 0) {
+        return false;
+      }
+      return true;
+    });
 }

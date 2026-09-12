@@ -26,3 +26,4 @@ export * from "./onboarding/use-onboarding-preferences";
 export * from "./contributors/use-contributor-verification";
 export * from "./contributors/use-nif-form-verification";
 export * from "./agt";
+export * from "./dashboard";

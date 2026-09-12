@@ -7,3 +7,7 @@ export * from "./overview";
 export * from "./owner";
 export * from "./manager";
 export * from "./dashboard-page-content";
+export * from "./dashboard-role-preview-switcher";
+export * from "./dashboard-role-dispatcher";
+export * from "./widgets";
+export * from "./views";

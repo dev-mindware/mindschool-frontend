@@ -1,12 +1,7 @@
 import { Role } from "@/types";
+import { ROLE_LABELS } from "@/constants/roles";
 
-export const getUserRole = (role: Role) => {
-  const roleMap: Record<Role, string> = {
-    OWNER: "Proprietário",
-    MANAGER: "Gerente",
-    ADMIN: "Administrador",
-    CASHIER: "Caixa",
-  };
-  return roleMap[role] || role;
+export const getUserRole = (role: Role): string => {
+  return ROLE_LABELS[role] || role;
 };
 

@@ -19,9 +19,9 @@ export function LoginHeroComposition() {
 
             {/* CTA Text - Top Header */}
             <div className="absolute top-12 left-1/2 -translate-x-1/2 z-50 text-center w-full px-4 animate-in fade-in slide-in-from-top-4 duration-1000">
-                <Badge>Gestão inteligente para o seu negócio</Badge>
+                <Badge>Gestão escolar inteligente de alto desempenho</Badge>
                 <h2 className="text-3xl md:text-3xl font-bold text-white mb-2 tracking-tight">
-                    Mindgest <span className="text-primary">ERP</span>
+                    MindSchool <span className="text-primary">Edu</span>
                 </h2>
                 
             </div>

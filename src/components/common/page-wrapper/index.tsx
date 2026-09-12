@@ -24,6 +24,7 @@ type Props = {
   children: React.ReactNode;
   variant?: "default" | "counter";
   onboardingTourId?: OnboardingTourId;
+  segments?: { label: string; href?: string }[];
 };
 
 export function PageWrapper({
@@ -34,6 +35,7 @@ export function PageWrapper({
   children,
   variant = "default",
   onboardingTourId,
+  segments,
 }: Props) {
   const { user } = useAuth();
   const [search, setSearch] = useQueryState("search", {
@@ -57,6 +59,7 @@ export function PageWrapper({
               routeLabel={routeLabel}
               subRoute={subRoute}
               showSeparator={showSeparator}
+              segments={segments}
             />
           </div>
         )}

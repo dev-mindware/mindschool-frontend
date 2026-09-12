@@ -24,6 +24,8 @@ export function RouteProtector({
   const access = useAccessControl(allowed, checkPlan);
 
   useEffect(() => {
+    if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") return;
+
     switch (access.status) {
       case "unauthenticated":
         // ✅ FIX: só redireciona se ainda não estiver na página de login
@@ -43,6 +45,10 @@ export function RouteProtector({
         break;
     }
   }, [access, pathname, router]);
+
+  if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
+    return <>{children}</>;
+  }
 
   if (access.status !== "allowed") {
     return <>{fallback || <Loader />}</>;

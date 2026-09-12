@@ -133,14 +133,14 @@ export function FirstStep({ affiliateLocked = false }: FirstStepProps) {
                     label="Código de Afiliado"
                     readOnly
                     className="bg-muted/40"
-                    title="Este é o código do parceiro que o convidou para o Mindgest."
+                    title="Este é o código do parceiro que o convidou para o MindSchool."
                     {...register("step1.affiliateCode")}
                     error={errors?.step1?.affiliateCode?.message}
                   />
                 </div>
               </TooltipTrigger>
               <TooltipContent className="max-w-xs text-center">
-                Este é o código do parceiro que o trouxe ao Mindgest. Foi preenchido
+                Este é o código do parceiro que o trouxe ao MindSchool. Foi preenchido
                 automaticamente através do link de convite e não pode ser alterado.
               </TooltipContent>
             </Tooltip>

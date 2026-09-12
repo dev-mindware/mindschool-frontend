@@ -12,11 +12,43 @@ interface AuthState {
   logout: () => Promise<void>;
 }
 
+const DEV_MOCK_USER: User | null =
+  process.env.NEXT_PUBLIC_BYPASS_AUTH === "true"
+    ? {
+        id: "dev-admin-1",
+        name: "Administrador MindSchool",
+        email: "admin@mindschool.ao",
+        role: "OWNER",
+        phone: "923000000",
+        company: {
+          id: "dev-school-1",
+          name: "Colégio MindSchool",
+          taxNumber: "5000000000",
+          phone: "923000000",
+          email: "secretaria@mindschool.ao",
+          address: "Luanda, Angola",
+          isActive: true,
+          subscription: {
+            id: "sub-1",
+            status: "ACTIVE",
+            plan: {
+              id: "plan-pro",
+              name: "Pro",
+              price: 25000,
+              billingCycle: "MONTHLY",
+            } as any,
+          } as any,
+        } as any,
+        store: {
+          id: "store-1",
+          name: "Campus Central",
+        },
+      }
+    : null;
+
 export const useAuthStore = create<AuthState>((set, get) => ({
-  user: null,
-  // ✅ Continua true por padrão — espera o useFetchUser resolver
-  // Mas o useFetchUser SEMPRE seta para false (sucesso OU erro)
-  isAuthenticating: true,
+  user: DEV_MOCK_USER,
+  isAuthenticating: process.env.NEXT_PUBLIC_BYPASS_AUTH === "true" ? false : true,
   isLoggingOut: false,
 
   setUser: (user) => set({ user }),

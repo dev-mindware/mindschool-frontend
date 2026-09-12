@@ -42,9 +42,9 @@ export function UserInfo() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-muted-foreground"
             >
               <Avatar className="w-8 h-8 rounded-lg">
-                <AvatarImage src={user.name} alt={user.name} />
+                <AvatarImage src="" alt={user.name} />
                 <AvatarFallback className="rounded-lg">
-                  {user.name[0].toUpperCase()}
+                  {user.name[0]?.toUpperCase() || "U"}
                 </AvatarFallback>
               </Avatar>
               <div className="grid flex-1 text-sm leading-tight text-left">
@@ -63,9 +63,9 @@ export function UserInfo() {
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
                 <Avatar className="w-8 h-8 rounded-lg">
-                  <AvatarImage src={user.name} alt={user.name} />
+                  <AvatarImage src="" alt={user.name} />
                   <AvatarFallback className="rounded-lg">
-                    {user.name[0].toUpperCase()}
+                    {user.name[0]?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
                 <div className="grid flex-1 text-sm leading-tight text-left">
@@ -97,7 +97,7 @@ export function UserInfo() {
                 <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={promptInstall}>
                   <Icon name="Download" />
-                  Instalar Mindgest
+                  Instalar MindSchool
                 </DropdownMenuItem>
               </>
             )}

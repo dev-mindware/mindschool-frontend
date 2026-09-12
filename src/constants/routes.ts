@@ -54,16 +54,24 @@ export const AUTH_PAGES = [
 // Prefixos de rotas privadas
 export const PRIVATE_ROUTE_PREFIXES = [
   "/dashboard",
-  "/admin",
-  "/pos",
-  "/pos-management",
-  "/settings",
-  "/management",
-  "/documents",
-  "/items",
-  "/plans",
+  "/admissions",
+  "/students",
+  "/enrollments",
+  "/guardians",
+  "/academic",
+  "/grades",
+  "/dropout-risk",
+  "/online-exams",
+  "/tuition",
+  "/teachers-attendance",
+  "/certificates",
+  "/secretary",
+  "/communication",
   "/reports",
-  "/stock",
+  "/plans",
+  "/settings",
+  "/pos",
+  "/admin",
 ] as const;
 
 // Rota de login padrão
@@ -80,13 +88,36 @@ export const ACCESS_TOKEN_KEY = "access_token";
 export const REFRESH_TOKEN_KEY = "refresh_token";
 export const ROLE_KEY = "user_role";
 
-// Mapa de redirect por role
+// Mapa de redirect padrão por role (Landing routes)
 export const ROLE_REDIRECTS: Record<Role, string> = {
-  ADMIN: "/admin/dashboard",
+  DIRECTOR_GENERAL: "/dashboard",
+  PEDAGOGIC_DIRECTOR: "/dashboard",
+  SECRETARY: "/students/list",
+  TEACHER: "/grades/entry",
+  FINANCIAL: "/tuition/payments",
+  GUARDIAN: "/students/list",
+  STUDENT: "/grades/entry",
+  SYSTEM_ADMIN: "/settings",
+  MED_AUDITOR: "/reports/med",
   OWNER: "/dashboard",
   MANAGER: "/dashboard",
-  CASHIER: "/pos/counter",
+  ADMIN: "/settings",
+  CASHIER: "/tuition/payments",
 };
 
-// Validação: roles aceitas (para validar cookie manipulado)
-export const VALID_ROLES: Role[] = ["ADMIN", "OWNER", "MANAGER", "CASHIER"];
+// Validação: roles aceitas (para validar integridade de cookies e sessões)
+export const VALID_ROLES: Role[] = [
+  "DIRECTOR_GENERAL",
+  "PEDAGOGIC_DIRECTOR",
+  "SECRETARY",
+  "TEACHER",
+  "FINANCIAL",
+  "GUARDIAN",
+  "STUDENT",
+  "SYSTEM_ADMIN",
+  "MED_AUDITOR",
+  "ADMIN",
+  "OWNER",
+  "MANAGER",
+  "CASHIER",
+];

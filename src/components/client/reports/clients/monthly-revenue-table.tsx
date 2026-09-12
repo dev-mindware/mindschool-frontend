@@ -64,9 +64,9 @@ export function MonthlyRevenueTable({ monthlyTrend }: MonthlyRevenueTableProps) 
                         <Table>
                             <TableHeader className="bg-muted/30">
                                 <TableRow className="hover:bg-transparent border-none">
-                                    <TableHead className="font-bold text-foreground">Mês Referência</TableHead>
-                                    <TableHead className="text-right font-bold text-foreground">Receita</TableHead>
-                                    <TableHead className="text-right font-bold text-foreground">Facturas</TableHead>
+                                    <TableHead className="font-medium text-foreground">Mês Referência</TableHead>
+                                    <TableHead className="text-right font-medium text-foreground">Receita</TableHead>
+                                    <TableHead className="text-right font-medium text-foreground">Facturas</TableHead>
                                 </TableRow>
                             </TableHeader>
                             <TableBody>
@@ -79,7 +79,7 @@ export function MonthlyRevenueTable({ monthlyTrend }: MonthlyRevenueTableProps) 
                                         )}
                                     >
                                         <TableCell className="font-medium capitalize">{formatMonth(trend.month)}</TableCell>
-                                        <TableCell className="text-right font-black text-primary">
+                                        <TableCell className="text-right font-medium text-primary">
                                             {trend.revenue > 0 ? formatCurrency(trend.revenue) : "-"}
                                         </TableCell>
                                         <TableCell className="text-right font-medium">

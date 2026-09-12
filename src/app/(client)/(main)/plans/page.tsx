@@ -3,7 +3,12 @@ import { AvailablePlans } from "@/components/client/plans";
 
 export default function Page() {
   return (
-    <PageWrapper subRoute="Planos" onboardingTourId="plans">
+    <PageWrapper
+      routePath="/plans"
+      routeLabel="Subscrição"
+      subRoute="Planos"
+      onboardingTourId="plans"
+    >
       <AvailablePlans />
     </PageWrapper>
   );

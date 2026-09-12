@@ -96,7 +96,7 @@ export function CompanyForm({ user }: { user: User }) {
         <Input
           {...register("name")}
           label="Nome completo ou designação comercial"
-          placeholder="Ex.: Manuel António ou Mindgest Soluções"
+          placeholder="Ex.: Colégio Esperança ou Complexo Escolar MindSchool"
           className="bg-background shadow-none"
           readOnly={!isEditing}
           error={errors.name?.message}
@@ -105,7 +105,7 @@ export function CompanyForm({ user }: { user: User }) {
         <Input
           {...register("email")}
           label="Email de contacto"
-          placeholder="Ex.: contacto@mindgest.com"
+          placeholder="Ex.: secretaria@mindschool.co.ao"
           className="bg-background shadow-none"
           readOnly={!isEditing}
           error={errors?.email?.message}
@@ -151,7 +151,7 @@ export function CompanyForm({ user }: { user: User }) {
         <Input
           {...register("website")}
           label="Website"
-          placeholder="Ex.: https://www.mindgest.com"
+          placeholder="Ex.: https://www.mindschool.co.ao"
           className="bg-background shadow-none"
           readOnly={!isEditing}
           error={errors.website?.message}

@@ -30,7 +30,7 @@ export function SecondStep() {
       <div className="flex flex-col items-center mt-4 gap-2 text-center">
         <StepsHeader title="Dados da actividade" />
         <p className="max-w-sm text-xs leading-relaxed text-muted-foreground">
-          O Mindgest pode ser usado por empresas e por pessoas singulares.
+          O MindSchool é destinado a colégios, complexos escolares e instituições de ensino.
         </p>
       </div>
       <div className="grid gap-6">

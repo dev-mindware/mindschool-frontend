@@ -43,7 +43,7 @@ export function AccountCreatedModal() {
       sucess
       canClose={false}
       id="account-created"
-      title="Bem-vindo(a) ao Mindgest!"
+      title="Bem-vindo(a) ao MindSchool!"
       className="!w-lg text-center"
       description="Sua conta foi criada com sucesso."
     >

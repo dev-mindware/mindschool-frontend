@@ -1,9 +1,11 @@
+import type { ReactNode } from "react";
+
 export function DetailRow({
   label,
   value,
 }: {
   label: string;
-  value?: string | number;
+  value?: ReactNode;
 }) {
   if (value === undefined || value === null || value === "") return null;
   return (

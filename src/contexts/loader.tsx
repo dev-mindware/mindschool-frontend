@@ -36,7 +36,7 @@ export function Loader() {
         </div>
 
         <div className="absolute -bottom-10 text-[11px] tracking-[0.25em] text-muted-foreground/40 font-medium uppercase font-sans">
-          Mindgest
+          MindSchool
         </div>
       </div>
     </div>

@@ -46,7 +46,7 @@ export function DynamicMetricCard({
                     <div className="space-y-1">
                         <div className="flex justify-between items-center gap-2">
                             <h2 className={cn(
-                                "text-lg sm:text-xl md:text-2xl font-bold tracking-tight truncate",
+                                "text-lg sm:text-xl md:text-2xl font-semibold tracking-tight truncate",
                                 variant === "action" && (isDestructive ? "text-destructive" : "text-primary")
                             )}>
                                 {title}
@@ -58,7 +58,7 @@ export function DynamicMetricCard({
                                         ? (isDestructive ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary")
                                         : "bg-muted text-muted-foreground"
                                 )}>
-                                    <Icon name={icon as any} className="w-4 h-4" />
+                                    <Icon name={icon} className="w-4 h-4" />
                                 </div>
                             )}
                         </div>

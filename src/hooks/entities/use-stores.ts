@@ -10,12 +10,32 @@ import { useAuth } from "../auth";
 export function useGetStores(role?: Role, enabled: boolean = true) {
   const { user } = useAuth();
   const route = role === "OWNER" ? "stores" : "stores/my-stores";
+  const isBypass = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
 
   const { data, error, isLoading, refetch } = useFetch<StoresResponse>(
     "stores",
     `${route}?page=1&limit=10`,
-    { enabled },
+    { enabled: enabled && !isBypass },
   );
+
+  if (isBypass) {
+    const mockStore: any = {
+      id: "store-1",
+      name: "Campus Central",
+      address: "Luanda, Angola",
+      phone: "923000000",
+      companyId: "dev-school-1",
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString(),
+    };
+    return {
+      stores: [{ label: "Campus Central", value: "store-1" }],
+      storesData: [mockStore],
+      error: null,
+      isLoading: false,
+      refetch: async () => ({}) as any,
+    };
+  }
 
   const stores =
     data?.data.map((store) => ({

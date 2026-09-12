@@ -83,7 +83,7 @@ export function GenericTable<T extends { id: string }>({
                   <TableHead
                     key={index}
                     className={cn(
-                      "text-left text-sm font-semibold text-muted-foreground tracking-wider",
+                      "text-left text-xs font-medium text-muted-foreground tracking-wider uppercase",
                       column.className
                     )}
                   >
@@ -169,7 +169,7 @@ export function GenericTable<T extends { id: string }>({
                 >
                   {/* Card Header: Main Title/Key & Action Badge/Button */}
                   <div className="flex items-start justify-between gap-2 pb-2">
-                    <div className="font-bold text-base text-foreground flex-1 line-clamp-1">
+                    <div className="font-medium text-base text-foreground flex-1 line-clamp-1">
                       {headerCol?.render
                         ? headerCol.render(getValue(item, headerCol.key), item)
                         : getValue(item, headerCol?.key || "")}
@@ -200,7 +200,7 @@ export function GenericTable<T extends { id: string }>({
 
                         return (
                           <div key={cIdx} className="flex flex-col space-y-0.5">
-                            <span className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground/80">
+                            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80">
                               {col.header}
                             </span>
                             <div className="text-xs font-medium text-foreground truncate">

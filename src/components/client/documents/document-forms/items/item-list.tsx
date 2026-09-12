@@ -22,22 +22,22 @@ export const ItemList = memo<ItemListProps>(
           <table className="w-full">
             <thead className="border-border bg-card">
               <tr className="text-foreground">
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Item
                 </th>
-                <th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider">
+                <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider">
                   Tipo
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-foreground">
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-foreground">
                   Qtd.
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-foreground">
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-foreground">
                   Preço unit.
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-foreground">
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-foreground">
                   Subtotal
                 </th>
-                <th className="px-4 py-3 text-right text-xs font-semibold uppercase tracking-wider text-foreground">
+                <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-foreground">
                   IVA (%)
                 </th>
                 <th className="w-[60px] px-4 py-3" aria-label="Acções" />

@@ -4,14 +4,15 @@ import { Icon } from "../common";
 
 type Props = {
   isLoading: boolean;
+  disabled?: boolean;
   children?: ReactNode;
   className?: string;
 }
 
-export function ButtonSubmit({ isLoading, children, className }: Props) {
+export function ButtonSubmit({ isLoading, disabled, children, className }: Props) {
   return (
     <Button
-      disabled={isLoading}
+      disabled={isLoading || disabled}
       type="submit"
       className={`w-full bg-primary hover:bg-primary text-white py-2 ${className}`}
     >

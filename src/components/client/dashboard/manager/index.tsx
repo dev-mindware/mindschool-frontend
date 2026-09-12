@@ -32,7 +32,7 @@ export function ManagerDashboardView() {
         return (
             <EmptyState
                 title="Dashboard sem dados"
-                description="Ainda não existem vendas nem movimentos registados nesta loja para gerar o painel."
+                description="Ainda não existem dados académicos nem turmas registadas para gerar o painel."
                 icon="TrendingUp"
             />
         );

@@ -2,9 +2,10 @@
 
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
-import { Role, PlanType, PLAN_HIERARCHY } from "@/types";
+import { Role, PlanType, PLAN_HIERARCHY, AppModule, PermissionAction } from "@/types";
 import { useAuth } from "@/hooks/auth";
 import { menuItems, MenuItem } from "@/constants/menu-items";
+import { ROLE_MODULE_PERMISSIONS } from "@/constants/roles";
 import { getRouteByRole } from "@/utils/role-redirects";
 
 const flattenMenu = (items: MenuItem[]): MenuItem[] =>
@@ -46,6 +47,10 @@ export function useAccessControl(allowed: Role[], checkPlan = true): AccessResul
   }, [user]);
 
   return useMemo<AccessResult>(() => {
+    if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
+      return { status: "allowed" };
+    }
+
     if (isAuthenticating) return { status: "loading" };
     if (!user) return { status: "unauthenticated" };
     if (!allowed.includes(user.role)) return { status: "unauthorized" };
@@ -104,6 +109,10 @@ export function usePlanAccess(): PlanAccessResult {
     return PLAN_HIERARCHY[plan] ?? 0;
   }, [user]);
 
+  if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
+    return { hasAccess: true, isLoading: false };
+  }
+
   if (isAuthenticating) {
     return { hasAccess: false, isLoading: true };
   }
@@ -125,4 +134,27 @@ export function usePlanAccess(): PlanAccessResult {
   }
 
   return { hasAccess: true, isLoading: false };
+}
+
+/**
+ * Checks whether the current user has permission to perform a specific action
+ * in a target MindSchool module.
+ */
+export function useModulePermission(
+  module: AppModule,
+  action: PermissionAction = "read"
+): boolean {
+  const { user } = useAuth();
+
+  return useMemo(() => {
+    if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
+      return true;
+    }
+    if (!user?.role) return false;
+
+    const modulePermissions = ROLE_MODULE_PERMISSIONS[user.role]?.[module];
+    if (!modulePermissions) return false;
+
+    return modulePermissions.includes(action);
+  }, [user?.role, module, action]);
 }

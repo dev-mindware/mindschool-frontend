@@ -174,19 +174,19 @@ export function InvoiceTemplate({
         <table className="w-full">
           <thead className="bg-muted/70">
             <tr className="text-muted-foreground border-b text-[11px]">
-              <th className="px-3 py-2.5 text-left font-semibold uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-left font-medium uppercase tracking-wider">
                 Item
               </th>
-              <th className="px-3 py-2.5 text-right font-semibold uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right font-medium uppercase tracking-wider">
                 Qtd
               </th>
-              <th className="px-3 py-2.5 text-right font-semibold uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right font-medium uppercase tracking-wider">
                 Preço Unit.
               </th>
-              <th className="px-3 py-2.5 text-right font-semibold uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right font-medium uppercase tracking-wider">
                 IVA
               </th>
-              <th className="px-3 py-2.5 text-right font-semibold uppercase tracking-wider">
+              <th className="px-3 py-2.5 text-right font-medium uppercase tracking-wider">
                 Total
               </th>
             </tr>
@@ -240,7 +240,7 @@ export function InvoiceTemplate({
                       ? `${itemTaxRate}%`
                       : "-"}
                   </td>
-                  <td className="px-3 py-2.5 text-right font-mono font-semibold text-foreground">
+                  <td className="px-3 py-2.5 text-right font-mono font-medium text-foreground">
                     {formatCurrency(itemTotal, data.currencyCode)}
                   </td>
                 </tr>

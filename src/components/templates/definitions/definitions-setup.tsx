@@ -19,6 +19,10 @@ import { BankPageContent } from "./contents/banks";
 import { icons } from "lucide-react";
 import { Security } from "./contents/security";
 import { AgtPageContent } from "./contents/agt";
+import {
+  SchoolInstitutionalSettings,
+  AcademicCalendarSettings,
+} from "@/components/client/settings/school";
 
 interface DefSetupProps {
   disabledTabs?: string[];
@@ -132,6 +136,22 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
       component: <AgtPageContent />,
       category: "workplace",
       isVisible: isOwner,
+    },
+    {
+      id: "school",
+      label: "Colégio & MED",
+      icon: "GraduationCap",
+      component: <SchoolInstitutionalSettings />,
+      category: "workplace",
+      isVisible: true,
+    },
+    {
+      id: "calendar",
+      label: "Calendário Lectivo",
+      icon: "Calendar",
+      component: <AcademicCalendarSettings />,
+      category: "workplace",
+      isVisible: true,
     },
   ];
 

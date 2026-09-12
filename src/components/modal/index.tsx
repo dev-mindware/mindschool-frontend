@@ -17,7 +17,9 @@ import { IconWarning } from "./icon-warning";
 import { useModal } from "@/stores/modal/use-modal-store";
 
 interface ModalProps {
-  id: string;
+  id?: string;
+  isOpen?: boolean;
+  onClose?: () => void;
   title?: string | ReactNode;
   description?: string | ReactNode;
   canClose?: boolean;
@@ -30,6 +32,8 @@ interface ModalProps {
 
 export function GlobalModal({
   id,
+  isOpen: controlledIsOpen,
+  onClose: controlledOnClose,
   title,
   sucess,
   warning,
@@ -41,12 +45,24 @@ export function GlobalModal({
 }: ModalProps) {
   const { open, closeModal } = useModal();
 
+  const isModalOpen =
+    controlledIsOpen !== undefined
+      ? controlledIsOpen
+      : id
+      ? open[id] || false
+      : false;
+
+  const handleClose = () => {
+    if (controlledOnClose) controlledOnClose();
+    if (id) closeModal(id);
+  };
+
   return (
     <Dialog
-      open={open[id] || false}
+      open={isModalOpen}
       onOpenChange={(isOpen) => {
         if (!isOpen && canClose) {
-          closeModal(id);
+          handleClose();
         }
       }}
     >
@@ -56,7 +72,7 @@ export function GlobalModal({
           event.preventDefault();
         }}
       >
-        {canClose && <DialogClose onClick={() => closeModal(id)} />}
+        {canClose && <DialogClose onClick={handleClose} />}
 
         <DialogHeader className={cn("flex space-x-4 relative")}>
           <div
