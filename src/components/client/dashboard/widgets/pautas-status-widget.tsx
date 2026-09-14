@@ -37,41 +37,41 @@ export function PautasStatusWidget({ status }: PautasStatusWidgetProps) {
           </div>
           <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden">
             <div
-              className="bg-emerald-600 h-2.5 rounded-full transition-all duration-500"
+              className="bg-success h-2.5 rounded-full transition-all duration-500"
               style={{ width: `${status.closingProgressPercent}%` }}
             />
           </div>
         </div>
 
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-1">
-          <div className="p-2.5 rounded-lg bg-amber-500/10 border border-amber-500/20">
-            <span className="text-[11px] text-amber-700 font-medium block">Em Aberto</span>
-            <span className="text-lg font-bold text-amber-600">{status.openPautas}</span>
+          <div className="p-2.5 rounded-lg bg-warning-muted border border-warning-border">
+            <span className="text-[11px] text-warning font-medium block">Em Aberto</span>
+            <span className="text-lg font-bold text-warning">{status.openPautas}</span>
             <span className="text-[10px] text-muted-foreground block">Aguardando notas</span>
           </div>
 
-          <div className="p-2.5 rounded-lg bg-blue-500/10 border border-blue-500/20">
-            <span className="text-[11px] text-blue-700 font-medium block">Submetidas</span>
-            <span className="text-lg font-bold text-blue-600">{status.submittedPautas}</span>
+          <div className="p-2.5 rounded-lg bg-info-muted border border-info-border">
+            <span className="text-[11px] text-info font-medium block">Submetidas</span>
+            <span className="text-lg font-bold text-info">{status.submittedPautas}</span>
             <span className="text-[10px] text-muted-foreground block">Pelo coordenador</span>
           </div>
 
-          <div className="p-2.5 rounded-lg bg-indigo-500/10 border border-indigo-500/20">
-            <span className="text-[11px] text-indigo-700 font-medium block">Aprovadas</span>
-            <span className="text-lg font-bold text-indigo-600">{status.approvedPautas}</span>
+          <div className="p-2.5 rounded-lg bg-primary/10 border border-primary/20">
+            <span className="text-[11px] text-primary font-medium block">Aprovadas</span>
+            <span className="text-lg font-bold text-primary">{status.approvedPautas}</span>
             <span className="text-[10px] text-muted-foreground block">Pela Direcção</span>
           </div>
 
-          <div className="p-2.5 rounded-lg bg-emerald-500/10 border border-emerald-500/20">
-            <span className="text-[11px] text-emerald-700 font-medium block">Fechadas</span>
-            <span className="text-lg font-bold text-emerald-600">{status.closedPautas}</span>
+          <div className="p-2.5 rounded-lg bg-success-muted border border-success-border">
+            <span className="text-[11px] text-success font-medium block">Fechadas</span>
+            <span className="text-lg font-bold text-success">{status.closedPautas}</span>
             <span className="text-[10px] text-muted-foreground block">Definitivas</span>
           </div>
         </div>
 
         <div className="p-3 rounded-lg bg-muted/40 border flex items-center justify-between text-xs">
           <div className="flex items-center gap-2 text-muted-foreground">
-            <Icon name="ShieldCheck" className="w-4 h-4 text-emerald-600" />
+            <Icon name="ShieldCheck" className="w-4 h-4 text-success" />
             <span>Fecho com certificação de assinatura digital pedagógica</span>
           </div>
           <Link href="/grades/transitions">

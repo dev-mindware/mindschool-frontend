@@ -1,6 +1,6 @@
 "use client";
 import { useCallback, useState } from "react";
-import { ClientSelectOption } from "@/types/clients";
+import { ClientSelectOption } from "@/types";
 import { UseFormSetValue } from "react-hook-form";
 
 export function useClientSelection(setValue: UseFormSetValue<any>) {

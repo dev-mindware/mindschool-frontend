@@ -8,13 +8,4 @@ export * from "./notifications";
 export * from "./onboarding";
 export * from "./documents";
 
-// Legacy Stores
-export * from "./entities";
-export * from "./products";
-export * from "./services";
-export * from "./categories";
-export * from "./collaborators";
-export * from "./stock";
-export * from "./pos";
-export * from "./store";
-export * from "./banks";
+

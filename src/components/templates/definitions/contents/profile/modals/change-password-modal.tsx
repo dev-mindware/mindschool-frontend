@@ -2,8 +2,7 @@
 
 import { useModal } from "@/stores";
 import { useChangePassword } from "@/hooks/users";
-import { Button, Input } from "@/components";
-import { GlobalModal } from "@/components/modal";
+import { Button, Input, GlobalModal } from "@/components";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ErrorMessage, SucessMessage } from "@/utils";
@@ -37,7 +36,6 @@ export function ChangePasswordModal() {
           reset();
           closeModal("change-password");
         },
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         onError: (error: any) => {
           ErrorMessage(
             error?.response?.data?.message || "Não foi possível alterar a palavra-passe.",
@@ -55,40 +53,40 @@ export function ChangePasswordModal() {
       canClose
       className="max-w-md"
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-4">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
         <Input
           label="Palavra-passe actual"
           type="password"
-          placeholder="Introduza a palavra-passe actual"
           error={errors.currentPassword?.message}
           {...register("currentPassword")}
+          className="h-10 text-xs"
         />
         <Input
           label="Nova palavra-passe"
           type="password"
-          placeholder="Introduza a nova palavra-passe"
           error={errors.newPassword?.message}
           {...register("newPassword")}
+          className="h-10 text-xs"
         />
         <Input
-          label="Confirmar palavra-passe"
+          label="Confirmar nova palavra-passe"
           type="password"
-          placeholder="Repita a nova palavra-passe"
           error={errors.confirmPassword?.message}
           {...register("confirmPassword")}
+          className="h-10 text-xs"
         />
 
-        <div className="flex justify-end gap-3 mt-6">
+        <div className="flex justify-end gap-3 pt-2">
           <Button
             type="button"
-            variant="ghost"
+            variant="outline"
             onClick={() => closeModal("change-password")}
-            disabled={isPending}
+            className="h-9 text-xs"
           >
             Cancelar
           </Button>
-          <Button type="submit" disabled={isPending}>
-            {isPending ? "A guardar..." : "Guardar alterações"}
+          <Button type="submit" disabled={isPending} className="h-9 text-xs font-semibold">
+            {isPending ? "A guardar..." : "Guardar alteração"}
           </Button>
         </div>
       </form>

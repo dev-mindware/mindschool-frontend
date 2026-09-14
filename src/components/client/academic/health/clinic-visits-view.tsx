@@ -50,11 +50,10 @@ export function ClinicVisitsView({
   const getUrgencyBadge = (level: HealthUrgencyLevel) => {
     switch (level) {
       case "CRITICAL":
-        return <Badge variant="destructive">Crítico / Emergência</Badge>;
       case "URGENT":
-        return <Badge className="bg-rose-500/15 text-rose-700 dark:text-rose-400 border border-rose-500/30">Urgente</Badge>;
+        return <Badge variant="destructive">Urgente / Emergência</Badge>;
       case "MODERATE":
-        return <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">Moderado</Badge>;
+        return <Badge variant="warning">Moderado</Badge>;
       case "ROUTINE":
       default:
         return <Badge variant="secondary">Rotina / Ligeiro</Badge>;
@@ -65,19 +64,19 @@ export function ClinicVisitsView({
     switch (status) {
       case "UNDER_OBSERVATION":
         return (
-          <Badge className="bg-blue-500/15 text-blue-700 dark:text-blue-400 border border-blue-500/30 animate-pulse">
+          <Badge variant="info" className="animate-pulse">
             Em Observação
           </Badge>
         );
       case "DISCHARGED_TO_CLASS":
         return (
-          <Badge className="bg-emerald-500/15 text-emerald-700 dark:text-emerald-400 border border-emerald-500/30">
+          <Badge variant="success">
             Retorno à Aula
           </Badge>
         );
       case "SENT_HOME":
         return (
-          <Badge className="bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-500/30">
+          <Badge variant="warning">
             Enviado p/ Casa
           </Badge>
         );
@@ -219,7 +218,7 @@ export function ClinicVisitsView({
                     </td>
                     <td className="py-2.5 px-3 text-[11px] text-muted-foreground font-mono">
                       {v.vitalSigns?.temperatureCelsius ? (
-                        <span className={v.vitalSigns.temperatureCelsius >= 38 ? "text-red-600 font-bold" : ""}>
+                        <span className={v.vitalSigns.temperatureCelsius >= 38 ? "text-red-600 font-medium" : ""}>
                           🌡️ {v.vitalSigns.temperatureCelsius}ºC
                         </span>
                       ) : (
@@ -238,7 +237,7 @@ export function ClinicVisitsView({
                           <Button
                             size="sm"
                             variant="ghost"
-                            className="h-7 text-xs px-2 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-500/10"
+                            className="h-7 text-xs px-2 text-success hover:bg-success-muted"
                             title="Dar alta e retornar à sala de aula"
                             onClick={() =>
                               handleQuickStatusChange(v.id, "DISCHARGED_TO_CLASS", v.studentName)

@@ -23,6 +23,18 @@ export const PLAN_HIERARCHY: Record<PlanType, number> = {
   Pro: 2,
 };
 
+export type MethodName = "Kwik" | "Express";
+
+export interface Method {
+  name: string;
+  icon: string;
+  description: string;
+  info: string;
+  processingTime: string;
+  reference: string;
+  owner: string;
+}
+
 export enum SubscriptionStatus {
   TRIALING = "TRIALING",
   ACTIVE = "ACTIVE",

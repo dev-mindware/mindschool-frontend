@@ -1,64 +1,26 @@
 "use client";
-import { useEffect } from "react";
+
 import {
   Icon,
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuLabel,
-  DropdownMenuSeparator,
   DropdownMenuTrigger,
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
   useSidebar,
-  LoaderStoresSkeleton,
 } from "@/components";
 import { useAuth } from "@/hooks/auth";
-import { useGetStores, useSwitchStore } from "@/hooks/entities";
-import { currentStoreStore } from "@/stores/store/current-store-store";
-import { Role } from "@/types";
+import { useMultiSchoolStore } from "@/stores/school/multi-school-store";
 
 export function SidebarCompanyInfo() {
   const { user } = useAuth();
   const { isMobile } = useSidebar();
-  const isCashier = user?.role === "CASHIER";
-  const { currentStore } = currentStoreStore();
-  const { mutate: switchStore } = useSwitchStore();
-  const {
-    refetch,
-    storesData,
-    isLoading: loadingStores,
-    error: storesError,
-  } = useGetStores(user?.role as Role);
+  const { units, selectedUnitId, selectUnit } = useMultiSchoolStore();
 
-  if (loadingStores) return <LoaderStoresSkeleton />;
-
-  if (storesError) {
-    return <StoresErrorState onRetry={refetch} />;
-  }
-
-  if (isCashier) {
-    return (
-      <SidebarMenu className="group-data-[collapsible=icon]:items-center">
-        <SidebarMenuItem>
-          <SidebarMenuButton size="lg">
-            <div className="flex items-center justify-center rounded-lg bg-primary text-sidebar-primary-foreground aspect-square size-8">
-              <Icon name="Building2" className="size-4" />
-            </div>
-            <div className="grid flex-1 text-sm leading-tight text-left">
-              <span className="font-medium truncate">
-                {currentStore?.name || user.company?.name || "Empresa"}
-              </span>
-              <span className="text-xs truncate text-muted-foreground">
-                Visualização
-              </span>
-            </div>
-          </SidebarMenuButton>
-        </SidebarMenuItem>
-      </SidebarMenu>
-    );
-  }
+  const currentUnit = units.find((u) => u.id === selectedUnitId) || units[0];
 
   return (
     <SidebarMenu className="group-data-[collapsible=icon]:items-center">
@@ -70,17 +32,17 @@ export function SidebarCompanyInfo() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="flex items-center justify-center rounded-lg bg-primary text-sidebar-primary-foreground aspect-square size-8">
-                <Icon name="Building2" className="size-4" />
+                <Icon name="GraduationCap" className="size-4" />
               </div>
               <div className="grid flex-1 text-sm leading-tight text-left">
                 <span className="font-medium truncate">
-                  {currentStore?.name || "Empresa"}
+                  {currentUnit?.name || user?.company?.name || "MindSchool"}
                 </span>
-                <span className="text-xs truncate">
-                  {currentStore ? "Loja seleccionada" : "Seleccione uma loja"}
+                <span className="text-xs truncate text-muted-foreground">
+                  {currentUnit ? `${currentUnit.municipality} • ${currentUnit.code}` : "Unidade Escolar"}
                 </span>
               </div>
-              <Icon name="ChevronsUpDown" className="ml-auto" />
+              <Icon name="ChevronsUpDown" className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
 
@@ -91,36 +53,29 @@ export function SidebarCompanyInfo() {
             sideOffset={4}
           >
             <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Lojas
+              Campus & Unidades Escolares
             </DropdownMenuLabel>
 
-            {storesData?.map((store) => (
+            {units.map((unit) => (
               <DropdownMenuItem
-                key={store.id}
-                onClick={() => switchStore(store)}
-                className="gap-2 p-2"
+                key={unit.id}
+                onClick={() => selectUnit(unit.id)}
+                className="gap-2 p-2 cursor-pointer"
               >
                 <div className="flex items-center justify-center border rounded-md size-6">
-                  <Icon name="Building2" className="size-3.5 shrink-0" />
+                  <Icon name="School" className="size-3.5 shrink-0" />
                 </div>
-                {store.name}
+                <div className="flex flex-col">
+                  <span className="text-xs font-medium">{unit.name}</span>
+                  <span className="text-[10px] text-muted-foreground">
+                    {unit.municipality} ({unit.totalStudents} alunos)
+                  </span>
+                </div>
               </DropdownMenuItem>
             ))}
-
           </DropdownMenuContent>
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>
-  );
-}
-
-function StoresErrorState({ onRetry }: { onRetry: () => void }) {
-  return (
-    <div className="p-4 border border-destructive rounded-lg text-sm text-destructive space-y-2">
-      <p>Erro ao carregar lojas.</p>
-      <button onClick={onRetry} className="text-xs underline hover:opacity-80">
-        Tentar novamente
-      </button>
-    </div>
   );
 }

@@ -3,10 +3,10 @@ export function Loader() {
     <div className="flex flex-col w-screen items-center justify-center min-h-screen bg-background relative selection:bg-transparent">
       <div className="relative flex flex-col items-center justify-center">
         <div className="relative flex items-center justify-center w-32 h-32">
-          <div className="absolute inset-0 rounded-full border border-purple-500/10 dark:border-purple-400/10"></div>
+          <div className="absolute inset-0 rounded-full border border-primary/15"></div>
 
           <svg
-            className="absolute inset-0 w-full h-full animate-spin text-purple-600 dark:text-purple-500"
+            className="absolute inset-0 w-full h-full animate-spin text-primary"
             viewBox="0 0 100 100"
             style={{ animationDuration: '1.2s' }}
           >

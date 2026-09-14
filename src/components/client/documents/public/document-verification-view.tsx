@@ -21,11 +21,11 @@ export function DocumentVerificationView({ document, token }: Props) {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen bg-background">
             <PublicDocumentHeader token={token} documentNumber={document.number} />
 
             <main className="container mx-auto px-4 py-8 max-w-3xl">
-                <div className="bg-white rounded-lg shadow-sm border p-6 md:p-8 space-y-8">
+                <div className="bg-card rounded-lg shadow-sm border p-6 md:p-8 space-y-8">
                     {/* Payment Status Badge */}
                     <div className="flex justify-end">
                         <Badge
@@ -103,7 +103,7 @@ export function DocumentVerificationView({ document, token }: Props) {
                             <p className="text-sm text-muted-foreground uppercase">
                                 VALOR TOTAL
                             </p>
-                            <p className="text-3xl font-bold text-purple-600">
+                            <p className="text-3xl font-bold text-primary">
                                 {formatCurrency(document.total)}
                             </p>
                         </div>

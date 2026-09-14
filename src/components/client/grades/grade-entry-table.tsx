@@ -57,20 +57,20 @@ export function GradeEntryTable({
     }
     if (score >= 10) {
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-100 text-emerald-800 dark:bg-emerald-950/40 dark:text-emerald-300">
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-success-border bg-success-muted text-success">
           {score.toFixed(1)} ✓
         </span>
       );
     }
     if (score >= 7.0) {
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-amber-100 text-amber-800 dark:bg-amber-950/40 dark:text-amber-300">
+        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-warning-border bg-warning-muted text-warning">
           {score.toFixed(1)} (Rec.)
         </span>
       );
     }
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300">
+      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-destructive-border bg-destructive-muted text-destructive">
         {score.toFixed(1)} ✗
       </span>
     );
@@ -84,10 +84,10 @@ export function GradeEntryTable({
           <div
             className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
               isPautaClosed
-                ? "bg-purple-100 text-purple-700 dark:bg-purple-950/50"
+                ? "bg-primary/10 text-primary border border-primary/20"
                 : sheet.isLocked
-                ? "bg-amber-100 text-amber-700 dark:bg-amber-950/50"
-                : "bg-emerald-100 text-emerald-700 dark:bg-emerald-950/50"
+                ? "bg-warning-muted text-warning border border-warning-border"
+                : "bg-success-muted text-success border border-success-border"
             }`}
           >
             <Icon
@@ -147,7 +147,7 @@ export function GradeEntryTable({
           )}
 
           {isPautaClosed && (
-            <span className="text-[11px] text-purple-600 dark:text-purple-400 font-medium flex items-center gap-1">
+            <span className="text-[11px] text-primary font-medium flex items-center gap-1">
               <Icon name="ShieldAlert" className="h-3.5 w-3.5" />
               Imutável (Fecho Geral Homologado)
             </span>
@@ -162,13 +162,13 @@ export function GradeEntryTable({
             <tr className="border-b bg-muted/50 text-muted-foreground uppercase text-[10px] tracking-wider">
               <th className="py-3 px-3 w-10 text-center">N.º</th>
               <th className="py-3 px-3 min-w-[200px]">Nome do Estudante</th>
-              <th className="py-3 px-3 text-center w-28 bg-blue-50/40 dark:bg-blue-950/20">
+              <th className="py-3 px-3 text-center w-28 bg-info-muted/30">
                 <div className="font-medium text-foreground">MAC</div>
                 <span className="text-[9px] font-normal text-muted-foreground">
                   Avaliação Contínua
                 </span>
               </th>
-              <th className="py-3 px-3 text-center w-28 bg-blue-50/40 dark:bg-blue-950/20">
+              <th className="py-3 px-3 text-center w-28 bg-info-muted/30">
                 <div className="font-medium text-foreground">NPP</div>
                 <span className="text-[9px] font-normal text-muted-foreground">
                   Prova do Professor
@@ -180,7 +180,7 @@ export function GradeEntryTable({
                   (MAC + NPP)/2
                 </span>
               </th>
-              <th className="py-3 px-3 text-center w-28 bg-indigo-50/40 dark:bg-indigo-950/20">
+              <th className="py-3 px-3 text-center w-28 bg-primary/5">
                 <div className="font-medium text-foreground">NPT</div>
                 <span className="text-[9px] font-normal text-muted-foreground">
                   Prova Trimestral
@@ -215,7 +215,7 @@ export function GradeEntryTable({
                   </td>
 
                   {/* Input MAC */}
-                  <td className="py-2 px-2 text-center bg-blue-50/20 dark:bg-blue-950/10">
+                  <td className="py-2 px-2 text-center bg-info-muted/15">
                     <input
                       type="number"
                       step="0.1"
@@ -236,7 +236,7 @@ export function GradeEntryTable({
                   </td>
 
                   {/* Input NPP */}
-                  <td className="py-2 px-2 text-center bg-blue-50/20 dark:bg-blue-950/10">
+                  <td className="py-2 px-2 text-center bg-info-muted/15">
                     <input
                       type="number"
                       step="0.1"
@@ -264,7 +264,7 @@ export function GradeEntryTable({
                   </td>
 
                   {/* Input NPT */}
-                  <td className="py-2 px-2 text-center bg-indigo-50/20 dark:bg-indigo-950/10">
+                  <td className="py-2 px-2 text-center bg-primary/5">
                     <input
                       type="number"
                       step="0.1"
@@ -304,7 +304,7 @@ export function GradeEntryTable({
 
       {/* Nota de Rodapé Legal MED */}
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground px-1">
-        <Icon name="Info" className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+        <Icon name="Info" className="h-3.5 w-3.5 text-info shrink-0" />
         <span>
           <strong>Fórmulas do Decreto Executivo n.º 424/25:</strong> MAS = (MAC + NPP) / 2 • MT = (2 × MAS + NPT) / 3. Aprovação requer MT ≥ 10.0 valores.
         </span>

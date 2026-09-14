@@ -18,7 +18,7 @@ import { InvoiceReceiptFormData, InvoiceReceiptSchema } from "@/schemas";
 import { useCreateInvoiceReceipt, useInvoiceTotals, useNifFormVerification } from "@/hooks";
 import { AsyncCreatableSelectField } from "@/components/common/input-fetch/async-select";
 import { useClientSelection } from "@/hooks/invoice";
-import { currentStoreStore, useAuthStore, useModal } from "@/stores";
+import { useAuthStore, useModal, useMultiSchoolStore } from "@/stores";
 import { paymentMethods } from "@/constants";
 import { InvoiceItems } from "../document-forms/items";
 import { isSelectableClient } from "@/utils";
@@ -66,7 +66,7 @@ export function InvoiceReceiptForm() {
   const { handleClientChange, selectedClient, setSelectedClient } =
     useClientSelection(setValue);
   const { openModal } = useModal();
-  const { currentStore } = currentStoreStore();
+  const { selectedUnitId, units } = useMultiSchoolStore();
   const clientTaxNumber = watch("client.taxNumber") || "";
   const { handleStatusChange, handleVerified } = useNifFormVerification({
     setValue,
@@ -143,7 +143,7 @@ export function InvoiceReceiptForm() {
             ? {
               name: "Consumidor Final",
               taxNumber: "999999999",
-              address: currentStore?.address || "Loja",
+              address: units.find(u => u.id === selectedUnitId)?.address || "Escola",
             }
             : {
               name: data.client.name as string,
@@ -182,8 +182,7 @@ export function InvoiceReceiptForm() {
           currencyCode: data.currencyCode,
           notes: data.notes || undefined,
           paymentMethod: data.paymentMethod, // This remains but selector was removed by user, default is 'CASH'
-          ...(isManagerOrOwner &&
-            currentStore?.id && { storeId: currentStore?.id }),
+          ...(selectedUnitId && { storeId: selectedUnitId }),
         };
 
         const response = await createInvoiceReceipt(finalPayload);

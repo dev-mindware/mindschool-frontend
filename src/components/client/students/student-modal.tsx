@@ -4,16 +4,16 @@ import React, { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Student, StudentGender, IdDocumentType } from "@/types";
+import { Student } from "@/types";
 import { useSchoolDataStore } from "@/stores/school/school-data-store";
-import {
-  GlobalModal,
-  Input,
-  SelectField,
-  Button,
-  ButtonSubmit,
-} from "@/components";
+import { GlobalModal, Button, ButtonSubmit } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import {
+  StudentIdentificationFields,
+  StudentFormValues,
+} from "./student-identification-fields";
+import { StudentAcademicFields } from "./student-academic-fields";
+import { StudentGuardianFields } from "./student-guardian-fields";
 
 const studentFormSchema = z.object({
   fullName: z.string().trim().min(3, "O nome deve ter pelo menos 3 caracteres"),
@@ -29,8 +29,6 @@ const studentFormSchema = z.object({
   guardianPhone: z.string().trim().min(9, "Contacto deve ter pelo menos 9 dígitos"),
   guardianRelationship: z.string().min(1, "Selecione o grau de parentesco"),
 });
-
-type StudentFormValues = z.infer<typeof studentFormSchema>;
 
 interface StudentModalProps {
   isOpen: boolean;
@@ -167,31 +165,6 @@ export function StudentModal({
     }
   };
 
-  const sectionOptions = sections.map((sec) => ({
-    value: sec.id,
-    label: `${sec.name} (${sec.shift === "MORNING" ? "Manhã" : "Tarde"})`,
-  }));
-
-  const genderOptions = [
-    { value: "MALE", label: "Masculino" },
-    { value: "FEMALE", label: "Feminino" },
-  ];
-
-  const docTypeOptions = [
-    { value: "IDENTITY_CARD", label: "Bilhete de Identidade (BI)" },
-    { value: "BIRTH_CERTIFICATE", label: "Cédula / Assento de Nascimento" },
-    { value: "PASSPORT", label: "Passaporte" },
-  ];
-
-  const relationshipOptions = [
-    { value: "Pai", label: "Pai" },
-    { value: "Mãe", label: "Mãe" },
-    { value: "Tio/Tia", label: "Tio(a)" },
-    { value: "Avô/Avó", label: "Avô(ó)" },
-    { value: "Tutor Legal", label: "Tutor Legal" },
-    { value: "Outro", label: "Outro" },
-  ];
-
   return (
     <GlobalModal
       isOpen={isOpen}
@@ -202,125 +175,29 @@ export function StudentModal({
       className="!max-h-[85vh] !w-full sm:!max-w-2xl overflow-y-auto"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-2">
-        {/* Secção 1: Identificação Pessoal */}
-        <div className="space-y-3">
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            1. Identificação do Aluno
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <Input
-                label="Nome Completo do Estudante *"
-                startIcon="User"
-                placeholder="Ex: Manuel António da Silva"
-                {...register("fullName")}
-                error={errors.fullName?.message}
-              />
-            </div>
+        <StudentIdentificationFields
+          register={register}
+          errors={errors}
+          selectedGender={selectedGender}
+          selectedDocType={selectedDocType}
+          setValue={setValue}
+        />
 
-            <SelectField
-              label="Género *"
-              value={selectedGender}
-              options={genderOptions}
-              onValueChange={(val) => setValue("gender", val as StudentGender)}
-            />
+        <StudentAcademicFields
+          register={register}
+          errors={errors}
+          selectedSectionId={selectedSectionId}
+          sections={sections}
+          setValue={setValue}
+        />
 
-            <Input
-              type="date"
-              label="Data de Nascimento *"
-              startIcon="Calendar"
-              {...register("birthDate")}
-              error={errors.birthDate?.message}
-            />
+        <StudentGuardianFields
+          register={register}
+          errors={errors}
+          selectedRelationship={selectedRelationship}
+          setValue={setValue}
+        />
 
-            <SelectField
-              label="Tipo de Documento *"
-              value={selectedDocType}
-              options={docTypeOptions}
-              onValueChange={(val) => setValue("idDocumentType", val as IdDocumentType)}
-            />
-
-            <Input
-              label="Número do Documento *"
-              startIcon="CreditCard"
-              placeholder="Ex: 007849302LA042"
-              {...register("idDocumentNumber")}
-              error={errors.idDocumentNumber?.message}
-            />
-          </div>
-        </div>
-
-        {/* Secção 2: Localização e Turma */}
-        <div className="space-y-3">
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            2. Localização & Matrícula
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="sm:col-span-2">
-              <Input
-                label="Endereço de Residência *"
-                startIcon="MapPin"
-                placeholder="Ex: Bairro Maculusso, Rua 3, Casa 45"
-                {...register("address")}
-                error={errors.address?.message}
-              />
-            </div>
-
-            <Input
-              label="Município / Cidade"
-              startIcon="Building2"
-              placeholder="Luanda"
-              {...register("city")}
-              error={errors.city?.message}
-            />
-
-            <SelectField
-              label="Turma de Ingresso *"
-              value={selectedSectionId}
-              options={sectionOptions}
-              placeholder="Selecione a turma..."
-              onValueChange={(val) => setValue("sectionId", val)}
-            />
-          </div>
-        </div>
-
-        {/* Secção 3: Encarregado de Educação */}
-        <div className="space-y-3">
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            3. Encarregado de Educação
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-            <div className="sm:col-span-3">
-              <Input
-                label="Nome do Encarregado *"
-                startIcon="User"
-                placeholder="Ex: Domingos da Silva"
-                {...register("guardianName")}
-                error={errors.guardianName?.message}
-              />
-            </div>
-
-            <Input
-              label="Telefone Principal *"
-              startIcon="Phone"
-              placeholder="9xxxxxxxx"
-              maxLength={9}
-              {...register("guardianPhone")}
-              error={errors.guardianPhone?.message}
-            />
-
-            <div className="sm:col-span-2">
-              <SelectField
-                label="Grau de Parentesco *"
-                value={selectedRelationship}
-                options={relationshipOptions}
-                onValueChange={(val) => setValue("guardianRelationship", val)}
-              />
-            </div>
-          </div>
-        </div>
-
-        {/* Botões de Ação no Padrão MindGest */}
         <div className="flex justify-end gap-4 pt-4 border-t">
           <Button type="button" variant="outline" onClick={onClose}>
             Cancelar

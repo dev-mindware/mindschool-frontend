@@ -96,7 +96,7 @@ export function StudentHealthDirectoryView({
                       <h4 className="font-semibold text-sm text-foreground">
                         {profile.studentName}
                       </h4>
-                      <Badge variant="outline" className="font-mono text-[10px] font-bold">
+                      <Badge variant="outline" className="font-mono text-[10px] font-medium">
                         🩸 {profile.bloodType}
                       </Badge>
                     </div>

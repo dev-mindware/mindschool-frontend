@@ -9,7 +9,6 @@ import {
   Badge,
   Button,
   Icon,
-  ItemPaginationControls,
   TitleList,
 } from "@/components";
 import { useModal } from "@/stores";
@@ -161,18 +160,6 @@ export function AccessControlContent() {
               goToNextPage={goToNextPage}
               goToPreviousPage={goToPreviousPage}
               emptyMessage="Nenhum registo de auditoria encontrado"
-            />
-          </div>
-        )}
-
-        {totalPages > 1 && (
-          <div className="mt-6 flex justify-center">
-            <ItemPaginationControls
-              page={page}
-              setPage={setPage}
-              totalPages={totalPages}
-              goToNextPage={goToNextPage}
-              goToPreviousPage={goToPreviousPage}
             />
           </div>
         )}

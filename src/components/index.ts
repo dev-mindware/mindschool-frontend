@@ -6,5 +6,4 @@ export * from "./custom";
 export * from "./auth";
 export * from "./client";
 export * from "./shared";
-export * from "./client/pos";
 export * from "./guards";

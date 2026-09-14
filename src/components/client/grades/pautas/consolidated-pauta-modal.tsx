@@ -56,12 +56,8 @@ export function ConsolidatedPautaModal({
                 Pauta Consolidada Trimestral — {pauta.sectionName}
               </h3>
               <Badge
-                variant={pauta.isClosed ? "default" : "outline"}
-                className={`text-xs ${
-                  pauta.isClosed
-                    ? "bg-purple-600 text-white"
-                    : "border-amber-400 text-amber-700 bg-amber-50 dark:bg-amber-950/20"
-                }`}
+                variant={pauta.isClosed ? "default" : "warning"}
+                className="text-xs"
               >
                 {pauta.isClosed ? "Fechada e Homologada" : "Em Elaboração"}
               </Badge>
@@ -85,7 +81,7 @@ export function ConsolidatedPautaModal({
           </div>
           <div>
             <span className="text-muted-foreground">Taxa de Aproveitamento:</span>
-            <p className="text-base font-bold text-emerald-600 dark:text-emerald-400">
+            <p className="text-base font-bold text-success">
               {pauta.approvalRate.toFixed(1)}%
             </p>
           </div>
@@ -94,8 +90,8 @@ export function ConsolidatedPautaModal({
             <p
               className={`text-base font-bold ${
                 pauta.missingGradesCount === 0
-                  ? "text-emerald-600 dark:text-emerald-400"
-                  : "text-red-600 dark:text-red-400"
+                  ? "text-success"
+                  : "text-destructive"
               }`}
             >
               {pauta.missingGradesCount === 0
@@ -113,9 +109,9 @@ export function ConsolidatedPautaModal({
 
         {/* Informações de Fecho e Auditoria */}
         {pauta.isClosed && pauta.closedBy && (
-          <div className="p-3 rounded-lg border border-purple-200 bg-purple-50/50 dark:border-purple-900/40 dark:bg-purple-950/20 text-xs flex items-center justify-between">
+          <div className="p-3 rounded-lg border border-primary/20 bg-primary/5 text-xs flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Icon name="Lock" className="h-4 w-4 text-purple-600" />
+              <Icon name="Lock" className="h-4 w-4 text-primary" />
               <span>
                 Pauta trancada por <strong>{pauta.closedBy}</strong> em{" "}
                 {pauta.closedAt ? new Date(pauta.closedAt).toLocaleString("pt-AO") : ""}.
@@ -126,7 +122,7 @@ export function ConsolidatedPautaModal({
                 variant="outline"
                 size="sm"
                 onClick={onOpenReopenModal}
-                className="gap-1.5 text-xs text-purple-700 border-purple-300 hover:bg-purple-100 dark:hover:bg-purple-950"
+                className="gap-1.5 text-xs text-primary border-primary/30 hover:bg-primary/10"
               >
                 <Icon name="RotateCcw" className="h-3.5 w-3.5" />
                 Reabrir Pauta (Auditoria)
@@ -204,10 +200,10 @@ export function ConsolidatedPautaModal({
                             <span
                               className={`font-medium ${
                                 mt >= 10
-                                  ? "text-emerald-700 dark:text-emerald-400"
+                                  ? "text-success"
                                   : mt >= 7
-                                  ? "text-amber-700 dark:text-amber-400"
-                                  : "text-red-600 dark:text-red-400"
+                                  ? "text-warning"
+                                  : "text-destructive"
                               }`}
                             >
                               {mt.toFixed(1)}
@@ -229,25 +225,25 @@ export function ConsolidatedPautaModal({
                     {/* Número de Deficiências (<10 val) */}
                     <td className="py-2.5 px-3 text-center border-l border-border">
                       {student.failedSubjectsCount > 0 ? (
-                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium bg-red-100 text-red-800 dark:bg-red-950/40 dark:text-red-300">
+                        <span className="inline-flex items-center px-2 py-0.5 rounded text-[11px] font-medium border border-destructive-border bg-destructive-muted text-destructive">
                           {student.failedSubjectsCount} disc.
                         </span>
                       ) : (
-                        <span className="text-emerald-600 font-medium">0</span>
+                        <span className="text-success font-medium">0</span>
                       )}
                     </td>
 
                     {/* Deliberação Proposta */}
                     <td className="py-2.5 px-3 text-center border-l border-border">
                       {student.transitionStatus === "APPROVED" && (
-                        <Badge variant="default" className="text-[10px] bg-emerald-600 text-white">
+                        <Badge variant="success" className="text-[10px]">
                           Aprovado
                         </Badge>
                       )}
                       {student.transitionStatus === "APPROVED_WITH_CONDITIONS" && (
                         <Badge
-                          variant="outline"
-                          className="text-[10px] border-blue-400 text-blue-700 bg-blue-50 dark:bg-blue-950/30"
+                          variant="info"
+                          className="text-[10px]"
                           title={student.exceptionApplied}
                         >
                           Excepção 7ª/8ª
@@ -255,8 +251,8 @@ export function ConsolidatedPautaModal({
                       )}
                       {student.transitionStatus === "RECOVERY_EXAM" && (
                         <Badge
-                          variant="outline"
-                          className="text-[10px] border-amber-400 text-amber-700 bg-amber-50 dark:bg-amber-950/30"
+                          variant="warning"
+                          className="text-[10px]"
                         >
                           Recurso
                         </Badge>
@@ -289,7 +285,7 @@ export function ConsolidatedPautaModal({
                 variant="default"
                 size="sm"
                 onClick={onOpenLockModal}
-                className="gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium"
+                className="gap-2 font-medium"
               >
                 <Icon name="Lock" className="h-4 w-4" />
                 Homologar & Fechar Pauta

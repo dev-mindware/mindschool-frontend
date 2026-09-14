@@ -242,3 +242,35 @@ export const ROLE_MODULE_PERMISSIONS: Record<
     tuition: ["create", "read", "update"],
   },
 };
+
+/**
+ * Checks if a user has one of the allowed roles.
+ */
+export function hasRole(userRole: Role | undefined | null, allowedRoles?: readonly Role[]): boolean {
+  if (!userRole) return false;
+  if (!allowedRoles || allowedRoles.length === 0) return true;
+  return allowedRoles.includes(userRole);
+}
+
+/**
+ * Checks if a user role has permission to execute an action on a module.
+ */
+export function hasModulePermission(
+  role: Role | undefined | null,
+  module?: AppModule,
+  action: PermissionAction = "read"
+): boolean {
+  if (!role) return false;
+  if (!module) return true;
+  const permissions = ROLE_MODULE_PERMISSIONS[role]?.[module];
+  if (!permissions) return false;
+  return permissions.includes(action);
+}
+
+/**
+ * Returns human-readable label for a role.
+ */
+export function getRoleLabel(role: Role): string {
+  return ROLE_LABELS[role] || role;
+}
+

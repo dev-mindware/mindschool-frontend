@@ -11,7 +11,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button, Icon } from "@/components";
 import { MIND_WEEKLY_MESSAGE_LIMIT, countWeeklyUserMessages, MIND_RETRY_ERROR_MESSAGE } from "@/constants/mind-ai";
-import { useAuthStore, currentStoreStore } from "@/stores";
+import { useAuthStore } from "@/stores";
 import { useSendChatMessage } from "@/hooks";
 import { ChatHistoryItem } from "@/types";
 import { ProtectedAction } from "@/components/guards";
@@ -114,7 +114,6 @@ export function ChatbotSheet() {
   const isFirstCycleRef = useRef(true);
 
   const user = useAuthStore((state) => state.user);
-  const { currentStore } = currentStoreStore();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
   // Deteta de forma segura a preferência de acessibilidade "reduced motion" no client-side
@@ -383,7 +382,7 @@ export function ChatbotSheet() {
         sessionId,
         companyId: user.company.id,
         userId: user.id,
-        storeId: currentStore?.id ?? user.store?.id ?? null,
+        storeId: user.store?.id ?? null,
         role: user.role,
         history: historyPayload,
       },

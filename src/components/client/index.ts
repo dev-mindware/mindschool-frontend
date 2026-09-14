@@ -16,10 +16,7 @@ export * from "./teachers-attendance";
 export * from "./plans";
 export * from "./subscription";
 
-// Legacy & Shared Modules
 export * from "./documents";
-export * from "./items";
-export * from "./categories";
-export * from "./entities";
-export * from "./pos";
-export * from "./suppliers";
+export * from "./tuition";
+export * from "./settings";
+

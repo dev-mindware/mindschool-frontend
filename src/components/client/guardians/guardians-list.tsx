@@ -88,14 +88,14 @@ export function GuardiansList({
       header: "Canal Preferencial",
       render: (_, item) => {
         const channelMap = {
-          WHATSAPP: { label: "WhatsApp", variant: "default" as const, color: "bg-emerald-500/10 text-emerald-700 border-emerald-300 dark:text-emerald-300" },
-          SMS: { label: "SMS", variant: "secondary" as const, color: "bg-blue-500/10 text-blue-700 border-blue-300 dark:text-blue-300" },
-          EMAIL: { label: "E-mail", variant: "outline" as const, color: "bg-purple-500/10 text-purple-700 border-purple-300 dark:text-purple-300" },
-          PHONE_CALL: { label: "Chamada", variant: "outline" as const, color: "bg-zinc-500/10 text-zinc-700 border-zinc-300 dark:text-zinc-300" },
+          WHATSAPP: { label: "WhatsApp", variant: "success" as const },
+          SMS: { label: "SMS", variant: "info" as const },
+          EMAIL: { label: "E-mail", variant: "default" as const },
+          PHONE_CALL: { label: "Chamada", variant: "secondary" as const },
         };
         const conf = channelMap[item.preferredContactChannel] || channelMap.SMS;
         return (
-          <Badge variant="outline" className={`text-xs font-medium border ${conf.color}`}>
+          <Badge variant={conf.variant} className="text-xs font-medium">
             {conf.label}
           </Badge>
         );

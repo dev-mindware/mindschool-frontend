@@ -37,7 +37,7 @@ export function FleetManagementView() {
             >
               <div className="flex items-start justify-between">
                 <div>
-                  <Badge variant="outline" className="font-mono text-xs font-bold">
+                  <Badge variant="outline" className="font-mono text-xs font-medium">
                     {veh.plateNumber}
                   </Badge>
                   <h4 className="font-semibold text-sm text-foreground mt-1">
@@ -72,7 +72,7 @@ export function FleetManagementView() {
               <div className="space-y-1 text-xs">
                 <div className="flex items-center justify-between text-[11px]">
                   <span className="text-muted-foreground">Inspecção Técnica:</span>
-                  <span className={`font-mono ${isInspectionSoon ? "text-amber-600 font-bold" : "text-foreground"}`}>
+                  <span className={`font-mono ${isInspectionSoon ? "text-amber-600 font-medium" : "text-foreground"}`}>
                     {veh.inspectionExpiryDate}
                   </span>
                 </div>

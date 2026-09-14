@@ -129,7 +129,7 @@ const INITIAL_ENTRIES: ClassScheduleEntry[] = [
     slotNumber: 1,
     subjectId: "sub-4",
     subjectName: "Química",
-    subjectColor: "bg-purple-500/15 border-purple-500/30 text-purple-800",
+    subjectColor: "bg-primary/15 border-primary/30 text-primary",
     teacherId: "tea-4",
     teacherName: "Profª. Maria Afonso",
     roomId: "room-lab1",

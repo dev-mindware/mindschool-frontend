@@ -1,14 +1,14 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { invoiceService, invoiceReceiptService } from "@/services";
-import { InvoicePayload, InvoiceResponse } from "@/types";
+import { invoiceReceiptService } from "@/services";
+import { InvoiceResponse, InvoiceReceiptPayload } from "@/types";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 
-type ConversionType = "invoice" | "invoice-receipt";
+type ConversionType = "invoice-receipt";
 
 function mapItems(
   items: InvoiceResponse["items"],
   defaultType: "PRODUCT" | "SERVICE" = "PRODUCT",
-): InvoicePayload["items"] {
+): InvoiceReceiptPayload["items"] {
   return items.map((item) => {
     const itemPrice = Number(item.unitPrice ?? item.price ?? 0);
     const taxId = item.taxId || item.item?.taxId || undefined;
@@ -31,7 +31,7 @@ function mapItems(
   });
 }
 
-async function createDocument(type: ConversionType, proforma: InvoiceResponse) {
+async function createDocument(proforma: InvoiceResponse) {
   const issueDate = new Date().toISOString();
   const client = proforma.client?.id
     ? { id: proforma.client.id }
@@ -39,6 +39,7 @@ async function createDocument(type: ConversionType, proforma: InvoiceResponse) {
         name: proforma.client?.name ?? "",
         phone: proforma.client?.phone ?? undefined,
         address: proforma.client?.address ?? undefined,
+        email: proforma.client?.email ?? undefined,
       };
 
   const total = Number(proforma.total);
@@ -46,12 +47,11 @@ async function createDocument(type: ConversionType, proforma: InvoiceResponse) {
   const discountAmount = Number(proforma.discountAmount || 0);
   const retentionAmount = Number((proforma as any).retentionAmount || 0);
 
-  // Calculate subtotal accurately if not explicitly present on the proforma object
   const subtotal = Number(
     proforma.subtotal ?? (total - taxAmount + discountAmount + retentionAmount)
   );
 
-  const basePayload = {
+  const basePayload: InvoiceReceiptPayload = {
     issueDate,
     client,
     items: mapItems(proforma.items),
@@ -60,15 +60,8 @@ async function createDocument(type: ConversionType, proforma: InvoiceResponse) {
     taxAmount: taxAmount,
     discountAmount: discountAmount,
     retentionAmount: retentionAmount,
-    notes: proforma.notes || undefined,
+    storeId: proforma.storeId ?? undefined,
   };
-
-  if (type === "invoice") {
-    return invoiceService.createInvoice({
-      ...basePayload,
-      dueDate: issueDate,
-    });
-  }
 
   return invoiceReceiptService.createInvoiceReceipt(basePayload);
 }
@@ -79,22 +72,18 @@ export function useConvertProforma() {
   return useMutation({
     mutationFn: async ({
       proforma,
-      type,
     }: {
       proforma: InvoiceResponse;
-      type: ConversionType;
+      type?: ConversionType;
     }) => {
-      const res = await createDocument(type, proforma);
+      const res = await createDocument(proforma);
       const id = res.data?.id ?? res.data?.data?.id;
-      return { id, type };
+      return { id, type: "invoice-receipt" as const };
     },
-    onSuccess: (result, { type }) => {
-      const label = type === "invoice" ? "Factura" : "Factura-recibo";
-      SucessMessage(`Proforma convertida em ${label} com sucesso!`);
+    onSuccess: (result) => {
+      SucessMessage("Proforma convertida em Factura-recibo com sucesso!");
       queryClient.invalidateQueries({ queryKey: ["invoice-proforma"] });
-      queryClient.invalidateQueries({
-        queryKey: [type === "invoice" ? "invoice" : "invoice-receipt"],
-      });
+      queryClient.invalidateQueries({ queryKey: ["invoice-receipt"] });
     },
     onError: (error: any) => {
       const msg =

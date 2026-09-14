@@ -23,7 +23,7 @@ import { useState } from "react";
 import {
   ManagerAuthModal,
   MODAL_MANAGER_AUTH_ID,
-} from "@/components/client/pos";
+} from "@/components/modal";
 import { useModal } from "@/stores/modal/use-modal-store";
 
 export function InvoiceReceiptList({ storeId }: { storeId?: string }) {

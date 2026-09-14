@@ -10,4 +10,5 @@ export * from "./use-agt-actions";
 export * from "./use-submit-agt-document";
 export * from "./use-poll-agt-document";
 export * from "./use-agt-errors";
+export * from "./use-taxes";
 

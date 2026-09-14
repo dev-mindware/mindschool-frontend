@@ -6,7 +6,7 @@ import { useForm, Controller } from "react-hook-form";
 import { Button, Input, InputCurrency, RHFSelect } from "@/components";
 import { AsyncCreatableSelectField } from "@/components/common/input-fetch/async-select";
 import { PaginatedSelect } from "@/components/shared";
-import { useGetTaxes } from "@/hooks/taxes/use-taxes";
+import { useGetTaxes } from "@/hooks/agt";
 
 export interface ProductOption {
   value: string | number;

@@ -5,7 +5,7 @@ export default function SettingsPage() {
     <PageWrapper
       routePath="/settings"
       routeLabel="Definições"
-      subRoute="Configurações"
+      subRoute="Configurações Gerais"
       onboardingTourId="setup"
     >
       <DefSetup />

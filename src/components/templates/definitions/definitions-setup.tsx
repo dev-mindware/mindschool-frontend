@@ -1,45 +1,26 @@
 "use client";
 
-import { Profile } from "./contents/profile";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Icon } from "@/components";
+import { icons } from "lucide-react";
 import { Appearance } from "./contents/appearance";
 import { Notification } from "./contents/notifications";
-import { CategoriesPageContent, Icon } from "@/components";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import {
-  CollaboratorsPageContent,
-  OnboardingPreferences,
-  StoresPageContent,
-  SubscriptionInfo,
-} from "./contents";
-import { useRouter, useSearchParams } from "next/navigation";
-import { useAuth } from "@/hooks/auth";
-import { hasPlanAccess } from "@/lib/features";
-import { PlanType } from "@/types";
-import { BankPageContent } from "./contents/banks";
-import { icons } from "lucide-react";
 import { Security } from "./contents/security";
-import { AgtPageContent } from "./contents/agt";
-import {
-  SchoolInstitutionalSettings,
-  AcademicCalendarSettings,
-} from "@/components/client/settings/school";
+import { SubscriptionInfo } from "./contents/subscription-info";
+import { OnboardingPreferences } from "./contents/onboarding-preferences";
+import { SchoolInstitutionalSettings } from "@/components/client/settings/school/school-institutional-settings";
 
 interface DefSetupProps {
   disabledTabs?: string[];
 }
 
 export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
-  const { user, subscriptionStatus } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const currentTab = searchParams.get("tab");
-  const isActive = subscriptionStatus === "ACTIVE";
 
-  const currentPlan =
-    (user?.company?.subscription?.plan?.name as PlanType) || "Base";
-  const isOwner = user?.role === "OWNER";
-
-  type Tabs = {
+  type TabItem = {
     id: string;
     label: string;
     icon: keyof typeof icons;
@@ -48,22 +29,14 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
     isVisible: boolean;
   };
 
-  const allTabs: Tabs[] = [
-     {
-      id: "profile",
-      label: "Perfil",
-      icon: "User",
-      component: <Profile />,
-      category: "general",
-      isVisible: true,
-    },
+  const allTabs: TabItem[] = [
     {
       id: "appearance",
       label: "Aparência",
       icon: "Pencil",
       component: <Appearance />,
       category: "general",
-      isVisible: isActive && hasPlanAccess(currentPlan, "Smart") && isOwner,
+      isVisible: true,
     },
     {
       id: "security",
@@ -79,7 +52,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
       icon: "Bell",
       component: <Notification />,
       category: "general",
-      isVisible: isActive,
+      isVisible: true,
     },
     {
       id: "subscription",
@@ -87,7 +60,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
       icon: "CreditCard",
       component: <SubscriptionInfo />,
       category: "general",
-      isVisible: isOwner,
+      isVisible: true,
     },
     {
       id: "guides",
@@ -98,70 +71,19 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
       isVisible: true,
     },
     {
-      id: "collaborators",
-      label: "Colaboradores",
-      icon: "BriefcaseBusiness",
-      component: <CollaboratorsPageContent />,
-      category: "workplace",
-      isVisible: isActive,
-    },
-    {
-      id: "categories",
-      label: "Categorias",
-      icon: "Tag",
-      component: <CategoriesPageContent />,
-      category: "workplace",
-      isVisible: isActive,
-    },
-    {
-      id: "entities",
-      label: "Lojas",
-      icon: "Store",
-      component: <StoresPageContent />,
-      category: "workplace",
-      isVisible: isActive && isOwner,
-    },
-    {
-      id: "banks",
-      label: "Bancos",
-      icon: "Landmark",
-      component: <BankPageContent />,
-      category: "workplace",
-      isVisible: isActive,
-    },
-    {
-      id: "agt",
-      label: "AGT",
-      icon: "ShieldCheck",
-      component: <AgtPageContent />,
-      category: "workplace",
-      isVisible: isOwner,
-    },
-    {
-      id: "school",
-      label: "Colégio & MED",
+      id: "institutional",
+      label: "Instituição de Ensino",
       icon: "GraduationCap",
       component: <SchoolInstitutionalSettings />,
-      category: "workplace",
-      isVisible: true,
-    },
-    {
-      id: "calendar",
-      label: "Calendário Lectivo",
-      icon: "Calendar",
-      component: <AcademicCalendarSettings />,
       category: "workplace",
       isVisible: true,
     },
   ];
 
   const tabs = allTabs.filter((tab) => tab.isVisible);
-
   const enabledTabs = tabs.filter((tab) => !disabledTabs.includes(tab.id));
   const generalTabs = enabledTabs.filter((tab) => tab.category === "general");
-  const workplaceTabs = enabledTabs.filter(
-    (tab) => tab.category === "workplace",
-  );
+  const workplaceTabs = enabledTabs.filter((tab) => tab.category === "workplace");
 
   if (enabledTabs.length === 0) return null;
 
@@ -180,8 +102,8 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
     isDesktop: boolean = true,
   ) => {
     const baseClasses = isDesktop
-      ? "hover:bg-accent hover:text-foreground data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent relative w-full justify-start after:absolute after:inset-y-0 after:start-0 after:-ms-1 after:w-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
-      : "data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none border py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e";
+      ? "hover:bg-accent hover:text-foreground data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent relative w-full justify-start after:absolute after:inset-y-0 after:start-0 after:-ms-1 after:w-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none cursor-pointer"
+      : "data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none border py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e cursor-pointer";
 
     return (
       <TabsTrigger
@@ -198,7 +120,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
         />
         {isDesktop && (
           <p
-            className={`font-normal ${activeTab === tab.id ? "text-primary" : ""}`}
+            className={`font-normal ${activeTab === tab.id ? "text-primary font-medium" : ""}`}
           >
             {tab.label}
           </p>
@@ -208,36 +130,38 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
   };
 
   return (
-    <div data-tour="setup-layout">
+    <div data-tour="setup-layout" className="space-y-4">
       <h1 className="text-2xl font-semibold">Definições da Conta</h1>
+      
+      {/* Desktop Layout - 2 Colunas no padrão MindGest */}
       <div className="hidden md:block">
         <Tabs
           value={activeTab}
-          className="flex-row w-full mt-5"
+          className="flex flex-row w-full mt-5 gap-6 items-start"
           onValueChange={handleTabChange}
         >
-          <div className="h-screen bg-sidebar rounded-md">
-            <TabsList className="sticky top-0 flex-col gap-1 px-1 font-normal bg-transparent rounded-none w-75 text-foreground">
-              <div className="p-4 space-y-5">
+          <div className="h-fit min-h-[500px] bg-sidebar rounded-md border border-border/50">
+            <TabsList className="sticky top-0 flex-col gap-1 px-1 font-normal bg-transparent rounded-none w-72 text-foreground">
+              <div className="p-4 space-y-5 w-full">
                 {generalTabs.length > 0 && (
                   <>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide px-1">
                       Gerais
                     </p>
-                    <div data-tour="setup-general-tabs">
+                    <div data-tour="setup-general-tabs" className="space-y-1">
                       {generalTabs.map((tab) => renderTabTrigger(tab, true))}
                     </div>
                   </>
                 )}
                 {generalTabs.length > 0 && workplaceTabs.length > 0 && (
-                  <div className="h-px bg-border" />
+                  <div className="h-px bg-border my-2" />
                 )}
                 {workplaceTabs.length > 0 && (
                   <>
-                    <p className="text-xs text-muted-foreground uppercase tracking-wide">
-                      Ambiente de Trabalho
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide px-1">
+                      Ambiente Escolar
                     </p>
-                    <div data-tour="setup-workplace-tabs">
+                    <div data-tour="setup-workplace-tabs" className="space-y-1">
                       {workplaceTabs.map((tab) => renderTabTrigger(tab, true))}
                     </div>
                   </>
@@ -246,9 +170,9 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
             </TabsList>
           </div>
 
-          <div className="border rounded-md grow min-w-0 text-start" data-tour="setup-active-content">
+          <div className="border rounded-md grow min-w-0 text-start bg-card shadow-xs" data-tour="setup-active-content">
             {enabledTabs.map((tab) => (
-              <TabsContent key={tab.id} value={tab.id} className="!py-4 sm:p-6">
+              <TabsContent key={tab.id} value={tab.id} className="!py-4 sm:p-6 mt-0">
                 {tab.component}
               </TabsContent>
             ))}
@@ -256,6 +180,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
         </Tabs>
       </div>
 
+      {/* Mobile Layout - Carrossel Horizontal no padrão MindGest */}
       <div className="block mt-6 sm:mt-8 md:mt-10 md:hidden">
         <Tabs
           value={activeTab}
@@ -263,7 +188,10 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
           onValueChange={handleTabChange}
         >
           <div className="relative -mx-4 px-4 sm:mx-0 sm:px-0">
-            <TabsList className="h-auto w-full min-w-full inline-flex p-0 shadow-xs bg-background overflow-x-auto overflow-y-hidden scrollbar-hide -space-x-px rtl:space-x-reverse" data-tour="setup-general-tabs">
+            <TabsList
+              className="h-auto w-full min-w-full inline-flex p-0 shadow-xs bg-background overflow-x-auto overflow-y-hidden scrollbar-hide -space-x-px rtl:space-x-reverse"
+              data-tour="setup-general-tabs"
+            >
               {enabledTabs.map((tab) => renderTabTrigger(tab, false))}
             </TabsList>
           </div>
@@ -273,7 +201,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
               <TabsContent
                 key={tab.id}
                 value={tab.id}
-                className="focus-visible:outline-none focus-visible:ring-0"
+                className="focus-visible:outline-none focus-visible:ring-0 mt-0"
               >
                 {tab.component}
               </TabsContent>

@@ -1,18 +1,17 @@
 "use client";
+
 import { useCallback, useState, useEffect } from "react";
 import { TitleList } from "@/components/common";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui";
 import { useRouter, useSearchParams } from "next/navigation";
-import { InvoiceForm } from "./invoice-normal";
 import { InvoiceReceiptForm } from "./invoice-receipt";
 import { ProformaForm } from "./invoice-proforma";
 import { DocumentSuccessModal } from "./modals/document-success-modal";
-import { BankModal } from "@/components/templates/definitions/contents/banks/banks-modals";
 import { useAuth } from "@/hooks/auth";
 import { useModal } from "@/stores";
 import { SubscriptionStatus } from "@/types";
 
-type TabsAloweds = "invoice" | "invoice-receipt" | "proforma";
+type TabsAllowed = "invoice-receipt" | "proforma";
 
 export function AddDocuments() {
   const router = useRouter();
@@ -21,15 +20,15 @@ export function AddDocuments() {
   const { subscriptionStatus, isAuthenticating, user } = useAuth();
   const { openModal } = useModal();
 
-  const [currentTab] = useState<TabsAloweds>(() => {
-    if (current_Tab && (current_Tab === "invoice" || current_Tab === "invoice-receipt" || current_Tab === "proforma")) {
-      return current_Tab as TabsAloweds;
+  const [currentTab] = useState<TabsAllowed>(() => {
+    if (current_Tab && (current_Tab === "invoice-receipt" || current_Tab === "proforma")) {
+      return current_Tab as TabsAllowed;
     }
-    return "invoice";
+    return "invoice-receipt";
   });
 
   const handleTabChange = useCallback(
-    (value: TabsAloweds | string) => {
+    (value: TabsAllowed | string) => {
       const params = new URLSearchParams(searchParams.toString());
       params.set("tab", value);
       router.replace(`?${params.toString()}`, { scroll: false });
@@ -75,7 +74,7 @@ export function AddDocuments() {
     <div className="space-y-6">
       <TitleList
         title="Documentos"
-        suTitle="Crie documentos que ajudaram no controlo das suas atividades."
+        suTitle="Emissão de Facturas-Recibo e Facturas Proforma"
       />
 
       <Tabs
@@ -87,14 +86,10 @@ export function AddDocuments() {
           className="flex justify-center md:justify-start"
           data-tour="normal-invoice-document-type"
         >
-          <TabsTrigger value="invoice">Factura</TabsTrigger>
           <TabsTrigger value="invoice-receipt">Factura Recibo</TabsTrigger>
           <TabsTrigger value="proforma">Proforma</TabsTrigger>
         </TabsList>
 
-        <TabsContent value="invoice">
-          <InvoiceForm />
-        </TabsContent>
         <TabsContent value="invoice-receipt">
           <InvoiceReceiptForm />
         </TabsContent>
@@ -104,8 +99,6 @@ export function AddDocuments() {
       </Tabs>
 
       <DocumentSuccessModal />
-      {/* Mounted outside document forms to avoid nested <form> submitting the invoice */}
-      <BankModal action="add" />
     </div>
   );
 }

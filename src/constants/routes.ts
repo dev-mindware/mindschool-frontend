@@ -70,7 +70,6 @@ export const PRIVATE_ROUTE_PREFIXES = [
   "/reports",
   "/plans",
   "/settings",
-  "/pos",
   "/admin",
 ] as const;
 

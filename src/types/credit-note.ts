@@ -1,6 +1,4 @@
-import { Client } from "./clients";
-import { InvoiceStatus } from "./documents";
-import { PaymentMethod } from "./receipt";
+import { Client, InvoiceStatus, PaymentMethod } from "./documents";
 
 export interface InvoiceItem {
   id: string;

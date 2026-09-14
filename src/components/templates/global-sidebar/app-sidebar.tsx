@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/auth";
 import { getSidebarForUser } from "@/lib/get-sidebar-for-user";
 import { PlanType } from "@/types";
 import { usePathname } from "next/navigation";
+import { RoleSimulator } from "./role-simulator";
 
 export function AppSidebar() {
   const { user } = useAuth();
@@ -27,40 +28,12 @@ export function AppSidebar() {
     ? (user.company?.subscription?.plan?.name as PlanType)
     : undefined;
 
-  const isPosRoute = pathname.startsWith("/pos");
-
-  let baseMenuItems = [...menuItems.items];
-
-  if (isPosRoute) {
-    // Show only POS menu items
-    baseMenuItems = baseMenuItems.filter((item) => item.url.startsWith("/pos"));
-
-    // Add "Voltar ao Dashboard" link for administrative roles
-    if (
-      user.role === "OWNER" ||
-      user.role === "MANAGER" ||
-      user.role === "DIRECTOR_GENERAL" ||
-      user.role === "PEDAGOGIC_DIRECTOR"
-    ) {
-      baseMenuItems.push({
-        name: "Voltar ao Dashboard",
-        url: "/dashboard",
-        icon: <Icon name="ArrowLeft" className="w-5 h-5" />,
-        roles: [
-          "OWNER",
-          "MANAGER",
-          "DIRECTOR_GENERAL",
-          "PEDAGOGIC_DIRECTOR",
-        ],
-        minPlan: "Smart",
-      });
-    }
-  } else {
-    // Show all except POS menu items
-    baseMenuItems = baseMenuItems.filter((item) => !item.url.startsWith("/pos"));
-  }
-
-  const filteredMenu = getSidebarForUser(baseMenuItems, user.role, user.company?.subscription, plan);
+  const filteredMenu = getSidebarForUser(
+    menuItems.items,
+    user.role,
+    user.company?.subscription,
+    plan
+  );
 
   return (
     <Sidebar collapsible="icon">
@@ -71,6 +44,7 @@ export function AppSidebar() {
         <NavMenu items={filteredMenu} />
       </SidebarContent>
       <SidebarFooter>
+        <RoleSimulator />
         <UserInfo />
       </SidebarFooter>
       <SidebarRail />

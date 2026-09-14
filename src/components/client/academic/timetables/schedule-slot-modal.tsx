@@ -27,7 +27,7 @@ const AVAILABLE_SUBJECTS = [
   { id: "sub-1", name: "Matemática", color: "bg-blue-500/15 border-blue-500/30 text-blue-800" },
   { id: "sub-2", name: "Língua Portuguesa", color: "bg-emerald-500/15 border-emerald-500/30 text-emerald-800" },
   { id: "sub-3", name: "Física", color: "bg-amber-500/15 border-amber-500/30 text-amber-800" },
-  { id: "sub-4", name: "Química", color: "bg-purple-500/15 border-purple-500/30 text-purple-800" },
+  { id: "sub-4", name: "Química", color: "bg-primary/15 border-primary/30 text-primary" },
   { id: "sub-5", name: "Biologia", color: "bg-teal-500/15 border-teal-500/30 text-teal-800" },
   { id: "sub-6", name: "História", color: "bg-rose-500/15 border-rose-500/30 text-rose-800" },
   { id: "sub-7", name: "Geografia", color: "bg-indigo-500/15 border-indigo-500/30 text-indigo-800" },
@@ -142,7 +142,7 @@ export function ScheduleSlotModal({
         </DialogHeader>
 
         {conflictWarning && (
-          <div className="p-3 rounded-lg bg-rose-500/10 border border-rose-500/30 text-xs text-rose-700 flex items-start gap-2">
+          <div className="p-3 rounded-lg bg-destructive-muted border border-destructive-border text-xs text-destructive flex items-start gap-2">
             <Icon name={"CircleAlert" as any} className="w-4 h-4 shrink-0 mt-0.5" />
             <span>{conflictWarning}</span>
           </div>

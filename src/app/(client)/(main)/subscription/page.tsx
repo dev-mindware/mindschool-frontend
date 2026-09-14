@@ -1,9 +1,9 @@
-import { PageWrapper, SubscriptionInfo } from "@/components";
+import { PageWrapper, SubscriptionPageContent } from "@/components";
 
-export default function page() {
+export default function SubscriptionPage() {
   return (
     <PageWrapper subRoute="Subscrição" routeLabel="subscription">
-      <SubscriptionInfo />
+      <SubscriptionPageContent />
     </PageWrapper>
   );
 }

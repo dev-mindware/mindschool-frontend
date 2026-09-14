@@ -110,3 +110,5 @@ export function GlobalModal({
 }
 
 export * from "./subscription-modal";
+export * from "./manager-auth-modal";
+export { GlobalModal as Modal };

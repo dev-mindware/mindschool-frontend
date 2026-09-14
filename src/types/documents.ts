@@ -1,5 +1,3 @@
-import { Client } from "./clients";
-import { ItemData } from "./items";
 
 export type InvoiceStatus =
   | "DRAFT"
@@ -16,12 +14,37 @@ export type ContactInfo = {
   email?: string;
 };
 
+export type ItemData = InvoiceItem;
+
 export type CompanyInfo = {
   name?: string;
   vatNumber?: string;
   address?: string;
   contact?: ContactInfo;
 };
+
+export interface Client {
+  id?: string;
+  name: string;
+  taxNumber?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  city?: string;
+}
+
+export interface ClientSelectOption {
+  value: string | number;
+  label: string;
+  data?: {
+    id: string;
+    name: string;
+    taxNumber?: string;
+    address?: string;
+    phone?: string;
+  };
+  __isNew__?: boolean;
+}
 
 export type InvoiceItem = {
   id: string;
@@ -35,6 +58,7 @@ export type InvoiceItem = {
   taxId?: string | null;
   item?: ItemData;
   tax?: string | number;
+  type?: "PRODUCT" | "SERVICE" | string;
 };
 
 // ========================
@@ -137,6 +161,7 @@ export type InvoiceReceiptPayload = {
   storeId?: string;
   amountReceived?: number;
   change?: number;
+  notes?: string;
 };
 
 // ========================

@@ -4,12 +4,10 @@ import { useQuery } from "@tanstack/react-query";
 import { reportsService } from "@/services/reports-service";
 import type { ManagerDashboardData } from "@/types";
 import { useAuth } from "../auth/use-auth";
-import { currentStoreStore } from "@/stores";
 
 export function useManagerDashboard() {
   const { user } = useAuth();
-  const { currentStore } = currentStoreStore();
-  const storeId = currentStore?.id || user?.store?.id;
+  const storeId = user?.store?.id;
 
   const { data, isLoading, isError, refetch } = useQuery<ManagerDashboardData>({
     queryKey: ["manager-dashboard", storeId],

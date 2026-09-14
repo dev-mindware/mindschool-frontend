@@ -336,7 +336,6 @@ export const menuItems: MenuStructure = {
       roles: [
         "DIRECTOR_GENERAL",
         "FINANCIAL",
-        "SECRETARY",
         "OWNER",
         "MANAGER",
         "ADMIN",
@@ -350,7 +349,6 @@ export const menuItems: MenuStructure = {
           roles: [
             "DIRECTOR_GENERAL",
             "FINANCIAL",
-            "SECRETARY",
             "OWNER",
             "MANAGER",
             "ADMIN",

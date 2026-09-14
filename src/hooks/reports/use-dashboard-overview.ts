@@ -4,7 +4,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useQueryState } from "nuqs";
 import { reportsService } from "@/services/reports-service";
 import { useAuth } from "../auth/use-auth";
-import { currentStoreStore } from "@/stores";
+import { useMultiSchoolStore } from "@/stores";
 import type { DashboardOverview, DashboardPeriodType } from "@/types";
 
 export const DASHBOARD_PERIODS: {
@@ -177,13 +177,13 @@ const MOCK_SCHOOL_DASHBOARD_OVERVIEW: DashboardOverview = {
 
 export function useDashboardOverview() {
   const { user } = useAuth();
-  const { currentStore } = currentStoreStore();
+  const { selectedUnitId } = useMultiSchoolStore();
   const { period, setPeriod } = useDashboardPeriod();
   const isBypass = process.env.NEXT_PUBLIC_BYPASS_AUTH === "true";
 
-  // OWNER vê o consolidado da empresa; os restantes vêem o âmbito da sua loja.
+  // OWNER vê o consolidado da empresa; os restantes vêem o âmbito da sua escola.
   const isOwner = user?.role === "OWNER";
-  const storeId = isOwner ? undefined : currentStore?.id || user?.store?.id;
+  const storeId = isOwner ? undefined : selectedUnitId || user?.store?.id;
 
   const { data, isLoading, isError, refetch } = useQuery<DashboardOverview>({
     queryKey: ["dashboard-overview", period, storeId ?? "global"],

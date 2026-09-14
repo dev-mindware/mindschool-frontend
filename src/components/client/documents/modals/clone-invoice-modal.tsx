@@ -1,18 +1,18 @@
 "use client";
 import { useModal, currentInvoiceStore } from "@/stores";
 import { Button, ButtonSubmit, GlobalModal } from "@/components";
-import { useCreateInvoice } from "@/hooks/invoice";
+import { useCreateInvoiceReceipt } from "@/hooks/invoice-receipt";
 import { formatCurrency } from "@/utils";
 import { ErrorMessage } from "@/utils/messages";
 import { FormEvent } from "react";
-import { InvoiceResponse, InvoicePayload } from "@/types";
+import { InvoiceResponse, InvoiceReceiptPayload } from "@/types";
 
 export const MODAL_CLONE_INVOICE_ID = "clone-invoice";
 
-/** Mapeia os itens de uma InvoiceResponse para o payload aceite pela API.
+/** Mapeia os itens de uma InvoiceResponse para o payload de factura-recibo.
  *  - Se o item veio do catálogo (tem itemsId) → envia apenas id + quantity.
  *  - Caso contrário → envia os dados inline (name, price, quantity, type). */
-function mapInvoiceItems(items: InvoiceResponse["items"]): InvoicePayload["items"] {
+function mapInvoiceItems(items: InvoiceResponse["items"]): InvoiceReceiptPayload["items"] {
   return items.map((item) => {
     if (item.itemsId) {
       return { id: item.itemsId, quantity: item.quantity };
@@ -30,33 +30,29 @@ export function CloneInvoiceModal() {
   const { closeModal, open } = useModal();
   const isOpen = open[MODAL_CLONE_INVOICE_ID];
   const { currentInvoice } = currentInvoiceStore();
-  const { mutateAsync: createInvoice, isPending } = useCreateInvoice();
+  const { mutateAsync: createInvoiceReceipt, isPending } = useCreateInvoiceReceipt();
 
   async function handleClone(e: FormEvent) {
     e.preventDefault();
 
     if (!currentInvoice) {
-      ErrorMessage("Nenhuma factura seleccionada.");
+      ErrorMessage("Nenhuma factura-recibo seleccionada.");
       return;
     }
 
     const today = new Date().toISOString().split("T")[0];
 
-    // Resolve o cliente: preferência pelo id do objecto `client`
-    // (mais fiável que `clientId` que pode estar ausente).
-    const client: InvoicePayload["client"] = currentInvoice.client?.id
+    const client: InvoiceReceiptPayload["client"] = currentInvoice.client?.id
       ? { id: currentInvoice.client.id }
       : {
           name: currentInvoice.client?.name ?? "",
           phone: currentInvoice.client?.phone ?? undefined,
           address: currentInvoice.client?.address ?? undefined,
+          email: currentInvoice.client?.email ?? undefined,
         };
 
-    const payload: InvoicePayload = {
+    const payload: InvoiceReceiptPayload = {
       issueDate: today,
-      // A nova factura vence hoje para não ser criada com o prazo expirado.
-      // O utilizador poderá alterar depois.
-      dueDate: today,
       client,
       items: mapInvoiceItems(currentInvoice.items),
       subtotal: Number(currentInvoice.subtotal),
@@ -64,17 +60,15 @@ export function CloneInvoiceModal() {
       taxAmount: Number(currentInvoice.taxAmount),
       discountAmount: Number(currentInvoice.discountAmount),
       retentionAmount: Number(currentInvoice.receivedValue ?? 0),
-      currencyCode: currentInvoice.currencyCode,
-      notes: currentInvoice.notes ?? undefined,
       storeId: currentInvoice.storeId ?? undefined,
     };
 
     try {
-      await createInvoice(payload);
+      await createInvoiceReceipt(payload);
       closeModal(MODAL_CLONE_INVOICE_ID);
     } catch (error: any) {
       ErrorMessage(
-        error?.response?.data?.message ?? "Não foi possível duplicar a factura."
+        error?.response?.data?.message ?? "Não foi possível duplicar a factura-recibo."
       );
     }
   }
@@ -85,13 +79,13 @@ export function CloneInvoiceModal() {
     <GlobalModal
       canClose
       id={MODAL_CLONE_INVOICE_ID}
-      title="Duplicar factura"
+      title="Duplicar factura-recibo"
       className="!max-h-[85vh] !w-max"
     >
       <form onSubmit={handleClone} className="space-y-6">
         <div className="space-y-4">
           <p className="text-sm text-muted-foreground">
-            Pretende criar uma nova factura com os mesmos dados da factura{" "}
+            Pretende criar uma nova factura-recibo com os mesmos dados da factura-recibo{" "}
             <strong>#{currentInvoice?.number}</strong>?
           </p>
 
@@ -128,7 +122,7 @@ export function CloneInvoiceModal() {
             Cancelar
           </Button>
           <ButtonSubmit isLoading={isPending} className="w-max">
-            Duplicar factura
+            Duplicar factura-recibo
           </ButtonSubmit>
         </div>
       </form>

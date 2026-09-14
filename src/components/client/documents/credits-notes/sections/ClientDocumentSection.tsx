@@ -3,7 +3,7 @@
 import Link from "next/link";
 import type { UseFormRegister } from "react-hook-form";
 import type { CreditNoteFormData } from "@/schemas";
-import type { Client } from "@/types/clients";
+import type { Client } from "@/types";
 import { Button, Icon, Input } from "@/components";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CONSUMIDOR_FINAL_CLIENT } from "@/utils/credit-notes";

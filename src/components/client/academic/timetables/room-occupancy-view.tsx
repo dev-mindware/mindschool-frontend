@@ -178,7 +178,7 @@ export function RoomOccupancyView() {
                             </div>
                           </div>
                         ) : (
-                          <div className="h-14 flex items-center justify-center rounded border border-dashed border-emerald-500/20 bg-emerald-500/5 text-[11px] text-emerald-600 font-medium">
+                          <div className="h-14 flex items-center justify-center rounded border border-dashed border-success-border bg-success-muted text-[11px] text-success font-medium">
                             Disponível
                           </div>
                         )}
@@ -207,9 +207,9 @@ export function RoomOccupancyView() {
                     return (
                       <td key={day.key} className="px-2 py-2 border-r border-border last:border-r-0 align-middle">
                         {entry ? (
-                          <div className="p-2.5 rounded-lg border border-purple-500/30 bg-purple-500/10 space-y-1 shadow-2xs">
+                          <div className="p-2.5 rounded-lg border border-primary/30 bg-primary/10 space-y-1 shadow-2xs">
                             <div className="flex items-center justify-between">
-                              <span className="font-medium text-xs text-purple-700 dark:text-purple-300">
+                              <span className="font-medium text-xs text-primary">
                                 {entry.className}
                               </span>
                               <Badge variant="outline" className="text-[9px] px-1 py-0 h-4 bg-background">
@@ -224,7 +224,7 @@ export function RoomOccupancyView() {
                             </div>
                           </div>
                         ) : (
-                          <div className="h-14 flex items-center justify-center rounded border border-dashed border-emerald-500/20 bg-emerald-500/5 text-[11px] text-emerald-600 font-medium">
+                          <div className="h-14 flex items-center justify-center rounded border border-dashed border-success-border bg-success-muted text-[11px] text-success font-medium">
                             Disponível
                           </div>
                         )}

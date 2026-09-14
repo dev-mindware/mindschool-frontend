@@ -266,8 +266,8 @@ export function TeacherScheduleView() {
                     return (
                       <td key={day.key} className="px-2 py-2 border-r border-border last:border-r-0 align-middle">
                         {entry ? (
-                          <div className="p-2.5 rounded-lg border border-emerald-500/30 bg-emerald-500/10 space-y-1 shadow-2xs">
-                            <div className="font-medium text-xs text-emerald-600 dark:text-emerald-400 line-clamp-1">
+                          <div className="p-2.5 rounded-lg border border-primary/30 bg-primary/10 space-y-1 shadow-2xs">
+                            <div className="font-medium text-xs text-primary line-clamp-1">
                               {entry.subjectName}
                             </div>
                             <div className="flex items-center justify-between text-[11px] text-muted-foreground">

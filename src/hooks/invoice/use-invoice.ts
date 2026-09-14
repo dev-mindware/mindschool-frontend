@@ -2,8 +2,7 @@ import { SucessMessage } from "@/utils/messages";
 import { invoiceService } from "@/services/invoice-service";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { CreditNoteFormData } from "@/schemas";
-import { ReceiptData } from "@/types/receipt";
-import { DownloadType, InvoicePayload } from "@/types";
+import { DownloadType } from "@/types";
 import { triggerBrowserDownload } from "@/utils/donwload.file";
 
 type DownloadInvoiceProps = {
@@ -11,44 +10,6 @@ type DownloadInvoiceProps = {
   type: DownloadType;
   filename: string;
 };
-
-export function useGenerateReceipt() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: ReceiptData) => invoiceService.generateReceipt(data),
-    onSuccess: () => {
-      SucessMessage("Recibo gerado com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["invoice-receipt"] });
-      queryClient.invalidateQueries({ queryKey: ["invoice-normal"] });
-    },
-  });
-}
-
-export function useCancelInvoice() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (id: string) => invoiceService.cancelInvoice(id),
-    onSuccess: () => {
-      SucessMessage("Factura cancelada com sucesso.");
-      queryClient.invalidateQueries({ queryKey: ["invoice-normal"] });
-    },
-  });
-}
-
-export function useCreateInvoice() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: (data: InvoicePayload) => invoiceService.createInvoice(data),
-    onSuccess: (response) => {
-      SucessMessage("Factura criada com sucesso.");
-      queryClient.invalidateQueries({ queryKey: ["invoice-normal"] });
-      return response.data;
-    },
-  });
-}
 
 export function useCreateCreditNote() {
   const queryClient = useQueryClient();
@@ -58,7 +19,8 @@ export function useCreateCreditNote() {
       invoiceService.createCreditNote(id, data),
     onSuccess: () => {
       SucessMessage("Nota de crédito criada com sucesso!");
-      queryClient.invalidateQueries({ queryKey: ["invoice-normal"] });
+      queryClient.invalidateQueries({ queryKey: ["invoice-receipt"] });
+      queryClient.invalidateQueries({ queryKey: ["credit-notes"] });
     },
   });
 }
@@ -80,7 +42,8 @@ export function useAnnulationNote() {
     }) => invoiceService.annulationNote(id, reason, notes, managerBarcode),
     onSuccess: () => {
       SucessMessage("Documento anulado com sucesso.");
-      queryClient.invalidateQueries({ queryKey: ["invoice-normal"] });
+      queryClient.invalidateQueries({ queryKey: ["invoice-receipt"] });
+      queryClient.invalidateQueries({ queryKey: ["credit-notes"] });
     },
   });
 }

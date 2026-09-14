@@ -63,7 +63,7 @@ export const ItemRow = React.memo<ItemRowProps>(
             </span>
             {item.isFromAPI && (
               <span className="inline-flex items-center gap-1 text-xs text-foreground">
-                <span className="w-1.5 h-1.5 rounded-full bg-green-600" />
+                <span className="w-1.5 h-1.5 rounded-full bg-success" />
                 Do catálogo
               </span>
             )}
@@ -71,10 +71,10 @@ export const ItemRow = React.memo<ItemRowProps>(
         </td>
         <td className="px-4 py-3">
           <span
-            className={`inline-flex px-2 py-1 text-xs rounded-full ${
+            className={`inline-flex px-2 py-1 text-xs rounded-full border ${
               item.type === "PRODUCT"
-                ? "bg-blue-100 text-blue-800"
-                : "bg-purple-100 text-purple-800"
+                ? "border-info-border bg-info-muted text-info"
+                : "border-primary/30 bg-primary/10 text-primary"
             }`}
           >
             {item.type === "PRODUCT" ? "Produto" : "Serviço"}

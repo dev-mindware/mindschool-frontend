@@ -4,7 +4,7 @@ import Link from "next/link";
 
 export function MarketingCtaSection() {
     return (
-        <div className="bg-gradient-to-br from-purple-600 to-purple-800 rounded-2xl p-8 text-white">
+        <div className="bg-gradient-to-br from-primary to-primary/80 rounded-2xl p-8 text-primary-foreground">
             <p className="text-sm italic mb-4 opacity-90">
                 "Tecnologia a favor do seu crescimento."
             </p>
@@ -14,7 +14,7 @@ export function MarketingCtaSection() {
             <Link href="/auth/register">
                 <Button
                     variant="secondary"
-                    className="mt-4 bg-white text-purple-700 hover:bg-gray-100"
+                    className="mt-4 bg-background text-primary hover:bg-background/90"
                 >
                     Conheça o Mindgest
                     <ArrowRight className="w-4 h-4 ml-2" />

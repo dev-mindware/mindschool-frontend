@@ -125,7 +125,7 @@ export function TransitionsPageContent() {
       header: "Média Global",
       render: (_, item) => (
         <span
-          className={`font-bold text-sm ${
+          className={`font-medium text-sm ${
             item.termAverageTotal >= 12
               ? "text-emerald-700 dark:text-emerald-400"
               : item.termAverageTotal >= 10
@@ -150,7 +150,7 @@ export function TransitionsPageContent() {
           );
         }
         return (
-          <span className="text-xs text-red-600 dark:text-red-400 font-bold flex items-center gap-1">
+          <span className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
             <Icon name="CircleAlert" className="h-3.5 w-3.5" />
             {item.failedSubjectsCount} disciplina{item.failedSubjectsCount > 1 ? "s" : ""}
           </span>

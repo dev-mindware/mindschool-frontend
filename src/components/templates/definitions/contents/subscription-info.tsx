@@ -1,4 +1,5 @@
 "use client";
+
 import {
   Badge,
   Button,
@@ -24,14 +25,14 @@ export function SubscriptionInfo() {
     return (
       <Card className="border-dashed border-2">
         <CardHeader>
-          <CardTitle>Nenhum plano ativo</CardTitle>
+          <CardTitle>Nenhum plano activo</CardTitle>
           <CardDescription>
-            Ainda não existe uma subscrição activa.
+            A sua instituição ainda não possui uma subscrição activa do MindSchool.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <Link href="/plans">
-            <Button className="gap-2">
+            <Button className="gap-2 text-xs font-semibold">
               <Icon name="Zap" size={16} />
               Ver Planos Disponíveis
             </Button>
@@ -52,54 +53,54 @@ export function SubscriptionInfo() {
       <Card>
         <CardHeader className="flex flex-row items-center justify-between pb-2">
           <div className="space-y-1">
-            <CardTitle className="text-2xl">Plano {plan.name}</CardTitle>
-            <CardDescription>
-              Gerir os detalhes da sua subscrição.
+            <CardTitle className="text-xl font-bold">Plano {plan.name}</CardTitle>
+            <CardDescription className="text-xs">
+              Detalhes da subscrição institucional da sua instituição de ensino.
             </CardDescription>
           </div>
           <Badge
-            variant={isTrial ? "secondary" : isPending ? "pending" : "default"}
-            className="px-3 py-1"
+            variant={isTrial ? "secondary" : isPending ? "outline" : "default"}
+            className="px-3 py-1 text-xs"
           >
-            {isTrial ? "Período de Teste" : isPending ? "Pendente" : "Ativo"}
+            {isTrial ? "Período de Teste" : isPending ? "Pendente" : "Activo"}
           </Badge>
         </CardHeader>
 
         <CardContent className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             <div>
-              <p className="text-sm text-muted-foreground">Preço Mensal</p>
+              <p className="text-xs text-muted-foreground">Preço Mensal</p>
               <p className="text-2xl font-bold text-primary">
                 {formatCurrency(Number(plan.priceMonthly))}
               </p>
             </div>
 
             <div>
-              <p className="text-sm text-muted-foreground">
-                {isTrial ? "Expira em" : "Próxima facturação"}
+              <p className="text-xs text-muted-foreground">
+                {isTrial ? "Expira em" : "Próxima Facturação"}
               </p>
-              <p className="text-lg font-semibold">
+              <p className="text-sm font-semibold">
                 {endDate
                   ? format(new Date(endDate), "dd 'de' MMMM, yyyy", {
-                    locale: ptBR,
-                  })
+                      locale: ptBR,
+                    })
                   : "N/A"}
               </p>
             </div>
 
             <div>
-              <p className="text-sm text-muted-foreground">Intervalo</p>
-              <p className="text-lg font-semibold capitalize">
+              <p className="text-xs text-muted-foreground">Ciclo de Facturação</p>
+              <p className="text-sm font-semibold capitalize">
                 {subscription.billingInterval || "Mensal"}
               </p>
             </div>
           </div>
 
-          <div className="flex flex-col sm:flex-row gap-3 mt-4">
-            <Link href="/plans" className={`${isPending && "pointer-events-none"}`}>
-              <Button className="gap-2" disabled={isPending}>
+          <div className="flex flex-col sm:flex-row gap-3 pt-2">
+            <Link href="/plans">
+              <Button className="gap-2 text-xs font-semibold" disabled={isPending}>
                 <Icon name="ArrowUpToLine" size={16} />
-                Actualizar plano
+                Actualizar Plano
               </Button>
             </Link>
           </div>

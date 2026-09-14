@@ -5,8 +5,8 @@ import axios, {
 } from "axios";
 import { getAccessToken } from "@/actions/token";
 import { clearLocalSession } from "@/actions/auth";
-import { currentStoreStore } from "@/stores";
-import { redirectToLogin } from "@/lib/browser-redirect"; // ✅ NOVO
+import { redirectToLogin } from "@/lib/browser-redirect";
+import { useMultiSchoolStore } from "@/stores";
 
 // ============================================================================
 // CACHE & STATE
@@ -183,33 +183,34 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
       matchingRoute.methods.includes(currentMethod));
 
   if (shouldInject) {
-    const currentStore = currentStoreStore.getState().currentStore;
+    const currentUnitId = useMultiSchoolStore.getState().selectedUnitId;
 
-    if (currentStore?.id) {
+    if (currentUnitId) {
       // GET → injeta em params
       if (currentMethod === "get") {
         config.params = {
           ...config.params,
-          storeId: config.params?.storeId || currentStore.id,
+          schoolId: config.params?.schoolId || currentUnitId,
         };
       }
       // POST/PUT/PATCH com data objeto → injeta em data
       else if (
+        ["post", "put", "patch"].includes(currentMethod) &&
         config.data &&
         typeof config.data === "object" &&
-        !config.data.storeId
+        !(config.data instanceof FormData)
       ) {
         config.data = {
           ...config.data,
-          storeId: currentStore.id,
+          schoolId: config.data.schoolId || currentUnitId,
         };
       }
-      // POST/PUT/PATCH sem data → cria com storeId
+      // POST/PUT/PATCH sem data → cria com schoolId
       else if (
         !config.data &&
         ["post", "put", "patch"].includes(currentMethod)
       ) {
-        config.data = { storeId: currentStore.id };
+        config.data = { schoolId: currentUnitId };
       }
     }
   }

@@ -10,7 +10,7 @@ import { isInvoice } from "@/types/credit-notes-guards";
 import { mapDocumentToCreditNoteDefaults } from "@/utils/credit-notes";
 import { calculateCreditNoteCorrection } from "@/utils";
 import { ButtonSubmit } from "@/components";
-import { ManagerAuthModal, MODAL_MANAGER_AUTH_ID } from "@/components/client/pos";
+import { ManagerAuthModal, MODAL_MANAGER_AUTH_ID } from "@/components/modal";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { useAuth } from "@/hooks/auth";
 import { ErrorMessage } from "@/utils/messages";

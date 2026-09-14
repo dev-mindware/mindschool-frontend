@@ -15,41 +15,50 @@ export function AccountSecurity({ user }: AccountSecurityProps) {
   if (!user) return null;
 
   return (
-    <div>
-      <h3 className="text-2xl text-center md:text-start">Segurança da conta</h3>
-      <p className="text-center text-muted-foreground md:text-start">
-        Altere as suas configurações de segurança.
-      </p>
-      <div className="mt-4 space-y-4">
-        <div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+    <div className="space-y-4">
+      <div>
+        <h3 className="text-lg font-semibold text-foreground">Credenciais da Conta</h3>
+        <p className="text-xs text-muted-foreground">
+          Faça a gestão dos seus dados de autenticação e proteção de acesso ao MindSchool.
+        </p>
+      </div>
+
+      <div className="space-y-4 pt-2">
+        <div className="flex flex-col sm:flex-row sm:items-end gap-3 justify-between">
+          <div className="flex-1 max-w-sm">
             <Input
-              label="Email"
+              label="Email de acesso"
               disabled
               defaultValue={user.email}
-              className="w-[50%]"
+              className="h-10 text-xs bg-muted/40"
             />
-            <Button
-              className="whitespace-nowrap"
-              onClick={() => openModal("change-email")}
-            >
-              Alterar email
-            </Button>
           </div>
+          <Button
+            variant="outline"
+            className="h-10 text-xs font-medium shrink-0"
+            onClick={() => openModal("change-email")}
+          >
+            Alterar email
+          </Button>
         </div>
-        <div>
-          <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
+
+        <div className="flex flex-col sm:flex-row sm:items-end gap-3 justify-between">
+          <div className="flex-1 max-w-sm">
             <Input
               label="Palavra-passe"
               type="password"
               value="************"
               disabled
-              className="w-[50%]"
+              className="h-10 text-xs bg-muted/40 font-mono"
             />
-            <Button onClick={() => openModal("change-password")}>
-              Alterar palavra-passe
-            </Button>
           </div>
+          <Button
+            variant="outline"
+            className="h-10 text-xs font-medium shrink-0"
+            onClick={() => openModal("change-password")}
+          >
+            Alterar palavra-passe
+          </Button>
         </div>
       </div>
 

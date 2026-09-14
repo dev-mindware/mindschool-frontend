@@ -76,14 +76,14 @@ export function ClassesList({
       key: "cycle",
       header: "Ciclo",
       render: (_, item) => {
-        const cycleMap = {
-          PRIMARY: { label: "Primário", color: "bg-blue-500/10 text-blue-700 border-blue-200 dark:text-blue-300" },
-          LOWER_SECONDARY: { label: "Iº Ciclo", color: "bg-purple-500/10 text-purple-700 border-purple-200 dark:text-purple-300" },
-          UPPER_SECONDARY: { label: "IIº Ciclo / Médio", color: "bg-amber-500/10 text-amber-700 border-amber-200 dark:text-amber-300" },
+        const cycleMap: Record<string, { label: string; variant: "info" | "default" | "warning" }> = {
+          PRIMARY: { label: "Primário", variant: "info" },
+          LOWER_SECONDARY: { label: "Iº Ciclo", variant: "default" },
+          UPPER_SECONDARY: { label: "IIº Ciclo / Médio", variant: "warning" },
         };
         const conf = cycleMap[item.cycle] || cycleMap.PRIMARY;
         return (
-          <Badge variant="outline" className={`text-xs border ${conf.color}`}>
+          <Badge variant={conf.variant} className="text-xs">
             {conf.label}
           </Badge>
         );
@@ -94,9 +94,9 @@ export function ClassesList({
       header: "Turno",
       render: (_, item) => {
         const shiftMap = {
-          MORNING: { label: "Manhã", icon: "Sun", color: "text-amber-600" },
-          AFTERNOON: { label: "Tarde", icon: "Sunset", color: "text-orange-600" },
-          EVENING: { label: "Noite", icon: "Moon", color: "text-indigo-600" },
+          MORNING: { label: "Manhã", icon: "Sun", color: "text-warning" },
+          AFTERNOON: { label: "Tarde", icon: "Sunset", color: "text-warning" },
+          EVENING: { label: "Noite", icon: "Moon", color: "text-info" },
         };
         const conf = shiftMap[item.shift] || shiftMap.MORNING;
         return (
@@ -133,7 +133,7 @@ export function ClassesList({
               </span>
               <span
                 className={`font-mono text-[11px] ${
-                  isFull ? "text-rose-600 font-bold" : "text-muted-foreground"
+                  isFull ? "text-rose-600 font-medium" : "text-muted-foreground"
                 }`}
               >
                 {percent}%

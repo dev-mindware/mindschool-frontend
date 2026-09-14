@@ -1,0 +1,175 @@
+'use client';
+
+import React from 'react';
+import { GenericTable, Button, Badge, Icon } from '@/components';
+import { TeacherAttendanceLog, TeacherDayStatus } from '@/types/teacher-attendance';
+
+interface TeachersAttendanceTableProps {
+  logs: TeacherAttendanceLog[];
+  currentPage: number;
+  totalPages: number;
+  total: number;
+  onPageChange: (page: number) => void;
+  onOpenCard: (teacherId: string) => void;
+  onOpenJustify: (log: TeacherAttendanceLog) => void;
+}
+
+export function TeachersAttendanceTable({
+  logs,
+  currentPage,
+  totalPages,
+  total,
+  onPageChange,
+  onOpenCard,
+  onOpenJustify,
+}: TeachersAttendanceTableProps) {
+  const getStatusBadge = (status: TeacherDayStatus) => {
+    switch (status) {
+      case 'PRESENT':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-600 border border-emerald-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" />
+            Presente
+          </span>
+        );
+      case 'LATE':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-amber-500/10 text-amber-600 border border-amber-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+            Atrasado
+          </span>
+        );
+      case 'JUSTIFIED_ABSENCE':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-500/10 text-blue-600 border border-blue-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-blue-500" />
+            Falta Justificada
+          </span>
+        );
+      case 'ABSENT':
+        return (
+          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-rose-500/10 text-rose-600 border border-rose-500/20">
+            <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-pulse" />
+            Ausente
+          </span>
+        );
+      case 'ON_DUTY':
+        return <Badge variant="secondary" className="text-xs font-normal">Em Serviço</Badge>;
+    }
+  };
+
+  return (
+    <div className="rounded-xl border border-border bg-card shadow-xs overflow-hidden">
+      <GenericTable<TeacherAttendanceLog>
+        data={logs}
+        page={currentPage}
+        totalPages={totalPages}
+        total={total}
+        setPage={onPageChange}
+        goToNextPage={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+        goToPreviousPage={() => onPageChange(Math.max(1, currentPage - 1))}
+        columns={[
+          {
+            key: 'teacher',
+            header: 'Professor & Código',
+            render: (_, item) => (
+              <div>
+                <p className="font-medium text-foreground text-sm leading-snug">{item.teacherName}</p>
+                <p className="text-xs text-muted-foreground font-mono">{item.teacherCode} • {item.department}</p>
+              </div>
+            ),
+          },
+          {
+            key: 'checkIn',
+            header: 'Entrada (Check-In)',
+            render: (_, item) => (
+              <div className="text-xs">
+                {item.checkInTime ? (
+                  <div>
+                    <span className="font-mono font-medium text-foreground">{item.checkInTime}</span>
+                    {item.delayMinutes && item.delayMinutes > 0 ? (
+                      <p className="text-[11px] text-amber-600 font-medium">+{item.delayMinutes} min de atraso</p>
+                    ) : (
+                      <p className="text-[11px] text-emerald-600">Pontual</p>
+                    )}
+                  </div>
+                ) : (
+                  <span className="text-muted-foreground font-mono">--:--:--</span>
+                )}
+              </div>
+            ),
+          },
+          {
+            key: 'checkOut',
+            header: 'Saída (Check-Out)',
+            render: (_, item) => (
+              <div className="text-xs">
+                {item.checkOutTime ? (
+                  <div>
+                    <span className="font-mono font-medium text-foreground">{item.checkOutTime}</span>
+                    <p className="text-[11px] text-muted-foreground">{item.durationMinutes} min em serviço</p>
+                  </div>
+                ) : item.checkInTime ? (
+                  <span className="text-xs text-primary font-medium flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-primary animate-ping" />
+                    Em Aula / Turno
+                  </span>
+                ) : (
+                  <span className="text-muted-foreground font-mono">--:--:--</span>
+                )}
+              </div>
+            ),
+          },
+          {
+            key: 'classes',
+            header: 'Aulas Cumpridas',
+            render: (_, item) => (
+              <div className="text-xs font-mono">
+                <span className="font-medium text-foreground">{item.completedClassesCount}</span>
+                <span className="text-muted-foreground"> / {item.scheduledClassesCount} tempos</span>
+              </div>
+            ),
+          },
+          {
+            key: 'status',
+            header: 'Estado',
+            render: (_, item) => getStatusBadge(item.status),
+          },
+          {
+            key: 'actions',
+            header: 'Ações',
+            className: 'text-right',
+            render: (_, item) => (
+              <div className="flex items-center justify-end gap-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => onOpenCard(item.teacherId)}
+                  className="h-8 gap-1 text-xs"
+                  title="Ver Cartão Físico com QR Code"
+                >
+                  <Icon name="QrCode" className="w-3.5 h-3.5" />
+                  Cartão QR
+                </Button>
+
+                {item.status === 'ABSENT' && (
+                  <Button
+                    size="sm"
+                    variant="secondary"
+                    onClick={() => onOpenJustify(item)}
+                    className="h-8 gap-1 text-xs"
+                    title="Justificar Falta com Documento"
+                  >
+                    <Icon name="FileText" className="w-3.5 h-3.5" />
+                    Justificar
+                  </Button>
+                )}
+              </div>
+            ),
+          },
+        ]}
+        emptyMessage="Nenhum registo de assiduidade docente encontrado."
+      />
+    </div>
+  );
+}

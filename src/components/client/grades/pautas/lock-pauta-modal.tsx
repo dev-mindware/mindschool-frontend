@@ -73,7 +73,7 @@ export function LockPautaModal({
       canClose
       title={
         <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-purple-100 dark:bg-purple-950/50 flex items-center justify-center text-purple-600 shrink-0">
+          <div className="h-10 w-10 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
             <Icon name="Lock" className="h-5 w-5" />
           </div>
           <div>
@@ -91,8 +91,8 @@ export function LockPautaModal({
       <form onSubmit={handleSubmit} className="space-y-4 pt-2">
         {/* Aviso se houver notas em falta */}
         {hasMissingGrades ? (
-          <div className="p-3.5 rounded-lg border border-red-200 bg-red-50 dark:border-red-900/40 dark:bg-red-950/30 text-xs text-red-900 dark:text-red-200 space-y-1.5">
-            <div className="font-semibold flex items-center gap-1.5 text-sm text-red-700 dark:text-red-300">
+          <div className="p-3.5 rounded-lg border border-destructive-border bg-destructive-muted text-xs text-destructive space-y-1.5">
+            <div className="font-semibold flex items-center gap-1.5 text-sm text-destructive">
               <Icon name="CircleAlert" className="h-4 w-4" />
               Bloqueio de Conformidade MED (PAUTA_INCOMPLETE)
             </div>
@@ -101,8 +101,8 @@ export function LockPautaModal({
             </p>
           </div>
         ) : (
-          <div className="p-3.5 rounded-lg border border-purple-200 bg-purple-50/50 dark:border-purple-900/40 dark:bg-purple-950/30 text-xs text-purple-950 dark:text-purple-200 space-y-1.5">
-            <div className="font-semibold flex items-center gap-1.5 text-sm text-purple-800 dark:text-purple-300">
+          <div className="p-3.5 rounded-lg border border-primary/20 bg-primary/5 text-xs text-foreground space-y-1.5">
+            <div className="font-semibold flex items-center gap-1.5 text-sm text-primary">
               <Icon name="ShieldCheck" className="h-4 w-4" />
               Pronto para Homologação
             </div>
@@ -157,7 +157,7 @@ export function LockPautaModal({
 
         {/* Aviso de Imutabilidade */}
         <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-          <Icon name="Info" className="h-3.5 w-3.5 text-blue-500 shrink-0" />
+          <Icon name="Info" className="h-3.5 w-3.5 text-info shrink-0" />
           <span>
             Após o fecho, os professores titulares não poderão alterar notas. Qualquer rectificação futura exigirá justificativa auditada pelo Conselho de Notas.
           </span>
@@ -171,7 +171,7 @@ export function LockPautaModal({
           <ButtonSubmit
             isLoading={isSubmitting}
             disabled={hasMissingGrades}
-            className="gap-2 bg-purple-600 hover:bg-purple-700 text-white font-medium"
+            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
           >
             <Icon name="Lock" className="h-4 w-4" />
             Homologar e Trancar Pauta

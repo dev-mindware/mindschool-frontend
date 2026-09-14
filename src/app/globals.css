@@ -86,6 +86,29 @@ body {
   --color-primary-700: var(--primary-700);
   --color-primary-800: var(--primary-800);
   --color-primary-900: var(--primary-900);
+
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-success-muted: var(--success-muted);
+  --color-success-border: var(--success-border);
+
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-warning-muted: var(--warning-muted);
+  --color-warning-border: var(--warning-border);
+
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-info-muted: var(--info-muted);
+  --color-info-border: var(--info-border);
+
+  --color-destructive-muted: var(--destructive-muted);
+  --color-destructive-border: var(--destructive-border);
+
+  --color-special: var(--special);
+  --color-special-foreground: var(--special-foreground);
+  --color-special-muted: var(--special-muted);
+  --color-special-border: var(--special-border);
 }
 
 :root {
@@ -125,6 +148,30 @@ body {
   --accent-foreground: hsl(0 0% 10%);
 
   --destructive: hsl(0 84.2% 60.2%);
+  --destructive-foreground: #ffffff;
+  --destructive-muted: #fef2f2;
+  --destructive-border: #fecaca;
+
+  --success: #16a34a;
+  --success-foreground: #ffffff;
+  --success-muted: #f0fdf4;
+  --success-border: #bbf7d0;
+
+  --warning: #d97706;
+  --warning-foreground: #ffffff;
+  --warning-muted: #fffbeb;
+  --warning-border: #fde68a;
+
+  --info: #2563eb;
+  --info-foreground: #ffffff;
+  --info-muted: #eff6ff;
+  --info-border: #bfdbfe;
+
+  --special: #7c3aed;
+  --special-foreground: #ffffff;
+  --special-muted: #f5f3ff;
+  --special-border: #ddd6fe;
+
   --border: hsl(0 0% 91%);
   --input: hsl(0 0% 91%);
   --ring: #9956f6;
@@ -191,6 +238,28 @@ body {
 
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
+  --destructive-muted: rgba(239, 68, 68, 0.15);
+  --destructive-border: rgba(239, 68, 68, 0.30);
+
+  --success: #4ade80;
+  --success-foreground: #052e16;
+  --success-muted: rgba(74, 222, 128, 0.15);
+  --success-border: rgba(74, 222, 128, 0.30);
+
+  --warning: #fbbf24;
+  --warning-foreground: #451a03;
+  --warning-muted: rgba(251, 191, 36, 0.15);
+  --warning-border: rgba(251, 191, 36, 0.30);
+
+  --info: #60a5fa;
+  --info-foreground: #172554;
+  --info-muted: rgba(96, 165, 250, 0.15);
+  --info-border: rgba(96, 165, 250, 0.30);
+
+  --special: #c084fc;
+  --special-foreground: #3b0764;
+  --special-muted: rgba(168, 85, 247, 0.15);
+  --special-border: rgba(168, 85, 247, 0.30);
 
   --border: var(--gray-600);
   --input: var(--gray-700);

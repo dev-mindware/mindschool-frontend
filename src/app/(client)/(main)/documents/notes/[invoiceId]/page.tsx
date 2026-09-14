@@ -7,7 +7,7 @@ type PageProps = {
 
 export default async function CreditsNotes({ params, searchParams }: PageProps) {
   const { invoiceId } = await params;
-  const { invoiceType = "invoice-normal" } = await searchParams;
+  const { invoiceType = "invoice-receipt" } = await searchParams;
 
   return (
     <PageWrapper

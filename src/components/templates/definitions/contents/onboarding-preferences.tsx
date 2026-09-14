@@ -71,7 +71,7 @@ export function OnboardingPreferences() {
               <div>
                 <h3 className="font-semibold">Mostrar guias automaticamente</h3>
                 <p className="text-sm text-muted-foreground">
-                  Quando estiver ativo, cada guia aparece uma vez por utilizador e fluxo.
+                  Quando estiver activo, cada guia aparece uma vez por utilizador e fluxo.
                 </p>
               </div>
             </div>

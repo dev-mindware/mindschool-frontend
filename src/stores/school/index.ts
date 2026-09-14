@@ -17,3 +17,4 @@ export * from "./library-store";
 export * from "./health-store";
 export * from "./transport-store";
 export * from "./extracurricular-store";
+export * from "./tuition-store";

@@ -8,7 +8,7 @@ import { ProformaFormData, ProformaSchema } from "@/schemas";
 import { useCreateProforma, useEditProforma, useInvoiceTotals, useNifFormVerification } from "@/hooks";
 import { useClientSelection } from "@/hooks/invoice/use-invoice-client";
 import { AsyncCreatableSelectField } from "@/components/common/input-fetch/async-select";
-import { currentStoreStore, useAuthStore, useModal } from "@/stores";
+import { useAuthStore, useModal, useMultiSchoolStore } from "@/stores";
 import { InvoiceItems } from "../document-forms/items";
 
 import { paymentMethods } from "@/constants";
@@ -123,7 +123,7 @@ export function ProformaForm({
   const { handleClientChange, selectedClient, setSelectedClient } =
     useClientSelection(setValue);
   const { openModal } = useModal();
-  const { currentStore } = currentStoreStore();
+  const { selectedUnitId } = useMultiSchoolStore();
   const clientTaxNumber = watch("client.taxNumber") || "";
   const { handleStatusChange, handleVerified } = useNifFormVerification({
     setValue,
@@ -247,8 +247,7 @@ export function ProformaForm({
           paymentMethod: data.paymentMethod,
           ...(!isEdit ? {
             currencyCode: data.currencyCode,
-            ...(user?.role === "OWNER" &&
-              currentStore?.id && { storeId: currentStore?.id }),
+            ...(selectedUnitId && { storeId: selectedUnitId }),
           } : {}),
         };
 

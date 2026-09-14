@@ -1,5 +1,7 @@
 import { Role } from "./auth";
 
+export type ViewMode = "card" | "table";
+
 /* ========================================================================== */
 /*  MindSchool Educational Role-Adaptive Dashboard Contracts                  */
 /* ========================================================================== */

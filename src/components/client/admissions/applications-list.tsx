@@ -32,16 +32,16 @@ interface ApplicationsListProps {
 
 const STATUS_CONFIG: Record<
   string,
-  { label: string; variant: "default" | "secondary" | "destructive" | "outline"; badgeClass?: string }
+  { label: string; variant: "default" | "secondary" | "destructive" | "outline" | "success" | "warning" | "info" }
 > = {
-  SUBMITTED: { label: "Submetida", variant: "outline", badgeClass: "border-blue-500/30 bg-blue-500/10 text-blue-700 dark:text-blue-400" },
-  DOCS_VALIDATED: { label: "Docs Validados", variant: "outline", badgeClass: "border-indigo-500/30 bg-indigo-500/10 text-indigo-700 dark:text-indigo-400" },
-  UNDER_REVIEW: { label: "Em Avaliação", variant: "outline", badgeClass: "border-primary/30 bg-primary/10 text-primary" },
-  APPROVED: { label: "Aprovado", variant: "outline", badgeClass: "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400" },
-  WAITLIST: { label: "Lista de Espera", variant: "outline", badgeClass: "border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400" },
-  REJECTED: { label: "Não Admitido", variant: "outline", badgeClass: "border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400" },
-  ENROLLED: { label: "Matriculado", variant: "outline", badgeClass: "border-primary/40 bg-primary/15 text-primary font-semibold" },
-  WITHDRAWN: { label: "Desistente", variant: "outline", badgeClass: "border-muted-foreground/30 bg-muted/40 text-muted-foreground" },
+  SUBMITTED: { label: "Submetida", variant: "info" },
+  DOCS_VALIDATED: { label: "Docs Validados", variant: "info" },
+  UNDER_REVIEW: { label: "Em Avaliação", variant: "default" },
+  APPROVED: { label: "Aprovado", variant: "success" },
+  WAITLIST: { label: "Lista de Espera", variant: "warning" },
+  REJECTED: { label: "Não Admitido", variant: "destructive" },
+  ENROLLED: { label: "Matriculado", variant: "default" },
+  WITHDRAWN: { label: "Desistente", variant: "secondary" },
 };
 
 export function ApplicationsList({
@@ -132,7 +132,7 @@ export function ApplicationsList({
       render: (_, item) => {
         if (!item.requiresEntranceExam) {
           return (
-            <Badge variant="outline" className="text-[11px] border-emerald-300 text-emerald-700 bg-emerald-50/50 dark:bg-emerald-950/20">
+            <Badge variant="success" className="text-[11px]">
               Isento de Prova
             </Badge>
           );
@@ -143,10 +143,10 @@ export function ApplicationsList({
           return (
             <div className="flex flex-col gap-0.5">
               <span
-                className={`text-xs font-medium px-2 py-0.5 rounded w-fit ${
+                className={`text-xs font-medium px-2 py-0.5 rounded w-fit border ${
                   isPassed
-                    ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
-                    : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
+                    ? "border-success-border bg-success-muted text-success"
+                    : "border-destructive-border bg-destructive-muted text-destructive"
                 }`}
               >
                 {item.examScore.toFixed(1)} val. {isPassed ? "✓" : "✗"}
@@ -159,7 +159,7 @@ export function ApplicationsList({
         }
 
         return (
-          <span className="text-xs text-amber-600 dark:text-amber-400 italic flex items-center gap-1">
+          <span className="text-xs text-warning italic flex items-center gap-1">
             <Icon name="Clock" className="h-3 w-3" />
             Aguardando Nota
           </span>
@@ -180,7 +180,7 @@ export function ApplicationsList({
               href={`https://wa.me/${phoneClean.startsWith("244") ? phoneClean : `244${phoneClean}`}`}
               target="_blank"
               rel="noopener noreferrer"
-              className="text-[11px] text-emerald-600 hover:text-emerald-700 flex items-center gap-1 font-medium"
+              className="text-[11px] text-success hover:underline flex items-center gap-1 font-medium"
             >
               <Icon name="MessageSquare" className="h-3 w-3" />
               {item.guardianPhone}
@@ -199,11 +199,11 @@ export function ApplicationsList({
         };
         return (
           <div className="flex flex-col gap-1 items-start">
-            <Badge variant={cfg.variant} className={`text-xs py-0.5 ${cfg.badgeClass || ""}`}>
+            <Badge variant={cfg.variant} className="text-xs py-0.5">
               {cfg.label}
             </Badge>
             {item.status === "WAITLIST" && item.waitlistPosition && (
-              <span className="text-[10px] font-semibold text-amber-600 dark:text-amber-400">
+              <span className="text-[10px] font-semibold text-warning">
                 {item.waitlistPosition}º na fila
               </span>
             )}
@@ -229,14 +229,14 @@ export function ApplicationsList({
               }}
               className="gap-2 cursor-pointer"
             >
-              <Icon name="Eye" className="h-4 w-4 text-blue-600" />
+              <Icon name="Eye" className="h-4 w-4 text-info" />
               Ver Ficha Completa
             </DropdownMenuItem>
 
             {item.status === "SUBMITTED" && (
               <DropdownMenuItem
                 onClick={() => handleValidateDocs(item.id)}
-                className="gap-2 cursor-pointer text-indigo-600"
+                className="gap-2 cursor-pointer text-info"
               >
                 <Icon name="CircleCheck" className="h-4 w-4" />
                 Validar Documentos
@@ -249,7 +249,7 @@ export function ApplicationsList({
                   setGradingApp(item);
                   setIsGradingOpen(true);
                 }}
-                className="gap-2 cursor-pointer text-amber-600"
+                className="gap-2 cursor-pointer text-warning"
               >
                 <Icon name="PenTool" className="h-4 w-4" />
                 Lançar / Rever Nota do Exame
@@ -259,7 +259,7 @@ export function ApplicationsList({
             {item.status === "WAITLIST" && (
               <DropdownMenuItem
                 onClick={() => handlePromoteWaitlist(item.id)}
-                className="gap-2 cursor-pointer text-amber-600 font-medium"
+                className="gap-2 cursor-pointer text-warning font-medium"
               >
                 <Icon name="CircleArrowUp" className="h-4 w-4" />
                 Promover da Lista de Espera
@@ -274,7 +274,7 @@ export function ApplicationsList({
                   setDecisionApp(item);
                   setIsDecisionOpen(true);
                 }}
-                className="gap-2 cursor-pointer text-purple-600 font-medium"
+                className="gap-2 cursor-pointer text-primary font-medium"
               >
                 <Icon name="Stamp" className="h-4 w-4" />
                 Despacho da Direção
@@ -289,7 +289,7 @@ export function ApplicationsList({
                     setEnrollingApp(item);
                     setIsEnrollingOpen(true);
                   }}
-                  className="gap-2 cursor-pointer text-emerald-600 font-semibold bg-emerald-50/50 dark:bg-emerald-950/20"
+                  className="gap-2 cursor-pointer text-success font-semibold bg-success-muted"
                 >
                   <Icon name="UserPlus" className="h-4 w-4" />
                   Efetivar Matrícula (1 Clique)
