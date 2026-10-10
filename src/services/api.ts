@@ -6,7 +6,7 @@ import axios, {
 import { getAccessToken } from "@/actions/token";
 import { clearLocalSession } from "@/actions/auth";
 import { redirectToLogin } from "@/lib/browser-redirect";
-import { useMultiSchoolStore } from "@/stores";
+import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 
 // ============================================================================
 // CACHE & STATE
@@ -63,37 +63,6 @@ const AUTH_CRITICAL_ROUTES = [
   "/api/auth/refresh",
 ] as const;
 
-// Rotas que requerem injeção de storeId
-const STORE_DEPENDENT_ROUTES: (
-  | string
-  | { path: string; methods: string[] }
-)[] = [
-    { path: "invoice", methods: ["get", "post"] },
-    "items",
-    { path: "stocks", methods: ["get"] },
-    { path: "cash-sessions", methods: ["get", "post"] },
-    "reports/dashboard",
-    { path: "reports/export", methods: ["get"] },
-    "receipt",
-    "documents",
-    "dashboard",
-    "stock-reservations",
-    { path: "credit-note", methods: ["get"] },
-    { path: "categories", methods: ["get", "post"] },
-  ];
-
-// Rotas excluídas da injeção de storeId
-const EXCLUDED_STORE_ROUTES = [
-  "/expenses",
-  "receipt",
-  "/close",
-  "global",
-  "public",
-  "/suppliers",
-  "overview",
-  "reports/dashboard/overview",
-] as const;
-
 // ============================================================================
 // HELPERS
 // ============================================================================
@@ -135,10 +104,11 @@ function dispatchSessionExpired() {
 
 export const api = axios.create({
   baseURL:
-    process.env.NEXT_PUBLIC_API_URL || "https://mindgest.mindware-vps.cloud/api",
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3011/api/v1",
   headers: {
     "Content-Type": "application/json",
-    ...(process.env.NEXT_PUBLIC_API_KEY ? { "x-api-key": process.env.NEXT_PUBLIC_API_KEY } : {}),
+    // A API MindEscola devolve os tokens no corpo (modo bearer): a sessao fica nos cookies httpOnly do Next.
+    "x-auth-mode": "bearer",
   },
   timeout: 30000,
 });
@@ -164,55 +134,14 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   }
 
   // --------------------------------------------------------------------------
-  // 2. INJETA storeId NAS ROTAS QUE DEPENDEM DELE
+  // 2. ROTAS DA ESCOLA: "/s/students" -> "/schools/{schoolId}/students"
   // --------------------------------------------------------------------------
-  const currentMethod = config.method?.toLowerCase() || "";
-
-  const matchingRoute = STORE_DEPENDENT_ROUTES.find((route) => {
-    const routePath = typeof route === "string" ? route : route.path;
-    return url.includes(routePath);
-  });
-
-  const isExcluded = EXCLUDED_STORE_ROUTES.some((route) => url.includes(route));
-
-  const shouldInject =
-    url &&
-    matchingRoute &&
-    !isExcluded &&
-    (typeof matchingRoute === "string" ||
-      matchingRoute.methods.includes(currentMethod));
-
-  if (shouldInject) {
-    const currentUnitId = useMultiSchoolStore.getState().selectedUnitId;
-
-    if (currentUnitId) {
-      // GET → injeta em params
-      if (currentMethod === "get") {
-        config.params = {
-          ...config.params,
-          schoolId: config.params?.schoolId || currentUnitId,
-        };
-      }
-      // POST/PUT/PATCH com data objeto → injeta em data
-      else if (
-        ["post", "put", "patch"].includes(currentMethod) &&
-        config.data &&
-        typeof config.data === "object" &&
-        !(config.data instanceof FormData)
-      ) {
-        config.data = {
-          ...config.data,
-          schoolId: config.data.schoolId || currentUnitId,
-        };
-      }
-      // POST/PUT/PATCH sem data → cria com schoolId
-      else if (
-        !config.data &&
-        ["post", "put", "patch"].includes(currentMethod)
-      ) {
-        config.data = { schoolId: currentUnitId };
-      }
+  if (url.startsWith("/s/") || url === "/s") {
+    const schoolId = useActiveSchoolStore.getState().schoolId;
+    if (!schoolId) {
+      return Promise.reject(new Error("Nenhuma escola seleccionada."));
     }
+    config.url = `/schools/${schoolId}${url.slice(2)}`;
   }
 
   return config;
@@ -347,6 +276,17 @@ api.interceptors.response.use(
 
     return Promise.reject(err);
   }
+);
+
+// Mensagem legivel nos erros (RFC 9457 da API: detail / errors[0].message), para quem usa so error.message.
+api.interceptors.response.use(
+  (res) => res,
+  (err: AxiosError<{ detail?: string; errors?: Array<{ message?: string }> }>) => {
+    const data = err.response?.data;
+    const msg = data?.errors?.[0]?.message || data?.detail;
+    if (typeof msg === "string" && msg) err.message = msg;
+    return Promise.reject(err);
+  },
 );
 
 export default api;

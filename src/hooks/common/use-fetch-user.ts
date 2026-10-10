@@ -3,13 +3,14 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuthStore } from "@/stores";
-import { api } from "@/services/api";
+import { authService } from "@/services/auth-service";
 import { User } from "@/types";
 import { clearLocalSession } from "@/actions/auth";
 
 async function fetchCurrentUser(): Promise<User> {
-  const { data } = await api.get<User>("/auth/profile");
-  return data;
+  const user = await authService.getMe();
+  if (!user) throw new Error("Sessão inválida");
+  return user;
 }
 
 interface UseFetchUserOptions {

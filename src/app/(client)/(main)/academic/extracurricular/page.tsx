@@ -3,11 +3,7 @@ import { ExtracurricularPageContent } from "@/components/client/academic/extracu
 
 export default function AcademicExtracurricularPage() {
   return (
-    <PageWrapper
-      routePath="/academic/extracurricular"
-      routeLabel="Gestão Académica"
-      subRoute="Actividades Extracurriculares & Desporto"
-    >
+    <PageWrapper>
       <ExtracurricularPageContent />
     </PageWrapper>
   );

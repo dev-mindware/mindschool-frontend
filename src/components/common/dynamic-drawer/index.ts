@@ -1,4 +1,0 @@
-export * from "./dinamic-drawer";
-export * from "./invoice-preview-drawer";
-export * from "./proforma-preview-drawer";
-export * from "./credit-note-drawer";

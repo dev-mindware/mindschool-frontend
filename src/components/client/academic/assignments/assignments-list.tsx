@@ -1,32 +1,22 @@
 "use client";
 
-import React from "react";
-import { GenericTable, Column } from "@/components/common/generic-table";
+import { useState } from "react";
 import { TeacherAssignment } from "@/types";
-import { Button } from "@/components/ui/button";
-import { Icon } from "@/components";
-import { useSchoolDataStore } from "@/stores/school/school-data-store";
+import { ConfirmModal, ButtonOnlyAction, DataList, type Column } from "@/components";
+import { useModal } from "@/stores/modal/use-modal-store";
+import { useTeacherAssignments } from "@/hooks/school/use-academic";
+
+const uniq = (v: string[]) => [...new Set(v.filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt"));
 
 interface AssignmentsListProps {
   assignments: TeacherAssignment[];
-  total: number;
-  totalPages: number;
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
-  goToNextPage: () => void;
-  goToPreviousPage: () => void;
+  isLoading?: boolean;
 }
 
-export function AssignmentsList({
-  assignments,
-  total,
-  totalPages,
-  currentPage,
-  setCurrentPage,
-  goToNextPage,
-  goToPreviousPage,
-}: AssignmentsListProps) {
-  const { removeAssignment } = useSchoolDataStore();
+export function AssignmentsList({ assignments, isLoading }: AssignmentsListProps) {
+  const { unassign } = useTeacherAssignments();
+  const { openModal } = useModal();
+  const [toRemove, setToRemove] = useState<TeacherAssignment | null>(null);
 
   const columns: Column<TeacherAssignment>[] = [
     {
@@ -81,34 +71,46 @@ export function AssignmentsList({
       key: "id",
       header: "Ações",
       render: (_, item) => (
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-8 w-8 text-destructive hover:bg-destructive/10"
-          title="Remover atribuição"
-          onClick={() => {
-            if (confirm(`Remover a atribuição do ${item.teacherName} na turma ${item.sectionName}?`)) {
-              removeAssignment(item.id);
-            }
-          }}
-        >
-          <Icon name="Trash2" className="h-4 w-4" />
-        </Button>
+        <ButtonOnlyAction data={item} actions={[{ permission: "teaching:write", label: "Remover atribuição", icon: "Trash2", variant: "destructive", onClick: (x) => { setToRemove(x); openModal("assignment-remove"); } }]} />
       ),
     },
   ];
 
   return (
-    <GenericTable
-      columns={columns}
-      data={assignments}
-      total={total}
-      page={currentPage}
-      totalPages={totalPages}
-      setPage={setCurrentPage}
-      goToNextPage={goToNextPage}
-      goToPreviousPage={goToPreviousPage}
-      emptyMessage="Nenhuma distribuição docente registada."
-    />
+    <>
+      <DataList<TeacherAssignment>
+        prefix="atribuicoes"
+        rows={assignments}
+        columns={columns}
+        isLoading={isLoading}
+        pageSize={10}
+        searchPlaceholder="Pesquisar por professor, disciplina ou turma"
+        searchText={(a) => `${a.teacherName} ${a.subjectName} ${a.sectionName} ${a.teacherEmail ?? ""}`}
+        filters={[
+          { key: "professor", label: "Professor", icon: "User", options: uniq(assignments.map((a) => a.teacherName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.teacherName === v },
+          { key: "turma", label: "Turma", icon: "Users", options: uniq(assignments.map((a) => a.sectionName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.sectionName === v },
+          { key: "disciplina", label: "Disciplina", icon: "BookOpen", options: uniq(assignments.map((a) => a.subjectName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.subjectName === v },
+          { key: "ano", label: "Ano lectivo", icon: "CalendarRange", options: uniq(assignments.map((a) => a.academicYear)).map((v) => ({ value: v, label: v })), match: (a, v) => a.academicYear === v },
+          { key: "carga", label: "Carga semanal", icon: "Clock", options: [{ value: "baixa", label: "Até 2 h" }, { value: "media", label: "3 a 4 h" }, { value: "alta", label: "5 h ou mais" }], match: (a, v) => (v === "baixa" ? a.weeklyHours <= 2 : v === "media" ? a.weeklyHours >= 3 && a.weeklyHours <= 4 : a.weeklyHours >= 5) },
+        ]}
+        dateFilters={[{ key: "criada", label: "Atribuição", getDate: (a) => a.createdAt }]}
+        sorts={[
+          { value: "professor", label: "Professor", compare: (a, b) => a.teacherName.localeCompare(b.teacherName, "pt") },
+          { value: "turma", label: "Turma", compare: (a, b) => a.sectionName.localeCompare(b.sectionName, "pt") },
+          { value: "carga", label: "Carga semanal", compare: (a, b) => a.weeklyHours - b.weeklyHours },
+        ]}
+        emptyTitle="Nenhuma atribuição encontrada"
+        emptyDescription="Ajuste os filtros ou crie uma nova atribuição."
+        emptyIcon="UserPlus"
+      />
+      <ConfirmModal
+        id="assignment-remove"
+        title="Remover atribuição"
+        description={toRemove ? `Remover a atribuição de ${toRemove.teacherName} na turma ${toRemove.sectionName}?` : ""}
+        destructive
+        confirmLabel="Remover"
+        onConfirm={() => (toRemove ? unassign.mutateAsync({ sectionId: toRemove.sectionId, id: toRemove.id }) : Promise.resolve())}
+      />
+    </>
   );
 }

@@ -1,152 +1,104 @@
 'use client';
 
 import React from 'react';
-import { GenericTable, Button, Badge, Icon } from '@/components';
-import { OnlineExam, ExamStatus } from '@/types/online-exam';
+import { Badge, ButtonOnlyAction, DataList, Icon, StatusBadge, type Column, type StatusStyle } from '@/components';
+import type { ApiExam, ApiExamStatus } from '@/services/exams-service';
 
 interface OnlineExamsTableProps {
-  exams: OnlineExam[];
-  currentPage: number;
-  totalPages: number;
-  total: number;
-  onPageChange: (page: number) => void;
-  onOpenAddQuestion: (exam: OnlineExam) => void;
-  onOpenSimulator: (exam: OnlineExam) => void;
-  onOpenGrading: (exam: OnlineExam) => void;
+  exams: ApiExam[];
+  isLoading?: boolean;
+  onOpenQuestions: (exam: ApiExam) => void;
+  onOpenGoogleForm: (exam: ApiExam) => void;
+  onOpenGrading: (exam: ApiExam) => void;
+  onPublish: (exam: ApiExam) => void;
+  onClose: (exam: ApiExam) => void;
 }
 
-export function OnlineExamsTable({
-  exams,
-  currentPage,
-  totalPages,
-  total,
-  onPageChange,
-  onOpenAddQuestion,
-  onOpenSimulator,
-  onOpenGrading,
-}: OnlineExamsTableProps) {
-  const getExamStatusBadge = (status: ExamStatus) => {
-    switch (status) {
-      case 'PUBLISHED':
-        return (
-          <Badge variant="outline" className="border-blue-500/30 text-blue-600 bg-blue-500/10 text-xs font-normal">
-            Publicada
-          </Badge>
-        );
-      case 'IN_PROGRESS':
-        return (
-          <span className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-xs font-medium bg-success-muted text-success border border-success-border">
-            <span className="w-1.5 h-1.5 rounded-full bg-success animate-pulse" />
-            Em Curso
-          </span>
-        );
-      case 'GRADED':
-        return (
-          <Badge variant="default" className="text-xs font-normal">
-            Corrigida
-          </Badge>
-        );
-      case 'CLOSED':
-        return <Badge variant="secondary" className="text-xs font-normal">Encerrada</Badge>;
-      case 'DRAFT':
-        return (
-          <Badge variant="warning" className="text-xs font-normal">
-            Rascunho
-          </Badge>
-        );
-    }
-  };
+const fmt = (iso: string) => new Date(iso).toLocaleString('pt-AO', { dateStyle: 'short', timeStyle: 'short' });
+const uniq = (v: string[]) => [...new Set(v.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
+
+const EXAM_STATUS_STYLE: Record<ApiExamStatus, StatusStyle> = {
+  rascunho: { label: 'Rascunho', variant: 'warning' },
+  publicada: { label: 'Publicada', variant: 'info' },
+  encerrada: { label: 'Encerrada', variant: 'secondary' },
+};
+
+export function OnlineExamsTable({ exams, isLoading, onOpenQuestions, onOpenGoogleForm, onOpenGrading, onPublish, onClose }: OnlineExamsTableProps) {
+  const columns: Column<ApiExam>[] = [
+    {
+      key: 'title',
+      header: 'Prova & Disciplina',
+      render: (_, e) => (
+        <div>
+          <p className="text-sm font-medium leading-snug">{e.title}</p>
+          <p className="text-xs text-muted-foreground">{e.context?.subject_name ?? '—'} • {e.context?.section_name ?? '—'}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'window',
+      header: 'Janela & Questões',
+      render: (_, e) => (
+        <div className="text-xs">
+          <p className="font-medium">{fmt(e.opens_at)} → {fmt(e.closes_at)}</p>
+          <p className="text-muted-foreground">{e.questions.length} questões ({e.total_score.toFixed(1)} pts){e.time_limit_minutes ? ` • ${e.time_limit_minutes} min` : ''}</p>
+        </div>
+      ),
+    },
+    {
+      key: 'delivery',
+      header: 'Realização',
+      render: (_, e) =>
+        e.delivery === 'google_forms' ? (
+          <Badge variant="outline" className="gap-1 border-emerald-500/30 bg-emerald-500/10 text-xs font-normal text-emerald-700"><Icon name="Link" className="size-3" />Google Forms</Badge>
+        ) : (
+          <Badge variant="outline" className="text-xs font-normal">Plataforma</Badge>
+        ),
+    },
+    { key: 'status', header: 'Estado', render: (_, e) => <StatusBadge status={e.status} map={EXAM_STATUS_STYLE} className="text-xs font-normal" /> },
+    {
+      key: 'actions',
+      header: 'Acção',
+      render: (_, e) => (
+        <ButtonOnlyAction
+          data={e}
+          actions={[
+            { permission: 'exam:write', label: 'Questões', icon: 'ListChecks', onClick: onOpenQuestions },
+            ...(e.status !== 'encerrada' ? [{ permission: 'exam:write', label: 'Google Forms', icon: 'Link' as const, onClick: onOpenGoogleForm }] : []),
+            ...(e.status === 'rascunho' ? [{ permission: 'exam:write', label: 'Publicar', icon: 'Send' as const, onClick: onPublish }] : []),
+            ...(e.status === 'publicada' ? [{ permission: 'exam:write', label: 'Encerrar', icon: 'Lock' as const, onClick: onClose }] : []),
+            { permission: 'exam:write', label: 'Corrigir', icon: 'CheckCheck', onClick: onOpenGrading },
+          ]}
+        />
+      ),
+    },
+  ];
 
   return (
-    <div className="rounded-xl border border-border bg-card shadow-xs overflow-hidden">
-      <GenericTable<OnlineExam>
-        data={exams}
-        page={currentPage}
-        totalPages={totalPages}
-        total={total}
-        setPage={onPageChange}
-        goToNextPage={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-        goToPreviousPage={() => onPageChange(Math.max(1, currentPage - 1))}
-        columns={[
-          {
-            key: 'title',
-            header: 'Prova & Disciplina',
-            render: (_, item) => (
-              <div>
-                <p className="font-medium text-foreground text-sm leading-snug">{item.title}</p>
-                <p className="text-xs text-muted-foreground font-mono">{item.subjectName} • {item.term}.º Trimestre</p>
-              </div>
-            ),
-          },
-          {
-            key: 'class',
-            header: 'Turma & Docente',
-            render: (_, item) => (
-              <div className="text-xs">
-                <p className="font-medium text-foreground">{item.className}</p>
-                <p className="text-muted-foreground">{item.createdByTeacherName}</p>
-              </div>
-            ),
-          },
-          {
-            key: 'questionsCount',
-            header: 'Questões & Duração',
-            render: (_, item) => (
-              <div className="text-xs">
-                <p className="font-mono font-medium text-foreground">{item.questions.length} questões ({item.totalPoints.toFixed(1)} val)</p>
-                <p className="text-muted-foreground">{item.durationMinutes} minutos de tempo limite</p>
-              </div>
-            ),
-          },
-          {
-            key: 'status',
-            header: 'Estado',
-            render: (_, item) => getExamStatusBadge(item.status),
-          },
-          {
-            key: 'actions',
-            header: 'Ações',
-            className: 'text-right',
-            render: (_, item) => (
-              <div className="flex items-center justify-end gap-1.5">
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => onOpenAddQuestion(item)}
-                  className="h-8 gap-1 text-xs"
-                  title="Adicionar Questões à Prova"
-                >
-                  <Icon name="Plus" className="w-3.5 h-3.5" />
-                  Questões
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant="ghost"
-                  onClick={() => onOpenSimulator(item)}
-                  className="h-8 gap-1 text-xs hover:text-foreground"
-                  title="Simular Realização pelo Aluno"
-                >
-                  <Icon name="Play" className="w-3.5 h-3.5" />
-                  Simular
-                </Button>
-
-                <Button
-                  size="sm"
-                  variant="default"
-                  onClick={() => onOpenGrading(item)}
-                  className="h-8 gap-1 text-xs"
-                  title="Mesa de Correcção e Lançamento"
-                >
-                  <Icon name="CheckCheck" className="w-3.5 h-3.5" />
-                  Corrigir
-                </Button>
-              </div>
-            ),
-          },
-        ]}
-        emptyMessage="Nenhuma prova online encontrada com os filtros atuais."
-      />
-    </div>
+    <DataList<ApiExam>
+      prefix="provas-online"
+      rows={exams}
+      columns={columns}
+      isLoading={isLoading}
+      pageSize={10}
+      searchPlaceholder="Pesquisar por título, disciplina ou turma"
+      searchText={(e) => `${e.title} ${e.context?.subject_name ?? ''} ${e.context?.section_name ?? ''}`}
+      filters={[
+        { key: 'estado', label: 'Estado', icon: 'ListFilter', options: [{ value: 'publicada', label: 'Publicadas' }, { value: 'encerrada', label: 'Encerradas' }, { value: 'rascunho', label: 'Rascunhos' }], match: (e, v) => e.status === v },
+        { key: 'realizacao', label: 'Realização', icon: 'Link', options: [{ value: 'nativa', label: 'Plataforma' }, { value: 'google_forms', label: 'Google Forms' }], match: (e, v) => e.delivery === v },
+        { key: 'turma', label: 'Turma', icon: 'Users', options: uniq(exams.map((e) => e.context?.section_name ?? '')).map((v) => ({ value: v, label: v })), match: (e, v) => e.context?.section_name === v },
+        { key: 'disciplina', label: 'Disciplina', icon: 'BookOpen', options: uniq(exams.map((e) => e.context?.subject_name ?? '')).map((v) => ({ value: v, label: v })), match: (e, v) => e.context?.subject_name === v },
+        { key: 'tempo', label: 'Tempo limite', icon: 'Clock', options: [{ value: 'com', label: 'Com tempo limite' }, { value: 'sem', label: 'Sem tempo limite' }], match: (e, v) => (v === 'com' ? Boolean(e.time_limit_minutes) : !e.time_limit_minutes) },
+      ]}
+      dateFilters={[{ key: 'abertura', label: 'Abertura', getDate: (e) => e.opens_at }]}
+      sorts={[
+        { value: 'abertura', label: 'Data de abertura', compare: (a, b) => a.opens_at.localeCompare(b.opens_at) },
+        { value: 'titulo', label: 'Título', compare: (a, b) => a.title.localeCompare(b.title, 'pt') },
+        { value: 'questoes', label: 'N.º de questões', compare: (a, b) => a.questions.length - b.questions.length },
+      ]}
+      emptyTitle="Nenhuma prova online encontrada"
+      emptyDescription="Crie uma prova para a ver aqui."
+      emptyIcon="FileText"
+    />
   );
 }

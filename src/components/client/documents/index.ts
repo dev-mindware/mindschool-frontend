@@ -1,7 +1,0 @@
-export * from "./common";
-export * from "./credits-notes";
-export * from "./document-forms";
-export * from "./document-list";
-export * from "./invoice-proforma";
-export * from "./invoice-receipt";
-export * from "./add-document";

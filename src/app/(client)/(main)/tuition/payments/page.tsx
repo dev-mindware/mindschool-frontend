@@ -1,13 +1,9 @@
 import { PageWrapper } from "@/components";
-import { TuitionPaymentsContent } from "@/components/client/tuition";
+import { TuitionPaymentsContent } from "@/modules/finance/components";
 
 export default function TuitionPaymentsPage() {
   return (
-    <PageWrapper
-      routePath="/tuition/payments"
-      routeLabel="Propinas & Finanças"
-      subRoute="Propinas"
-    >
+    <PageWrapper>
       <TuitionPaymentsContent />
     </PageWrapper>
   );

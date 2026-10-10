@@ -1,14 +1,14 @@
 "use client";
+import { formatDate } from "@/utils";
 
 import React, { useState } from "react";
 import Link from "next/link";
 import { TitleList } from "@/components/common/title-list";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Icon } from "@/components";
+import { DataList, Icon, type Column } from "@/components";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
-import { GenericTable, Column } from "@/components/common/generic-table";
-import { useAdmissionStore } from "@/stores/school/admission-store";
+import { useAdmissions } from "@/hooks/school/use-admissions";
 import { EntranceExam, AdmissionApplication } from "@/types/admission";
 import { GradeExamModal } from "../grade-exam-modal";
 
@@ -20,7 +20,7 @@ const EXAM_STATUS_CONFIG: Record<string, { label: string; variant: "default" | "
 };
 
 export function EntranceExamsPageContent() {
-  const { entranceExams, applications } = useAdmissionStore();
+  const { entranceExams, applications } = useAdmissions();
   const [selectedExamId, setSelectedExamId] = useState<string>(entranceExams[0]?.id || "");
   const [gradingApp, setGradingApp] = useState<AdmissionApplication | null>(null);
   const [isGradingOpen, setIsGradingOpen] = useState(false);
@@ -29,6 +29,9 @@ export function EntranceExamsPageContent() {
 
   // Candidates assigned to this exam
   const examCandidates = applications.filter((a) => a.entranceExamId === selectedExamId);
+  const graded = applications.filter((a) => a.requiresEntranceExam && a.examScore !== undefined);
+  const approvalRate = graded.length ? Math.round((graded.filter((a) => (a.examScore ?? 0) >= a.minPassingScore).length / graded.length) * 100) : 0;
+  const uniq = (v: string[]) => [...new Set(v.filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt"));
 
   const examColumns: Column<EntranceExam>[] = [
     {
@@ -54,7 +57,7 @@ export function EntranceExamsPageContent() {
       render: (_, item) => (
         <div className="flex flex-col">
           <span className="text-xs font-medium text-foreground">
-            {new Date(item.examDate).toLocaleDateString("pt-AO")} às{" "}
+            {formatDate(item.examDate)} às{" "}
             {new Date(item.examDate).toLocaleTimeString("pt-AO", {
               hour: "2-digit",
               minute: "2-digit",
@@ -217,10 +220,10 @@ export function EntranceExamsPageContent() {
           description="Total de pré-inscritos a prestar prova"
         />
         <DynamicMetricCard
-          title="74.2%"
-          subtitle="Média de Aprovação nos Exames"
+          title={`${approvalRate}%`}
+          subtitle="Taxa de aprovação nos exames"
           icon="TrendingUp"
-          description="Taxa de aproveitamento >= 10 valores"
+          description={`${graded.length} candidato(s) com nota lançada`}
         />
       </div>
 
@@ -230,18 +233,29 @@ export function EntranceExamsPageContent() {
           <Icon name="Calendar" className="h-4 w-4 text-primary" />
           Calendário de Exames de Acesso
         </h3>
-        <div className="rounded-lg border bg-card">
-          <GenericTable<EntranceExam>
-            columns={examColumns}
-            data={entranceExams}
-            page={1}
-            totalPages={1}
-            total={entranceExams.length}
-            setPage={() => {}}
-            goToNextPage={() => {}}
-            goToPreviousPage={() => {}}
-          />
-        </div>
+        <DataList<EntranceExam>
+          prefix="provas"
+          rows={entranceExams}
+          columns={examColumns}
+          pageSize={8}
+          searchPlaceholder="Pesquisar prova, disciplina ou sala"
+          searchText={(e) => `${e.title} ${e.subjectName} ${e.roomNumber}`}
+          filters={[
+            { key: "estado", label: "Estado", icon: "ListFilter", options: Object.entries(EXAM_STATUS_CONFIG).map(([value, c]) => ({ value, label: c.label })), match: (e, v) => e.status === v },
+            { key: "classe", label: "Classe", icon: "GraduationCap", options: uniq(entranceExams.map((e) => e.classLevelName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.classLevelName === v },
+            { key: "disciplina", label: "Disciplina", icon: "BookOpen", options: uniq(entranceExams.map((e) => e.subjectName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.subjectName === v },
+            { key: "sala", label: "Sala", icon: "DoorOpen", options: uniq(entranceExams.map((e) => e.roomNumber)).map((v) => ({ value: v, label: v })), match: (e, v) => e.roomNumber === v },
+          ]}
+          dateFilters={[{ key: "data", label: "Data da prova", getDate: (e) => e.examDate }]}
+          sorts={[
+            { value: "data", label: "Data", compare: (a, b) => a.examDate.localeCompare(b.examDate) },
+            { value: "titulo", label: "Título", compare: (a, b) => a.title.localeCompare(b.title, "pt") },
+            { value: "inscritos", label: "Inscritos", compare: (a, b) => a.enrolledCandidatesCount - b.enrolledCandidatesCount },
+          ]}
+          emptyTitle="Nenhuma prova agendada"
+          emptyDescription="As provas de acesso aparecem aqui quando forem criadas."
+          emptyIcon="FileText"
+        />
       </div>
 
       {/* Pauta dos Candidatos do Exame Selecionado */}
@@ -254,7 +268,7 @@ export function EntranceExamsPageContent() {
                 Pauta Classificatória: {selectedExam.title}
               </h3>
               <p className="text-xs text-muted-foreground">
-                {selectedExam.roomNumber} • Data: {new Date(selectedExam.examDate).toLocaleDateString("pt-AO")} • Mínimo de Aprovação: {selectedExam.minPassingScore} valores
+                {selectedExam.roomNumber} • Data: {formatDate(selectedExam.examDate)} • Mínimo de Aprovação: {selectedExam.minPassingScore} valores
               </p>
             </div>
             <span className="text-xs font-medium text-muted-foreground">
@@ -262,18 +276,26 @@ export function EntranceExamsPageContent() {
             </span>
           </div>
 
-          <div className="rounded-lg border bg-card">
-            <GenericTable<AdmissionApplication>
-              columns={candidateColumns}
-              data={examCandidates}
-              page={1}
-              totalPages={1}
-              total={examCandidates.length}
-              setPage={() => {}}
-              goToNextPage={() => {}}
-              goToPreviousPage={() => {}}
-            />
-          </div>
+          <DataList<AdmissionApplication>
+            prefix="pauta"
+            rows={examCandidates}
+            columns={candidateColumns}
+            pageSize={10}
+            searchPlaceholder="Pesquisar candidato, BI ou n.º de candidatura"
+            searchText={(c) => `${c.candidateName} ${c.candidateDocumentNumber} ${c.applicationNumber}`}
+            filters={[
+              { key: "resultado", label: "Resultado", icon: "ListFilter", options: [{ value: "aprovado", label: "Aprovado na prova" }, { value: "reprovado", label: "Não apto" }, { value: "pendente", label: "Aguarda correção" }], match: (c, v) => (v === "pendente" ? c.examScore === undefined : c.examScore !== undefined && (v === "aprovado" ? c.examScore >= c.minPassingScore : c.examScore < c.minPassingScore)) },
+              { key: "estado", label: "Estado", icon: "Flag", options: [{ value: "APPROVED", label: "Aprovado" }, { value: "WAITLIST", label: "Lista de espera" }, { value: "REJECTED", label: "Reprovado" }, { value: "UNDER_REVIEW", label: "Em avaliação" }], match: (c, v) => c.status === v },
+              { key: "genero", label: "Género", icon: "User", options: [{ value: "MALE", label: "Masculino" }, { value: "FEMALE", label: "Feminino" }], match: (c, v) => c.candidateGender === v },
+            ]}
+            sorts={[
+              { value: "nota", label: "Nota", compare: (a, b) => (a.examScore ?? -1) - (b.examScore ?? -1) },
+              { value: "nome", label: "Nome", compare: (a, b) => a.candidateName.localeCompare(b.candidateName, "pt") },
+            ]}
+            emptyTitle="Sem candidatos nesta prova"
+            emptyDescription="Ainda não há candidaturas associadas a esta prova."
+            emptyIcon="Users"
+          />
         </div>
       )}
 

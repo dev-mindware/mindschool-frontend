@@ -13,13 +13,15 @@ import {
 import { useQueryState } from "nuqs";
 import { Icon, Input, Avatar, AvatarFallback, AvatarImage } from "@/components";
 import { useAuth } from "@/hooks/auth";
+import { useNavigation } from "@/hooks/common/use-navigation";
+import { deriveBreadcrumb } from "@/constants/navigation";
 import { OnboardingTourButton } from "@/components/common/onboarding-tour-button";
 import type { OnboardingTourId } from "@/constants/onboarding-tours";
 
 type Props = {
   routePath?: string;
   routeLabel?: string;
-  subRoute: string;
+  subRoute?: string;
   showSeparator?: boolean;
   children: React.ReactNode;
   variant?: "default" | "counter";
@@ -38,6 +40,10 @@ export function PageWrapper({
   segments,
 }: Props) {
   const { user } = useAuth();
+  const { model, pathname } = useNavigation();
+  // Breadcrumb derivado do registo de navegação (Módulo › Secção › Página); `segments` explícito tem prioridade e
+  // `routeLabel`/`subRoute` só servem para páginas fora do registo ou para o detalhe de uma página.
+  const crumbs = segments ?? deriveBreadcrumb(model.modules, pathname, subRoute) ?? undefined;
   const [search, setSearch] = useQueryState("search", {
     defaultValue: "",
     shallow: true,
@@ -59,7 +65,7 @@ export function PageWrapper({
               routeLabel={routeLabel}
               subRoute={subRoute}
               showSeparator={showSeparator}
-              segments={segments}
+              segments={crumbs}
             />
           </div>
         )}
@@ -74,7 +80,7 @@ export function PageWrapper({
                 className="pl-8 bg-muted/50 border-0"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                data-tour="pos-product-search"
+                data-tour="menu-search"
               />
             </div>
           </div>

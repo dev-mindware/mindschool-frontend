@@ -5,11 +5,21 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Icon } from "@/components";
 import { icons } from "lucide-react";
 import { Appearance } from "./contents/appearance";
+import { ProfileSettings } from "./contents/profile-settings";
 import { Notification } from "./contents/notifications";
 import { Security } from "./contents/security";
-import { SubscriptionInfo } from "./contents/subscription-info";
+import { SubscriptionManager } from "@/components/client/subscription/subscription-manager";
 import { OnboardingPreferences } from "./contents/onboarding-preferences";
 import { SchoolInstitutionalSettings } from "@/components/client/settings/school/school-institutional-settings";
+import { UsersPageContent } from "@/components/client/settings/users/users-page-content";
+import { PoliciesPageContent } from "@/components/client/settings/policies/policies-page-content";
+import { ImportsPageContent } from "@/components/client/settings/imports/imports-page-content";
+import { AuditPageContent } from "@/components/client/settings/audit/audit-page-content";
+import { BankAccountsPageContent } from "@/components/client/settings/bank-accounts/bank-accounts-page-content";
+import { SchoolEmailsContent } from "@/components/client/settings/emails/school-emails-content";
+import { TeachersPageContent } from "@/components/client/teachers/teachers-page-content";
+import { useAuth } from "@/hooks/auth";
+import { useCan } from "@/hooks/auth/use-can";
 
 interface DefSetupProps {
   disabledTabs?: string[];
@@ -18,6 +28,12 @@ interface DefSetupProps {
 export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
+  const { user } = useAuth();
+  const { can } = useCan();
+  const role = user?.role ?? "";
+  const isManager = ["DIRECTOR_GENERAL", "PEDAGOGIC_DIRECTOR", "SYSTEM_ADMIN", "OWNER", "MANAGER", "ADMIN"].includes(role);
+  const isFinance = ["DIRECTOR_GENERAL", "OWNER", "ADMIN", "FINANCIAL"].includes(role);
+  const isStaff = isManager || ["SECRETARY", "FINANCIAL"].includes(role);
   const currentTab = searchParams.get("tab");
 
   type TabItem = {
@@ -30,6 +46,14 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
   };
 
   const allTabs: TabItem[] = [
+    {
+      id: "profile",
+      label: "Perfil",
+      icon: "User",
+      component: <ProfileSettings />,
+      category: "general",
+      isVisible: true,
+    },
     {
       id: "appearance",
       label: "Aparência",
@@ -58,9 +82,9 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
       id: "subscription",
       label: "Subscrição",
       icon: "CreditCard",
-      component: <SubscriptionInfo />,
+      component: <SubscriptionManager />,
       category: "general",
-      isVisible: true,
+      isVisible: isManager && can("subscription:read"),
     },
     {
       id: "guides",
@@ -76,8 +100,15 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
       icon: "GraduationCap",
       component: <SchoolInstitutionalSettings />,
       category: "workplace",
-      isVisible: true,
+      isVisible: isStaff,
     },
+    { id: "bank-accounts", label: "Dados Bancários", icon: "Landmark", component: <BankAccountsPageContent />, category: "workplace", isVisible: isFinance && can("bank_account:read") },
+    { id: "emails", label: "Emails Enviados", icon: "Mail", component: <SchoolEmailsContent />, category: "workplace", isVisible: isFinance && can("email:read") },
+    { id: "policies", label: "Políticas da Escola", icon: "SlidersHorizontal", component: <PoliciesPageContent />, category: "workplace", isVisible: isManager },
+    { id: "users", label: "Utilizadores e Papéis", icon: "Users", component: <UsersPageContent />, category: "workplace", isVisible: isManager && can("membership:read") },
+    { id: "teachers", label: "Corpo Docente", icon: "GraduationCap", component: <TeachersPageContent />, category: "workplace", isVisible: (isManager || role === "SECRETARY") && can("teacher:read") },
+    { id: "imports", label: "Importação de Dados", icon: "Upload", component: <ImportsPageContent />, category: "workplace", isVisible: isStaff && can("import:read") },
+    { id: "audit", label: "Auditoria", icon: "ScrollText", component: <AuditPageContent />, category: "workplace", isVisible: (isManager || role === "FINANCIAL") && can("audit:read") },
   ];
 
   const tabs = allTabs.filter((tab) => tab.isVisible);

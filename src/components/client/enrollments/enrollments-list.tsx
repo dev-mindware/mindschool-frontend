@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { GenericTable, Column } from "@/components/common/generic-table";
+import { Can, DataList, type Column } from "@/components";
 import { Enrollment } from "@/types";
 import { SchoolStatusBadge } from "@/components/common/school-status-badge";
 import { Button } from "@/components/ui/button";
@@ -12,28 +12,20 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { useEnrollmentProof } from "./use-enrollment-proof";
 import { CancelEnrollmentModal } from "./cancel-enrollment-modal";
 import { EnrollmentDetailsModal } from "./enrollment-details-modal";
 
+const uniq = (v: string[]) => [...new Set(v.filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt"));
+
 interface EnrollmentsListProps {
   enrollments: Enrollment[];
-  total: number;
-  totalPages: number;
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
-  goToNextPage: () => void;
-  goToPreviousPage: () => void;
+  isLoading?: boolean;
+  isError?: boolean;
 }
 
-export function EnrollmentsList({
-  enrollments,
-  total,
-  totalPages,
-  currentPage,
-  setCurrentPage,
-  goToNextPage,
-  goToPreviousPage,
-}: EnrollmentsListProps) {
+export function EnrollmentsList({ enrollments, isLoading, isError }: EnrollmentsListProps) {
+  const proof = useEnrollmentProof();
   const [selectedForCancel, setSelectedForCancel] = useState<Enrollment | null>(
     null
   );
@@ -134,14 +126,13 @@ export function EnrollmentsList({
             </DropdownMenuItem>
             <DropdownMenuItem
               className="gap-2 cursor-pointer"
-              onClick={() => {
-                alert(`Comprovativo emitido para matrícula ${item.enrollmentNumber} (${item.studentName})`);
-              }}
+              onClick={() => void proof.emit(item)}
             >
               <Icon name="FileText" className="h-4 w-4 text-blue-600" />
               Comprovativo (PDF)
             </DropdownMenuItem>
             {item.status !== "CANCELLED" && (
+<Can permission="enrollment:cancel">
               <DropdownMenuItem
                 className="gap-2 cursor-pointer text-destructive focus:text-destructive"
                 onClick={() => handleOpenCancel(item)}
@@ -149,6 +140,7 @@ export function EnrollmentsList({
                 <Icon name="UserX" className="h-4 w-4 text-destructive" />
                 Cancelar Matrícula
               </DropdownMenuItem>
+</Can>
             )}
           </DropdownMenuContent>
         </DropdownMenu>
@@ -158,16 +150,33 @@ export function EnrollmentsList({
 
   return (
     <>
-      <GenericTable
+      <DataList<Enrollment>
+        prefix="matriculas"
+        rows={enrollments}
         columns={columns}
-        data={enrollments}
-        total={total}
-        page={currentPage}
-        totalPages={totalPages}
-        setPage={setCurrentPage}
-        goToNextPage={goToNextPage}
-        goToPreviousPage={goToPreviousPage}
-        emptyMessage="Nenhuma matrícula encontrada com os filtros selecionados."
+        isLoading={isLoading}
+        isError={isError}
+        pageSize={10}
+        searchPlaceholder="Pesquisar por n.º de matrícula, aluno, processo ou turma"
+        searchText={(e) => `${e.enrollmentNumber} ${e.studentName} ${e.studentNumber} ${e.sectionName}`}
+        filters={[
+          { key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "ACTIVE", label: "Activas" }, { value: "PENDING", label: "Pendentes" }, { value: "TRANSFERRED", label: "Transferidas" }, { value: "CANCELLED", label: "Canceladas" }], match: (e, v) => e.status === v },
+          { key: "turma", label: "Turma", icon: "Users", options: uniq(enrollments.map((e) => e.sectionName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.sectionName === v },
+          { key: "classe", label: "Classe", icon: "GraduationCap", options: uniq(enrollments.map((e) => e.classLevelName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.classLevelName === v },
+          { key: "turno", label: "Turno", icon: "Sun", options: uniq(enrollments.map((e) => e.shift)).map((v) => ({ value: v, label: v })), match: (e, v) => e.shift === v },
+          { key: "ano", label: "Ano lectivo", icon: "CalendarRange", options: uniq(enrollments.map((e) => e.academicYear)).map((v) => ({ value: v, label: v })), match: (e, v) => e.academicYear === v },
+          { key: "plano", label: "Plano financeiro", icon: "Wallet", options: uniq(enrollments.map((e) => e.tuitionPlanName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.tuitionPlanName === v },
+          { key: "bolsa", label: "Bolsa", icon: "Award", options: [{ value: "sim", label: "Com bolsa" }, { value: "nao", label: "Sem bolsa" }], match: (e, v) => (v === "sim" ? Boolean(e.hasScholarship) : !e.hasScholarship) },
+        ]}
+        dateFilters={[{ key: "inscricao", label: "Inscrição", getDate: (e) => e.enrollmentDate }]}
+        sorts={[
+          { value: "data", label: "Data de inscrição", compare: (a, b) => a.enrollmentDate.localeCompare(b.enrollmentDate) },
+          { value: "aluno", label: "Aluno", compare: (a, b) => a.studentName.localeCompare(b.studentName, "pt") },
+          { value: "numero", label: "N.º de matrícula", compare: (a, b) => a.enrollmentNumber.localeCompare(b.enrollmentNumber) },
+        ]}
+        emptyTitle="Nenhuma matrícula encontrada"
+        emptyDescription="Ajuste os filtros ou registe uma nova matrícula."
+        emptyIcon="ClipboardList"
       />
 
       <CancelEnrollmentModal

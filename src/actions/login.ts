@@ -1,7 +1,8 @@
 "use server";
 
 import { z } from "zod";
-import { LoginResponse, Role, User } from "@/types";
+import { User } from "@/types";
+import { ApiMe, ApiSubscription, mapApiSubscription, mapApiUser, primaryRoleOf } from "@/utils/map-api-user";
 import { loginSchema } from "@/schemas";
 import { api } from "@/services/api";
 import { createSession, destroySession } from "@/lib/session";
@@ -14,41 +15,61 @@ interface LoginActionResult {
   redirectPath?: string;
   message?: string;
   token?: string;
+  /** A conta tem segundo factor: pedir o codigo (TOTP/recuperacao) e repetir o login. */
+  requiresMfa?: boolean;
+  mfaMethods?: string[];
+  memberships?: Array<{ schoolId: string; schoolName: string; roles: string[] }>;
+}
+
+interface ApiLogin {
+  access_token: string;
+  refresh_token: string;
 }
 
 export async function loginAction({
   email,
   password,
+  totpCode,
 }: z.infer<typeof loginSchema>): Promise<LoginActionResult> {
   try {
-    const res = await api.post<LoginResponse>("/auth/login", {
+    const res = await api.post<ApiLogin>("/auth/login", {
       email,
       password,
+      ...(totpCode ? { totp_code: totpCode } : {}),
     });
+    const { access_token: accessToken, refresh_token: refreshToken } = res.data;
+    if (!accessToken || !refreshToken) throw new Error("Resposta de autenticação inválida");
 
-    const { user, tokens, message } = res.data;
-
-    if (!user || !tokens?.accessToken || !tokens?.refreshToken) {
-      throw new Error("Resposta de autenticação inválida");
+    const meRes = await api.get<ApiMe>("/auth/me", { headers: { Authorization: `Bearer ${accessToken}` } });
+    const me = meRes.data;
+    const role = primaryRoleOf(me);
+    if (!role) {
+      return { user: null, redirectPath: "/auth/login", message: "A sua conta ainda não está associada a nenhuma escola." };
     }
 
-    await createSession({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      role: user.role,
-    });
+    await createSession({ accessToken, refreshToken, role });
+
+    const authHeader = { headers: { Authorization: `Bearer ${accessToken}` } };
+    const activeSchoolId = me.memberships[0]?.school_id;
+    const sub = activeSchoolId
+      ? await api.get<ApiSubscription>(`/schools/${activeSchoolId}/subscription`, authHeader).then((r) => mapApiSubscription(r.data)).catch(() => undefined)
+      : undefined;
 
     return {
-      user,
-      message,
-      redirectPath: getRouteByRole(user.role),
-      token: tokens.accessToken,
+      user: mapApiUser(me, activeSchoolId, sub),
+      redirectPath: getRouteByRole(role),
+      token: accessToken,
+      memberships: me.memberships.map((m) => ({ schoolId: m.school_id, schoolName: m.school_name, roles: m.roles })),
     };
   } catch (error: any) {
     let messageError = "Ocorreu um erro desconhecido!";
 
-    if (error?.response?.data?.message) {
-      messageError = error.response.data.message;
+    const problem = error?.response?.data;
+    if (problem?.code === "MFA_REQUIRED") {
+      return { user: null, requiresMfa: true, mfaMethods: problem.methods ?? ["totp"], message: "Introduza o código do segundo factor." };
+    }
+    if (problem?.detail) {
+      messageError = problem.detail;
     } else if (error instanceof Error) {
       messageError = error.message;
     }

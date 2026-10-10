@@ -2,39 +2,18 @@
 
 import React from 'react';
 import { DynamicMetricCard } from '@/components';
-import { ExamMetrics } from '@/types/online-exam';
 
 interface OnlineExamsMetricsProps {
-  metrics: ExamMetrics;
+  metrics: { total: number; open: number; googleForms: number; drafts: number };
 }
 
 export function OnlineExamsMetrics({ metrics }: OnlineExamsMetricsProps) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-      <DynamicMetricCard
-        title={metrics.totalExams}
-        subtitle="Provas Criadas"
-        description="Neste trimestre lectivo"
-        icon="FileSpreadsheet"
-      />
-      <DynamicMetricCard
-        title={metrics.activeExamsCount}
-        subtitle="Provas Activas / Em Curso"
-        description="Disponíveis para os alunos"
-        icon="Clock"
-      />
-      <DynamicMetricCard
-        title={`${metrics.autoGradingAccuracyPercentage}%`}
-        subtitle="Taxa de Correcção Automática"
-        description="Média instantânea de objetivas"
-        icon="Zap"
-      />
-      <DynamicMetricCard
-        title={`${metrics.averageScore} val`}
-        subtitle="Média Geral dos Alunos"
-        description="Escala de 0 a 20 do Decreto 424/25"
-        icon="Award"
-      />
+      <DynamicMetricCard title={metrics.total} subtitle="Provas Criadas" description="Todas as provas da escola" icon="FileSpreadsheet" />
+      <DynamicMetricCard title={metrics.open} subtitle="Provas Abertas Agora" description="Publicadas e dentro da janela" icon="Clock" />
+      <DynamicMetricCard title={metrics.googleForms} subtitle="Em Google Forms" description="Respostas importadas pela API" icon="Link" />
+      <DynamicMetricCard title={metrics.drafts} subtitle="Rascunhos" description="Ainda por publicar" icon="Pencil" />
     </div>
   );
 }

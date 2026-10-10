@@ -1,59 +1,77 @@
 "use client";
 
-import { useState, useMemo } from "react";
-import { useSchoolDataStore } from "@/stores/school/school-data-store";
+import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { guardiansService, GuardianInput } from "@/services/guardians-service";
+import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { PreferredContactChannel } from "@/types";
 
-export function useGuardians(
-  searchQuery = "",
-  channelFilter: PreferredContactChannel | "ALL" = "ALL"
-) {
-  const { guardians } = useSchoolDataStore();
+const ITEMS_PER_PAGE = 8;
+
+/** Encarregados da escola activa (API). Pesquisa e paginacao no cliente. */
+export function useGuardians(searchQuery = "", channelFilter: PreferredContactChannel | "ALL" = "ALL") {
+  const schoolId = useActiveSchoolStore((s) => s.schoolId);
+  const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 8;
 
-  const filteredGuardians = useMemo(() => {
-    return guardians.filter((guardian) => {
+  const { data: guardians = [], isLoading, isError } = useQuery({
+    queryKey: ["guardians", schoolId],
+    queryFn: () => guardiansService.list(),
+    enabled: Boolean(schoolId),
+    staleTime: 60 * 1000,
+  });
+
+  const filtered = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase();
+    return guardians.filter((g) => {
       const matchesSearch =
-        !searchQuery ||
-        guardian.fullName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (guardian.phonePrimary || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (guardian.email || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (guardian.idDocumentNumber || "").toLowerCase().includes(searchQuery.toLowerCase());
-
-      const matchesChannel =
-        channelFilter === "ALL" || guardian.preferredContactChannel === channelFilter;
-
-      return matchesSearch && matchesChannel;
+        !q ||
+        g.fullName.toLowerCase().includes(q) ||
+        g.phonePrimary.toLowerCase().includes(q) ||
+        (g.email ?? "").toLowerCase().includes(q) ||
+        (g.idDocumentNumber ?? "").toLowerCase().includes(q);
+      return matchesSearch && (channelFilter === "ALL" || g.preferredContactChannel === channelFilter);
     });
   }, [guardians, searchQuery, channelFilter]);
 
-  const total = filteredGuardians.length;
-  const totalPages = Math.max(1, Math.ceil(total / itemsPerPage));
+  const total = filtered.length;
+  const totalPages = Math.max(1, Math.ceil(total / ITEMS_PER_PAGE));
+  const page = Math.min(currentPage, totalPages);
+  const paginated = useMemo(() => filtered.slice((page - 1) * ITEMS_PER_PAGE, page * ITEMS_PER_PAGE), [filtered, page]);
 
-  const paginatedGuardians = useMemo(() => {
-    const start = (currentPage - 1) * itemsPerPage;
-    return filteredGuardians.slice(start, start + itemsPerPage);
-  }, [filteredGuardians, currentPage]);
-
-  const counts = useMemo(() => {
-    return {
+  const counts = useMemo(
+    () => ({
       total: guardians.length,
       whatsapp: guardians.filter((g) => g.preferredContactChannel === "WHATSAPP").length,
       sms: guardians.filter((g) => g.preferredContactChannel === "SMS").length,
       email: guardians.filter((g) => g.preferredContactChannel === "EMAIL").length,
-    };
-  }, [guardians]);
+    }),
+    [guardians],
+  );
+
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["guardians", schoolId] });
+    queryClient.invalidateQueries({ queryKey: ["students", schoolId] });
+  };
+  const createGuardian = useMutation({ mutationFn: (input: GuardianInput) => guardiansService.create(input), onSuccess: invalidate });
+  const updateGuardian = useMutation({
+    mutationFn: ({ id, input, previousWardIds }: { id: string; input: GuardianInput; previousWardIds: string[] }) => guardiansService.update(id, input, previousWardIds),
+    onSuccess: invalidate,
+  });
 
   return {
-    guardians: paginatedGuardians,
-    allGuardians: filteredGuardians,
+    guardians: paginated,
+    allGuardians: filtered,
+    isLoading,
+    isError,
     total,
     totalPages,
-    currentPage,
+    currentPage: page,
     setCurrentPage,
     goToNextPage: () => setCurrentPage((p) => Math.min(totalPages, p + 1)),
     goToPreviousPage: () => setCurrentPage((p) => Math.max(1, p - 1)),
     counts,
+    createGuardian,
+    updateGuardian,
   };
 }

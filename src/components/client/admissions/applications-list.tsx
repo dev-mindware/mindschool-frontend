@@ -1,11 +1,11 @@
 "use client";
+import { formatDate } from "@/utils";
 
 import React, { useState } from "react";
-import { GenericTable, Column } from "@/components/common/generic-table";
 import { AdmissionApplication } from "@/types/admission";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Icon } from "@/components";
+import { Can, DataList, Icon, type Column } from "@/components";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -17,18 +17,14 @@ import { ApplicationDetailsModal } from "./application-details-modal";
 import { DecisionModal } from "./decision-modal";
 import { GradeExamModal } from "./grade-exam-modal";
 import { ConvertToEnrollmentModal } from "./convert-to-enrollment-modal";
-import { useAdmissionStore } from "@/stores/school/admission-store";
+import { useAdmissions } from "@/hooks/school/use-admissions";
 import { SucessMessage } from "@/utils/messages";
 
 interface ApplicationsListProps {
   applications: AdmissionApplication[];
-  total: number;
-  totalPages: number;
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
-  goToNextPage: () => void;
-  goToPreviousPage: () => void;
 }
+
+const uniq = (v: string[]) => [...new Set(v.filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt"));
 
 const STATUS_CONFIG: Record<
   string,
@@ -44,16 +40,8 @@ const STATUS_CONFIG: Record<
   WITHDRAWN: { label: "Desistente", variant: "secondary" },
 };
 
-export function ApplicationsList({
-  applications,
-  total,
-  totalPages,
-  currentPage,
-  setCurrentPage,
-  goToNextPage,
-  goToPreviousPage,
-}: ApplicationsListProps) {
-  const { validateDocuments, promoteFromWaitlist, candidates } = useAdmissionStore();
+export function ApplicationsList({ applications }: ApplicationsListProps) {
+  const { validateDocuments, promoteFromWaitlist, candidates } = useAdmissions();
 
   // Modals state
   const [viewingApp, setViewingApp] = useState<AdmissionApplication | null>(null);
@@ -88,7 +76,7 @@ export function ApplicationsList({
             {item.applicationNumber}
           </span>
           <span className="text-[11px] text-muted-foreground">
-            {new Date(item.submissionDate).toLocaleDateString("pt-AO")}
+            {formatDate(item.submissionDate)}
           </span>
         </div>
       ),
@@ -234,6 +222,7 @@ export function ApplicationsList({
             </DropdownMenuItem>
 
             {item.status === "SUBMITTED" && (
+<Can permission="admission:write">
               <DropdownMenuItem
                 onClick={() => handleValidateDocs(item.id)}
                 className="gap-2 cursor-pointer text-info"
@@ -241,9 +230,11 @@ export function ApplicationsList({
                 <Icon name="CircleCheck" className="h-4 w-4" />
                 Validar Documentos
               </DropdownMenuItem>
+</Can>
             )}
 
             {item.requiresEntranceExam && item.status !== "ENROLLED" && (
+<Can permission="admission:write">
               <DropdownMenuItem
                 onClick={() => {
                   setGradingApp(item);
@@ -254,9 +245,11 @@ export function ApplicationsList({
                 <Icon name="PenTool" className="h-4 w-4" />
                 Lançar / Rever Nota do Exame
               </DropdownMenuItem>
+</Can>
             )}
 
             {item.status === "WAITLIST" && (
+<Can permission="admission:decide">
               <DropdownMenuItem
                 onClick={() => handlePromoteWaitlist(item.id)}
                 className="gap-2 cursor-pointer text-warning font-medium"
@@ -264,11 +257,13 @@ export function ApplicationsList({
                 <Icon name="CircleArrowUp" className="h-4 w-4" />
                 Promover da Lista de Espera
               </DropdownMenuItem>
+</Can>
             )}
 
             {(item.status === "DOCS_VALIDATED" ||
               item.status === "UNDER_REVIEW" ||
               item.status === "WAITLIST") && (
+<Can permission="admission:decide">
               <DropdownMenuItem
                 onClick={() => {
                   setDecisionApp(item);
@@ -279,11 +274,13 @@ export function ApplicationsList({
                 <Icon name="Stamp" className="h-4 w-4" />
                 Despacho da Direção
               </DropdownMenuItem>
+</Can>
             )}
 
             {item.status === "APPROVED" && (
               <>
                 <DropdownMenuSeparator />
+<Can permission="enrollment:write">
                 <DropdownMenuItem
                   onClick={() => {
                     setEnrollingApp(item);
@@ -294,6 +291,7 @@ export function ApplicationsList({
                   <Icon name="UserPlus" className="h-4 w-4" />
                   Efetivar Matrícula (1 Clique)
                 </DropdownMenuItem>
+</Can>
               </>
             )}
           </DropdownMenuContent>
@@ -308,19 +306,32 @@ export function ApplicationsList({
 
   return (
     <>
-      <div className="rounded-lg border bg-card">
-        <GenericTable<AdmissionApplication>
-          columns={columns}
-          data={applications}
-          page={currentPage}
-          totalPages={totalPages}
-          total={total}
-          setPage={setCurrentPage}
-          goToNextPage={goToNextPage}
-          goToPreviousPage={goToPreviousPage}
-          emptyMessage="Nenhuma candidatura encontrada com os filtros aplicados."
-        />
-      </div>
+      <DataList<AdmissionApplication>
+        prefix="candidaturas"
+        rows={applications}
+        columns={columns}
+        pageSize={10}
+        searchPlaceholder="Pesquisar por candidato, n.º de candidatura, BI ou encarregado"
+        searchText={(a) => `${a.candidateName} ${a.candidateDocumentNumber} ${a.applicationNumber} ${a.guardianName} ${a.guardianPhone}`}
+        filters={[
+          { key: "estado", label: "Estado", icon: "ListFilter", options: Object.entries(STATUS_CONFIG).map(([value, c]) => ({ value, label: c.label })), match: (a, v) => a.status === v },
+          { key: "turno", label: "Turno", icon: "Sun", options: [{ value: "MORNING", label: "Manhã" }, { value: "AFTERNOON", label: "Tarde" }, { value: "EVENING", label: "Noite" }], match: (a, v) => a.desiredShift === v },
+          { key: "classe", label: "Classe pretendida", icon: "GraduationCap", options: uniq(applications.map((a) => a.desiredClassLevelName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.desiredClassLevelName === v },
+          { key: "ano", label: "Ano lectivo", icon: "CalendarRange", options: uniq(applications.map((a) => a.academicYear)).map((v) => ({ value: v, label: v })), match: (a, v) => a.academicYear === v },
+          { key: "genero", label: "Género", icon: "User", options: [{ value: "MALE", label: "Masculino" }, { value: "FEMALE", label: "Feminino" }], match: (a, v) => a.candidateGender === v },
+          { key: "exame", label: "Exame de acesso", icon: "PenTool", options: [{ value: "isento", label: "Isento" }, { value: "pendente", label: "Aguarda nota" }, { value: "aprovado", label: "Aprovado na prova" }, { value: "reprovado", label: "Reprovado na prova" }], match: (a, v) => (v === "isento" ? !a.requiresEntranceExam : v === "pendente" ? a.requiresEntranceExam && a.examScore === undefined : a.examScore !== undefined && (v === "aprovado" ? a.examScore >= a.minPassingScore : a.examScore < a.minPassingScore)) },
+          { key: "docs", label: "Documentos", icon: "FileCheck", options: [{ value: "validados", label: "Validados" }, { value: "pendentes", label: "Por validar" }], match: (a, v) => (v === "validados" ? Boolean(a.documentsVerifiedAt) : !a.documentsVerifiedAt) },
+        ]}
+        dateFilters={[{ key: "submissao", label: "Submissão", getDate: (a) => a.submissionDate }]}
+        sorts={[
+          { value: "data", label: "Data de submissão", compare: (a, b) => a.submissionDate.localeCompare(b.submissionDate) },
+          { value: "nome", label: "Candidato", compare: (a, b) => a.candidateName.localeCompare(b.candidateName, "pt") },
+          { value: "nota", label: "Nota do exame", compare: (a, b) => (a.examScore ?? -1) - (b.examScore ?? -1) },
+        ]}
+        emptyTitle="Nenhuma candidatura encontrada"
+        emptyDescription="Ajuste os filtros ou registe uma nova candidatura."
+        emptyIcon="GraduationCap"
+      />
 
       {/* Modais Integrados */}
       {viewingApp && (

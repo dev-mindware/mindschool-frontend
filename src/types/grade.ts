@@ -21,6 +21,8 @@ export interface StudentGradeEntry {
   termAverage?: number; // MT = (2 * MAS + NPT) / 3
   finalAverage?: number; // MF (anual)
   notes?: string;
+  /** Estado de cada nota (por omissao `avaliado`): ausente, dispensado ou nao_avaliado nao tem valor. */
+  statuses?: Partial<Record<"continuousAssessment" | "teacherTest" | "termExam", "avaliado" | "ausente" | "dispensado" | "nao_avaliado">>;
 }
 
 export interface ClassSubjectGradeSheet {

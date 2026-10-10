@@ -49,7 +49,7 @@ export function formatAxisCurrency(
  * Para valores grandes onde os cêntimos só fazem ruído.
  */
 export function formatCurrencyCompact(
-  value: string | number,
+  value: string | number | null | undefined,
   currencyCode?: string,
 ): string {
   if (value === undefined || value === null || value === "") return "";
@@ -67,7 +67,7 @@ export function formatCurrencyCompact(
 }
 
 export function formatCurrency(
-  value: string | number,
+  value: string | number | null | undefined,
   currencyCode?: string,
 ): string {
   if (value === undefined || value === null || value === "") return "";

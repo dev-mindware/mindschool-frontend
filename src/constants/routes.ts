@@ -4,7 +4,6 @@
   "/auth/register",
   "/auth/forgot-password",
   "/auth/reset-password",
-  "/checkout",
   "/unauthorized",
   "/not-found",
 ];
@@ -37,7 +36,6 @@ export const PUBLIC_ROUTES = [
   "/auth/register",
   "/auth/forgot-password",
   "/auth/reset-password",
-  "/checkout",
   "/unauthorized",
   "/not-found",
 ] as const;
@@ -54,6 +52,9 @@ export const AUTH_PAGES = [
 // Prefixos de rotas privadas
 export const PRIVATE_ROUTE_PREFIXES = [
   "/dashboard",
+  "/teachers",
+  "/portal",
+  "/familia",
   "/admissions",
   "/students",
   "/enrollments",
@@ -91,17 +92,17 @@ export const ROLE_KEY = "user_role";
 export const ROLE_REDIRECTS: Record<Role, string> = {
   DIRECTOR_GENERAL: "/dashboard",
   PEDAGOGIC_DIRECTOR: "/dashboard",
-  SECRETARY: "/students/list",
-  TEACHER: "/grades/entry",
-  FINANCIAL: "/tuition/payments",
-  GUARDIAN: "/students/list",
-  STUDENT: "/grades/entry",
-  SYSTEM_ADMIN: "/settings",
-  MED_AUDITOR: "/reports/med",
+  // Todos os papéis entram no seu dashboard.
+  SECRETARY: "/dashboard",
+  TEACHER: "/dashboard",
+  FINANCIAL: "/dashboard",
+  GUARDIAN: "/dashboard",
+  STUDENT: "/dashboard",
+  SYSTEM_ADMIN: "/dashboard",
+  MED_AUDITOR: "/dashboard",
   OWNER: "/dashboard",
   MANAGER: "/dashboard",
-  ADMIN: "/settings",
-  CASHIER: "/tuition/payments",
+  ADMIN: "/dashboard",
 };
 
 // Validação: roles aceitas (para validar integridade de cookies e sessões)
@@ -118,5 +119,4 @@ export const VALID_ROLES: Role[] = [
   "ADMIN",
   "OWNER",
   "MANAGER",
-  "CASHIER",
 ];

@@ -15,7 +15,7 @@ interface OverviewSectionCardProps {
 
 /**
  * Cartão de secção do dashboard: cabeçalho com ícone, título e link "Ver todos".
- * Usado pelos blocos de Clientes, Contas a Receber, Stock e Actividade Recente.
+ * Usado pelos blocos do dashboard (pedidos, risco, propinas, eventos).
  */
 export function OverviewSectionCard({
     title,

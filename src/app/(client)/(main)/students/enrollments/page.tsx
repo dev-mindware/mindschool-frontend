@@ -3,11 +3,7 @@ import { EnrollmentsPageContent } from "@/components/client/enrollments";
 
 export default function StudentEnrollmentsPage() {
   return (
-    <PageWrapper
-      routePath="/students/enrollments"
-      routeLabel="Alunos & Matrículas"
-      subRoute="Matrículas & Inscrições"
-    >
+    <PageWrapper>
       <EnrollmentsPageContent />
     </PageWrapper>
   );

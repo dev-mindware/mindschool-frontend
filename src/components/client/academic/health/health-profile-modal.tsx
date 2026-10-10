@@ -1,308 +1,55 @@
 "use client";
+import { formatDate } from "@/utils";
 
-import React, { useState, useEffect } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-  Button,
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-  Icon,
-} from "@/components";
-import { useHealthStore } from "@/stores/school/health-store";
-import { StudentHealthProfile, BloodType } from "@/types";
-import { toast } from "sonner";
+import { useEffect, useState } from "react";
+import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { FormModal, FormSelect, FormTextarea, Input } from "@/components";
+import { useStudentHealth } from "@/hooks/school/use-health";
+import { getApiErrorMessage } from "@/utils/api-error";
 
-interface HealthProfileModalProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
-  profile: StudentHealthProfile | null;
-  onPrintReport?: (profile: StudentHealthProfile) => void;
-}
+const BLOOD = ["A+", "A-", "B+", "B-", "AB+", "AB-", "O+", "O-"];
+const EMPTY = { blood_type: "", allergies: "", chronic_conditions: "", medications: "", emergency_contact_name: "", emergency_contact_phone: "", notes: "" };
 
-export function HealthProfileModal({
-  open,
-  onOpenChange,
-  profile,
-  onPrintReport,
-}: HealthProfileModalProps) {
-  const { saveHealthProfile } = useHealthStore();
-
-  const [bloodType, setBloodType] = useState<BloodType>("UNKNOWN");
-  const [allergiesInput, setAllergiesInput] = useState("");
-  const [chronicConditionsInput, setChronicConditionsInput] = useState("");
-  const [medicationsInput, setMedicationsInput] = useState("");
-  const [restrictionsInput, setRestrictionsInput] = useState("");
-  const [emergencyName, setEmergencyName] = useState("");
-  const [emergencyPhone, setEmergencyPhone] = useState("");
-  const [emergencyRel, setEmergencyRel] = useState("");
-  const [insuranceProvider, setInsuranceProvider] = useState("");
-  const [insuranceNumber, setInsuranceNumber] = useState("");
-  const [vaccinationUpToDate, setVaccinationUpToDate] = useState(true);
-  const [confidentialNotes, setConfidentialNotes] = useState("");
+/** Ficha clínica do aluno (grupo sanguíneo, alergias, doenças crónicas, medicação, contacto de emergência). */
+export function HealthProfileModal({ studentId }: { studentId: string | null }) {
+  const { data, isLoading, forbidden, save } = useStudentHealth(studentId ?? undefined);
+  const [form, setForm] = useState(EMPTY);
+  const set = (k: keyof typeof EMPTY, v: string) => setForm((f) => ({ ...f, [k]: v }));
 
   useEffect(() => {
-    if (profile) {
-      setBloodType(profile.bloodType || "UNKNOWN");
-      setAllergiesInput(profile.allergies ? profile.allergies.join(", ") : "");
-      setChronicConditionsInput(profile.chronicConditions ? profile.chronicConditions.join(", ") : "");
-      setMedicationsInput(profile.regularMedications ? profile.regularMedications.join(", ") : "");
-      setRestrictionsInput(profile.physicalRestrictions ? profile.physicalRestrictions.join(", ") : "");
-      setEmergencyName(profile.emergencyContactName || "");
-      setEmergencyPhone(profile.emergencyContactPhone || "");
-      setEmergencyRel(profile.emergencyContactRelationship || "");
-      setInsuranceProvider(profile.healthInsuranceProvider || "");
-      setInsuranceNumber(profile.healthInsuranceNumber || "");
-      setVaccinationUpToDate(profile.vaccinationUpToDate ?? true);
-      setConfidentialNotes(profile.confidentialNotes || "");
-    }
-  }, [profile]);
+    const r = data?.record;
+    setForm({
+      blood_type: r?.blood_type ?? "", allergies: r?.allergies ?? "", chronic_conditions: r?.chronic_conditions ?? "", medications: r?.medications ?? "",
+      emergency_contact_name: r?.emergency_contact_name ?? "", emergency_contact_phone: r?.emergency_contact_phone ?? "", notes: r?.notes ?? "",
+    });
+  }, [data, studentId]);
 
-  if (!profile) return null;
-
-  const handleSave = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const parseList = (str: string) =>
-      str ? str.split(",").map((s) => s.trim()).filter(Boolean) : [];
-
-    const updatedProfile: StudentHealthProfile = {
-      ...profile,
-      bloodType,
-      allergies: parseList(allergiesInput),
-      chronicConditions: parseList(chronicConditionsInput),
-      regularMedications: parseList(medicationsInput),
-      physicalRestrictions: parseList(restrictionsInput),
-      emergencyContactName: emergencyName,
-      emergencyContactPhone: emergencyPhone,
-      emergencyContactRelationship: emergencyRel,
-      healthInsuranceProvider: insuranceProvider || undefined,
-      healthInsuranceNumber: insuranceNumber || undefined,
-      vaccinationUpToDate,
-      confidentialNotes: confidentialNotes || undefined,
-      updatedAt: new Date().toISOString().split("T")[0],
-    };
-
-    saveHealthProfile(updatedProfile);
-    toast.success("Ficha médica actualizada com sucesso!");
-    onOpenChange(false);
-  };
+  const nul = (v: string) => (v.trim() === "" ? null : v.trim());
+  const submit = () =>
+    save
+      .mutateAsync({ blood_type: nul(form.blood_type), allergies: nul(form.allergies), chronic_conditions: nul(form.chronic_conditions), medications: nul(form.medications), emergency_contact_name: nul(form.emergency_contact_name), emergency_contact_phone: nul(form.emergency_contact_phone), notes: nul(form.notes) })
+      .then(() => SucessMessage("Ficha clínica guardada."))
+      .catch((err) => { ErrorMessage(getApiErrorMessage(err, "Não foi possível guardar a ficha.")); throw err; });
 
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <div className="flex items-center justify-between pr-6">
-            <DialogTitle className="flex items-center gap-2 text-base font-semibold">
-              <Icon name="Activity" className="size-5 text-primary" />
-              Ficha Clínica Escolar — {profile.studentName}
-            </DialogTitle>
-            {onPrintReport && (
-              <Button
-                type="button"
-                size="sm"
-                variant="outline"
-                className="gap-1.5 text-xs"
-                onClick={() => onPrintReport(profile)}
-              >
-                <Icon name="Printer" className="size-3.5" />
-                Imprimir Ficha A4
-              </Button>
-            )}
-          </div>
-          <p className="text-xs text-muted-foreground">
-            {profile.studentNumber} | {profile.classLevel} — {profile.sectionName}
-          </p>
-        </DialogHeader>
-
-        <form onSubmit={handleSave} className="space-y-4 text-xs">
-          {/* Informações Básicas & Grupo Sanguíneo */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div className="space-y-1.5">
-              <label className="font-medium text-foreground">Grupo Sanguíneo</label>
-              <Select
-                value={bloodType}
-                onValueChange={(val) => setBloodType(val as BloodType)}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="O+">O Positivo (O+)</SelectItem>
-                  <SelectItem value="O-">O Negativo (O-)</SelectItem>
-                  <SelectItem value="A+">A Positivo (A+)</SelectItem>
-                  <SelectItem value="A-">A Negativo (A-)</SelectItem>
-                  <SelectItem value="B+">B Positivo (B+)</SelectItem>
-                  <SelectItem value="B-">B Negativo (B-)</SelectItem>
-                  <SelectItem value="AB+">AB Positivo (AB+)</SelectItem>
-                  <SelectItem value="AB-">AB Negativo (AB-)</SelectItem>
-                  <SelectItem value="UNKNOWN">Não especificado / A apurar</SelectItem>
-                </SelectContent>
-              </Select>
+    <FormModal id="health-profile" title="Ficha clínica" description={forbidden ? "O seu perfil não tem acesso às fichas clínicas." : isLoading ? "A carregar…" : "Confidencial: acesso restrito e auditado."} size="lg" submitLabel="Guardar" isLoading={save.isPending} readOnly={forbidden} onSubmit={submit} keepOpen>
+      {data && (
+        <>
+          <FormSelect label="Grupo sanguíneo" value={form.blood_type} onValueChange={(v) => set("blood_type", v)} options={BLOOD.map((b) => ({ value: b, label: b }))} placeholder="—" />
+          <Input label="Medicação habitual" value={form.medications} onChange={(e) => set("medications", e.target.value)} />
+          <FormTextarea label="Alergias" value={form.allergies} onChange={(v) => set("allergies", v)} rows={2} />
+          <FormTextarea label="Doenças crónicas" value={form.chronic_conditions} onChange={(v) => set("chronic_conditions", v)} rows={2} />
+          <Input label="Contacto de emergência" startIcon="User" value={form.emergency_contact_name} onChange={(e) => set("emergency_contact_name", e.target.value)} />
+          <Input label="Telefone de emergência" startIcon="Phone" value={form.emergency_contact_phone} onChange={(e) => set("emergency_contact_phone", e.target.value)} />
+          <FormTextarea label="Observações" value={form.notes} onChange={(v) => set("notes", v)} rows={2} />
+          {data.recent_visits.length > 0 && (
+            <div className="sm:col-span-2 space-y-1 border-t pt-3 text-sm">
+              <p className="font-semibold">Últimos atendimentos</p>
+              <ul className="space-y-0.5 text-muted-foreground">{data.recent_visits.map((v) => <li key={v.id}>{formatDate(v.visited_at)} — {v.reason}</li>)}</ul>
             </div>
-
-            <div className="sm:col-span-2 space-y-1.5">
-              <label className="font-medium text-foreground">Alergias (separadas por vírgula)</label>
-              <input
-                type="text"
-                value={allergiesInput}
-                onChange={(e) => setAllergiesInput(e.target.value)}
-                placeholder="Ex: Penicilina, Amendoim, Mariscos, Picada de abelha"
-                className="w-full px-3 py-2 border rounded-md bg-background text-xs"
-              />
-            </div>
-          </div>
-
-          {/* Doenças Crónicas & Medicamentos */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="space-y-1.5">
-              <label className="font-medium text-foreground">Condições Crónicas Conhecidas</label>
-              <input
-                type="text"
-                value={chronicConditionsInput}
-                onChange={(e) => setChronicConditionsInput(e.target.value)}
-                placeholder="Ex: Asma, Diabetes Tipo 1, Epilepsia"
-                className="w-full px-3 py-2 border rounded-md bg-background text-xs"
-              />
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="font-medium text-foreground">Medicação de Uso Habitual / SOS</label>
-              <input
-                type="text"
-                value={medicationsInput}
-                onChange={(e) => setMedicationsInput(e.target.value)}
-                placeholder="Ex: Salbutamol 100mcg spray, Insulina"
-                className="w-full px-3 py-2 border rounded-md bg-background text-xs"
-              />
-            </div>
-          </div>
-
-          {/* Restrições Físicas / Ed. Física */}
-          <div className="space-y-1.5">
-            <label className="font-medium text-foreground">Restrições na Aula de Educação Física / Desporto</label>
-            <input
-              type="text"
-              value={restrictionsInput}
-              onChange={(e) => setRestrictionsInput(e.target.value)}
-              placeholder="Ex: Isenção de esforço aeróbico intenso sob recomendação médica"
-              className="w-full px-3 py-2 border rounded-md bg-background text-xs"
-            />
-          </div>
-
-          {/* Contacto de Emergência */}
-          <div className="border rounded-md p-3 bg-muted/20 space-y-2">
-            <div className="flex items-center gap-1.5 font-medium text-foreground">
-              <Icon name="PhoneCall" className="size-4 text-emerald-600" />
-              Contacto Prioritário de Emergência
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <div>
-                <label className="text-[11px] text-muted-foreground">Nome do Contacto</label>
-                <input
-                  type="text"
-                  value={emergencyName}
-                  onChange={(e) => setEmergencyName(e.target.value)}
-                  placeholder="Ex: Maria António"
-                  className="w-full px-2.5 py-1.5 border rounded bg-background text-xs"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-[11px] text-muted-foreground">Telefone de Emergência</label>
-                <input
-                  type="text"
-                  value={emergencyPhone}
-                  onChange={(e) => setEmergencyPhone(e.target.value)}
-                  placeholder="+244 923 000 000"
-                  className="w-full px-2.5 py-1.5 border rounded bg-background text-xs"
-                  required
-                />
-              </div>
-              <div>
-                <label className="text-[11px] text-muted-foreground">Grau de Parentesco</label>
-                <input
-                  type="text"
-                  value={emergencyRel}
-                  onChange={(e) => setEmergencyRel(e.target.value)}
-                  placeholder="Ex: Mãe / Pai / Tutor"
-                  className="w-full px-2.5 py-1.5 border rounded bg-background text-xs"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Seguro de Saúde & Vacinação */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-            <div>
-              <label className="font-medium text-foreground">Seguradora de Saúde</label>
-              <input
-                type="text"
-                value={insuranceProvider}
-                onChange={(e) => setInsuranceProvider(e.target.value)}
-                placeholder="Ex: ENSA, Nossa Seguros"
-                className="w-full px-2.5 py-1.5 border rounded bg-background text-xs"
-              />
-            </div>
-            <div>
-              <label className="font-medium text-foreground">Nº da Apólice / Cartão</label>
-              <input
-                type="text"
-                value={insuranceNumber}
-                onChange={(e) => setInsuranceNumber(e.target.value)}
-                placeholder="Ex: ENSA-123456"
-                className="w-full px-2.5 py-1.5 border rounded bg-background text-xs"
-              />
-            </div>
-            <div className="flex flex-col justify-end">
-              <label className="flex items-center gap-2 font-medium text-foreground cursor-pointer pt-2">
-                <input
-                  type="checkbox"
-                  checked={vaccinationUpToDate}
-                  onChange={(e) => setVaccinationUpToDate(e.target.checked)}
-                  className="rounded border-input text-primary focus:ring-primary"
-                />
-                Plano de Vacinação Actualizado
-              </label>
-            </div>
-          </div>
-
-          {/* Notas Confidenciais */}
-          <div className="space-y-1.5">
-            <label className="font-medium text-foreground flex items-center gap-1.5">
-              <Icon name="Lock" className="size-3.5 text-muted-foreground" />
-              Observações Médicas Confidenciais (Acesso Restrito à Direcção & Enfermaria)
-            </label>
-            <textarea
-              rows={2}
-              value={confidentialNotes}
-              onChange={(e) => setConfidentialNotes(e.target.value)}
-              placeholder="Instruções particulares e histórico de saúde relevante..."
-              className="w-full px-3 py-2 border rounded-md bg-background text-xs"
-            />
-          </div>
-
-          <DialogFooter className="gap-2 pt-2">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={() => onOpenChange(false)}
-            >
-              Fechar
-            </Button>
-            <Button type="submit" className="gap-1.5">
-              <Icon name="Check" className="size-4" />
-              Guardar Ficha Médica
-            </Button>
-          </DialogFooter>
-        </form>
-      </DialogContent>
-    </Dialog>
+          )}
+        </>
+      )}
+    </FormModal>
   );
 }

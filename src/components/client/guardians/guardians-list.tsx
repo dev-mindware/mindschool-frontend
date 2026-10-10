@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { GenericTable, Column } from "@/components/common/generic-table";
+import { Can, DataList, type Column } from "@/components";
 import { Guardian } from "@/types";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -17,23 +17,18 @@ import { GuardianDetailsModal } from "./guardian-details-modal";
 
 interface GuardiansListProps {
   guardians: Guardian[];
-  total: number;
-  totalPages: number;
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
-  goToNextPage: () => void;
-  goToPreviousPage: () => void;
+  isLoading?: boolean;
+  isError?: boolean;
 }
 
-export function GuardiansList({
-  guardians,
-  total,
-  totalPages,
-  currentPage,
-  setCurrentPage,
-  goToNextPage,
-  goToPreviousPage,
-}: GuardiansListProps) {
+const CHANNELS = [
+  { value: "WHATSAPP", label: "WhatsApp" },
+  { value: "SMS", label: "SMS" },
+  { value: "EMAIL", label: "E-mail" },
+  { value: "PHONE_CALL", label: "Chamada telefónica" },
+];
+
+export function GuardiansList({ guardians, isLoading, isError }: GuardiansListProps) {
   const [selectedGuardian, setSelectedGuardian] = useState<Guardian | null>(
     null
   );
@@ -153,6 +148,7 @@ export function GuardiansList({
               <Icon name="Eye" className="h-4 w-4 text-muted-foreground" />
               Ver Ficha Completa
             </DropdownMenuItem>
+<Can permission="guardian:write">
             <DropdownMenuItem
               className="gap-2 cursor-pointer"
               onClick={() => handleEdit(item)}
@@ -160,6 +156,7 @@ export function GuardiansList({
               <Icon name="Pencil" className="h-4 w-4" />
               Editar Dados
             </DropdownMenuItem>
+</Can>
             <DropdownMenuItem
               className="gap-2 cursor-pointer text-emerald-600"
               onClick={() => {
@@ -178,16 +175,30 @@ export function GuardiansList({
 
   return (
     <>
-      <GenericTable
+      <DataList<Guardian>
+        prefix="encarregados"
+        rows={guardians}
         columns={columns}
-        data={guardians}
-        total={total}
-        page={currentPage}
-        totalPages={totalPages}
-        setPage={setCurrentPage}
-        goToNextPage={goToNextPage}
-        goToPreviousPage={goToPreviousPage}
-        emptyMessage="Nenhum encarregado encontrado com os filtros actuais."
+        isLoading={isLoading}
+        isError={isError}
+        pageSize={10}
+        searchPlaceholder="Pesquisar por nome, telefone, BI, e-mail ou educando"
+        searchText={(g) => `${g.fullName} ${g.phonePrimary} ${g.phoneSecondary ?? ""} ${g.idDocumentNumber ?? ""} ${g.email ?? ""} ${g.profession ?? ""} ${g.wards.map((w) => w.studentName).join(" ")}`}
+        filters={[
+          { key: "canal", label: "Canal", icon: "ListFilter", options: CHANNELS, match: (g, v) => g.preferredContactChannel === v },
+          { key: "educandos", label: "Educandos", icon: "GraduationCap", options: [{ value: "com", label: "Com educandos" }, { value: "sem", label: "Sem educandos" }, { value: "varios", label: "2 ou mais" }], match: (g, v) => (v === "com" ? g.wards.length > 0 : v === "sem" ? g.wards.length === 0 : g.wards.length >= 2) },
+          { key: "email", label: "E-mail", icon: "Mail", options: [{ value: "sim", label: "Com e-mail" }, { value: "nao", label: "Sem e-mail" }], match: (g, v) => (v === "sim" ? Boolean(g.email) : !g.email) },
+          { key: "bi", label: "Documento", icon: "IdCard", options: [{ value: "sim", label: "Com BI" }, { value: "nao", label: "Sem BI" }], match: (g, v) => (v === "sim" ? Boolean(g.idDocumentNumber) : !g.idDocumentNumber) },
+        ]}
+        dateFilters={[{ key: "registo", label: "Registo", getDate: (g) => g.createdAt }]}
+        sorts={[
+          { value: "nome", label: "Nome", compare: (a, b) => a.fullName.localeCompare(b.fullName, "pt") },
+          { value: "registo", label: "Data de registo", compare: (a, b) => a.createdAt.localeCompare(b.createdAt) },
+          { value: "educandos", label: "N.º de educandos", compare: (a, b) => a.wards.length - b.wards.length },
+        ]}
+        emptyTitle="Nenhum encarregado encontrado"
+        emptyDescription="Ajuste os filtros ou cadastre um encarregado."
+        emptyIcon="Users"
       />
 
       <GuardianModal

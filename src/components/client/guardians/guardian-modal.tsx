@@ -1,5 +1,6 @@
 'use client';
 
+import { RELATIONSHIP_LABELS } from "@/constants/labels";
 import React, { useEffect, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -10,7 +11,9 @@ import {
   GuardianRelationship,
   GuardianWard,
 } from '@/types';
-import { useSchoolDataStore } from '@/stores/school/school-data-store';
+import { useGuardians } from '@/hooks/school/use-guardians';
+import { useStudents } from '@/hooks/school/use-students';
+import { getApiErrorMessage } from '@/utils/api-error';
 import { GlobalModal, Button, ButtonSubmit } from '@/components';
 import { SucessMessage, ErrorMessage } from '@/utils/messages';
 import { GuardianPersonalInfoFields } from './guardian-personal-info-fields';
@@ -47,15 +50,6 @@ const RELATIONSHIP_OPTIONS = [
   { value: 'OTHER', label: 'Outro' },
 ];
 
-const RELATIONSHIP_LABELS: Record<string, string> = {
-  FATHER: 'Pai',
-  MOTHER: 'Mãe',
-  UNCLE: 'Tio(a)',
-  GRANDPARENT: 'Avô/Avó',
-  LEGAL_GUARDIAN: 'Tutor(a) Legal',
-  TUTOR: 'Encarregado Indicado',
-  OTHER: 'Outro',
-};
 
 const CHANNEL_OPTIONS = [
   { value: 'WHATSAPP', label: 'WhatsApp (Preferencial em Angola)' },
@@ -69,7 +63,8 @@ export function GuardianModal({
   onClose,
   guardianToEdit,
 }: GuardianModalProps) {
-  const { addGuardian, updateGuardian, students } = useSchoolDataStore();
+  const { createGuardian, updateGuardian } = useGuardians();
+  const { allStudents: students } = useStudents();
 
   const [wards, setWards] = useState<GuardianWard[]>([]);
   const [candidateStudentId, setCandidateStudentId] = useState<string>('');
@@ -212,41 +207,27 @@ export function GuardianModal({
 
   const onSubmit = async (data: GuardianFormValues) => {
     try {
+      if (!data.idDocumentNumber) {
+        ErrorMessage('O número do documento é obrigatório (identifica o encarregado).');
+        return;
+      }
+      const input = {
+        fullName: data.fullName,
+        documentNumber: data.idDocumentNumber,
+        phone: data.phonePrimary,
+        email: data.email || undefined,
+        wards: wards.map((w) => ({ studentId: w.studentId, relationship: w.relationship, isPrimaryContact: w.isPrimaryContact })),
+      };
       if (guardianToEdit) {
-        updateGuardian(guardianToEdit.id, {
-          fullName: data.fullName,
-          idDocumentNumber: data.idDocumentNumber || undefined,
-          phonePrimary: data.phonePrimary,
-          phoneSecondary: data.phoneSecondary || undefined,
-          email: data.email || undefined,
-          address: data.address || undefined,
-          profession: data.profession || undefined,
-          workplace: data.workplace || undefined,
-          preferredContactChannel: data.preferredContactChannel,
-          wards,
-        });
+        await updateGuardian.mutateAsync({ id: guardianToEdit.id, input, previousWardIds: guardianToEdit.wards.map((w) => w.studentId) });
         SucessMessage('Dados do encarregado atualizados com sucesso!');
       } else {
-        addGuardian({
-          schoolId: 'dev-school-1',
-          fullName: data.fullName,
-          idDocumentType: 'BI',
-          idDocumentNumber: data.idDocumentNumber || undefined,
-          phonePrimary: data.phonePrimary,
-          phoneSecondary: data.phoneSecondary || undefined,
-          email: data.email || undefined,
-          address: data.address || undefined,
-          profession: data.profession || undefined,
-          workplace: data.workplace || undefined,
-          preferredContactChannel: data.preferredContactChannel,
-          wards,
-        });
+        await createGuardian.mutateAsync(input);
         SucessMessage('Novo encarregado cadastrado com sucesso!');
       }
-
       onClose();
-    } catch (err: any) {
-      ErrorMessage(err?.message || 'Ocorreu um erro ao guardar o encarregado.');
+    } catch (err: unknown) {
+      ErrorMessage(getApiErrorMessage(err, 'Ocorreu um erro ao guardar o encarregado.'));
     }
   };
 

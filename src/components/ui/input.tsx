@@ -12,6 +12,7 @@ type InputType =
   | "quantity"
   | "date"
   | "time"
+  | "datetime-local"
   | "search";
 
 type InputProps = {

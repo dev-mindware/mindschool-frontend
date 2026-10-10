@@ -5,3 +5,5 @@ export * from "./dynamic-metric-card";
 export * from "./chatbot";
 export * from "./trial-banner";
 export * from "./tutorials/tutorials-modal";
+export * from "./calendar-view";
+export * from "./chart-card";

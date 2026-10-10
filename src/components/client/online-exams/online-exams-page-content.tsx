@@ -1,244 +1,83 @@
 'use client';
 
-import React, { useState, useMemo } from 'react';
-import { TitleList, Button, Icon } from '@/components';
-import { SearchHandlerWrapper } from '@/components/common';
-import { FilterPopover } from '@/components/shared';
-import { useOnlineExamStore } from '@/stores/school/online-exam-store';
-import { useSchoolDataStore } from '@/stores/school/school-data-store';
-import { OnlineExam, ExamStatus, ExamQuestion, StudentExamSubmission } from '@/types/online-exam';
+import React, { useState } from 'react';
+import { SucessMessage, ErrorMessage } from '@/utils/messages';
+import { Can, TitleList, Button, Icon } from '@/components';
+import { useExamTargets, useOnlineExams } from '@/hooks/school/use-online-exams';
+import type { ApiExam } from '@/services/exams-service';
+import { getApiErrorMessage } from '@/utils/api-error';
 import { OnlineExamsMetrics } from './online-exams-metrics';
 import { OnlineExamsTable } from './online-exams-table';
-import { CreateExamModal } from './create-exam-modal';
+import { CreateExamModal, CREATE_EXAM_MODAL_ID } from './create-exam-modal';
+import { useModal } from '@/stores/modal/use-modal-store';
 import { AddQuestionModal } from './add-question-modal';
-import { ExamSimulatorModal } from './exam-simulator-modal';
 import { ExamGradingModal } from './exam-grading-modal';
+import { GoogleFormModal } from './google-form-modal';
 
 export function OnlineExamsPageContent() {
-  const {
-    exams,
-    submissions,
-    filterStatus,
-    searchQuery,
-    setStatusFilter,
-    setSearchQuery,
-    createExam,
-    addQuestion,
-    submitStudentExam,
-    gradeEssayQuestion,
-    pushScoreToGradebook,
-    getMetrics,
-  } = useOnlineExamStore();
+  const { allExams, isLoading, metrics, create, addQuestion, removeQuestion, publish, close } = useOnlineExams();
+  const { assignments, terms } = useExamTargets();
 
-  const { sections } = useSchoolDataStore();
-  const metrics = getMetrics();
+  const { openModal } = useModal();
+  const [questionsFor, setQuestionsFor] = useState<string | null>(null);
+  const [gradingFor, setGradingFor] = useState<string | null>(null);
+  const [formFor, setFormFor] = useState<string | null>(null);
 
-  // Modais
-  const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-  const [isAddQuestionModalOpen, setIsAddQuestionModalOpen] = useState(false);
-  const [isStudentSimulatorOpen, setIsStudentSimulatorOpen] = useState(false);
-  const [isGradingModalOpen, setIsGradingModalOpen] = useState(false);
+  // As modais leem sempre a versao mais recente da prova (a lista e invalidada a cada alteracao).
+  const byId = (id: string | null): ApiExam | null => allExams.find((e) => e.id === id) ?? null;
 
-  // Estados de Seleção
-  const [activeExam, setActiveExam] = useState<OnlineExam | null>(null);
-  const [activeSubmission, setActiveSubmission] = useState<StudentExamSubmission | null>(null);
-
-  // Paginação
-  const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 6;
-
-  // Filtros
-  const filteredExams = useMemo(() => {
-    return exams.filter((exam) => {
-      const matchesStatus = filterStatus === 'ALL' || exam.status === filterStatus;
-      const matchesQuery =
-        exam.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        exam.subjectName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        exam.className.toLowerCase().includes(searchQuery.toLowerCase());
-
-      return matchesStatus && matchesQuery;
-    });
-  }, [exams, filterStatus, searchQuery]);
-
-  const totalPages = Math.ceil(filteredExams.length / PAGE_SIZE) || 1;
-  const paginatedExams = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return filteredExams.slice(start, start + PAGE_SIZE);
-  }, [filteredExams, currentPage]);
-
-  const handleSaveExam = (examData: Omit<OnlineExam, 'id' | 'createdAt' | 'questions'>) => {
-    const created = createExam(examData);
-    setActiveExam(created);
-    setIsAddQuestionModalOpen(true);
-  };
-
-  const handleOpenAddQuestion = (exam: OnlineExam) => {
-    setActiveExam(exam);
-    setIsAddQuestionModalOpen(true);
-  };
-
-  const handleSaveQuestion = (examId: string, questionData: Omit<ExamQuestion, 'id'>) => {
-    addQuestion(examId, questionData);
-  };
-
-  const handleOpenSimulator = (exam: OnlineExam) => {
-    setActiveExam(exam);
-    setIsStudentSimulatorOpen(true);
-  };
-
-  const handleSubmitSimulation = (examId: string, answers: Record<string, string>) => {
-    const sub = submitStudentExam(examId, 'std-simulated-01', answers);
-    setIsStudentSimulatorOpen(false);
-    setActiveSubmission(sub);
-    setIsGradingModalOpen(true);
-  };
-
-  const handleOpenGrading = (exam: OnlineExam) => {
-    setActiveExam(exam);
-    const sub = submissions.find((s) => s.examId === exam.id) || submissions[0];
-    if (sub) {
-      setActiveSubmission(sub);
-      setIsGradingModalOpen(true);
-    }
-  };
-
-  const handleSaveEssayGrade = (
-    questionId: string,
-    maxPoints: number,
-    score: number,
-    feedback: string
-  ) => {
-    if (!activeSubmission) return;
-    gradeEssayQuestion(activeSubmission.id, questionId, score, feedback);
-    const updated = useOnlineExamStore.getState().submissions.find((s) => s.id === activeSubmission.id);
-    if (updated) setActiveSubmission(updated);
-  };
-
-  const handlePushToPauta = () => {
-    if (!activeSubmission) return;
-    pushScoreToGradebook(activeSubmission.id);
-    const updated = useOnlineExamStore.getState().submissions.find((s) => s.id === activeSubmission.id);
-    if (updated) setActiveSubmission(updated);
-  };
-
-  const hasFilter = Boolean(searchQuery.trim() || filterStatus !== 'ALL');
-
-  const handleClearFilters = () => {
-    setSearchQuery('');
-    setStatusFilter('ALL');
-    setCurrentPage(1);
-  };
+  const run = (p: Promise<unknown>, ok: string) => p.then(() => SucessMessage(ok)).catch((e) => ErrorMessage(getApiErrorMessage(e, 'A operação falhou.')));
 
   return (
     <div className="space-y-6">
-      {/* MindGest Standard TitleList Header */}
       <TitleList
         title="Avaliações & Provas Online"
-        suTitle="Elabore avaliações digitais com perguntas de escolha múltipla, V/F e dissertativas com lançamento automático na mini-pauta."
+        suTitle="Elabore provas com escolha múltipla, V/F, resposta curta e dissertativas, na plataforma ou num Google Form, com lançamento na mini-pauta."
       >
-        <Button
-          variant="default"
-          size="sm"
-          onClick={() => setIsCreateModalOpen(true)}
-          className="gap-2 shadow-xs text-xs font-semibold"
-        >
+        <Can permission="exam:write"><Button variant="default" size="sm" onClick={() => openModal(CREATE_EXAM_MODAL_ID)} className="gap-2 shadow-xs text-xs font-semibold">
           <Icon name="Plus" className="size-4" />
           Criar Nova Prova
-        </Button>
+        </Button></Can>
       </TitleList>
 
-      {/* 4 Cards de Métricas */}
       <OnlineExamsMetrics metrics={metrics} />
 
-      {/* MindGest Standard Filters Toolbar */}
-      <div className="w-full flex flex-col sm:flex-row gap-3 items-center justify-between">
-        <SearchHandlerWrapper
-          search={searchQuery}
-          setSearch={(q) => {
-            setSearchQuery(q);
-            setCurrentPage(1);
-          }}
-          placeholder="Pesquisar por título, disciplina ou turma..."
-          className="w-full sm:max-w-xs md:max-w-sm"
-        />
-
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <FilterPopover
-            label="Estado"
-            icon="ListFilter"
-            options={[
-              { label: 'Todos os Estados', value: 'ALL' },
-              { label: 'Publicadas', value: 'PUBLISHED' },
-              { label: 'Em Curso', value: 'IN_PROGRESS' },
-              { label: 'Corrigidas / Finalizadas', value: 'GRADED' },
-              { label: 'Rascunhos', value: 'DRAFT' },
-            ]}
-            value={filterStatus === 'ALL' ? null : filterStatus}
-            onChange={(val) => {
-              setStatusFilter((val as ExamStatus) ?? 'ALL');
-              setCurrentPage(1);
-            }}
-          />
-
-          {hasFilter && (
-            <Button
-              size="sm"
-              variant="ghost"
-              onClick={handleClearFilters}
-              className="h-10 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <Icon name="X" className="w-3.5 h-3.5 mr-1" />
-              Limpar
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Tabela de Provas Online */}
       <OnlineExamsTable
-        exams={paginatedExams}
-        currentPage={currentPage}
-        totalPages={totalPages}
-        total={filteredExams.length}
-        onPageChange={setCurrentPage}
-        onOpenAddQuestion={handleOpenAddQuestion}
-        onOpenSimulator={handleOpenSimulator}
-        onOpenGrading={handleOpenGrading}
+        exams={allExams}
+        isLoading={isLoading}
+        onOpenQuestions={(e) => setQuestionsFor(e.id)}
+        onOpenGoogleForm={(e) => setFormFor(e.id)}
+        onOpenGrading={(e) => setGradingFor(e.id)}
+        onPublish={(e) => run(publish.mutateAsync(e.id), 'Prova publicada.')}
+        onClose={(e) => run(close.mutateAsync(e.id), 'Prova encerrada.')}
       />
 
-      {/* Modal 1: Criar Nova Prova */}
       <CreateExamModal
-        isOpen={isCreateModalOpen}
-        onClose={() => setIsCreateModalOpen(false)}
-        sections={sections}
-        onSave={handleSaveExam}
+        assignments={assignments}
+        terms={terms}
+        isSaving={create.isPending}
+        onSave={(v) =>
+          create.mutateAsync(v).then((exam) => {
+            SucessMessage('Prova criada.');
+            setQuestionsFor(exam.id);
+          }).catch((e) => {
+            ErrorMessage(getApiErrorMessage(e, 'Não foi possível criar a prova.'));
+            throw e;
+          })
+        }
       />
 
-      {/* Modal 2: Adicionar Questão */}
       <AddQuestionModal
-        isOpen={isAddQuestionModalOpen}
-        onClose={() => setIsAddQuestionModalOpen(false)}
-        activeExam={activeExam}
-        onSaveQuestion={handleSaveQuestion}
+        isOpen={Boolean(questionsFor)}
+        onClose={() => setQuestionsFor(null)}
+        activeExam={byId(questionsFor)}
+        isSaving={addQuestion.isPending}
+        onAddQuestion={(q) => addQuestion.mutateAsync({ examId: questionsFor!, question: q }).then(() => SucessMessage('Questão adicionada.')).catch((e) => ErrorMessage(getApiErrorMessage(e, 'Questão inválida.')))}
+        onRemoveQuestion={(id) => run(removeQuestion.mutateAsync({ examId: questionsFor!, questionId: id }), 'Questão removida.')}
       />
 
-      {/* Modal 3: Simulador de Realização pelo Aluno */}
-      <ExamSimulatorModal
-        isOpen={isStudentSimulatorOpen}
-        onClose={() => setIsStudentSimulatorOpen(false)}
-        activeExam={activeExam}
-        onSubmitSimulation={handleSubmitSimulation}
-      />
-
-      {/* Modal 4: Mesa de Correcção e Lançamento na Mini-Pauta */}
-      <ExamGradingModal
-        isOpen={isGradingModalOpen}
-        onClose={() => setIsGradingModalOpen(false)}
-        activeExam={activeExam}
-        activeSubmission={activeSubmission}
-        onSaveEssayGrade={handleSaveEssayGrade}
-        onPushToGradebook={handlePushToPauta}
-      />
+      <GoogleFormModal isOpen={Boolean(formFor)} onClose={() => setFormFor(null)} activeExam={byId(formFor)} />
+      <ExamGradingModal isOpen={Boolean(gradingFor)} onClose={() => setGradingFor(null)} activeExam={byId(gradingFor)} />
     </div>
   );
 }

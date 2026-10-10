@@ -1,173 +1,98 @@
 "use client";
 
-import React, { useState } from "react";
-import { GenericTable, Column } from "@/components/common/generic-table";
-import { Student } from "@/types";
+import { useMemo, useState } from "react";
+import { ButtonOnlyAction, DataList, type Column } from "@/components";
 import { SchoolStatusBadge } from "@/components/common/school-status-badge";
-import { Button } from "@/components/ui/button";
-import { Icon } from "@/components";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Student } from "@/types";
 import { StudentDetailsSheet } from "./student-details-sheet";
 import { StudentModal } from "./student-modal";
 
+const STATUS_OPTIONS = [
+  { value: "ENROLLED", label: "Matriculados" },
+  { value: "PENDING", label: "Pendentes" },
+  { value: "TRANSFERRED", label: "Transferidos" },
+  { value: "CANCELLED", label: "Anulados" },
+];
+
+const uniq = (values: string[]) => [...new Set(values.filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt"));
+
 interface StudentsListProps {
   students: Student[];
-  total: number;
-  totalPages: number;
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
-  goToNextPage: () => void;
-  goToPreviousPage: () => void;
+  isLoading?: boolean;
+  isError?: boolean;
   onDeleteStudent?: (id: string) => void;
 }
 
-export function StudentsList({
-  students,
-  total,
-  totalPages,
-  currentPage,
-  setCurrentPage,
-  goToNextPage,
-  goToPreviousPage,
-  onDeleteStudent,
-}: StudentsListProps) {
-  const [selectedStudent, setSelectedStudent] = useState<Student | null>(null);
-  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
-  const [isEditOpen, setIsEditOpen] = useState(false);
-  const [studentToEdit, setStudentToEdit] = useState<Student | null>(null);
+/** Lista de alunos (padrão MindGest): filtros na URL, pesquisa, datas, ordenação e paginação. */
+export function StudentsList({ students, isLoading, isError, onDeleteStudent }: StudentsListProps) {
+  const [selected, setSelected] = useState<Student | null>(null);
+  const [detailsOpen, setDetailsOpen] = useState(false);
+  const [editing, setEditing] = useState<Student | null>(null);
+  const [editOpen, setEditOpen] = useState(false);
 
-  const handleOpenDetails = (student: Student) => {
-    setSelectedStudent(student);
-    setIsDetailsOpen(true);
-  };
-
-  const handleOpenEdit = (student: Student) => {
-    setStudentToEdit(student);
-    setIsEditOpen(true);
-  };
+  const levels = useMemo(() => uniq(students.map((s) => s.currentClassLevel)), [students]);
+  const sections = useMemo(() => uniq(students.map((s) => s.currentSectionName)), [students]);
+  const provinces = useMemo(() => uniq(students.map((s) => s.province)), [students]);
+  const years = useMemo(() => uniq(students.map((s) => s.academicYear)), [students]);
 
   const columns: Column<Student>[] = [
+    { key: "studentNumber", header: "N.º Processo", render: (_, s) => <span className="rounded bg-muted px-2 py-0.5 font-mono text-xs font-semibold">{s.studentNumber}</span> },
     {
-      key: "studentNumber",
-      header: "N.º Processo",
-      render: (_, item) => (
-        <span className="font-mono text-xs font-semibold px-2 py-0.5 rounded bg-muted">
-          {item.studentNumber}
-        </span>
-      ),
-    },
-    {
-      key: "fullName",
-      header: "Nome Completo",
-      render: (_, item) => (
+      key: "fullName", header: "Nome Completo",
+      render: (_, s) => (
         <div className="flex flex-col">
-          <span className="font-medium text-foreground hover:underline cursor-pointer" onClick={() => handleOpenDetails(item)}>
-            {item.fullName}
-          </span>
-          <span className="text-xs text-muted-foreground">
-            {item.gender === "MALE" ? "Masc." : "Fem."} • {item.birthDate}
-          </span>
+          <button type="button" className="text-left font-medium hover:underline" onClick={() => { setSelected(s); setDetailsOpen(true); }}>{s.fullName}</button>
+          <span className="text-xs text-muted-foreground">{s.gender === "MALE" ? "Masc." : "Fem."} • {s.birthDate}</span>
         </div>
       ),
     },
+    { key: "idDocumentNumber", header: "Bilhete de Identidade", render: (_, s) => <span className="font-mono text-xs text-muted-foreground">{s.idDocumentNumber}</span> },
+    { key: "currentSectionName", header: "Turma Actual", render: (_, s) => <span className="text-sm font-medium">{s.currentSectionName || "Sem Turma"}</span> },
+    { key: "guardianName", header: "Encarregado", render: (_, s) => (<div className="flex flex-col"><span className="text-sm">{s.guardianName}</span><span className="text-xs text-muted-foreground">{s.guardianPhone}</span></div>) },
+    { key: "status", header: "Estado", render: (_, s) => <SchoolStatusBadge status={s.status} /> },
     {
-      key: "idDocumentNumber",
-      header: "Bilhete de Identidade",
-      render: (_, item) => (
-        <span className="font-mono text-xs text-muted-foreground">
-          {item.idDocumentNumber}
-        </span>
-      ),
-    },
-    {
-      key: "currentSectionName",
-      header: "Turma Actual",
-      render: (_, item) => (
-        <span className="text-sm font-medium text-foreground">
-          {item.currentSectionName || "Sem Turma"}
-        </span>
-      ),
-    },
-    {
-      key: "guardianName",
-      header: "Encarregado",
-      render: (_, item) => (
-        <div className="flex flex-col">
-          <span className="text-sm text-foreground">{item.guardianName}</span>
-          <span className="text-xs text-muted-foreground">{item.guardianPhone}</span>
-        </div>
-      ),
-    },
-    {
-      key: "status",
-      header: "Estado",
-      render: (_, item) => <SchoolStatusBadge status={item.status} />,
-    },
-    {
-      key: "actions",
-      header: "Acções",
-      render: (_, item) => (
-        <DropdownMenu>
-          <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
-              <Icon name="EllipsisVertical" className="h-4 w-4" />
-            </Button>
-          </DropdownMenuTrigger>
-          <DropdownMenuContent align="end" className="w-40">
-            <DropdownMenuItem onClick={() => handleOpenDetails(item)} className="gap-2 cursor-pointer">
-              <Icon name="Eye" className="h-4 w-4 text-muted-foreground" />
-              Ver Ficha
-            </DropdownMenuItem>
-            <DropdownMenuItem onClick={() => handleOpenEdit(item)} className="gap-2 cursor-pointer">
-              <Icon name="Pencil" className="h-4 w-4 text-muted-foreground" />
-              Editar
-            </DropdownMenuItem>
-            {onDeleteStudent && (
-              <DropdownMenuItem
-                onClick={() => onDeleteStudent(item.id)}
-                className="gap-2 text-destructive focus:text-destructive cursor-pointer"
-              >
-                <Icon name="Trash2" className="h-4 w-4" />
-                Remover
-              </DropdownMenuItem>
-            )}
-          </DropdownMenuContent>
-        </DropdownMenu>
+      key: "actions", header: "Acções",
+      render: (_, s) => (
+        <ButtonOnlyAction data={s} actions={[
+          { label: "Ver ficha", icon: "Eye", onClick: (x) => { setSelected(x); setDetailsOpen(true); } },
+          { permission: "student:write", label: "Editar", icon: "Pencil", onClick: (x) => { setEditing(x); setEditOpen(true); } },
+          ...(onDeleteStudent ? [{ permission: "student:write", label: "Remover", icon: "Trash2" as const, variant: "destructive" as const, onClick: (x: Student) => onDeleteStudent(x.id) }] : []),
+        ]} />
       ),
     },
   ];
 
   return (
     <>
-      <GenericTable<Student>
-        data={students}
+      <DataList<Student>
+        prefix="alunos"
+        rows={students}
         columns={columns}
-        page={currentPage}
-        total={total}
-        totalPages={totalPages}
-        setPage={setCurrentPage}
-        goToNextPage={goToNextPage}
-        goToPreviousPage={goToPreviousPage}
-        emptyMessage="Nenhum aluno encontrado com os filtros aplicados."
+        isLoading={isLoading}
+        isError={isError}
+        pageSize={10}
+        searchPlaceholder="Pesquisar por nome, processo, BI ou encarregado"
+        searchText={(s) => `${s.fullName} ${s.studentNumber} ${s.idDocumentNumber} ${s.guardianName} ${s.guardianPhone}`}
+        filters={[
+          { key: "estado", label: "Estado", icon: "ListFilter", options: STATUS_OPTIONS, match: (s, v) => s.status === v },
+          { key: "classe", label: "Classe", icon: "GraduationCap", options: levels.map((l) => ({ value: l, label: l })), match: (s, v) => s.currentClassLevel === v },
+          { key: "turma", label: "Turma", icon: "Users", options: [{ value: "__none", label: "Sem turma" }, ...sections.map((l) => ({ value: l, label: l }))], match: (s, v) => (v === "__none" ? !s.currentSectionName : s.currentSectionName === v) },
+          { key: "genero", label: "Género", icon: "User", options: [{ value: "MALE", label: "Masculino" }, { value: "FEMALE", label: "Feminino" }], match: (s, v) => s.gender === v },
+          { key: "provincia", label: "Província", icon: "MapPin", options: provinces.map((l) => ({ value: l, label: l })), match: (s, v) => s.province === v },
+          { key: "ano", label: "Ano lectivo", icon: "CalendarRange", options: years.map((l) => ({ value: l, label: l })), match: (s, v) => s.academicYear === v },
+        ]}
+        dateFilters={[{ key: "registo", label: "Registo", getDate: (s) => s.createdAt }]}
+        sorts={[
+          { value: "nome", label: "Nome", compare: (a, b) => a.fullName.localeCompare(b.fullName, "pt") },
+          { value: "processo", label: "N.º de processo", compare: (a, b) => a.studentNumber.localeCompare(b.studentNumber) },
+          { value: "registo", label: "Data de registo", compare: (a, b) => a.createdAt.localeCompare(b.createdAt) },
+        ]}
+        emptyTitle="Nenhum aluno encontrado"
+        emptyDescription="Ajuste os filtros ou cadastre um novo aluno."
+        emptyIcon="GraduationCap"
       />
-
-      <StudentDetailsSheet
-        isOpen={isDetailsOpen}
-        onClose={() => setIsDetailsOpen(false)}
-        student={selectedStudent}
-        onEdit={(stu) => handleOpenEdit(stu)}
-      />
-
-      <StudentModal
-        isOpen={isEditOpen}
-        onClose={() => setIsEditOpen(false)}
-        studentToEdit={studentToEdit}
-      />
+      <StudentDetailsSheet isOpen={detailsOpen} onClose={() => setDetailsOpen(false)} student={selected} onEdit={(s) => { setEditing(s); setEditOpen(true); }} />
+      <StudentModal isOpen={editOpen} onClose={() => setEditOpen(false)} studentToEdit={editing} />
     </>
   );
 }

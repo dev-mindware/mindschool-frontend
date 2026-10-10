@@ -1,4 +1,5 @@
 "use client";
+import { formatDate, formatDateTime } from "@/utils";
 
 import React from "react";
 import { AdmissionApplication, Candidate } from "@/types/admission";
@@ -106,7 +107,7 @@ export function ApplicationDetailsModal({
             />
             <DetailRow
               label="Data de Nascimento"
-              value={new Date(application.candidateBirthDate).toLocaleDateString("pt-AO")}
+              value={formatDate(application.candidateBirthDate)}
             />
             <DetailRow
               label="Documento de Identificação"
@@ -136,7 +137,7 @@ export function ApplicationDetailsModal({
             <DetailRow label="Ano Lectivo" value={application.academicYear} />
             <DetailRow
               label="Data de Submissão"
-              value={new Date(application.submissionDate).toLocaleDateString("pt-AO")}
+              value={formatDate(application.submissionDate)}
             />
             <DetailRow
               label="Exigência de Exame de Acesso"
@@ -158,7 +159,7 @@ export function ApplicationDetailsModal({
                 application.documentsVerifiedAt ? (
                   <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
                     <Icon name="CircleCheck" className="h-3.5 w-3.5" />
-                    Validado em {new Date(application.documentsVerifiedAt).toLocaleDateString("pt-AO")}
+                    Validado em {formatDate(application.documentsVerifiedAt)}
                   </span>
                 ) : (
                   <span className="text-xs text-amber-600 font-medium flex items-center gap-1">
@@ -267,7 +268,7 @@ export function ApplicationDetailsModal({
               )}
               {application.decidedAt && (
                 <span>
-                  <strong>Data:</strong> {new Date(application.decidedAt).toLocaleString("pt-AO")}
+                  <strong>Data:</strong> {formatDateTime(application.decidedAt)}
                 </span>
               )}
             </div>

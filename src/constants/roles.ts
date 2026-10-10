@@ -20,7 +20,6 @@ export const ALL_ROLES: readonly Role[] = [
   "ADMIN",
   "OWNER",
   "MANAGER",
-  "CASHIER",
 ] as const;
 
 /**
@@ -38,7 +37,6 @@ export const ROLE_HIERARCHY: Record<Role, number> = {
   SYSTEM_ADMIN: 50,
   ADMIN: 50,
   MED_AUDITOR: 40,
-  CASHIER: 30,
   GUARDIAN: 20,
   STUDENT: 10,
 };
@@ -70,7 +68,6 @@ export const STAFF_ROLES: readonly Role[] = [
   "OWNER",
   "ADMIN",
   "MANAGER",
-  "CASHIER",
 ] as const;
 
 /**
@@ -107,7 +104,6 @@ export const ROLE_LABELS: Record<Role, string> = {
   OWNER: "Proprietário",
   ADMIN: "Administrador",
   MANAGER: "Direção Geral",
-  CASHIER: "Operador de Caixa",
 };
 
 /**
@@ -237,9 +233,6 @@ export const ROLE_MODULE_PERMISSIONS: Record<
     grades: ["read", "export"],
     tuition: ["read", "export"],
     reports: ["read", "export"],
-  },
-  CASHIER: {
-    tuition: ["create", "read", "update"],
   },
 };
 

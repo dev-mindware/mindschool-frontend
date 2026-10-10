@@ -3,11 +3,7 @@ import { TeacherAssignmentsPageContent } from "@/components/client/academic/assi
 
 export default function AcademicAssignmentsPage() {
   return (
-    <PageWrapper
-      routePath="/academic/classes"
-      routeLabel="Gestão Académica"
-      subRoute="Distribuição Docente"
-    >
+    <PageWrapper>
       <TeacherAssignmentsPageContent />
     </PageWrapper>
   );

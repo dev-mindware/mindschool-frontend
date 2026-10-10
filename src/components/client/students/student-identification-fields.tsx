@@ -18,6 +18,8 @@ export interface StudentFormValues {
   guardianName: string;
   guardianPhone: string;
   guardianRelationship: string;
+  /** Numero do documento do encarregado (a API identifica-o por este numero). */
+  guardianDocument: string;
 }
 
 interface StudentIdentificationFieldsProps {

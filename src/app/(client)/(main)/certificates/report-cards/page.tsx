@@ -4,11 +4,7 @@ import { ReportCardsPageContent } from "@/components/client/certificates/report-
 
 export default function ReportCardsPage() {
   return (
-    <PageWrapper
-      routePath="/certificates"
-      routeLabel="Documentos Oficiais"
-      subRoute="Boletins de Notas"
-    >
+    <PageWrapper>
       <Suspense fallback={<div className="p-6 text-sm text-muted-foreground">A carregar boletim de notas...</div>}>
         <ReportCardsPageContent />
       </Suspense>

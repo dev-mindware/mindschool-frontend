@@ -7,14 +7,17 @@ type Props = {
   disabled?: boolean;
   children?: ReactNode;
   className?: string;
+  /** id do <form> a submeter (permite pôr o botão no rodapé do modal, fora do <form>). */
+  form?: string;
 }
 
-export function ButtonSubmit({ isLoading, disabled, children, className }: Props) {
+export function ButtonSubmit({ isLoading, disabled, children, className, form }: Props) {
   return (
     <Button
       disabled={isLoading || disabled}
       type="submit"
-      className={`w-full bg-primary hover:bg-primary text-white py-2 ${className}`}
+      form={form}
+      className={`w-full bg-primary hover:bg-primary text-white py-2 ${className ?? ""}`}
     >
       {isLoading && <Icon className="animate-spin" name="LoaderCircle" />}
       {children}

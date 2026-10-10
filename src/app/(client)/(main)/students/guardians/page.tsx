@@ -3,11 +3,7 @@ import { GuardiansPageContent } from "@/components/client/guardians";
 
 export default function StudentGuardiansPage() {
   return (
-    <PageWrapper
-      routePath="/students/guardians"
-      routeLabel="Alunos & Matrículas"
-      subRoute="Encarregados de Educação"
-    >
+    <PageWrapper>
       <GuardiansPageContent />
     </PageWrapper>
   );

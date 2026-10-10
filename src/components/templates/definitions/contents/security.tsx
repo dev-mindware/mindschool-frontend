@@ -2,6 +2,7 @@
 
 import { useAuth } from "@/hooks/auth";
 import { AccountSecurity } from "./profile/account-security";
+import { SecurityCenter } from "@/components/client/settings/security/security-center";
 
 export function Security() {
   const { user } = useAuth();
@@ -17,8 +18,12 @@ export function Security() {
         </div>
       </div>
 
-      <div className="bg-card rounded-xl border p-6 shadow-sm">
+      <div className="border-b pb-8 last:border-0">
         <AccountSecurity user={user} />
+      </div>
+
+      <div className="border-b pb-8 last:border-0">
+        <SecurityCenter />
       </div>
     </div>
   );

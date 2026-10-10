@@ -37,8 +37,8 @@ export function UpgradePlanModal() {
             </p>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-1">
               <li>Acesso a relatórios avançados</li>
-              <li>Gestão de stock em várias lojas</li>
-              <li>Recursos de IA (GestAI)</li>
+              <li>Painel multi-escola (grupos de escolas)</li>
+              <li>Assistente MIND com mais mensagens</li>
             </ul>
           </div>
         </div>

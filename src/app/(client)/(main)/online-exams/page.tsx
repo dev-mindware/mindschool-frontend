@@ -3,11 +3,7 @@ import { OnlineExamsPageContent } from "@/components/client/online-exams/online-
 
 export default function OnlineExamsPage() {
   return (
-    <PageWrapper
-      routePath="/online-exams"
-      routeLabel="Avaliação Digital"
-      subRoute="Provas Online"
-    >
+    <PageWrapper>
       <OnlineExamsPageContent />
     </PageWrapper>
   );

@@ -46,8 +46,16 @@ function unwrapResponse(
   return "data" in response ? response.data : response;
 }
 
+/**
+ * A API do MindSchool não tem (ainda) endpoints de onboarding: o progresso dos tours vive no armazenamento local
+ * (`useOnboardingPreferencesStore`, persistido). Só com `NEXT_PUBLIC_ONBOARDING_REMOTE=true` se fala com a API.
+ */
+const REMOTE = process.env.NEXT_PUBLIC_ONBOARDING_REMOTE === "true";
+const LOCAL_DEFAULTS: OnboardingPreferencesResponse = { preferences: { autoStartEnabled: true, tourButtonEnabled: true }, tours: {} };
+
 export const onboardingService = {
   async getPreferences() {
+    if (!REMOTE) return LOCAL_DEFAULTS;
     const response = await api.get<
       OnboardingPreferencesResponse | { data: OnboardingPreferencesResponse }
     >("/onboarding");
@@ -55,6 +63,7 @@ export const onboardingService = {
   },
 
   async updatePreferences(payload: UpdateOnboardingPreferencesPayload) {
+    if (!REMOTE) return { ...LOCAL_DEFAULTS.preferences, ...payload };
     const response = await api.patch<
       OnboardingPreferencesResponse["preferences"]
     >("/onboarding/preferences", payload);
@@ -65,6 +74,7 @@ export const onboardingService = {
     tourId: OnboardingTourId,
     payload: UpdateOnboardingTourPayload,
   ) {
+    if (!REMOTE) return { ...payload, updatedAt: new Date().toISOString() } as OnboardingTourProgress;
     const response = await api.put<OnboardingTourProgress>(
       `/onboarding/tours/${tourId}`,
       payload,
@@ -73,10 +83,12 @@ export const onboardingService = {
   },
 
   async resetTour(tourId: OnboardingTourId) {
+    if (!REMOTE) return;
     await api.delete(`/onboarding/tours/${tourId}`);
   },
 
   async resetAllTours() {
+    if (!REMOTE) return;
     await api.delete("/onboarding/tours");
   },
 };

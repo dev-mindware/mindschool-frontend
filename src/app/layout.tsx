@@ -2,13 +2,9 @@ import type { Metadata } from "next";
 import "driver.js/dist/driver.css";
 import "./globals.css";
 import { ReactQueryProvider } from "@/lib";
-import {
-  Inter,
-  Outfit,
-  Roboto,
-  Poppins,
-  Plus_Jakarta_Sans,
-} from "next/font/google";
+// Tipos de letra servidos localmente (sem pedidos ao Google): Outfit é a principal; Inter é uma alternativa de Definições › Aparência.
+import "@fontsource-variable/outfit";
+import "@fontsource-variable/inter";
 import { ThemeProvider } from "@/providers";
 import { CustomToaster } from "@/utils";
 import { SidebarProvider } from "@/components";
@@ -17,32 +13,8 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaServiceWorkerRegister } from "@/components/shared/pwa-service-worker-register";
+import { AppearancePreferences } from "@/components/shared/appearance-preferences";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-inter" });
-
-const outfit = Outfit({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-outfit",
-});
-
-const roboto = Roboto({
-  subsets: ["latin"],
-  weight: ["400", "500", "700"],
-  variable: "--font-roboto",
-});
-
-const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-poppins",
-});
-
-const plusJakartaSans = Plus_Jakarta_Sans({
-  subsets: ["latin"],
-  weight: ["400", "500", "600", "700"],
-  variable: "--font-jakarta",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://mindschool.mindware.ao"),
@@ -138,10 +110,10 @@ export default function RootLayout({
     <html
       lang="pt-AO"
       suppressHydrationWarning
-      className={`${inter.variable} ${outfit.variable} ${roboto.variable} ${poppins.variable} ${plusJakartaSans.variable}`}
+      className="font-sans"
     >
       <body
-        className="antialiased"
+        className="antialiased font-sans"
         style={{ fontFamily: "var(--font-family)" }}
       >
         <ThemeProvider
@@ -158,6 +130,7 @@ export default function RootLayout({
             <AuthProvider>
               <NuqsAdapter>
                 <PwaServiceWorkerRegister />
+                <AppearancePreferences />
                 <SidebarProvider>{children}</SidebarProvider>
                 <CustomToaster />
               </NuqsAdapter>

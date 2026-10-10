@@ -1,7 +1,10 @@
 "use client";
 
 import React, { useState, useMemo } from "react";
-import { useSchoolDataStore } from "@/stores/school/school-data-store";
+import { useSections } from "@/hooks/school/use-sections";
+import { useStudents } from "@/hooks/school/use-students";
+import { useEnrollments } from "@/hooks/school/use-enrollments";
+import { getApiErrorMessage } from "@/utils/api-error";
 import {
   GlobalModal,
   Input,
@@ -19,11 +22,13 @@ interface EnrollmentModalProps {
 }
 
 export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
-  const { students, sections, enrollStudent } = useSchoolDataStore();
+  const { allStudents: students, createStudent } = useStudents();
+  const { data: sections = [] } = useSections();
+  const { enroll } = useEnrollments();
 
   const [studentMode, setStudentMode] = useState<"existing" | "new">("existing");
-  const [selectedStudentId, setSelectedStudentId] = useState(students[0]?.id || "");
-  const [selectedSectionId, setSelectedSectionId] = useState(sections[0]?.id || "");
+  const [selectedStudentId, setSelectedStudentId] = useState("");
+  const [selectedSectionId, setSelectedSectionId] = useState("");
   const [academicYear, setAcademicYear] = useState("2025/2026");
   const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -59,44 +64,33 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
           setIsSubmitting(false);
           return;
         }
-        enrollStudent({
-          studentId: selectedStudentId,
-          sectionId: selectedSectionId,
-          classLevelId: selectedSection?.classLevel || "7ª Classe",
-          academicYear,
-          tuitionPlanId: "plan-regular",
-          notes,
-        });
+        await enroll.mutateAsync({ studentId: selectedStudentId, sectionId: selectedSectionId });
       } else {
         if (!newFullName.trim()) {
           ErrorMessage("Por favor, preencha o nome do novo aluno.");
           setIsSubmitting(false);
           return;
         }
-        enrollStudent({
-          isNewStudent: true,
-          newStudentData: {
-            fullName: newFullName,
-            gender: newGender,
-            birthDate: newBirthDate,
-            idDocumentType: "IDENTITY_CARD",
-            idDocumentNumber: newIdNumber || "009123841LA041",
-            guardianName: newGuardianName || "Encarregado Geral",
-            guardianPhone: newGuardianPhone || "923000000",
-            guardianRelationship: newGuardianRel,
-          },
+        if (!newIdNumber.trim()) {
+          ErrorMessage("Indique o número do documento do aluno.");
+          setIsSubmitting(false);
+          return;
+        }
+        // O encarregado liga-se depois, na ficha do aluno ou em Encarregados (a API exige o seu n.º de documento).
+        await createStudent.mutateAsync({
+          fullName: newFullName,
+          gender: newGender,
+          birthDate: newBirthDate,
+          idDocumentType: "IDENTITY_CARD",
+          idDocumentNumber: newIdNumber.trim(),
           sectionId: selectedSectionId,
-          classLevelId: selectedSection?.classLevel || "7ª Classe",
-          academicYear,
-          tuitionPlanId: "plan-regular",
-          notes,
         });
       }
 
       SucessMessage("Matrícula processada e registada com sucesso!");
       onClose();
-    } catch (err: any) {
-      ErrorMessage(err?.message || "Ocorreu um erro ao processar a matrícula.");
+    } catch (err: unknown) {
+      ErrorMessage(getApiErrorMessage(err, "Ocorreu um erro ao processar a matrícula."));
     } finally {
       setIsSubmitting(false);
     }

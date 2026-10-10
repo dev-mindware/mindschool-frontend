@@ -1,86 +1,108 @@
 import api from "./api";
-import { AcademicSection, Subject, TeacherAssignment, Shift, EducationCycle, ClassScheduleEntry } from "@/types";
+import { fetchAllPages } from "./api-pagination";
+import { sectionsService } from "./sections-service";
+import type { AcademicSection, EducationCycle, Shift, Subject, TeacherAssignment } from "@/types";
 
-export interface GetSectionsParams {
-  search?: string;
-  shift?: Shift;
-  cycle?: EducationCycle;
-  academicYear?: string;
+// ---- API ----------------------------------------------------------------------------------------------------------
+
+export interface ApiAcademicYear { id: string; name: string; status: string; start_date: string; end_date: string }
+export interface ApiClassLevel { id: string; name: string; level_number: number; cycle: string }
+interface ApiSubject { id: string; name: string; grading_scale: string; is_core_subject: boolean }
+export interface ApiTeacher { id: string; user_id: string | null; full_name: string; email: string | null; document_number: string; status: string }
+interface ApiSectionSubject {
+  id: string;
+  section_id: string;
+  academic_year_id: string;
+  subject: { id: string; name: string; is_core_subject: boolean };
+  teacher: { id: string; full_name: string };
+  weekly_hours: number;
 }
 
+const SHIFT_TO_API: Record<Shift, string> = { MORNING: "manha", AFTERNOON: "tarde", EVENING: "noite" };
+
+const codeOf = (name: string) =>
+  name
+    .normalize("NFD")
+    .replace(/[̀-ͯ]/g, "")
+    .split(/\s+/)
+    .map((w) => w[0])
+    .join("")
+    .toUpperCase()
+    .slice(0, 4);
+
+const toSubject = (s: ApiSubject): Subject => ({
+  id: s.id,
+  schoolId: "",
+  name: s.name,
+  code: codeOf(s.name),
+  cycle: "LOWER_SECONDARY" as EducationCycle, // a disciplina nao tem ciclo na API (a matriz e por turma)
+  weeklyHours: 0,
+  isActive: true,
+  isCore: s.is_core_subject,
+  createdAt: "",
+  updatedAt: "",
+});
+
 export const academicService = {
-  // Turmas / Secções
-  getSections: async (params?: GetSectionsParams): Promise<AcademicSection[]> => {
-    const response = await api.get<AcademicSection[]>("/academic/sections", { params });
-    return response.data;
+  years: () => fetchAllPages<ApiAcademicYear>("/s/academic-years"),
+  activeYear: async (): Promise<ApiAcademicYear | undefined> => (await academicService.years()).find((y) => y.status === "activo"),
+  classLevels: () => fetchAllPages<ApiClassLevel>("/s/class-levels"),
+  teachers: () => fetchAllPages<ApiTeacher>("/s/teachers"),
+
+  // ---- turmas ----
+  sections: (): Promise<AcademicSection[]> => sectionsService.list(),
+
+  saveSection: async (
+    id: string | undefined,
+    v: { name: string; classLevelName: string; shift: Shift; capacity: number },
+  ): Promise<void> => {
+    if (id) {
+      await api.patch(`/s/sections/${id}`, { name: v.name, shift: SHIFT_TO_API[v.shift], capacity: v.capacity });
+      return;
+    }
+    const [year, levels] = await Promise.all([academicService.activeYear(), academicService.classLevels()]);
+    if (!year) throw new Error("Não há ano lectivo activo.");
+    const level = levels.find((l) => l.name === v.classLevelName || `${l.level_number}ª Classe` === v.classLevelName);
+    if (!level) throw new Error(`A classe "${v.classLevelName}" não existe nesta escola.`);
+    await api.post("/s/sections", { academic_year_id: year.id, class_level_id: level.id, name: v.name, shift: SHIFT_TO_API[v.shift], capacity: v.capacity });
   },
 
-  getSectionById: async (id: string): Promise<AcademicSection> => {
-    const response = await api.get<AcademicSection>(`/academic/sections/${id}`);
-    return response.data;
+  // ---- disciplinas ----
+  subjects: async (): Promise<Subject[]> => (await fetchAllPages<ApiSubject>("/s/subjects")).map(toSubject),
+
+  saveSubject: async (id: string | undefined, v: { name: string; isCore: boolean }): Promise<void> => {
+    if (id) await api.patch(`/s/subjects/${id}`, { name: v.name, is_core_subject: v.isCore });
+    else await api.post("/s/subjects", { name: v.name, grading_scale: "quantitativa", is_core_subject: v.isCore });
   },
 
-  createSection: async (data: Partial<AcademicSection>): Promise<AcademicSection> => {
-    const response = await api.post<AcademicSection>("/academic/sections", data);
-    return response.data;
+  // ---- atribuicoes (disciplina x turma x professor) ----
+  assignments: async (): Promise<TeacherAssignment[]> => {
+    const sections = await sectionsService.list();
+    const lists = await Promise.all(
+      sections.map(async (sec) => ({ sec, rows: (await api.get<{ data: ApiSectionSubject[] }>(`/s/sections/${sec.id}/subjects`)).data.data })),
+    );
+    return lists.flatMap(({ sec, rows }) =>
+      rows.map((r) => ({
+        id: r.id,
+        schoolId: "",
+        teacherId: r.teacher.id,
+        teacherName: r.teacher.full_name,
+        sectionId: sec.id,
+        sectionName: `${sec.classLevel} ${sec.name}`,
+        subjectId: r.subject.id,
+        subjectName: r.subject.name,
+        weeklyHours: r.weekly_hours,
+        academicYear: sec.academicYear,
+        createdAt: "",
+      })),
+    );
   },
 
-  updateSection: async (id: string, data: Partial<AcademicSection>): Promise<AcademicSection> => {
-    const response = await api.patch<AcademicSection>(`/academic/sections/${id}`, data);
-    return response.data;
+  assign: async (v: { sectionId: string; subjectId: string; teacherId: string; weeklyHours: number }): Promise<void> => {
+    await api.post(`/s/sections/${v.sectionId}/subjects`, { subject_id: v.subjectId, teacher_id: v.teacherId, weekly_hours: v.weeklyHours });
   },
 
-  deleteSection: async (id: string): Promise<void> => {
-    await api.delete(`/academic/sections/${id}`);
-  },
-
-  // Disciplinas
-  getSubjects: async (params?: { cycle?: EducationCycle; search?: string }): Promise<Subject[]> => {
-    const response = await api.get<Subject[]>("/academic/subjects", { params });
-    return response.data;
-  },
-
-  createSubject: async (data: Partial<Subject>): Promise<Subject> => {
-    const response = await api.post<Subject>("/academic/subjects", data);
-    return response.data;
-  },
-
-  updateSubject: async (id: string, data: Partial<Subject>): Promise<Subject> => {
-    const response = await api.patch<Subject>(`/academic/subjects/${id}`, data);
-    return response.data;
-  },
-
-  deleteSubject: async (id: string): Promise<void> => {
-    await api.delete(`/academic/subjects/${id}`);
-  },
-
-  // Atribuição de Professores
-  getTeacherAssignments: async (params?: { sectionId?: string; teacherId?: string }): Promise<TeacherAssignment[]> => {
-    const response = await api.get<TeacherAssignment[]>("/academic/assignments", { params });
-    return response.data;
-  },
-
-  assignTeacher: async (data: Partial<TeacherAssignment>): Promise<TeacherAssignment> => {
-    const response = await api.post<TeacherAssignment>("/academic/assignments", data);
-    return response.data;
-  },
-
-  deleteTeacherAssignment: async (id: string): Promise<void> => {
-    await api.delete(`/academic/assignments/${id}`);
-  },
-
-  // Horários Escolares
-  getTimetableSlots: async (params?: { sectionId?: string; teacherId?: string; roomId?: string }): Promise<ClassScheduleEntry[]> => {
-    const response = await api.get<ClassScheduleEntry[]>("/academic/timetables", { params });
-    return response.data;
-  },
-
-  saveTimetableSlot: async (slot: Partial<ClassScheduleEntry>): Promise<ClassScheduleEntry> => {
-    const response = await api.post<ClassScheduleEntry>("/academic/timetables/slot", slot);
-    return response.data;
-  },
-
-  deleteTimetableSlot: async (id: string): Promise<void> => {
-    await api.delete(`/academic/timetables/slot/${id}`);
+  unassign: async (sectionId: string, id: string): Promise<void> => {
+    await api.delete(`/s/sections/${sectionId}/subjects/${id}`);
   },
 };

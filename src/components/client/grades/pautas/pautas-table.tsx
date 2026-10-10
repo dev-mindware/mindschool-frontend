@@ -1,32 +1,21 @@
 'use client';
 
 import React from 'react';
-import { GenericTable, Column } from '@/components/common/generic-table';
-import { Button, Icon, FeatureGate } from '@/components';
+import { Button, DataList, Icon, FeatureGate, type Column } from '@/components';
 import { Badge } from '@/components/ui/badge';
 import { ConsolidatedPauta } from '@/types/grade';
 
 interface PautasTableProps {
   pautas: ConsolidatedPauta[];
-  currentPage: number;
-  totalPages: number;
-  total: number;
-  onPageChange: (page: number) => void;
+  toolbar?: React.ReactNode;
   onViewPauta: (pauta: ConsolidatedPauta) => void;
   onLockPauta: (pauta: ConsolidatedPauta) => void;
   onReopenPauta: (pauta: ConsolidatedPauta) => void;
 }
 
-export function PautasTable({
-  pautas,
-  currentPage,
-  totalPages,
-  total,
-  onPageChange,
-  onViewPauta,
-  onLockPauta,
-  onReopenPauta,
-}: PautasTableProps) {
+const uniq = (v: string[]) => [...new Set(v.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
+
+export function PautasTable({ pautas, toolbar, onViewPauta, onLockPauta, onReopenPauta }: PautasTableProps) {
   const columns: Column<ConsolidatedPauta>[] = [
     {
       key: 'sectionName',
@@ -157,9 +146,7 @@ export function PautasTable({
           </Button>
 
           <FeatureGate
-            module="grade_closing"
-            action="approve"
-            roles={["PEDAGOGIC_DIRECTOR", "DIRECTOR_GENERAL", "OWNER"]}
+            permission={item.isClosed ? "pauta:reopen" : "pauta:close"}
             fallback="disabled"
             tooltipMessage="Apenas a Direção Pedagógica possui autoridade para fechar ou reabrir pautas."
           >
@@ -191,18 +178,29 @@ export function PautasTable({
   ];
 
   return (
-    <div className="rounded-lg border bg-card">
-      <GenericTable<ConsolidatedPauta>
-        columns={columns}
-        data={pautas}
-        page={currentPage}
-        totalPages={totalPages}
-        total={total}
-        setPage={onPageChange}
-        goToNextPage={() => onPageChange(Math.min(totalPages, currentPage + 1))}
-        goToPreviousPage={() => onPageChange(Math.max(1, currentPage - 1))}
-        emptyMessage="Nenhuma pauta encontrada para os filtros selecionados."
-      />
-    </div>
+    <DataList<ConsolidatedPauta>
+      prefix="pautas"
+      rows={pautas}
+      columns={columns}
+      pageSize={10}
+      toolbar={toolbar}
+      searchPlaceholder="Pesquisar por turma ou classe"
+      searchText={(p) => `${p.sectionName} ${p.classLevel}`}
+      filters={[
+        { key: 'estado', label: 'Estado', icon: 'ListFilter', options: [{ value: 'fechada', label: 'Fechada' }, { value: 'aberta', label: 'Em aberto' }], match: (p, v) => (v === 'fechada' ? p.isClosed : !p.isClosed) },
+        { key: 'classe', label: 'Classe', icon: 'GraduationCap', options: uniq(pautas.map((p) => p.classLevel)).map((v) => ({ value: v, label: v })), match: (p, v) => p.classLevel === v },
+        { key: 'turno', label: 'Turno', icon: 'Sun', options: uniq(pautas.map((p) => p.shift)).map((v) => ({ value: v, label: v })), match: (p, v) => p.shift === v },
+        { key: 'conformidade', label: 'Conformidade MED', icon: 'ShieldCheck', options: [{ value: 'completa', label: '100% lançada' }, { value: 'pendente', label: 'Com notas pendentes' }], match: (p, v) => (v === 'completa' ? p.missingGradesCount === 0 : p.missingGradesCount > 0) },
+        { key: 'aproveitamento', label: 'Aproveitamento', icon: 'Gauge', options: [{ value: 'alto', label: '80% ou mais' }, { value: 'medio', label: '60 a 79%' }, { value: 'baixo', label: 'Abaixo de 60%' }], match: (p, v) => (v === 'alto' ? p.approvalRate >= 80 : v === 'medio' ? p.approvalRate >= 60 && p.approvalRate < 80 : p.approvalRate < 60) },
+      ]}
+      sorts={[
+        { value: 'turma', label: 'Turma', compare: (a, b) => a.sectionName.localeCompare(b.sectionName, 'pt') },
+        { value: 'media', label: 'Média da turma', compare: (a, b) => a.averageClassScore - b.averageClassScore },
+        { value: 'aproveitamento', label: 'Aproveitamento', compare: (a, b) => a.approvalRate - b.approvalRate },
+      ]}
+      emptyTitle="Nenhuma pauta encontrada"
+      emptyDescription="Ajuste o trimestre ou os filtros."
+      emptyIcon="ClipboardList"
+    />
   );
 }

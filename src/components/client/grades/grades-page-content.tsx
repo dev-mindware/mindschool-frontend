@@ -9,11 +9,13 @@ import {
   Button,
   Icon,
 } from "@/components";
-import { useSchoolDataStore } from "@/stores/school/school-data-store";
-import { useGradeStore } from "@/stores/school/grade-store";
+import { useSections } from "@/hooks/school/use-sections";
+import { useSubjects } from "@/hooks/school/use-academic";
+import { useGradeSheet } from "@/hooks/school/use-grades";
+import { getApiErrorMessage } from "@/utils/api-error";
+import { ErrorMessage } from "@/utils/messages";
 import { AssessmentTerm } from "@/types/grade";
 import { GradeEntryTable } from "./grade-entry-table";
-import Link from "next/link";
 
 const TERMS: { value: AssessmentTerm; label: string }[] = [
   { value: "TRIMESTER_1", label: "1.º Trimestre" },
@@ -22,21 +24,16 @@ const TERMS: { value: AssessmentTerm; label: string }[] = [
 ];
 
 export function GradesPageContent() {
-  const { sections, subjects } = useSchoolDataStore();
-  const {
-    getSectionGradeSheet,
-    updateGradeEntry,
-    lockMiniPauta,
-    closedPautas,
-  } = useGradeStore();
+  const { data: sections = [] } = useSections();
+  const { allSubjects: subjects } = useSubjects();
 
-  const [selectedSectionId, setSelectedSectionId] = useState<string>(
-    sections[0]?.id || "sec-7a"
-  );
-  const [selectedSubjectId, setSelectedSubjectId] = useState<string>(
-    subjects[0]?.id || "sub-mat"
-  );
-  const [selectedTerm, setSelectedTerm] = useState<AssessmentTerm>("TRIMESTER_1");
+  const [pickedSectionId, setSelectedSectionId] = useState<string>("");
+  const [pickedSubjectId, setSelectedSubjectId] = useState<string>("");
+  const [selectedTerm, setSelectedTerm] = useState<AssessmentTerm>("TRIMESTER_2");
+  const selectedSectionId = pickedSectionId || sections[0]?.id || "";
+  const selectedSubjectId = pickedSubjectId || subjects[0]?.id || "";
+
+  const { sheet: activeSheet, pautaStatus, isLoading, isMissingAssignment, saveGrade } = useGradeSheet(selectedSectionId, selectedSubjectId, selectedTerm);
 
   // Section Paginated Select
   const [sectionSearch, setSectionSearch] = useState("");
@@ -47,8 +44,7 @@ export function GradesPageContent() {
     return sections.filter(
       (sec) =>
         sec.name.toLowerCase().includes(sectionSearch.toLowerCase()) ||
-        sec.classLevel.toLowerCase().includes(sectionSearch.toLowerCase()) ||
-        sec.roomNumber.toLowerCase().includes(sectionSearch.toLowerCase())
+        sec.classLevel.toLowerCase().includes(sectionSearch.toLowerCase())
     );
   }, [sections, sectionSearch]);
 
@@ -62,8 +58,8 @@ export function GradesPageContent() {
   const sectionOptions = useMemo(() => {
     const opts = paginatedSections.map((sec) => ({
       value: sec.id,
-      label: `${sec.name} (${sec.shift === "MORNING" ? "Manhã" : "Tarde"})`,
-      description: `${sec.roomNumber} • ${sec.currentEnrollmentCount} alunos`,
+      label: `${sec.classLevel} ${sec.name} (${sec.shift === "MORNING" ? "Manhã" : "Tarde"})`,
+      description: `${sec.currentEnrollmentCount} alunos`,
     }));
 
     if (
@@ -74,8 +70,8 @@ export function GradesPageContent() {
       if (selected) {
         opts.unshift({
           value: selected.id,
-          label: `${selected.name} (${selected.shift === "MORNING" ? "Manhã" : "Tarde"})`,
-          description: `${selected.roomNumber} • ${selected.currentEnrollmentCount} alunos`,
+          label: `${selected.classLevel} ${selected.name} (${selected.shift === "MORNING" ? "Manhã" : "Tarde"})`,
+          description: `${selected.currentEnrollmentCount} alunos`,
         });
       }
     }
@@ -90,14 +86,8 @@ export function GradesPageContent() {
     }));
   }, [subjects]);
 
-  // Obter Mini-Pauta activa
-  const activeSheet = useMemo(() => {
-    return getSectionGradeSheet(selectedSectionId, selectedSubjectId, selectedTerm);
-  }, [getSectionGradeSheet, selectedSectionId, selectedSubjectId, selectedTerm]);
-
-  // Checar se a pauta geral da turma está fechada
-  const pautaKey = `${selectedSectionId}_${selectedTerm}`;
-  const isPautaClosed = !!closedPautas[pautaKey]?.isClosed;
+  // A pauta geral da turma esta fechada?
+  const isPautaClosed = pautaStatus === "fechada";
 
   // Métricas da Mini-Pauta
   const stats = useMemo(() => {
@@ -130,22 +120,7 @@ export function GradesPageContent() {
       <TitleList
         title="Lançamento de Notas (MED)"
         suTitle="Registo de notas e cálculo de MAC, NPP e NPT com recálculo automático de MAS e MT oficial (Decreto Executivo n.º 424/25)."
-      >
-        <div className="flex items-center gap-2">
-          <Link href="/grades/pautas">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Icon name="ClipboardList" className="h-4 w-4" />
-              Pautas Trimestrais
-            </Button>
-          </Link>
-          <Link href="/grades/transitions">
-            <Button variant="outline" size="sm" className="gap-2">
-              <Icon name="CircleCheck" className="h-4 w-4" />
-              Conselho de Transições
-            </Button>
-          </Link>
-        </div>
-      </TitleList>
+      />
 
       {/* Dynamic Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -245,28 +220,25 @@ export function GradesPageContent() {
         <GradeEntryTable
           sheet={activeSheet}
           isPautaClosed={isPautaClosed}
-          onUpdateGrade={(studentId, field, value) => {
-            updateGradeEntry(
-              selectedSectionId,
-              selectedSubjectId,
-              selectedTerm,
-              studentId,
-              field,
-              value
-            );
+          onSetStatus={(enrollmentId, field, status) => saveGrade.mutate({ enrollmentId, field, status }, { onError: (e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar o estado.")) })}
+          onUpdateGrade={(enrollmentId, field, value) => {
+            if (value === undefined) {
+              ErrorMessage("Não é possível apagar uma nota lançada; corrija o valor.");
+              return;
+            }
+            saveGrade.mutate({ enrollmentId, field, value }, { onError: (e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a nota.")) });
           }}
           onLockSheet={() => {
-            lockMiniPauta(
-              selectedSectionId,
-              selectedSubjectId,
-              selectedTerm,
-              "Prof. Docente"
-            );
+            ErrorMessage("O fecho é feito pela Direcção na pauta geral da turma (Pautas Trimestrais).");
           }}
         />
       ) : (
         <div className="p-8 text-center text-muted-foreground text-sm border rounded-lg">
-          Selecione uma turma e disciplina para carregar a mini-pauta.
+          {isLoading
+            ? "A carregar a mini-pauta…"
+            : isMissingAssignment
+              ? "Esta disciplina não está atribuída a esta turma (Académico → Atribuições)."
+              : "Selecione uma turma e disciplina para carregar a mini-pauta."}
         </div>
       )}
     </div>

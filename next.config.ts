@@ -30,11 +30,6 @@ const nextConfig: NextConfig = {
         permanent: false,
       },
       {
-        source: "/tuition",
-        destination: "/tuition/payments",
-        permanent: false,
-      },
-      {
         source: "/certificates",
         destination: "/certificates/declarations",
         permanent: false,

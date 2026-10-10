@@ -3,11 +3,7 @@ import { CertificatesPageContent } from "@/components/client/certificates/certif
 
 export default function CertificatesDeclarationsPage() {
   return (
-    <PageWrapper
-      routePath="/certificates/declarations"
-      routeLabel="Documentos Oficiais"
-      subRoute="Declarações & Certificados"
-    >
+    <PageWrapper>
       <CertificatesPageContent />
     </PageWrapper>
   );

@@ -14,11 +14,12 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import Image from "next/image";
 import { SelectGroup } from "@radix-ui/react-select";
+import { DEFAULT_FONT, DEFAULT_PRIMARY, readFont, readPrimary, resetAppearance, saveFont, savePrimary, type FontName } from "@/lib/appearance";
 
 export function Appearance() {
   const { setTheme, theme } = useTheme();
-  const [primaryColor, setPrimaryColor] = useState("#9956F6");
-  const [font, setFont] = useState("Outfit");
+  const [primaryColor, setPrimaryColor] = useState<string>(DEFAULT_PRIMARY);
+  const [font, setFont] = useState<FontName>(DEFAULT_FONT);
 
   const themes = [
     { name: "Light", value: "light", img: "/themes/light.png" },
@@ -27,49 +28,27 @@ export function Appearance() {
   ];
 
   useEffect(() => {
-    const savedColor = localStorage.getItem("primary-color");
-    const savedFont = localStorage.getItem("font-family");
-
-    if (savedColor) {
-      document.documentElement.style.setProperty("--primary", savedColor);
-      setPrimaryColor(savedColor);
-    }
-
-    if (savedFont) {
-      document.documentElement.style.setProperty("--font-family", savedFont);
-      setFont(savedFont);
-    }
+    // O tipo de letra e a cor são aplicados ao arrancar por <AppearancePreferences />; aqui só se reflecte o valor nos controlos.
+    setFont(readFont());
+    setPrimaryColor(readPrimary());
   }, []);
 
   const handlePrimaryColorChange = (hex: string) => {
-    document.documentElement.style.setProperty("--primary", hex);
-    localStorage.setItem("primary-color", hex);
+    savePrimary(hex);
     setPrimaryColor(hex);
   };
 
   const handleFontChange = (fontName: string) => {
-    const fontValue = `'${fontName}', sans-serif`;
-    document.documentElement.style.setProperty("--font-family", fontValue);
-    localStorage.setItem("font-family", fontValue);
-    setFont(fontName);
+    saveFont(fontName as FontName);
+    setFont(fontName as FontName);
   };
 
   const restoreDefaults = () => {
-    const defaultColor = "#9956F6";
-    const defaultFont = "'Outfit', sans-serif";
-    const defaultFontName = "Outfit";
-    const defaultTheme = "system";
-
-    document.documentElement.style.setProperty("--primary", defaultColor);
-    document.documentElement.style.setProperty("--font-family", defaultFont);
-
-    localStorage.removeItem("primary-color");
-    localStorage.removeItem("font-family");
+    resetAppearance();
     localStorage.removeItem("mindware-theme");
-
-    setPrimaryColor(defaultColor);
-    setFont(defaultFontName);
-    setTheme(defaultTheme);
+    setPrimaryColor(DEFAULT_PRIMARY);
+    setFont(DEFAULT_FONT);
+    setTheme("system");
   };
 
   const [isMounted, setIsMounted] = useState(false);
@@ -134,10 +113,8 @@ export function Appearance() {
               <SelectContent>
                 <SelectGroup>
                   <SelectItem value="Outfit">Outfit</SelectItem>
-                  <SelectItem value="Roboto">Roboto</SelectItem>
                   <SelectItem value="Inter">Inter</SelectItem>
-                  <SelectItem value="Poppins">Poppins</SelectItem>
-                  <SelectItem value="Plus Jakarta Sans">Plus Jakarta</SelectItem>
+                  <SelectItem value="Sistema">Sistema</SelectItem>
                 </SelectGroup>
               </SelectContent>
             </Select>

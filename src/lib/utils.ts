@@ -19,7 +19,7 @@ export function getApiAssetUrlCandidates(path?: string | null) {
   }
 
   const apiUrl =
-    process.env.NEXT_PUBLIC_API_URL || "https://mindgest.mindware-vps.cloud/api";
+    process.env.NEXT_PUBLIC_API_URL || "http://localhost:3011/api/v1";
   const apiBaseUrl = apiUrl.replace(/\/$/, "");
   const assetBaseUrl = apiBaseUrl.replace(/\/api\/?$/, "");
   const candidates: string[] = [];

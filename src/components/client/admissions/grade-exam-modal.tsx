@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { AdmissionApplication } from "@/types/admission";
-import { useAdmissionStore } from "@/stores/school/admission-store";
+import { useAdmissions } from "@/hooks/school/use-admissions";
 import {
   GlobalModal,
   Input,
@@ -23,7 +23,7 @@ export function GradeExamModal({
   onClose,
   application,
 }: GradeExamModalProps) {
-  const { gradeCandidateExam } = useAdmissionStore();
+  const { gradeCandidateExam } = useAdmissions();
 
   const [score, setScore] = useState<string>(
     application?.examScore !== undefined ? String(application.examScore) : ""

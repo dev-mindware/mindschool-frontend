@@ -30,7 +30,7 @@ export function OnboardingTourButton({
 }: OnboardingTourButtonProps) {
   const { startTour, canAccessTour, tourButtonEnabled } =
     useOnboardingTour(tourId);
-  const hasModeChoice = tourId === "normal-invoice" || tourId === "pos-invoice";
+  const hasModeChoice = false;
 
   useAutoOnboardingTour(tourId, autoStart);
 

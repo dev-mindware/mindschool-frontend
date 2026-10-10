@@ -23,10 +23,9 @@ export function NotificationDropdown() {
     deleteNotification,
     fetchNextPage,
     hasNextPage,
-    isFetchingNextPage
+    isFetchingNextPage,
+    unreadCount,
   } = useNotifications();
-
-  const unreadCount = notifications.filter((n) => !n.isRead).length;
 
   return (
     <DropdownMenu open={isOpen} onOpenChange={setIsOpen}>

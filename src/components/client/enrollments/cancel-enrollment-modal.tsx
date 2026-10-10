@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { Enrollment } from "@/types";
-import { useSchoolDataStore } from "@/stores/school/school-data-store";
+import { useEnrollments } from "@/hooks/school/use-enrollments";
+import { getApiErrorMessage } from "@/utils/api-error";
 import {
   GlobalModal,
   Input,
@@ -33,7 +34,7 @@ export function CancelEnrollmentModal({
   onClose,
   enrollment,
 }: CancelEnrollmentModalProps) {
-  const { cancelEnrollment } = useSchoolDataStore();
+  const { cancel } = useEnrollments();
   const [selectedPreset, setSelectedPreset] = useState(COMMON_REASONS[0].value);
   const [customReason, setCustomReason] = useState("");
   const [cancellationDate, setCancellationDate] = useState(
@@ -57,14 +58,11 @@ export function CancelEnrollmentModal({
 
     setIsSubmitting(true);
     try {
-      cancelEnrollment(enrollment.id, {
-        reason: finalReason,
-        cancellationDate,
-      });
+      await cancel.mutateAsync({ id: enrollment.id, reason: finalReason });
       SucessMessage("Matrícula anulada e vaga libertada no sistema!");
       onClose();
-    } catch (err: any) {
-      ErrorMessage(err?.message || "Ocorreu um erro ao anular a matrícula.");
+    } catch (err: unknown) {
+      ErrorMessage(getApiErrorMessage(err, "Ocorreu um erro ao anular a matrícula."));
     } finally {
       setIsSubmitting(false);
     }

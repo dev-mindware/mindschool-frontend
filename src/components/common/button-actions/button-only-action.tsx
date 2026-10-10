@@ -10,6 +10,7 @@ import {
 } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import { ProtectedAction } from "@/components/guards";
+import { useCan } from "@/hooks/auth/use-can";
 
 type ActionVariant = "default" | "destructive" | "outline";
 
@@ -20,6 +21,8 @@ type ActionItem<T> = {
   variant?: ActionVariant;
   className?: string;
   isProtected?: boolean; // Permite forçar ou remover a proteção manualmente
+  /** Permissão da API necessária (acções de escrita): sem ela a acção não aparece. */
+  permission?: string;
 };
 
 type SeparatorItem = {
@@ -43,7 +46,11 @@ function isSeparator<T>(action: Action<T>): action is SeparatorItem {
   return "type" in action && action.type === "separator";
 }
 
-export function ButtonOnlyAction<T>({ data, actions }: Props<T>) {
+export function ButtonOnlyAction<T>({ data, actions: allActions }: Props<T>) {
+  const { can } = useCan();
+  const actions = allActions.filter((a) => isSeparator(a) || !a.permission || can(a.permission));
+  // Sem nenhuma acção permitida não há menu (só leitura).
+  if (!actions.some((a) => !isSeparator(a))) return null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -135,7 +142,11 @@ type Props<T> = {
   actions: Action<T>[];
 };
 
-export function ButtonOnlyAction<T>({ data, actions }: Props<T>) {
+export function ButtonOnlyAction<T>({ data, actions: allActions }: Props<T>) {
+  const { can } = useCan();
+  const actions = allActions.filter((a) => isSeparator(a) || !a.permission || can(a.permission));
+  // Sem nenhuma acção permitida não há menu (só leitura).
+  if (!actions.some((a) => !isSeparator(a))) return null;
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>

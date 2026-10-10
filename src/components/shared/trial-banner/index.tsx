@@ -1,103 +1,79 @@
 "use client";
 
-import { useMemo, useState, useEffect } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { differenceInDays } from "date-fns";
-import { useAuthStore } from "@/stores/auth";
-import { SubscriptionStatus } from "@/types";
-import { Button } from "@/components/ui";
-import { AlertCircle, Clock, X } from "lucide-react";
-import { cn } from "@/lib/utils";
 import { usePathname } from "next/navigation";
+import { differenceInCalendarDays } from "date-fns";
+import { AlertCircle, Clock, X } from "lucide-react";
+import { Button } from "@/components/ui";
+import { cn } from "@/lib/utils";
+import { useAuthStore } from "@/stores/auth";
+import { useSubscription } from "@/hooks/school/use-subscription";
 
+/** Quem gere a subscrição (o menu «Planos» só existe para estes papéis). */
+const BILLING_ROLES = ["DIRECTOR_GENERAL", "OWNER", "ADMIN"];
+const HIDDEN_ON = ["/plans", "/subscription", "/billing"];
+
+type Level = "neutral" | "warning" | "critical" | "blocked";
+const STYLE: Record<Level, string> = {
+  neutral: "bg-primary/10 text-primary border-primary/20",
+  warning: "bg-amber-500/10 text-amber-700 dark:text-amber-500 border-amber-500/20",
+  critical: "bg-destructive/10 text-destructive border-destructive/20",
+  blocked: "bg-destructive text-destructive-foreground border-destructive",
+};
+
+/**
+ * Estado comercial da escola (dados reais da API): teste, atraso e modo de consulta. Com a subscrição expirada, suspensa
+ * ou cancelada só se consulta; as escritas ficam bloqueadas excepto perfil, notificações e a própria subscrição.
+ */
 export function TrialBanner() {
   const { user } = useAuthStore();
+  // O hook (e os pedidos à API) só existe para quem gere a subscrição: os outros papéis não têm permissão (403).
+  return user && BILLING_ROLES.includes(user.role) ? <SubscriptionBanner /> : null;
+}
+
+function SubscriptionBanner() {
   const pathname = usePathname();
-  const [isVisible, setIsVisible] = useState(true);
-  const [mounted, setMounted] = useState(false);
-  useEffect(() => setMounted(true), []);
+  const [dismissed, setDismissed] = useState(false);
+  const [now] = useState(() => Date.now());
+  const { current } = useSubscription();
+  const sub = current?.subscription;
 
-  const subscription = user?.company?.subscription;
-  const isTrialing = subscription?.status === SubscriptionStatus.TRIALING;
-  const trialEndsAt = subscription?.trialEndsAt;
+  if (!sub || HIDDEN_ON.some((p) => pathname.startsWith(p))) return null;
 
-  const { daysRemaining, urgency } = useMemo(() => {
-    if (!trialEndsAt) return { daysRemaining: 0, urgency: "neutral" };
-    
-    const diff = differenceInDays(new Date(trialEndsAt), new Date());
-    
-    let level = "neutral";
-    if (diff <= 0) level = "expired";
-    else if (diff <= 2) level = "critical";
-    else if (diff <= 6) level = "warning";
-    
-    return { daysRemaining: Math.max(0, diff), urgency: level };
-  }, [trialEndsAt]);
-
-  if (!mounted || !isTrialing || !isVisible || pathname === "/billing") {
-    return null;
+  let level: Level | null = null;
+  let text = "";
+  let cta = "Ver planos";
+  if (sub.status === "trial") {
+    const days = Math.max(0, differenceInCalendarDays(new Date(sub.trial_ends_at ?? now), new Date(now)));
+    level = days <= 2 ? "critical" : days <= 6 ? "warning" : "neutral";
+    text = `Período de teste do plano Essencial: ${days} ${days === 1 ? "dia restante" : "dias restantes"}. Subscreva para não perder o acesso.`;
+    cta = "Subscrever";
+  } else if (sub.status === "past_due" || sub.status === "grace") {
+    level = "warning";
+    text = "Pagamento em atraso. Renove a subscrição para evitar limitações.";
+    cta = "Renovar";
+  } else if (["expired", "suspended", "cancelled"].includes(sub.status)) {
+    level = "blocked";
+    text = `${sub.status === "expired" ? "A subscrição expirou" : sub.status === "suspended" ? "A subscrição está suspensa" : "A subscrição foi cancelada"}: apenas consulta. Os dados estão preservados; edições ficam bloqueadas até regularizar.`;
+    cta = "Regularizar";
   }
+  if (!level || (dismissed && level === "neutral")) return null;
 
-  const urgencyStyles = {
-    neutral: "bg-primary/10 text-primary border-primary/20",
-    warning: "bg-amber-500/10 text-amber-600 dark:text-amber-500 border-amber-500/20",
-    critical: "bg-destructive/10 text-destructive border-destructive/20",
-    expired: "bg-destructive text-destructive-foreground border-destructive",
-  };
-
-  const urgencyIcon = {
-    neutral: <Clock className="h-4 w-4" />,
-    warning: <Clock className="h-4 w-4" />,
-    critical: <AlertCircle className="h-4 w-4" />,
-    expired: <AlertCircle className="h-4 w-4" />,
-  };
-
-  const currentStyle = urgencyStyles[urgency as keyof typeof urgencyStyles];
-  const Icon = urgencyIcon[urgency as keyof typeof urgencyIcon];
-
+  const Icon = level === "neutral" || level === "warning" ? Clock : AlertCircle;
   return (
-    <div className={cn(
-      "relative flex items-center justify-between gap-4 px-4 py-2 border-b text-sm font-medium transition-colors w-full z-50",
-      currentStyle
-    )}>
-      <div className="flex items-center gap-2 flex-1 justify-center sm:justify-start">
-        {Icon}
-        <span>
-          {urgency === "expired" ? (
-            "O seu período de teste expirou. Actualize o plano para continuar a utilizar todas as funcionalidades."
-          ) : (
-            `Período de teste: ${daysRemaining} ${daysRemaining === 1 ? 'dia restante' : 'dias restantes'}. Actualize o plano para continuar a utilizar todas as funcionalidades.`
-          )}
-        </span>
+    <div className={cn("relative z-50 flex w-full items-center justify-between gap-4 border-b px-4 py-2 text-sm font-medium", STYLE[level])}>
+      <div className="flex flex-1 items-center gap-2">
+        <Icon className="h-4 w-4 shrink-0" />
+        <span>{text}</span>
       </div>
-      
       <div className="flex items-center gap-3">
-        <Link href="/billing">
-          <Button 
-            size="sm" 
-            variant={urgency === "expired" ? "secondary" : "default"}
-            className={cn(
-              "h-7 text-xs px-3",
-              urgency === "warning" && "bg-amber-600 hover:bg-amber-700 text-white",
-              urgency === "critical" && "bg-destructive hover:bg-destructive/90 text-white"
-            )}
-          >
-            Fazer Upgrade
-          </Button>
-        </Link>
-        <button 
-          onClick={() => setIsVisible(false)}
-          className={cn(
-            "p-1 rounded-md opacity-70 hover:opacity-100 transition-opacity",
-            urgency === "warning" && "hover:bg-amber-500/20 text-amber-700",
-            urgency === "critical" && "hover:bg-destructive/20 text-destructive",
-            urgency === "expired" && "hover:bg-white/20 text-white",
-            urgency === "neutral" && "hover:bg-primary/10 text-primary"
-          )}
-          aria-label="Fechar banner"
-        >
-          <X className="h-4 w-4 hover:text-red-500" />
-        </button>
+        <Button asChild size="sm" variant={level === "blocked" ? "secondary" : "default"} className="h-7 px-3 text-xs">
+          <Link href="/plans">{cta}</Link>
+        </Button>
+        {level === "neutral" && (
+          <button onClick={() => setDismissed(true)} className="rounded-md p-1 opacity-70 transition-opacity hover:opacity-100" aria-label="Fechar banner"><X className="h-4 w-4" /></button>
+        )}
       </div>
     </div>
   );

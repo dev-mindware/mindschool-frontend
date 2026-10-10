@@ -3,11 +3,7 @@ import { GradesPageContent } from "@/components/client/grades/grades-page-conten
 
 export default function GradesEntryPage() {
   return (
-    <PageWrapper
-      routePath="/grades/entry"
-      routeLabel="Avaliações & Pautas"
-      subRoute="Lançamento de Notas"
-    >
+    <PageWrapper>
       <GradesPageContent />
     </PageWrapper>
   );

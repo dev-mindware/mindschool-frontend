@@ -5,7 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Subject, EducationCycle } from "@/types";
-import { useSchoolDataStore } from "@/stores/school/school-data-store";
+import { useSubjects } from "@/hooks/school/use-academic";
+import { getApiErrorMessage } from "@/utils/api-error";
 import {
   GlobalModal,
   Input,
@@ -36,7 +37,7 @@ export function SubjectModal({
   onClose,
   subjectToEdit,
 }: SubjectModalProps) {
-  const { addSubject, updateSubject } = useSchoolDataStore();
+  const { save } = useSubjects();
 
   const {
     register,
@@ -81,39 +82,13 @@ export function SubjectModal({
 
   const onSubmit = async (data: SubjectFormValues) => {
     try {
-      if (subjectToEdit) {
-        updateSubject(subjectToEdit.id, {
-          code: data.code.toUpperCase(),
-          name: data.name,
-          cycle: data.cycle,
-          weeklyHours: data.weeklyHours,
-          isCore: data.isCore,
-        });
-        SucessMessage("Disciplina curricular atualizada com sucesso!");
-      } else {
-        addSubject({
-          schoolId: "dev-school-1",
-          code: data.code.toUpperCase(),
-          name: data.name,
-          cycle: data.cycle,
-          weeklyHours: data.weeklyHours,
-          isCore: data.isCore,
-          isActive: true,
-        });
-        SucessMessage("Nova disciplina adicionada à matriz com sucesso!");
-      }
-
+      await save.mutateAsync({ id: subjectToEdit?.id, name: data.name, isCore: data.isCore });
+      SucessMessage(subjectToEdit ? "Disciplina curricular atualizada com sucesso!" : "Nova disciplina adicionada à matriz com sucesso!");
       onClose();
-    } catch (err: any) {
-      ErrorMessage(err?.message || "Ocorreu um erro ao gravar a disciplina.");
+    } catch (err: unknown) {
+      ErrorMessage(getApiErrorMessage(err, "Ocorreu um erro ao gravar a disciplina."));
     }
   };
-
-  const cycleOptions = [
-    { value: "PRIMARY", label: "Ensino Primário (1ª à 6ª Classe)" },
-    { value: "LOWER_SECONDARY", label: "Iº Ciclo Secundário (7ª à 9ª Classe)" },
-    { value: "UPPER_SECONDARY", label: "IIº Ciclo / Técnico (10ª à 13ª Classe)" },
-  ];
 
   return (
     <GlobalModal
@@ -121,40 +96,16 @@ export function SubjectModal({
       onClose={onClose}
       canClose
       title={subjectToEdit ? "Editar Disciplina" : "Criar Nova Disciplina"}
-      description="Definição curricular e atribuição de carga semanal de tempos letivos"
+      description="Definição curricular da disciplina (a carga horária define-se ao atribuir à turma)"
       className="!max-h-[85vh] !max-w-md overflow-y-auto"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
-        <Input
-          label="Código Curricular *"
-          startIcon="Tag"
-          placeholder="Ex: MAT, LP, FIS, HIST"
-          {...register("code")}
-          error={errors.code?.message}
-        />
-
         <Input
           label="Designação da Disciplina *"
           startIcon="BookOpen"
           placeholder="Ex: Língua Portuguesa, Matemática"
           {...register("name")}
           error={errors.name?.message}
-        />
-
-        <SelectField
-          label="Ciclo Pedagógico *"
-          value={selectedCycle}
-          options={cycleOptions}
-          onValueChange={(val) => setValue("cycle", val as EducationCycle)}
-        />
-
-        <Input
-          type="number"
-          label="Carga Horária Semanal (Tempos) *"
-          startIcon="Clock"
-          placeholder="4"
-          {...register("weeklyHours")}
-          error={errors.weeklyHours?.message}
         />
 
         {/* Botões de Ação no Padrão MindGest */}

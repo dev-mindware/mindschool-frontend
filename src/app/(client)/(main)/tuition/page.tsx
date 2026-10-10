@@ -1,5 +1,10 @@
-import { redirect } from "next/navigation";
+import { PageWrapper } from "@/components";
+import { TuitionOverviewContent } from "@/modules/finance/components";
 
 export default function TuitionIndexPage() {
-  redirect("/tuition/payments");
+  return (
+    <PageWrapper>
+      <TuitionOverviewContent />
+    </PageWrapper>
+  );
 }

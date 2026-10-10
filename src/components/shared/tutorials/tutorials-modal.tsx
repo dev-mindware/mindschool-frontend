@@ -51,7 +51,7 @@ export function TutorialsModal() {
           variant="outline"
           size="sm"
           className="gap-2 font-medium border-border hover:border-red-500/50 hover:bg-red-50/50 dark:hover:bg-red-950/20 text-foreground transition-colors cursor-pointer"
-          title="Tutoriais em Vídeo — Canal YouTube @mindware-y25"
+          title="Tutoriais em Vídeo — Canal YouTube da Mindware"
         >
           <YoutubeIcon className="w-4 h-4 shrink-0" />
           <span className="hidden sm:inline">Tutoriais</span>
@@ -59,7 +59,7 @@ export function TutorialsModal() {
       </DialogTrigger>
 
       <DialogContent className="sm:max-w-[800px] max-h-[88vh] p-0 overflow-hidden flex flex-col gap-0 border-border bg-background">
-        {/* Standard Mindgest Modal Header */}
+        {/* Modal header */}
         <div className="p-5 md:p-6 border-b border-border bg-muted/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
@@ -69,7 +69,7 @@ export function TutorialsModal() {
               </DialogTitle>
             </div>
             <DialogDescription className="text-xs text-muted-foreground">
-              Assista aos tutoriais oficiais do Mindgest ou inscreva-se no canal do YouTube.
+              Assista aos tutoriais da MindSchool ou inscreva-se no canal do YouTube.
             </DialogDescription>
           </div>
 

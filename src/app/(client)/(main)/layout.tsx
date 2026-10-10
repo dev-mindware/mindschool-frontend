@@ -12,7 +12,7 @@ type Props = {
 
 export default function ClientLayout({ children }: Props) {
   return (
-    <RouteProtector allowed={STAFF_ROLES as Role[]} checkPlan={false}>
+    <RouteProtector allowed={[...STAFF_ROLES, "GUARDIAN", "STUDENT"] as Role[]} checkPlan={false}>
       <StoreProvider>
         <FeatureGateProvider>
           <AppSidebar />

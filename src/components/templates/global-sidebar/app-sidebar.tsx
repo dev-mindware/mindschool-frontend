@@ -9,31 +9,20 @@ import {
   SidebarContent,
   SidebarSkeleton,
   SidebarCompanyInfo,
-  Icon,
 } from "@/components";
-import { menuItems } from "@/constants/menu-items";
-import { useAuth } from "@/hooks/auth";
-import { getSidebarForUser } from "@/lib/get-sidebar-for-user";
-import { PlanType } from "@/types";
-import { usePathname } from "next/navigation";
-import { RoleSimulator } from "./role-simulator";
+import { useNavigation } from "@/hooks/common/use-navigation";
+import { GroupedNav } from "./grouped-nav";
+import { ModularSidebar } from "./modular-sidebar";
 
+/**
+ * A sidebar adapta-se ao papel: `dual` (rail de módulos + painel) quando há muitos módulos e páginas,
+ * `grouped` (coluna com rótulos) para listas planas e `flat` (acordeões) para o resto. Ver `constants/navigation.ts`.
+ */
 export function AppSidebar() {
-  const { user } = useAuth();
-  const pathname = usePathname();
+  const { ready, items, model, active, pathname } = useNavigation();
 
-  if (!user) return <SidebarSkeleton />;
-
-  const plan = user?.company?.subscription
-    ? (user.company?.subscription?.plan?.name as PlanType)
-    : undefined;
-
-  const filteredMenu = getSidebarForUser(
-    menuItems.items,
-    user.role,
-    user.company?.subscription,
-    plan
-  );
+  if (!ready) return <SidebarSkeleton />;
+  if (model.mode === "dual") return <ModularSidebar model={model} active={active} pathname={pathname} />;
 
   return (
     <Sidebar collapsible="icon">
@@ -41,10 +30,9 @@ export function AppSidebar() {
         <SidebarCompanyInfo />
       </SidebarHeader>
       <SidebarContent className="group-data-[collapsible=icon]:items-center mt-4">
-        <NavMenu items={filteredMenu} />
+        {model.mode === "grouped" ? <GroupedNav model={model} pathname={pathname} /> : <NavMenu items={items} />}
       </SidebarContent>
       <SidebarFooter>
-        <RoleSimulator />
         <UserInfo />
       </SidebarFooter>
       <SidebarRail />

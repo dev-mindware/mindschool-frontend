@@ -3,11 +3,7 @@ import { PautasPageContent } from "@/components/client/grades/pautas/pautas-page
 
 export default function PautasPage() {
   return (
-    <PageWrapper
-      routePath="/grades"
-      routeLabel="Avaliações & Pautas"
-      subRoute="Pautas Trimestrais"
-    >
+    <PageWrapper>
       <PautasPageContent />
     </PageWrapper>
   );

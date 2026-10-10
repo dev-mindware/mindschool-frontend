@@ -2,8 +2,8 @@
 
 import React, { useState, useMemo } from "react";
 import { AdmissionApplication } from "@/types/admission";
-import { useAdmissionStore } from "@/stores/school/admission-store";
-import { useSchoolDataStore } from "@/stores/school/school-data-store";
+import { useAdmissions } from "@/hooks/school/use-admissions";
+import { useSections } from "@/hooks/school/use-sections";
 import {
   GlobalModal,
   Button,
@@ -24,8 +24,8 @@ export function ConvertToEnrollmentModal({
   onClose,
   application,
 }: ConvertToEnrollmentModalProps) {
-  const { convertCandidateToEnrollment } = useAdmissionStore();
-  const { sections } = useSchoolDataStore();
+  const { convertCandidateToEnrollment } = useAdmissions();
+  const { data: sections = [] } = useSections();
 
   const [selectedSectionId, setSelectedSectionId] = useState<string>(
     sections[0]?.id || ""

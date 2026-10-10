@@ -3,11 +3,7 @@ import { AdmissionsPageContent } from "@/components/client/admissions/admissions
 
 export default function StudentAdmissionsPage() {
   return (
-    <PageWrapper
-      routePath="/students/admissions"
-      routeLabel="Alunos & Matrículas"
-      subRoute="Candidaturas & Admissões"
-    >
+    <PageWrapper>
       <AdmissionsPageContent />
     </PageWrapper>
   );

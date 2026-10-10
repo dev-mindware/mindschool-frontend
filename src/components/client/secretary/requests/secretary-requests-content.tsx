@@ -1,92 +1,31 @@
 "use client";
 
-import React, { useState } from "react";
-import { useSecretaryRequestStore } from "@/stores/school/secretary-request-store";
+import { Can, Button, Icon, TitleList } from "@/components";
+import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
+import { useSecretaryRequests } from "@/hooks/school/use-secretary-requests";
+import { useModal } from "@/stores/modal/use-modal-store";
 import { RequestsTable } from "./requests-table";
 import { NewRequestModal } from "./new-request-modal";
-import { ProtocolSlipModal } from "./protocol-slip-modal";
-import { SecretaryRequest } from "@/types";
-import { Button, Icon, TitleList } from "@/components";
-import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 
 export function SecretaryRequestsContent() {
-  const { requests } = useSecretaryRequestStore();
-  const [newModalOpen, setNewModalOpen] = useState(false);
-  const [slipModalOpen, setSlipModalOpen] = useState(false);
-  const [newlyCreatedRequest, setNewlyCreatedRequest] = useState<SecretaryRequest | null>(null);
-
-  // Metrics
-  const totalCount = requests.length;
-  const pendingDirectorCount = requests.filter((r) => r.status === "PENDING_DIRECTOR").length;
-  const readyCount = requests.filter((r) => r.status === "READY_FOR_PICKUP").length;
-  const completedCount = requests.filter((r) => r.status === "COMPLETED").length;
-
-  const handleRequestCreated = (req: SecretaryRequest) => {
-    setNewlyCreatedRequest(req);
-    setSlipModalOpen(true);
-  };
+  const { counts } = useSecretaryRequests();
+  const { openModal } = useModal();
 
   return (
     <div className="space-y-6">
-      {/* MindGest Standard TitleList */}
-      <TitleList
-        title="Secretaria Digital"
-        suTitle="Tramitação de processos, certidões e requerimentos escolares."
-      >
-        <Button onClick={() => setNewModalOpen(true)} className="gap-2 shadow-xs text-xs">
-          <Icon name="FilePlus" className="size-4" />
-          Novo Requerimento
-        </Button>
+      <TitleList title="Secretaria Digital" suTitle="Requerimentos com número de protocolo: declarações, certificados, 2.ª vias e transferências.">
+        <Can permission="request:write"><Button onClick={() => openModal("request-new")} className="gap-2"><Icon name="FilePlus" className="size-4" />Novo requerimento</Button></Can>
       </TitleList>
 
-      {/* KPI Cards Banner */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <DynamicMetricCard
-          title={`${totalCount}`}
-          subtitle="Processos Registados"
-          description="Total tramitado no ano lectivo"
-          icon="Files"
-        />
-
-        <DynamicMetricCard
-          title={`${pendingDirectorCount} Processos`}
-          subtitle="Aguardando Despacho"
-          description="Pendente de parecer da Direcção"
-          icon="Clock"
-          colors={pendingDirectorCount > 0 ? "default" : "default"}
-        />
-
-        <DynamicMetricCard
-          title={`${readyCount} Documentos`}
-          subtitle="Prontos para Entrega"
-          description="Aguardam levantamento na secretaria"
-          icon="CheckCheck"
-        />
-
-        <DynamicMetricCard
-          title={`${completedCount}`}
-          subtitle="Entregues / Concluídos"
-          description="Processos arquivados com recibo"
-          icon="Archive"
-        />
+      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+        <DynamicMetricCard title={counts.total} subtitle="Processos registados" description="Total tramitado" icon="Files" />
+        <DynamicMetricCard title={counts.open} subtitle="Por tratar" description="Submetidos, ainda sem análise" icon="Clock" />
+        <DynamicMetricCard title={counts.inReview} subtitle="Em análise" description="A ser tratados pela secretaria" icon="Search" />
+        <DynamicMetricCard title={counts.done} subtitle="Concluídos" description="Resolvidos e comunicados ao requerente" icon="CheckCheck" />
       </div>
 
-      {/* Main Table */}
-      <RequestsTable onOpenNewModal={() => setNewModalOpen(true)} />
-
-      {/* New Request Modal */}
-      <NewRequestModal
-        open={newModalOpen}
-        onOpenChange={setNewModalOpen}
-        onSuccess={handleRequestCreated}
-      />
-
-      {/* Auto Protocol Slip Modal on creation */}
-      <ProtocolSlipModal
-        open={slipModalOpen}
-        onOpenChange={setSlipModalOpen}
-        request={newlyCreatedRequest}
-      />
+      <RequestsTable />
+      <NewRequestModal />
     </div>
   );
 }

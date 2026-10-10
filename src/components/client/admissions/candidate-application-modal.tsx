@@ -1,7 +1,8 @@
 "use client";
+import { formatDate } from "@/utils";
 
 import React, { useState } from "react";
-import { useAdmissionStore } from "@/stores/school/admission-store";
+import { useAdmissions } from "@/hooks/school/use-admissions";
 import {
   GlobalModal,
   Input,
@@ -40,7 +41,7 @@ export function CandidateApplicationModal({
   isOpen,
   onClose,
 }: CandidateApplicationModalProps) {
-  const { submitApplication, entranceExams } = useAdmissionStore();
+  const { submitApplication, entranceExams } = useAdmissions();
 
   const [fullName, setFullName] = useState("");
   const [gender, setGender] = useState<"MALE" | "FEMALE">("MALE");
@@ -344,7 +345,7 @@ export function CandidateApplicationModal({
                     { value: "", label: "A definir posteriormente pela Direção" },
                     ...entranceExams.map((exam) => ({
                       value: exam.id,
-                      label: `${exam.title} (${new Date(exam.examDate).toLocaleDateString("pt-AO")})`,
+                      label: `${exam.title} (${formatDate(exam.examDate)})`,
                     })),
                   ]}
                 />

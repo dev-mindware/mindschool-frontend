@@ -10,6 +10,7 @@ import {
 } from "@/types";
 import { useAuthStore } from "@/stores/auth/auth-store";
 import { useFeatureGate } from "@/contexts/feature-gate-context";
+import { useCan } from "@/hooks/auth/use-can";
 import { hasRole, hasModulePermission } from "@/constants/roles";
 import {
   Tooltip,
@@ -21,6 +22,8 @@ import {
 export interface FeatureGateProps {
   minPlan?: PlanType;
   roles?: readonly Role[];
+  /** Permissões da API (todas): a mesma regra que o servidor aplica; preferível a `roles`. */
+  permission?: string | readonly string[];
   module?: AppModule;
   action?: PermissionAction;
   children: ReactNode;
@@ -31,6 +34,7 @@ export interface FeatureGateProps {
 export function FeatureGate({
   minPlan,
   roles,
+  permission,
   module,
   action = "read",
   children,
@@ -39,6 +43,7 @@ export function FeatureGate({
 }: FeatureGateProps) {
   const { user } = useAuthStore();
   const { openUpgradeModal } = useFeatureGate();
+  const { can } = useCan();
 
   // Bypass para desenvolvimento ou flags de teste
   if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
@@ -82,6 +87,25 @@ export function FeatureGate({
     }
   }
 
+
+  // 1b. Verificação de permissões da API (se especificado)
+  if (permission && !can(...(typeof permission === "string" ? [permission] : permission))) {
+    if (fallback === "hidden") return null;
+    return (
+      <TooltipProvider>
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <div className="cursor-not-allowed opacity-50 inline-flex">
+              <div className="pointer-events-none">{children}</div>
+            </div>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>{tooltipMessage || "A sua função atual não tem autorização para esta ação."}</p>
+          </TooltipContent>
+        </Tooltip>
+      </TooltipProvider>
+    );
+  }
   // 2. Verificação de Papel / RBAC (se especificado)
   if (roles && roles.length > 0) {
     const userHasRole = hasRole(user?.role, roles);

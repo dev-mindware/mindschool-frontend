@@ -3,43 +3,16 @@
 import React, { useState } from "react";
 import { TitleList } from "@/components/common/title-list";
 import { Button } from "@/components/ui/button";
-import { Icon } from "@/components";
-import { SearchHandlerWrapper } from "@/components/common/search-handler-wrapper";
-import { FilterPopover } from "@/components/shared/filters/filter-popover";
+import { Can, Icon } from "@/components";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { useEnrollments } from "@/hooks/school/use-enrollments";
-import { useSchoolDataStore } from "@/stores/school/school-data-store";
 import { EnrollmentsList } from "./enrollments-list";
 import { EnrollmentModal } from "./enrollment-modal";
-import { EnrollmentStatus } from "@/types";
 
 export function EnrollmentsPageContent() {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<EnrollmentStatus | "ALL">(
-    "ALL"
-  );
-  const [sectionFilter, setSectionFilter] = useState("ALL");
   const [isEnrollModalOpen, setIsEnrollModalOpen] = useState(false);
+  const { allEnrollments, counts, isLoading, isError } = useEnrollments();
 
-  const { sections } = useSchoolDataStore();
-  const {
-    enrollments,
-    total,
-    totalPages,
-    currentPage,
-    setCurrentPage,
-    goToNextPage,
-    goToPreviousPage,
-    counts,
-  } = useEnrollments(searchQuery, statusFilter, sectionFilter);
-
-  const hasActiveFilters = statusFilter !== "ALL" || sectionFilter !== "ALL" || Boolean(searchQuery);
-
-  const handleClearFilters = () => {
-    setStatusFilter("ALL");
-    setSectionFilter("ALL");
-    setSearchQuery("");
-  };
 
   return (
     <div className="space-y-6">
@@ -48,6 +21,7 @@ export function EnrollmentsPageContent() {
         title="Matrículas & Inscrições"
         suTitle="Gestão do processo lectivo digital, confirmações e atribuição de turmas."
       >
+        <Can permission="enrollment:write">
         <Button
           size="sm"
           onClick={() => setIsEnrollModalOpen(true)}
@@ -56,6 +30,7 @@ export function EnrollmentsPageContent() {
           <Icon name="FileCheck" className="size-4" />
           Nova Matrícula
         </Button>
+        </Can>
       </TitleList>
 
       {/* Cartões de Métricas no Padrão MindGest */}
@@ -86,70 +61,7 @@ export function EnrollmentsPageContent() {
         />
       </div>
 
-      {/* Barra de Filtros e Pesquisa – Padrão MindGest */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-card p-4 rounded-xl border border-border/80 shadow-xs">
-        <SearchHandlerWrapper
-          search={searchQuery}
-          setSearch={setSearchQuery}
-          placeholder="Pesquisar por nº matrícula ou aluno..."
-          className="w-full sm:max-w-xs md:max-w-sm"
-        />
-
-        <div className="flex flex-wrap items-center gap-2 w-full sm:w-auto">
-          <FilterPopover
-            label="Estado"
-            icon="ListFilter"
-            options={[
-              { label: "Todos os Estados", value: "ALL" },
-              { label: "Activas", value: "ACTIVE" },
-              { label: "Pendentes", value: "PENDING" },
-              { label: "Transferidas", value: "TRANSFERRED" },
-              { label: "Canceladas", value: "CANCELLED" },
-            ]}
-            value={statusFilter === "ALL" ? null : statusFilter}
-            onChange={(val) =>
-              setStatusFilter((val ?? "ALL") as EnrollmentStatus | "ALL")
-            }
-          />
-
-          <FilterPopover
-            label="Turma"
-            icon="ListFilter"
-            options={[
-              { label: "Todas as Turmas", value: "ALL" },
-              ...sections.map((sec) => ({
-                label: `${sec.name} (${sec.shift === "MORNING" ? "Manhã" : "Tarde"})`,
-                value: sec.id,
-              })),
-            ]}
-            value={sectionFilter === "ALL" ? null : sectionFilter}
-            onChange={(val) => setSectionFilter(val ?? "ALL")}
-          />
-
-          {hasActiveFilters && (
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClearFilters}
-              className="h-9 px-2 text-xs text-muted-foreground hover:text-foreground"
-            >
-              <Icon name="X" className="mr-1 size-3.5" />
-              Limpar
-            </Button>
-          )}
-        </div>
-      </div>
-
-      {/* Lista com Tabela Genérica */}
-      <EnrollmentsList
-        enrollments={enrollments}
-        total={total}
-        totalPages={totalPages}
-        currentPage={currentPage}
-        setCurrentPage={setCurrentPage}
-        goToNextPage={goToNextPage}
-        goToPreviousPage={goToPreviousPage}
-      />
+      <EnrollmentsList enrollments={allEnrollments} isLoading={isLoading} isError={isError} />
 
       {/* Modal de Matrícula Digital */}
       <EnrollmentModal

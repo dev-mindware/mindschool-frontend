@@ -62,10 +62,13 @@ export function DinamicBreadcrumb({
     );
   }
 
+  // «Financeiro › Financeiro»: nunca repetir a mesma etiqueta.
+  const showRoute = Boolean(routeLabel) && routeLabel !== subRoute;
+
   return (
     <Breadcrumb>
       <BreadcrumbList className="flex-wrap gap-1.5 sm:gap-2">
-        {routeLabel && (
+        {showRoute && (
           <>
             <BreadcrumbItem className="hidden sm:inline-flex items-center">
               {routePath ? (

@@ -12,15 +12,67 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { useAuth } from "@/hooks/auth";
-import { useMultiSchoolStore } from "@/stores/school/multi-school-store";
+import { useActiveSchoolStore } from "@/stores/school/active-school-store";
+import { ROLE_LABELS } from "@/constants/roles";
+import { pickPrimaryRole } from "@/utils/api-roles";
+
+function useSchoolSwitcher() {
+  const { schoolId, memberships, selectSchool } = useActiveSchoolStore();
+  const currentUnit = memberships.find((m) => m.schoolId === schoolId) || memberships[0];
+  // Trocar de escola muda papel, plano e dados: recarrega a aplicacao.
+  const switchSchool = (id: string) => {
+    if (id === schoolId) return;
+    selectSchool(id);
+    window.location.reload();
+  };
+  return { memberships, currentUnit, switchSchool };
+}
+
+function SchoolMenu({ memberships, onSwitch, side }: { memberships: ReturnType<typeof useSchoolSwitcher>["memberships"]; onSwitch: (id: string) => void; side: "right" | "bottom" }) {
+  return (
+    <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg" align="start" side={side} sideOffset={4}>
+      <DropdownMenuLabel className="text-xs text-muted-foreground">As minhas escolas</DropdownMenuLabel>
+      {memberships.map((m) => (
+        <DropdownMenuItem key={m.schoolId} onClick={() => onSwitch(m.schoolId)} className="gap-2 p-2 cursor-pointer">
+          <div className="flex items-center justify-center border rounded-md size-6">
+            <Icon name="School" className="size-3.5 shrink-0" />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xs font-medium">{m.schoolName}</span>
+            <span className="text-[10px] text-muted-foreground">{ROLE_LABELS[pickPrimaryRole(m.roles) ?? "GUARDIAN"]}</span>
+          </div>
+        </DropdownMenuItem>
+      ))}
+    </DropdownMenuContent>
+  );
+}
+
+/** Escola activa e troca de escola, em formato de botão do rail (só o ícone). */
+export function SchoolRailButton() {
+  const { memberships, currentUnit, switchSchool } = useSchoolSwitcher();
+  return (
+    <DropdownMenu>
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <DropdownMenuTrigger asChild>
+            <button type="button" aria-label="Escola activa" className="flex size-9 items-center justify-center rounded-lg bg-white text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60">
+              <Icon name="GraduationCap" className="size-5" />
+            </button>
+          </DropdownMenuTrigger>
+        </TooltipTrigger>
+        <TooltipContent side="right">{currentUnit?.schoolName ?? "Escola"}</TooltipContent>
+      </Tooltip>
+      <SchoolMenu memberships={memberships} onSwitch={switchSchool} side="right" />
+    </DropdownMenu>
+  );
+}
 
 export function SidebarCompanyInfo() {
   const { user } = useAuth();
   const { isMobile } = useSidebar();
-  const { units, selectedUnitId, selectUnit } = useMultiSchoolStore();
-
-  const currentUnit = units.find((u) => u.id === selectedUnitId) || units[0];
+  const { memberships, currentUnit, switchSchool } = useSchoolSwitcher();
 
   return (
     <SidebarMenu className="group-data-[collapsible=icon]:items-center">
@@ -36,44 +88,16 @@ export function SidebarCompanyInfo() {
               </div>
               <div className="grid flex-1 text-sm leading-tight text-left">
                 <span className="font-medium truncate">
-                  {currentUnit?.name || user?.company?.name || "MindSchool"}
+                  {currentUnit?.schoolName || user?.company?.name || "MindSchool"}
                 </span>
                 <span className="text-xs truncate text-muted-foreground">
-                  {currentUnit ? `${currentUnit.municipality} • ${currentUnit.code}` : "Unidade Escolar"}
+                  {currentUnit ? (ROLE_LABELS[pickPrimaryRole(currentUnit.roles) ?? "GUARDIAN"] ?? "") : "Unidade Escolar"}
                 </span>
               </div>
               <Icon name="ChevronsUpDown" className="ml-auto size-4" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
-
-          <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
-            align="start"
-            side={isMobile ? "bottom" : "right"}
-            sideOffset={4}
-          >
-            <DropdownMenuLabel className="text-xs text-muted-foreground">
-              Campus & Unidades Escolares
-            </DropdownMenuLabel>
-
-            {units.map((unit) => (
-              <DropdownMenuItem
-                key={unit.id}
-                onClick={() => selectUnit(unit.id)}
-                className="gap-2 p-2 cursor-pointer"
-              >
-                <div className="flex items-center justify-center border rounded-md size-6">
-                  <Icon name="School" className="size-3.5 shrink-0" />
-                </div>
-                <div className="flex flex-col">
-                  <span className="text-xs font-medium">{unit.name}</span>
-                  <span className="text-[10px] text-muted-foreground">
-                    {unit.municipality} ({unit.totalStudents} alunos)
-                  </span>
-                </div>
-              </DropdownMenuItem>
-            ))}
-          </DropdownMenuContent>
+          <SchoolMenu memberships={memberships} onSwitch={switchSchool} side={isMobile ? "bottom" : "right"} />
         </DropdownMenu>
       </SidebarMenuItem>
     </SidebarMenu>

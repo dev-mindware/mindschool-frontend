@@ -43,6 +43,16 @@ export function StudentGuardianFields({
           />
         </div>
 
+        <div className="sm:col-span-3">
+          <Input
+            label="Nº do Documento do Encarregado *"
+            startIcon="IdCard"
+            placeholder="Ex: 004512345LA041"
+            {...register("guardianDocument")}
+            error={errors.guardianDocument?.message}
+          />
+        </div>
+
         <Input
           label="Telefone Principal *"
           startIcon="Phone"

@@ -3,11 +3,7 @@ import { MultiSchoolPageContent } from "@/components/client/reports/multi-school
 
 export default function ReportsMultiSchoolPage() {
   return (
-    <PageWrapper
-      routePath="/reports/multi-school"
-      routeLabel="Relatórios & MED"
-      subRoute="Painel Multi-Escola"
-    >
+    <PageWrapper>
       <MultiSchoolPageContent />
     </PageWrapper>
   );

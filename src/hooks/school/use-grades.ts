@@ -1,44 +1,43 @@
 "use client";
 
-import { useMemo } from "react";
-import { useGradeStore } from "@/stores/school/grade-store";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { GradeField, GradeState, gradesService } from "@/services/grades-service";
+import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { AssessmentTerm } from "@/types/grade";
 
-export function useGrades(sectionId?: string, subjectId?: string, term?: AssessmentTerm) {
-  const {
-    gradeSheets,
-    auditLogs,
-    closedPautas,
-    updateGradeEntry,
-    lockMiniPauta,
-    closeSectionPauta,
-    reopenSectionPauta,
-    getSectionGradeSheet,
-    getConsolidatedPauta,
-    getStudentReportCard,
-  } = useGradeStore();
+/** Mini-pauta (disciplina x turma x trimestre) da escola activa, com lancamento de notas pela API. */
+export function useGradeSheet(sectionId?: string, subjectId?: string, term?: AssessmentTerm) {
+  const schoolId = useActiveSchoolStore((s) => s.schoolId);
+  const queryClient = useQueryClient();
+  const key = ["grade-sheet", schoolId, sectionId, subjectId, term];
 
-  const currentSheet = useMemo(() => {
-    if (!sectionId || !subjectId || !term) return undefined;
-    return getSectionGradeSheet(sectionId, subjectId, term);
-  }, [sectionId, subjectId, term, getSectionGradeSheet, gradeSheets]);
+  const query = useQuery({
+    queryKey: key,
+    queryFn: () => gradesService.sheet(sectionId!, subjectId!, term!),
+    enabled: Boolean(schoolId && sectionId && subjectId && term),
+    staleTime: 15 * 1000,
+  });
 
-  const auditHistory = useMemo(() => {
-    if (!sectionId) return auditLogs;
-    return auditLogs.filter((log) => log.sectionId === sectionId);
-  }, [auditLogs, sectionId]);
+  const saveGrade = useMutation({
+    mutationFn: (v: { enrollmentId: string; field: GradeField; value?: number; status?: GradeState }) =>
+      gradesService.saveGrade({ sectionId: sectionId!, subjectId: subjectId!, term: term!, ...v }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: key });
+      queryClient.invalidateQueries({ queryKey: ["pautas", schoolId] });
+    },
+  });
 
   return {
-    currentSheet,
-    allSheets: gradeSheets,
-    auditHistory,
-    closedPautas,
-    updateGradeEntry,
-    lockMiniPauta,
-    closeSectionPauta,
-    reopenSectionPauta,
-    getSectionGradeSheet,
-    getConsolidatedPauta,
-    getStudentReportCard,
+    sheet: query.data?.sheet,
+    pautaStatus: query.data?.pautaStatus,
+    isLoading: query.isLoading,
+    isMissingAssignment: query.isSuccess && query.data === null,
+    saveGrade,
   };
+}
+
+/** Periodos do ano lectivo activo (id + sequencia). */
+export function useGradeTerms() {
+  const schoolId = useActiveSchoolStore((s) => s.schoolId);
+  return useQuery({ queryKey: ["terms", schoolId], queryFn: () => gradesService.terms(), enabled: Boolean(schoolId), staleTime: 5 * 60 * 1000 });
 }

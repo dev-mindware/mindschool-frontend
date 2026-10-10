@@ -9,14 +9,11 @@ export * from "./enrollments";
 export * from "./grades";
 export * from "./guardians";
 export * from "./online-exams";
-export * from "./reports";
 export * from "./secretary";
 export * from "./students";
 export * from "./teachers-attendance";
 export * from "./plans";
 export * from "./subscription";
 
-export * from "./documents";
-export * from "./tuition";
 export * from "./settings";
 

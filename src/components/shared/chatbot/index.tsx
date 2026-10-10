@@ -38,7 +38,7 @@ export interface LocalChatSession {
   messages: LocalChatHistoryItem[];
 }
 
-const DB_NAME = "MindgestChatDB";
+const DB_NAME = "MindSchoolChatDB";
 const STORE_NAME = "chat_sessions";
 const DB_VERSION = 1;
 
@@ -234,7 +234,7 @@ export function ChatbotSheet() {
 
         if (parsedSessions.length === 0) {
           const legacyStorage = localStorage.getItem(
-            `mindgest-chat-history_${user.id}`,
+            `mindschool-chat-history_${user.id}`,
           );
           if (legacyStorage) {
             try {
@@ -264,7 +264,7 @@ export function ChatbotSheet() {
                   },
                 ];
               }
-              localStorage.removeItem(`mindgest-chat-history_${user.id}`);
+              localStorage.removeItem(`mindschool-chat-history_${user.id}`);
             } catch (e) {
               console.error("Migration error", e);
             }

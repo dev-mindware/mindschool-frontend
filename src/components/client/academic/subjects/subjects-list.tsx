@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { GenericTable, Column } from "@/components/common/generic-table";
+import { Can, DataList, type Column } from "@/components";
 import { Subject } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,23 +16,10 @@ import { SubjectModal } from "./subject-modal";
 
 interface SubjectsListProps {
   subjects: Subject[];
-  total: number;
-  totalPages: number;
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
-  goToNextPage: () => void;
-  goToPreviousPage: () => void;
+  isLoading?: boolean;
 }
 
-export function SubjectsList({
-  subjects,
-  total,
-  totalPages,
-  currentPage,
-  setCurrentPage,
-  goToNextPage,
-  goToPreviousPage,
-}: SubjectsListProps) {
+export function SubjectsList({ subjects, isLoading }: SubjectsListProps) {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
 
@@ -116,6 +103,7 @@ export function SubjectsList({
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
+<Can permission="subject:write">
             <DropdownMenuItem
               className="gap-2 cursor-pointer"
               onClick={() => handleEdit(item)}
@@ -123,6 +111,7 @@ export function SubjectsList({
               <Icon name="Pencil" className="h-4 w-4" />
               Editar Disciplina
             </DropdownMenuItem>
+</Can>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -131,16 +120,28 @@ export function SubjectsList({
 
   return (
     <>
-      <GenericTable
+      <DataList<Subject>
+        prefix="disciplinas"
+        rows={subjects}
         columns={columns}
-        data={subjects}
-        total={total}
-        page={currentPage}
-        totalPages={totalPages}
-        setPage={setCurrentPage}
-        goToNextPage={goToNextPage}
-        goToPreviousPage={goToPreviousPage}
-        emptyMessage="Nenhuma disciplina cadastrada."
+        isLoading={isLoading}
+        pageSize={10}
+        searchPlaceholder="Pesquisar por nome, código ou descrição"
+        searchText={(s) => `${s.name} ${s.code} ${s.description ?? ""}`}
+        filters={[
+          { key: "ciclo", label: "Ciclo", icon: "Layers", options: [{ value: "PRIMARY", label: "Primário" }, { value: "LOWER_SECONDARY", label: "Iº Ciclo" }, { value: "UPPER_SECONDARY", label: "IIº Ciclo / Médio" }], match: (s, v) => s.cycle === v },
+          { key: "tipo", label: "Tipo", icon: "Star", options: [{ value: "nuclear", label: "Nuclear" }, { value: "geral", label: "Geral" }], match: (s, v) => (v === "nuclear" ? Boolean(s.isCore) : !s.isCore) },
+          { key: "carga", label: "Carga semanal", icon: "Clock", options: [{ value: "baixa", label: "Até 2 h" }, { value: "media", label: "3 a 4 h" }, { value: "alta", label: "5 h ou mais" }], match: (s, v) => (v === "baixa" ? s.weeklyHours <= 2 : v === "media" ? s.weeklyHours >= 3 && s.weeklyHours <= 4 : s.weeklyHours >= 5) },
+          { key: "estado", label: "Estado", icon: "ToggleLeft", options: [{ value: "on", label: "Activas" }, { value: "off", label: "Inactivas" }], match: (s, v) => (v === "on" ? s.isActive : !s.isActive) },
+        ]}
+        sorts={[
+          { value: "nome", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name, "pt") },
+          { value: "codigo", label: "Código", compare: (a, b) => a.code.localeCompare(b.code) },
+          { value: "carga", label: "Carga semanal", compare: (a, b) => a.weeklyHours - b.weeklyHours },
+        ]}
+        emptyTitle="Nenhuma disciplina encontrada"
+        emptyDescription="Ajuste os filtros ou cadastre uma disciplina."
+        emptyIcon="BookOpen"
       />
 
       <SubjectModal

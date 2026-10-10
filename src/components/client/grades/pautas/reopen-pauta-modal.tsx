@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { ConsolidatedPauta } from "@/types/grade";
-import { useGradeStore } from "@/stores/school/grade-store";
+import { usePautas } from "@/hooks/school/use-pautas";
+import { getApiErrorMessage } from "@/utils/api-error";
 import {
   GlobalModal,
   Button,
@@ -24,7 +25,7 @@ export function ReopenPautaModal({
   pauta,
   onSuccess,
 }: ReopenPautaModalProps) {
-  const { reopenSectionPauta } = useGradeStore();
+  const { reopen } = usePautas(pauta.term, []);
   const [reason, setReason] = useState("");
   const [directorName, setDirectorName] = useState(
     "Prof. António Silva (Dir. Pedagógico)"
@@ -33,7 +34,7 @@ export function ReopenPautaModal({
 
   if (!isOpen) return null;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (reason.trim().length < 10) {
@@ -45,15 +46,12 @@ export function ReopenPautaModal({
 
     setIsSubmitting(true);
     try {
-      reopenSectionPauta(pauta.sectionId, pauta.term, reason, directorName);
-      SucessMessage(
-        `Pauta da ${pauta.sectionName} reaberta. Evento auditado com sucesso!`
-      );
+      await reopen.mutateAsync({ sectionId: pauta.sectionId, term: pauta.term, reason });
+      SucessMessage(`Pauta da ${pauta.sectionName} reaberta. Evento auditado com sucesso!`);
       if (onSuccess) onSuccess();
       onClose();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro ao reabrir pauta";
-      ErrorMessage(msg);
+      ErrorMessage(getApiErrorMessage(err, "Erro ao reabrir pauta"));
     } finally {
       setIsSubmitting(false);
     }

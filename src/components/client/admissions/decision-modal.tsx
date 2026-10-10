@@ -2,7 +2,7 @@
 
 import React, { useState } from "react";
 import { AdmissionApplication } from "@/types/admission";
-import { useAdmissionStore } from "@/stores/school/admission-store";
+import { useAdmissions } from "@/hooks/school/use-admissions";
 import {
   GlobalModal,
   SelectField,
@@ -23,7 +23,7 @@ export function DecisionModal({
   onClose,
   application,
 }: DecisionModalProps) {
-  const { decideApplication } = useAdmissionStore();
+  const { decideApplication } = useAdmissions();
 
   const [decision, setDecision] = useState<"APPROVED" | "WAITLIST" | "REJECTED">(
     application?.examScore !== undefined && application.examScore >= application.minPassingScore

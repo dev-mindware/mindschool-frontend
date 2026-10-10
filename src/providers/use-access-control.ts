@@ -4,18 +4,10 @@ import { useMemo } from "react";
 import { usePathname } from "next/navigation";
 import { Role, PlanType, PLAN_HIERARCHY, AppModule, PermissionAction } from "@/types";
 import { useAuth } from "@/hooks/auth";
-import { menuItems, MenuItem } from "@/constants/menu-items";
+import { useCan } from "@/hooks/auth/use-can";
 import { ROLE_MODULE_PERMISSIONS } from "@/constants/roles";
+import { findMatchingMenuItem } from "@/lib/find-menu-item";
 import { getRouteByRole } from "@/utils/role-redirects";
-
-const flattenMenu = (items: MenuItem[]): MenuItem[] =>
-  items.reduce<MenuItem[]>((acc, item) => {
-    acc.push(item);
-    if (item.items) acc.push(...flattenMenu(item.items));
-    return acc;
-  }, []);
-
-const allMenuItems = flattenMenu(menuItems.items);
 
 export type AccessResult =
   | { status: "loading" }
@@ -27,19 +19,9 @@ export type AccessResult =
 export function useAccessControl(allowed: Role[], checkPlan = true): AccessResult {
   const pathname = usePathname();
   const { user, isAuthenticating } = useAuth();
+  const { permissions } = useCan();
 
-  const matchingItem = useMemo(
-    () =>
-      allMenuItems
-        .filter(
-          (item) =>
-            item.url !== "#" &&
-            item.url !== "/" &&
-            (pathname === item.url || pathname.startsWith(item.url + "/"))
-        )
-        .sort((a, b) => b.url.length - a.url.length)[0],
-    [pathname]
-  );
+  const matchingItem = useMemo(() => findMatchingMenuItem(pathname, user?.role), [pathname, user?.role]);
 
   const currentPlanLevel = useMemo(() => {
     const plan = (user?.company?.subscription?.plan.name as PlanType) || "Base";
@@ -54,8 +36,12 @@ export function useAccessControl(allowed: Role[], checkPlan = true): AccessResul
     if (isAuthenticating) return { status: "loading" };
     if (!user) return { status: "unauthenticated" };
     if (!allowed.includes(user.role)) return { status: "unauthorized" };
+    // A rota tem a lista de papeis do menu: quem nao esta nela nao entra por URL (a API continua a ser a barreira final).
+    if (matchingItem?.roles && !matchingItem.roles.includes(user.role)) return { status: "unauthorized" };
+    // ... e a rota exige uma permissão de leitura que o papel pode não ter (ex.: professor na biblioteca).
+    if (permissions && matchingItem?.permissions && !matchingItem.permissions.some((p) => permissions.includes(p))) return { status: "unauthorized" };
 
-    const PLAN_BYPASS_ROLES: Role[] = ["CASHIER"];
+    const PLAN_BYPASS_ROLES: Role[] = [];
     const shouldCheckPlan = checkPlan && !PLAN_BYPASS_ROLES.includes(user.role);
 
     if (shouldCheckPlan && matchingItem?.minPlan) {
@@ -74,6 +60,7 @@ export function useAccessControl(allowed: Role[], checkPlan = true): AccessResul
     user,
     allowed,
     matchingItem,
+    permissions,
     currentPlanLevel,
     pathname,
     checkPlan,
@@ -90,19 +77,9 @@ export interface PlanAccessResult {
 export function usePlanAccess(): PlanAccessResult {
   const pathname = usePathname();
   const { user, isAuthenticating } = useAuth();
+  const { permissions } = useCan();
 
-  const matchingItem = useMemo(
-    () =>
-      allMenuItems
-        .filter(
-          (item) =>
-            item.url !== "#" &&
-            item.url !== "/" &&
-            (pathname === item.url || pathname.startsWith(item.url + "/"))
-        )
-        .sort((a, b) => b.url.length - a.url.length)[0],
-    [pathname]
-  );
+  const matchingItem = useMemo(() => findMatchingMenuItem(pathname, user?.role), [pathname, user?.role]);
 
   const currentPlanLevel = useMemo(() => {
     const plan = (user?.company?.subscription?.plan.name as PlanType) || "Base";

@@ -3,11 +3,7 @@ import { TeachersAttendancePageContent } from "@/components/client/teachers-atte
 
 export default function TeachersAttendancePage() {
   return (
-    <PageWrapper
-      routePath="/teachers-attendance"
-      routeLabel="Corpo Docente"
-      subRoute="Assiduidade Docente"
-    >
+    <PageWrapper>
       <TeachersAttendancePageContent />
     </PageWrapper>
   );

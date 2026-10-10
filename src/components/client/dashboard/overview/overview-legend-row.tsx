@@ -12,7 +12,7 @@ interface OverviewLegendRowProps {
 
 /**
  * Linha de legenda "ponto colorido + rótulo · valor".
- * Partilhada pelo donut de vendas e pelos cartões de stock e contas a receber.
+ * Partilhada pelos gráficos e cartões do dashboard.
  */
 export function OverviewLegendRow({
     dotClassName,

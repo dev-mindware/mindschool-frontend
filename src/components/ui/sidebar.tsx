@@ -42,6 +42,9 @@ type SidebarContextProps = {
   // Novo estado para controlar submenus
   activeSubmenu: string | null;
   setActiveSubmenu: (id: string | null) => void;
+  /** Página sem painel (só o rail): o colapso fica desactivado (botão e atalho). */
+  collapseLocked: boolean;
+  setCollapseLocked: (locked: boolean) => void;
 };
 
 const SidebarContext = React.createContext<SidebarContextProps | null>(null);
@@ -73,6 +76,7 @@ function SidebarProvider({
 
   // Novo estado para controlar qual submenu está ativo
   const [activeSubmenu, setActiveSubmenu] = React.useState<string | null>(null);
+  const [collapseLocked, setCollapseLocked] = React.useState(false);
 
   // This is the internal state of the sidebar.
   // We use openProp and setOpenProp for control from outside the component.
@@ -95,8 +99,10 @@ function SidebarProvider({
 
   // Helper to toggle the sidebar.
   const toggleSidebar = React.useCallback(() => {
-    return isMobile ? setOpenMobile((open) => !open) : setOpen((open) => !open);
-  }, [isMobile, setOpen, setOpenMobile]);
+    if (isMobile) return setOpenMobile((open) => !open);
+    if (collapseLocked) return;
+    return setOpen((open) => !open);
+  }, [isMobile, collapseLocked, setOpen, setOpenMobile]);
 
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
@@ -127,8 +133,11 @@ function SidebarProvider({
       toggleSidebar,
       activeSubmenu,
       setActiveSubmenu,
+      collapseLocked,
+      setCollapseLocked,
     }),
     [
+      collapseLocked,
       state,
       open,
       setOpen,
@@ -170,6 +179,7 @@ function Sidebar({
   side = "left",
   variant = "sidebar",
   collapsible = "offcanvas",
+  width,
   className,
   children,
   ...props
@@ -177,6 +187,8 @@ function Sidebar({
   side?: "left" | "right";
   variant?: "sidebar" | "floating" | "inset";
   collapsible?: "offcanvas" | "icon" | "none";
+  /** Largura expandida (desktop) desta sidebar, ex. "18.5rem" no modo rail + painel. */
+  width?: string;
 }) {
   const { isMobile, state, openMobile, setOpenMobile } = useSidebar();
 
@@ -228,6 +240,7 @@ function Sidebar({
       data-variant={variant}
       data-side={side}
       data-slot="sidebar"
+      style={width ? ({ "--sidebar-width": width } as React.CSSProperties) : undefined}
     >
       {/* This is what handles the sidebar gap on desktop */}
       <div
@@ -273,7 +286,8 @@ function SidebarTrigger({
   onClick,
   ...props
 }: React.ComponentProps<typeof Button>) {
-  const { toggleSidebar } = useSidebar();
+  const { toggleSidebar, collapseLocked, isMobile } = useSidebar();
+  const locked = collapseLocked && !isMobile;
 
   return (
     <Button
@@ -281,6 +295,8 @@ function SidebarTrigger({
       data-slot="sidebar-trigger"
       variant="ghost"
       size="icon"
+      disabled={locked}
+      aria-disabled={locked}
       className={cn("size-7", className)}
       onClick={(event) => {
         onClick?.(event);

@@ -1,228 +1,137 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
-import { GlobalModal, SelectField, Button, Icon } from '@/components';
-import { OnlineExam, ExamQuestion, QuestionType } from '@/types/online-exam';
+import React, { useState } from 'react';
+import { GlobalModal, SelectField, Button, FormTextarea, Icon, Input } from '@/components';
+import type { ApiExam, ApiQuestionType, NewQuestion } from '@/services/exams-service';
 
-interface AddQuestionModalProps {
+interface ExamQuestionsModalProps {
   isOpen: boolean;
   onClose: () => void;
-  activeExam: OnlineExam | null;
-  onSaveQuestion: (examId: string, question: Omit<ExamQuestion, 'id'>) => void;
+  activeExam: ApiExam | null;
+  isSaving: boolean;
+  onAddQuestion: (q: NewQuestion) => Promise<unknown>;
+  onRemoveQuestion: (questionId: string) => void;
 }
 
-export function AddQuestionModal({
-  isOpen,
-  onClose,
-  activeExam,
-  onSaveQuestion,
-}: AddQuestionModalProps) {
-  const [qType, setQType] = useState<QuestionType>('MULTIPLE_CHOICE');
-  const [qPrompt, setQPrompt] = useState('');
-  const [qPoints, setQPoints] = useState(5.0);
-  const [qCorrectAnswer, setQCorrectAnswer] = useState('opt-a');
-  const [qRubric, setQRubric] = useState('');
-  const [qOptions, setQOptions] = useState([
-    { id: 'opt-a', label: 'A', text: '' },
-    { id: 'opt-b', label: 'B', text: '' },
-    { id: 'opt-c', label: 'C', text: '' },
-    { id: 'opt-d', label: 'D', text: '' },
-  ]);
+const TYPE_LABEL: Record<ApiQuestionType, string> = {
+  escolha_multipla_unica: 'Escolha múltipla (uma resposta)',
+  escolha_multipla_varias: 'Escolha múltipla (várias respostas)',
+  verdadeiro_falso: 'Verdadeiro / Falso',
+  resposta_curta: 'Resposta curta',
+  dissertativa: 'Dissertativa (correcção manual)',
+};
+const LETTERS = ['a', 'b', 'c', 'd'];
 
-  useEffect(() => {
-    if (isOpen) {
-      setQPrompt('');
-      setQPoints(5.0);
-      setQType('MULTIPLE_CHOICE');
-      setQCorrectAnswer('opt-a');
-      setQRubric('');
-      setQOptions([
-        { id: 'opt-a', label: 'A', text: '' },
-        { id: 'opt-b', label: 'B', text: '' },
-        { id: 'opt-c', label: 'C', text: '' },
-        { id: 'opt-d', label: 'D', text: '' },
-      ]);
-    }
-  }, [isOpen]);
+/** Perguntas da prova: lista e adiciona. Depois de publicada ou ligada ao Google Forms as perguntas ficam fixas. */
+export function AddQuestionModal({ isOpen, onClose, activeExam, isSaving, onAddQuestion, onRemoveQuestion }: ExamQuestionsModalProps) {
+  const [type, setType] = useState<ApiQuestionType>('escolha_multipla_unica');
+  const [prompt, setPrompt] = useState('');
+  const [points, setPoints] = useState(2);
+  const [options, setOptions] = useState<string[]>(['', '', '', '']);
+  const [correct, setCorrect] = useState<string[]>(['a']);
+  const [expected, setExpected] = useState('');
+  const [truth, setTruth] = useState<'true' | 'false'>('true');
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!activeExam || !qPrompt.trim()) return;
+  const locked = !activeExam || activeExam.status !== 'rascunho' || Boolean(activeExam.google_form);
+  const multiple = type === 'escolha_multipla_unica' || type === 'escolha_multipla_varias';
 
-    onSaveQuestion(activeExam.id, {
-      type: qType,
-      prompt: qPrompt,
-      points: Number(qPoints),
-      options: qType === 'MULTIPLE_CHOICE' ? qOptions : undefined,
-      correctAnswer:
-        qType === 'MULTIPLE_CHOICE' || qType === 'TRUE_FALSE' || qType === 'SHORT_ANSWER'
-          ? qCorrectAnswer
-          : undefined,
-      rubricCriteria: qType === 'ESSAY' ? qRubric : undefined,
-    });
-
-    onClose();
+  const reset = () => {
+    setPrompt('');
+    setOptions(['', '', '', '']);
+    setCorrect(['a']);
+    setExpected('');
   };
 
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const q: NewQuestion = { question_type: type, prompt: prompt.trim(), max_score: points };
+    if (multiple) {
+      q.options = options.map((text, i) => ({ id: LETTERS[i]!, text: text.trim() })).filter((o) => o.text);
+      q.expected_answer = type === 'escolha_multipla_unica' ? correct[0] : correct.join(',');
+    } else if (type === 'verdadeiro_falso') {
+      q.expected_answer = truth;
+    } else if (type === 'resposta_curta') {
+      q.expected_answer = expected.trim();
+    }
+    await onAddQuestion(q);
+    reset();
+  };
+
+  const toggleCorrect = (id: string) =>
+    setCorrect((cur) => (type === 'escolha_multipla_unica' ? [id] : cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
+
   return (
-    <GlobalModal
-      isOpen={isOpen}
-      onClose={onClose}
-      title={activeExam ? `Adicionar Questão: ${activeExam.title}` : 'Adicionar Questão'}
-      className="!w-[95vw] sm:!max-w-2xl lg:!max-w-3xl"
-    >
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <SelectField
-            label="Tipo de Questão"
-            value={qType}
-            onValueChange={(val) => setQType(val as QuestionType)}
-            options={[
-              { label: 'Escolha Múltipla (A, B, C, D)', value: 'MULTIPLE_CHOICE' },
-              { label: 'Verdadeiro ou Falso (V/F)', value: 'TRUE_FALSE' },
-              { label: 'Resposta Curta (Texto/Número)', value: 'SHORT_ANSWER' },
-              { label: 'Dissertativa / Desenvolvimento', value: 'ESSAY' },
-            ]}
-          />
-
-          <div>
-            <label className="block text-xs font-medium text-foreground mb-1">
-              Pontuação da Questão (Valores no Decreto 424/25)
-            </label>
-            <input
-              type="number"
-              step="0.5"
-              min="0.5"
-              max="20"
-              value={qPoints}
-              onChange={(e) => setQPoints(Number(e.target.value))}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-hidden focus:ring-1 focus:ring-primary font-mono"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-medium text-foreground mb-1">
-            Enunciado / Pergunta *
-          </label>
-          <textarea
-            required
-            rows={3}
-            value={qPrompt}
-            onChange={(e) => setQPrompt(e.target.value)}
-            placeholder="Digite a pergunta ou problema a ser resolvido pelo aluno..."
-            className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-hidden focus:ring-1 focus:ring-primary"
-          />
-        </div>
-
-        {/* Configuração de Escolha Múltipla */}
-        {qType === 'MULTIPLE_CHOICE' && (
-          <div className="space-y-3 p-4 bg-muted/30 rounded-xl border border-border">
-            <span className="text-xs font-semibold text-foreground">Opções de Resposta & Chave Correcta:</span>
-            <div className="space-y-2">
-              {qOptions.map((opt, idx) => (
-                <div key={opt.id} className="flex items-center gap-2">
-                  <span className="w-6 h-6 rounded-full bg-primary/10 text-primary font-semibold text-xs flex items-center justify-center shrink-0">
-                    {opt.label}
-                  </span>
-                  <input
-                    type="text"
-                    placeholder={`Texto da opção ${opt.label}...`}
-                    value={opt.text}
-                    onChange={(e) => {
-                      const updated = [...qOptions];
-                      updated[idx].text = e.target.value;
-                      setQOptions(updated);
-                    }}
-                    className="flex-1 px-3 py-1.5 text-sm rounded-md border border-border bg-background"
-                  />
-                  <label className="flex items-center gap-1 text-xs cursor-pointer">
-                    <input
-                      type="radio"
-                      name="correctOpt"
-                      checked={qCorrectAnswer === opt.id}
-                      onChange={() => setQCorrectAnswer(opt.id)}
-                    />
-                    <span className={qCorrectAnswer === opt.id ? 'font-semibold text-emerald-600' : 'text-muted-foreground'}>
-                      Correcta
-                    </span>
-                  </label>
+    <GlobalModal isOpen={isOpen} onClose={onClose} title={activeExam ? `Questões: ${activeExam.title}` : 'Questões'} className="!w-[95vw] sm:!max-w-2xl lg:!max-w-4xl">
+      {activeExam && (
+        <div className="space-y-5">
+          <div className="space-y-2 max-h-[30vh] overflow-y-auto pr-1">
+            {activeExam.questions.length === 0 && <p className="text-xs text-muted-foreground">Ainda não há questões.</p>}
+            {activeExam.questions.map((q) => (
+              <div key={q.id} className="flex items-start justify-between gap-3 rounded-lg border border-border p-3">
+                <div className="text-xs">
+                  <p className="font-medium text-foreground">{q.order_index}. {q.prompt}</p>
+                  <p className="text-muted-foreground mt-0.5">
+                    {TYPE_LABEL[q.question_type]} • {q.max_score} pts
+                    {q.options ? ` • ${q.options.map((o) => `${o.id.toUpperCase()}) ${o.text}`).join('  ')}` : ''}
+                    {q.expected_answer ? ` • certa: ${q.expected_answer}` : ''}
+                  </p>
                 </div>
-              ))}
-            </div>
+                {!locked && (
+                  <Button size="sm" variant="ghost" className="h-7 text-xs text-rose-600" onClick={() => onRemoveQuestion(q.id)}>
+                    <Icon name="Trash2" className="size-3.5" />
+                  </Button>
+                )}
+              </div>
+            ))}
           </div>
-        )}
 
-        {/* Configuração de V/F */}
-        {qType === 'TRUE_FALSE' && (
-          <div className="p-4 bg-muted/30 rounded-xl border border-border space-y-2">
-            <span className="text-xs font-semibold text-foreground">Gabarito da Questão:</span>
-            <div className="flex gap-4">
-              <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
-                <input
-                  type="radio"
-                  name="tfCorrect"
-                  checked={qCorrectAnswer === 'TRUE'}
-                  onChange={() => setQCorrectAnswer('TRUE')}
-                />
-                Verdadeiro (V)
-              </label>
-              <label className="flex items-center gap-2 text-xs font-medium cursor-pointer">
-                <input
-                  type="radio"
-                  name="tfCorrect"
-                  checked={qCorrectAnswer === 'FALSE'}
-                  onChange={() => setQCorrectAnswer('FALSE')}
-                />
-                Falso (F)
-              </label>
-            </div>
-          </div>
-        )}
+          {locked ? (
+            <p className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800">
+              {activeExam.google_form ? 'A prova está ligada a um Google Form: desligue-o para alterar as questões.' : 'Só é possível alterar as questões enquanto a prova é um rascunho.'}
+            </p>
+          ) : (
+            <form onSubmit={submit} className="space-y-3 border-t border-border pt-4">
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <SelectField
+                    label="Tipo de questão"
+                    value={type}
+                    onValueChange={(v) => { setType(v as ApiQuestionType); setCorrect(['a']); }}
+                    options={(Object.keys(TYPE_LABEL) as ApiQuestionType[]).map((t) => ({ label: TYPE_LABEL[t], value: t }))}
+                  />
+                </div>
+                <Input label="Pontos" type="number" value={String(points)} onChange={(e) => setPoints(Number(e.target.value))} />
+              </div>
+              <FormTextarea label="Enunciado *" value={prompt} onChange={setPrompt} rows={2} />
 
-        {/* Configuração de Resposta Curta */}
-        {qType === 'SHORT_ANSWER' && (
-          <div>
-            <label className="block text-xs font-medium text-foreground mb-1">
-              Resposta Exacta Esperada (Correcção Automática) *
-            </label>
-            <input
-              type="text"
-              required
-              value={qCorrectAnswer}
-              onChange={(e) => setQCorrectAnswer(e.target.value)}
-              placeholder="Ex: 7 ou segundo ou Luanda"
-              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background font-mono"
-            />
-          </div>
-        )}
-
-        {/* Configuração de Dissertativa */}
-        {qType === 'ESSAY' && (
-          <div>
-            <label className="block text-xs font-medium text-foreground mb-1">
-              Critérios de Avaliação e Rubrica (Para Orientar a Correcção do Docente)
-            </label>
-            <textarea
-              rows={2}
-              value={qRubric}
-              onChange={(e) => setQRubric(e.target.value)}
-              placeholder="Ex: Coerência argumentativa (2 val), domínio da gramática (2 val), fundamentação (2 val)..."
-              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background"
-            />
-          </div>
-        )}
-
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-          <Button variant="outline" type="button" onClick={onClose}>
-            Cancelar
-          </Button>
-          <Button type="submit" className="gap-2">
-            <Icon name="Plus" className="w-4 h-4" />
-            Guardar Pergunta na Prova
-          </Button>
+              {multiple && (
+                <div className="space-y-2">
+                  <p className="text-xs font-medium text-foreground">Opções (marque a(s) certa(s))</p>
+                  {options.map((text, i) => (
+                    <div key={LETTERS[i]} className="flex items-center gap-2">
+                      <input type={type === 'escolha_multipla_unica' ? 'radio' : 'checkbox'} checked={correct.includes(LETTERS[i]!)} onChange={() => toggleCorrect(LETTERS[i]!)} />
+                      <span className="w-5 text-xs font-mono uppercase">{LETTERS[i]}</span>
+                      <div className="flex-1"><Input value={text} onChange={(e) => setOptions((cur) => cur.map((o, j) => (j === i ? e.target.value : o)))} placeholder={`Opção ${LETTERS[i]!.toUpperCase()}${i < 2 ? " *" : ""}`} /></div>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {type === 'verdadeiro_falso' && (
+                <SelectField label="Resposta certa" value={truth} onValueChange={(v) => setTruth(v as 'true' | 'false')} options={[{ label: 'Verdadeiro', value: 'true' }, { label: 'Falso', value: 'false' }]} />
+              )}
+              {type === 'resposta_curta' && (
+                <Input label="Resposta esperada (alternativas separadas por |)" value={expected} onChange={(e) => setExpected(e.target.value)} placeholder="Ex: Brasília" />
+              )}
+              <div className="flex justify-end">
+                <Button type="submit" size="sm" disabled={isSaving} className="gap-1.5">
+                  <Icon name="Plus" className="size-4" />
+                  Adicionar questão
+                </Button>
+              </div>
+            </form>
+          )}
         </div>
-      </form>
+      )}
     </GlobalModal>
   );
 }

@@ -18,7 +18,7 @@ export type MindSchoolRole =
   | "SYSTEM_ADMIN"
   | "MED_AUDITOR";
 
-export type LegacyRole = "ADMIN" | "OWNER" | "MANAGER" | "CASHIER";
+export type LegacyRole = "ADMIN" | "OWNER" | "MANAGER";
 
 export type Role = MindSchoolRole | LegacyRole;
 
@@ -56,6 +56,12 @@ export type AppModule =
   | "settings"
   | "plans";
 
+export interface SchoolMembershipInfo {
+  schoolId: string;
+  schoolName: string;
+  roles: string[];
+}
+
 export type User = {
   id: string;
   email: string;
@@ -66,6 +72,9 @@ export type User = {
   company: Company;
   store?: Store;
   subscription?: Subscription;
+  /** Escolas a que o utilizador pertence (API MindEscola), com os papeis em cada uma. */
+  memberships?: SchoolMembershipInfo[];
+  mfaEnabled?: boolean;
 }
 
 export interface Tokens {

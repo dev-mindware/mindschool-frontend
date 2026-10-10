@@ -2,25 +2,22 @@
 
 import React, { useState, useEffect } from 'react';
 import { GlobalModal, Button, Icon } from '@/components';
-import { TeacherQrCredential } from '@/types/teacher-attendance';
 
 interface AttendanceQrScannerModalProps {
   isOpen: boolean;
   onClose: () => void;
-  credentials: TeacherQrCredential[];
-  onScan: (code: string) => {
+  onScan: (code: string) => Promise<{
     success: boolean;
     type: 'CHECK_IN' | 'CHECK_OUT';
     teacherName: string;
     time: string;
     message: string;
-  };
+  }>;
 }
 
 export function AttendanceQrScannerModal({
   isOpen,
   onClose,
-  credentials,
   onScan,
 }: AttendanceQrScannerModalProps) {
   const [scannedCodeInput, setScannedCodeInput] = useState('');
@@ -39,11 +36,11 @@ export function AttendanceQrScannerModal({
     }
   }, [isOpen]);
 
-  const handleSimulateScan = (codeToScan?: string) => {
+  const handleSimulateScan = async (codeToScan?: string) => {
     const code = codeToScan || scannedCodeInput;
     if (!code.trim()) return;
 
-    const res = onScan(code);
+    const res = await onScan(code);
     setScanResult(res);
     setScannedCodeInput('');
   };
@@ -72,7 +69,7 @@ export function AttendanceQrScannerModal({
             <input
               type="text"
               autoFocus
-              placeholder="Código QR ou DOC-XXXX..."
+              placeholder="Código lido (MS1.…)"
               value={scannedCodeInput}
               onChange={(e) => setScannedCodeInput(e.target.value)}
               onKeyDown={(e) => {
@@ -123,24 +120,6 @@ export function AttendanceQrScannerModal({
           </div>
         )}
 
-        {/* Atalhos Rápidos para Testar com Docentes Cadastrados */}
-        <div className="p-3 bg-muted/40 rounded-xl border border-border/80 space-y-2">
-          <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider block">
-            Atalhos de Simulação Instantânea:
-          </span>
-          <div className="flex flex-wrap gap-1.5">
-            {credentials.slice(0, 5).map((cred) => (
-              <button
-                key={cred.id}
-                type="button"
-                onClick={() => handleSimulateScan(cred.teacherCode)}
-                className="px-2 py-1 bg-card hover:bg-muted border border-border rounded-md text-xs font-medium text-foreground transition-colors"
-              >
-                {cred.teacherName.split(' ')[1] || cred.teacherName} ({cred.teacherCode})
-              </button>
-            ))}
-          </div>
-        </div>
       </div>
     </GlobalModal>
   );

@@ -5,7 +5,8 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AcademicSection, Shift, EducationCycle } from "@/types";
-import { useSchoolDataStore } from "@/stores/school/school-data-store";
+import { useAcademicSections } from "@/hooks/school/use-academic";
+import { getApiErrorMessage } from "@/utils/api-error";
 import {
   GlobalModal,
   Input,
@@ -34,7 +35,7 @@ interface ClassModalProps {
 }
 
 export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) {
-  const { addSection, updateSection } = useSchoolDataStore();
+  const { save } = useAcademicSections();
 
   const {
     register,
@@ -87,35 +88,11 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
 
   const onSubmit = async (data: ClassSectionFormValues) => {
     try {
-      if (sectionToEdit) {
-        updateSection(sectionToEdit.id, {
-          name: data.name,
-          classLevel: data.classLevel,
-          roomNumber: data.roomNumber,
-          capacity: data.capacity,
-          shift: data.shift,
-          cycle: data.cycle,
-          academicYear: data.academicYear,
-        });
-        SucessMessage("Turma atualizada com sucesso!");
-      } else {
-        addSection({
-          schoolId: "dev-school-1",
-          name: data.name,
-          classLevel: data.classLevel,
-          roomNumber: data.roomNumber,
-          capacity: data.capacity,
-          shift: data.shift,
-          cycle: data.cycle,
-          academicYear: data.academicYear,
-          isActive: true,
-        });
-        SucessMessage("Nova turma criada com sucesso!");
-      }
-
+      await save.mutateAsync({ id: sectionToEdit?.id, name: data.name, classLevelName: data.classLevel, shift: data.shift, capacity: data.capacity });
+      SucessMessage(sectionToEdit ? "Turma atualizada com sucesso!" : "Nova turma criada com sucesso!");
       onClose();
-    } catch (err: any) {
-      ErrorMessage(err?.message || "Ocorreu um erro ao gravar a turma.");
+    } catch (err: unknown) {
+      ErrorMessage(getApiErrorMessage(err, "Ocorreu um erro ao gravar a turma."));
     }
   };
 

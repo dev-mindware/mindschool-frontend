@@ -3,11 +3,7 @@ import { TransitionsPageContent } from "@/components/client/grades/transitions/t
 
 export default function TransitionsPage() {
   return (
-    <PageWrapper
-      routePath="/grades"
-      routeLabel="Avaliações & Pautas"
-      subRoute="Transições de Classe"
-    >
+    <PageWrapper>
       <TransitionsPageContent />
     </PageWrapper>
   );

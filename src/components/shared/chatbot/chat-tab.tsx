@@ -4,16 +4,16 @@ import { TabsContent } from "@/components/ui/tabs";
 import { LocalChatHistoryItem } from "./index";
 
 export const QUICK_ACTIONS = [
-    { label: "Como está a minha faturação este mês?" },
-    { label: "Como emitir uma Factura Recibo (FR)?" },
-    { label: "Tenho alertas de stock?" },
-    { label: "Como converter Proforma em Factura?" },
+    { label: "Como estão as propinas em atraso este mês?" },
+    { label: "Como lanço as notas do trimestre?" },
+    { label: "Que alunos estão em risco de abandono?" },
+    { label: "Como emito uma declaração de matrícula?" },
 ];
 export const SUGGESTION_CHIPS = [
-    "Facturação",
-    "Stock",
-    "POS / Caixa",
-    "Clientes",
+    "Propinas",
+    "Pautas",
+    "Matrículas",
+    "Assiduidade",
     "Como faço…",
 ];
 

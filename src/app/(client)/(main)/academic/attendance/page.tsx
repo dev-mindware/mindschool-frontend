@@ -3,11 +3,7 @@ import { StudentAttendanceContent } from "@/components/client/academic/attendanc
 
 export default function StudentAttendancePage() {
   return (
-    <PageWrapper
-      routePath="/academic/attendance"
-      routeLabel="Gestão Académica"
-      subRoute="Assiduidade & Disciplina dos Alunos"
-    >
+    <PageWrapper>
       <StudentAttendanceContent />
     </PageWrapper>
   );

@@ -1,8 +1,9 @@
 "use client";
+import { formatDateTime } from "@/utils";
 
 import React from "react";
 import { ConsolidatedPauta } from "@/types/grade";
-import { useSchoolDataStore } from "@/stores/school/school-data-store";
+import { useSubjects } from "@/hooks/school/use-academic";
 import {
   GlobalModal,
   Button,
@@ -25,7 +26,7 @@ export function ConsolidatedPautaModal({
   onOpenLockModal,
   onOpenReopenModal,
 }: ConsolidatedPautaModalProps) {
-  const { subjects } = useSchoolDataStore();
+  const { allSubjects: subjects } = useSubjects();
 
   if (!isOpen) return null;
 
@@ -114,7 +115,7 @@ export function ConsolidatedPautaModal({
               <Icon name="Lock" className="h-4 w-4 text-primary" />
               <span>
                 Pauta trancada por <strong>{pauta.closedBy}</strong> em{" "}
-                {pauta.closedAt ? new Date(pauta.closedAt).toLocaleString("pt-AO") : ""}.
+                {pauta.closedAt ? formatDateTime(pauta.closedAt) : ""}.
               </span>
             </div>
             {onOpenReopenModal && (

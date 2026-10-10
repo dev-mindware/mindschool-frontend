@@ -5,26 +5,22 @@ import {
   TitleList,
   DynamicMetricCard,
   PaginatedSelect,
+  DataList,
+  type Column,
   Button,
   Icon,
 } from "@/components";
-import { GenericTable, Column } from "@/components/common/generic-table";
 import { Badge } from "@/components/ui/badge";
-import { useSchoolDataStore } from "@/stores/school/school-data-store";
-import { useGradeStore } from "@/stores/school/grade-store";
+import { useSections } from "@/hooks/school/use-sections";
+import { useTransitions } from "@/hooks/school/use-transitions";
 import { ConsolidatedStudentRow } from "@/types/grade";
 import Link from "next/link";
 
 export function TransitionsPageContent() {
-  const { sections } = useSchoolDataStore();
-  const { getConsolidatedPauta } = useGradeStore();
+  const { data: sections = [] } = useSections();
 
-  const [selectedSectionId, setSelectedSectionId] = useState<string>(
-    sections[0]?.id || "sec-7a"
-  );
-  const [searchTerm, setSearchTerm] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 10;
+  const [pickedSectionId, setSelectedSectionId] = useState<string>("");
+  const selectedSectionId = pickedSectionId || sections[0]?.id || "";
 
   // Paginated Section Search
   const [sectionSearch, setSectionSearch] = useState("");
@@ -35,8 +31,7 @@ export function TransitionsPageContent() {
     return sections.filter(
       (sec) =>
         sec.name.toLowerCase().includes(sectionSearch.toLowerCase()) ||
-        sec.classLevel.toLowerCase().includes(sectionSearch.toLowerCase()) ||
-        sec.roomNumber.toLowerCase().includes(sectionSearch.toLowerCase())
+        sec.classLevel.toLowerCase().includes(sectionSearch.toLowerCase())
     );
   }, [sections, sectionSearch]);
 
@@ -70,26 +65,8 @@ export function TransitionsPageContent() {
     return opts;
   }, [paginatedSections, selectedSectionId, sections]);
 
-  // Obter Pauta Consolidada do 3º Trimestre (ou actual) para avaliar transições
-  const pauta = useMemo(() => {
-    return getConsolidatedPauta(selectedSectionId, "TRIMESTER_1");
-  }, [getConsolidatedPauta, selectedSectionId]);
-
-  const studentsList = pauta?.students || [];
-
-  const filteredStudents = useMemo(() => {
-    return studentsList.filter(
-      (s) =>
-        s.studentName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        s.studentNumber.toLowerCase().includes(searchTerm.toLowerCase())
-    );
-  }, [studentsList, searchTerm]);
-
-  const totalPages = Math.ceil(filteredStudents.length / PAGE_SIZE) || 1;
-  const paginatedStudents = useMemo(() => {
-    const start = (currentPage - 1) * PAGE_SIZE;
-    return filteredStudents.slice(start, start + PAGE_SIZE);
-  }, [filteredStudents, currentPage]);
+  // Propostas de progressão da API (exigem as pautas de todos os períodos fechadas)
+  const { students: studentsList } = useTransitions(selectedSectionId);
 
   // Estatísticas de Transição
   const stats = useMemo(() => {
@@ -239,12 +216,6 @@ export function TransitionsPageContent() {
             <Icon name="Printer" className="h-4 w-4" />
             Imprimir Ata do Conselho
           </Button>
-          <Link href="/grades/pautas">
-            <Button variant="default" size="sm" className="gap-2">
-              <Icon name="ClipboardList" className="h-4 w-4" />
-              Pautas Trimestrais
-            </Button>
-          </Link>
         </div>
       </TitleList>
 
@@ -290,56 +261,45 @@ export function TransitionsPageContent() {
         </p>
       </div>
 
-      {/* Filtros */}
-      <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-4 rounded-lg border bg-card shadow-xs">
-        <div className="w-full sm:w-80">
-          <PaginatedSelect
-            options={sectionOptions}
-            value={selectedSectionId}
-            onChange={setSelectedSectionId}
-            placeholder="Pesquise por nome da turma ou sala..."
-            searchValue={sectionSearch}
-            onSearchChange={(val) => {
-              setSectionSearch(val);
-              setSectionPage(1);
-            }}
-            pagination={{
-              page: sectionPage,
-              totalPages: totalSectionPages,
-            }}
-            onPageChange={setSectionPage}
-            fullWidth
-          />
-        </div>
-
-        <div className="w-full sm:w-80">
-          <input
-            type="text"
-            placeholder="Pesquisar estudante por nome ou número..."
-            value={searchTerm}
-            onChange={(e) => {
-              setSearchTerm(e.target.value);
-              setCurrentPage(1);
-            }}
-            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-          />
-        </div>
-      </div>
-
-      {/* Tabela de Transições */}
-      <div className="rounded-lg border bg-card">
-        <GenericTable<ConsolidatedStudentRow>
-          columns={columns}
-          data={paginatedStudents}
-          page={currentPage}
-          totalPages={totalPages}
-          total={filteredStudents.length}
-          setPage={setCurrentPage}
-          goToNextPage={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-          goToPreviousPage={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          emptyMessage="Nenhum estudante encontrado para deliberação de conselho."
-        />
-      </div>
+      <DataList<ConsolidatedStudentRow>
+        prefix="transicoes"
+        rows={studentsList}
+        columns={columns}
+        pageSize={10}
+        toolbar={
+          <div className="w-full sm:w-72">
+            <PaginatedSelect
+              options={sectionOptions}
+              value={selectedSectionId}
+              onChange={setSelectedSectionId}
+              placeholder="Turma..."
+              searchValue={sectionSearch}
+              onSearchChange={(val) => {
+                setSectionSearch(val);
+                setSectionPage(1);
+              }}
+              pagination={{ page: sectionPage, totalPages: totalSectionPages }}
+              onPageChange={setSectionPage}
+              fullWidth
+            />
+          </div>
+        }
+        searchPlaceholder="Pesquisar estudante por nome ou número"
+        searchText={(r) => `${r.studentName} ${r.studentNumber}`}
+        filters={[
+          { key: "situacao", label: "Situação", icon: "ListFilter", options: [{ value: "APPROVED", label: "Aprovado" }, { value: "APPROVED_WITH_CONDITIONS", label: "Excepção legal" }, { value: "RECOVERY_EXAM", label: "Prova de recurso" }, { value: "FAILED", label: "Não transita" }], match: (r, v) => r.transitionStatus === v },
+          { key: "deficiencias", label: "Disciplinas negativas", icon: "TriangleAlert", options: [{ value: "0", label: "Nenhuma" }, { value: "1", label: "1" }, { value: "2", label: "2" }, { value: "3", label: "3 ou mais" }], match: (r, v) => (v === "3" ? r.failedSubjectsCount >= 3 : r.failedSubjectsCount === Number(v)) },
+          { key: "media", label: "Média global", icon: "Gauge", options: [{ value: "alta", label: "14 ou mais" }, { value: "media", label: "10 a 13,9" }, { value: "baixa", label: "Abaixo de 10" }], match: (r, v) => (v === "alta" ? r.termAverageTotal >= 14 : v === "media" ? r.termAverageTotal >= 10 && r.termAverageTotal < 14 : r.termAverageTotal < 10) },
+        ]}
+        sorts={[
+          { value: "media", label: "Média global", compare: (a, b) => a.termAverageTotal - b.termAverageTotal },
+          { value: "nome", label: "Nome", compare: (a, b) => a.studentName.localeCompare(b.studentName, "pt") },
+          { value: "negativas", label: "Disciplinas negativas", compare: (a, b) => a.failedSubjectsCount - b.failedSubjectsCount },
+        ]}
+        emptyTitle="Nenhum estudante para deliberação"
+        emptyDescription="Escolha uma turma com pautas fechadas."
+        emptyIcon="Scale"
+      />
     </div>
   );
 }

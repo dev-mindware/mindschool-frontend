@@ -1,184 +1,52 @@
 "use client";
 
-import React, { useMemo } from "react";
-import { useStudentAttendanceStore } from "@/stores/school/student-attendance-store";
-import { StudentAttendanceStats } from "@/types";
-import { Badge, Icon, Button } from "@/components";
+import { Badge, DataList, type Column } from "@/components";
+import { useClassAbsences } from "@/hooks/school/use-absences";
 
 interface AttendanceStatsViewProps {
   classId: string;
   className: string;
 }
 
+/** Mapa de assiduidade da turma: aulas registadas, presenças, atrasos, faltas e taxas por aluno. */
 export function AttendanceStatsView({ classId, className }: AttendanceStatsViewProps) {
-  const { getStudentStats } = useStudentAttendanceStore();
-  const stats = useMemo(() => getStudentStats(classId), [getStudentStats, classId]);
+  const { data: rows = [], isLoading } = useClassAbsences(classId || undefined);
+  type Row = (typeof rows)[number] & { id: string };
+  const data: Row[] = rows.map((r) => ({ ...r, id: r.enrollment_id }));
 
-  // Calculations
-  const averageAttendance = useMemo(() => {
-    if (!stats.length) return 100;
-    const sum = stats.reduce((acc, s) => acc + s.attendanceRate, 0);
-    return Math.round(sum / stats.length);
-  }, [stats]);
-
-  const atRiskCount = useMemo(() => {
-    return stats.filter((s) => s.medLimitRisk === "AT_RISK" || s.medLimitRisk === "DISQUALIFIED").length;
-  }, [stats]);
-
-  const totalUnjustifiedAbsences = useMemo(() => {
-    return stats.reduce((acc, s) => acc + s.unjustifiedCount, 0);
-  }, [stats]);
-
-  const getRiskBadge = (risk: StudentAttendanceStats["medLimitRisk"]) => {
-    switch (risk) {
-      case "DISQUALIFIED":
-        return (
-          <Badge variant="destructive" className="text-[10px] font-semibold gap-1">
-            <Icon name={"OctagonAlert" as any} className="size-3" />
-            Perda de Frequência (≥25%)
-          </Badge>
-        );
-      case "AT_RISK":
-        return (
-          <Badge className="bg-amber-600 text-white text-[10px] font-semibold gap-1">
-            <Icon name={"TriangleAlert" as any} className="size-3" />
-            Risco Crítico (20-24%)
-          </Badge>
-        );
-      case "WARNING":
-        return (
-          <Badge variant="outline" className="border-amber-400 text-amber-600 bg-amber-50 text-[10px]">
-            Atenção (12-19%)
-          </Badge>
-        );
-      case "NORMAL":
-      default:
-        return (
-          <Badge variant="outline" className="border-emerald-400 text-emerald-600 bg-emerald-50 text-[10px]">
-            Regular
-          </Badge>
-        );
-    }
-  };
-
-  const handleExport = () => {
-    window.print();
-  };
+  const columns: Column<Row>[] = [
+    { key: "student.full_name", header: "Aluno", render: (_, r) => <span className="font-medium">{r.student.full_name}</span> },
+    { key: "lessons", header: "Aulas", render: (_, r) => <span className="font-mono">{r.lessons}</span> },
+    { key: "present", header: "Presenças", render: (_, r) => <span className="font-mono">{r.present}</span> },
+    { key: "late", header: "Atrasos", render: (_, r) => <span className="font-mono">{r.late}</span> },
+    { key: "justified_absences", header: "Faltas just.", render: (_, r) => <span className="font-mono">{r.justified_absences}</span> },
+    { key: "unjustified_absences", header: "Faltas injust.", render: (_, r) => <span className={`font-mono ${r.unjustified_absences > 0 ? "font-semibold text-rose-600" : ""}`}>{r.unjustified_absences}</span> },
+    { key: "attendance_rate", header: "Assiduidade", render: (_, r) => (r.attendance_rate === null ? "—" : <Badge variant={r.attendance_rate < 75 ? "destructive" : "outline"} className="font-mono">{r.attendance_rate}%</Badge>) },
+  ];
 
   return (
-    <div className="space-y-4">
-      {/* Top Banner with MED Regulation Notice */}
-      <div className="p-4 rounded-xl border border-primary/20 bg-primary/5 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-        <div className="flex items-start gap-3">
-          <div className="size-9 rounded-lg bg-primary/20 flex items-center justify-center text-primary shrink-0 mt-0.5">
-            <Icon name={"Scale" as any} className="size-4.5" />
-          </div>
-          <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-foreground">
-              Regulamento de Faltas do Ministério da Educação (MED)
-            </h4>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              O estudante perde o direito à frequência e à prestação de provas finais se totalizar faltas injustificadas iguais ou superiores a <strong>25%</strong> do total de tempos curriculares leccionados no trimestre/ano.
-            </p>
-          </div>
-        </div>
-
-        <Button onClick={handleExport} variant="outline" size="sm" className="gap-1.5 text-xs shrink-0">
-          <Icon name={"Printer" as any} className="size-3.5" />
-          Imprimir Mapa de Faltas
-        </Button>
-      </div>
-
-      {/* KPI Mini-cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-        <div className="p-3.5 rounded-xl border border-border bg-card">
-          <div className="text-xs text-muted-foreground font-medium">Assiduidade Média da Turma</div>
-          <div className="text-2xl font-bold font-mono text-primary mt-1">{averageAttendance}%</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">{stats.length} alunos matriculados</div>
-        </div>
-
-        <div className="p-3.5 rounded-xl border border-border bg-card">
-          <div className="text-xs text-muted-foreground font-medium">Total de Faltas Injustificadas</div>
-          <div className="text-2xl font-bold font-mono text-rose-600 mt-1">{totalUnjustifiedAbsences}</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Aulas perdidas sem documento</div>
-        </div>
-
-        <div className="p-3.5 rounded-xl border border-border bg-card">
-          <div className="text-xs text-muted-foreground font-medium">Alunos em Alerta de Chumbo</div>
-          <div className="text-2xl font-bold font-mono text-amber-600 mt-1">{atRiskCount} Alunos</div>
-          <div className="text-[11px] text-muted-foreground mt-0.5">Faltas acima de 20% da carga</div>
-        </div>
-      </div>
-
-      {/* Stats Table */}
-      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
-        <div className="p-3.5 border-b border-border bg-muted/20 flex items-center justify-between">
-          <h3 className="text-xs font-semibold text-foreground uppercase tracking-wider">
-            Quadro Individual de Faltas e Frequência - {className}
-          </h3>
-          <span className="text-[11px] text-muted-foreground">
-            Ano Lectivo 2025/2026
-          </span>
-        </div>
-
-        <div className="overflow-x-auto">
-          <table className="w-full border-collapse text-left text-xs">
-            <thead>
-              <tr className="border-b border-border bg-muted/40 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                <th className="w-14 px-3 py-3 text-center">Nº</th>
-                <th className="min-w-[200px] px-4 py-3">Estudante</th>
-                <th className="w-24 px-3 py-3 text-center">Aulas Dadas</th>
-                <th className="w-24 px-3 py-3 text-center text-emerald-600">Presenças</th>
-                <th className="w-24 px-3 py-3 text-center text-rose-600">F. Injustif.</th>
-                <th className="w-24 px-3 py-3 text-center text-blue-600">F. Justif.</th>
-                <th className="w-20 px-3 py-3 text-center text-amber-600">Atrasos</th>
-                <th className="w-28 px-3 py-3 text-center">Assiduidade</th>
-                <th className="min-w-[180px] px-4 py-3 text-center">Situação Regulatória (MED)</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-border">
-              {stats.map((row) => (
-                <tr key={row.studentId} className="hover:bg-muted/10 transition-colors">
-                  <td className="px-3 py-2.5 text-center font-mono font-medium text-muted-foreground">
-                    {row.studentNumber}
-                  </td>
-                  <td className="px-4 py-2.5 font-medium text-foreground">
-                    {row.studentName}
-                  </td>
-                  <td className="px-3 py-2.5 text-center font-mono">
-                    {row.totalClasses}
-                  </td>
-                  <td className="px-3 py-2.5 text-center font-mono text-emerald-600 font-medium">
-                    {row.presentCount}
-                  </td>
-                  <td className="px-3 py-2.5 text-center font-mono text-rose-600 font-medium">
-                    {row.unjustifiedCount}
-                  </td>
-                  <td className="px-3 py-2.5 text-center font-mono text-blue-600">
-                    {row.justifiedCount}
-                  </td>
-                  <td className="px-3 py-2.5 text-center font-mono text-amber-600">
-                    {row.lateCount}
-                  </td>
-                  <td className="px-3 py-2.5 text-center">
-                    <div className="flex flex-col items-center gap-0.5">
-                      <span className="font-mono font-medium text-foreground">
-                        {row.attendanceRate}%
-                      </span>
-                      <span className="text-[10px] text-muted-foreground">
-                        {row.unjustifiedAbsenceRate}% faltas
-                      </span>
-                    </div>
-                  </td>
-                  <td className="px-4 py-2.5 text-center">
-                    {getRiskBadge(row.medLimitRisk)}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+    <div className="space-y-1">
+      <p className="text-sm font-semibold">{className || "Turma"}</p>
+      <DataList<Row>
+        prefix="mapa-assiduidade"
+        rows={data}
+        columns={columns}
+        isLoading={isLoading}
+        pageSize={20}
+        searchPlaceholder="Pesquisar aluno"
+        searchText={(r) => r.student.full_name}
+        filters={[
+          { key: "risco", label: "Assiduidade", icon: "Gauge", options: [{ value: "abaixo", label: "Abaixo de 75%" }, { value: "ok", label: "75% ou mais" }], match: (r, v) => (v === "abaixo" ? (r.attendance_rate ?? 100) < 75 : (r.attendance_rate ?? 100) >= 75) },
+          { key: "faltas", label: "Faltas", icon: "UserX", options: [{ value: "injustificadas", label: "Com faltas injustificadas" }, { value: "sem", label: "Sem faltas" }], match: (r, v) => (v === "sem" ? r.unjustified_absences + r.justified_absences === 0 : r.unjustified_absences > 0) },
+        ]}
+        sorts={[
+          { value: "taxa", label: "Assiduidade", compare: (a, b) => (a.attendance_rate ?? 100) - (b.attendance_rate ?? 100) },
+          { value: "injust", label: "Faltas injustificadas", compare: (a, b) => a.unjustified_absences - b.unjustified_absences },
+          { value: "nome", label: "Nome", compare: (a, b) => a.student.full_name.localeCompare(b.student.full_name) },
+        ]}
+        emptyTitle="Sem alunos matriculados nesta turma"
+        emptyIcon="Users"
+      />
     </div>
   );
 }

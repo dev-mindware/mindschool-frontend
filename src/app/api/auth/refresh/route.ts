@@ -1,10 +1,9 @@
 import { NextRequest, NextResponse } from "next/server";
 import { cookies } from "next/headers";
 import axios, { AxiosError } from "axios";
-import { createSession } from "@/lib/session";
+import { createSession, verifyRole } from "@/lib/session";
 import { clearLocalSession } from "@/actions/auth";
-import { LoginResponse } from "@/types";
-import { REFRESH_TOKEN_KEY } from "@/constants/routes";
+import { REFRESH_TOKEN_KEY, ROLE_KEY } from "@/constants/routes";
 import { isValidRole } from "@/utils/role-redirects";
 
 // ============================================================================
@@ -27,10 +26,7 @@ function isAllowedOrigin(req: NextRequest): boolean {
   // Sem origem (server-side, curl) — recusa
   if (!origin) return false;
 
-  const appUrl =
-    process.env.NODE_ENV === "development"
-      ? "http://localhost:3000"
-      : process.env.NEXT_PUBLIC_APP_URL;
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL;
 
   // ✅ FIX: fail closed — sem config = recusa (não permite tudo)
   if (!appUrl) {
@@ -126,17 +122,12 @@ export async function POST(req: NextRequest) {
   let backendResponse;
 
   try {
-    backendResponse = await axios.post<LoginResponse>(
+    backendResponse = await axios.post<{ access_token: string; refresh_token: string }>(
       `${process.env.NEXT_PUBLIC_API_URL}/auth/refresh`,
-      // ⚠️ ATENÇÃO: confirma o nome do campo que o teu backend espera
-      // Algumas APIs usam refreshToken, outras refresh_token
-      { refreshToken },
+      { refresh_token: refreshToken },
       {
         timeout: REFRESH_TIMEOUT_MS,
-        headers: {
-          "Content-Type": "application/json",
-          ...(process.env.NEXT_PUBLIC_API_KEY ? { "x-api-key": process.env.NEXT_PUBLIC_API_KEY } : {}),
-        },
+        headers: { "Content-Type": "application/json", "x-auth-mode": "bearer" },
       }
     );
   } catch (error) {
@@ -175,41 +166,25 @@ export async function POST(req: NextRequest) {
   // --------------------------------------------------------------------------
   const data = backendResponse.data;
 
-  // ✅ FIX: validação completa da estrutura
-  if (
-    !data ||
-    !data.tokens?.accessToken ||
-    !data.tokens?.refreshToken ||
-    !data.user?.role
-  ) {
-    console.error(
-      "🚨 [Refresh] Resposta do backend com estrutura inválida:",
-      data
-    );
+  if (!data?.access_token || !data?.refresh_token) {
+    console.error("🚨 [Refresh] Resposta do backend com estrutura inválida");
     await clearLocalSession();
-    return jsonError("Resposta de autenticação inválida", 500, {
-      code: "INVALID_BACKEND_RESPONSE",
-    });
+    return jsonError("Resposta de autenticação inválida", 500, { code: "INVALID_BACKEND_RESPONSE" });
   }
 
-  // ✅ FIX: valida que o role é uma role conhecida
-  if (!isValidRole(data.user.role)) {
-    console.error("🚨 [Refresh] Role inválido recebido:", data.user.role);
+  // A API nao devolve o papel no refresh: mantem-se o do cookie assinado (so o servidor o escreve).
+  const roleCookie = authCookies.get(ROLE_KEY)?.value;
+  const role = roleCookie ? await verifyRole(roleCookie) : null;
+  if (!isValidRole(role)) {
     await clearLocalSession();
-    return jsonError("Role inválido", 500, {
-      code: "INVALID_ROLE",
-    });
+    return jsonError("Role inválido", 401, { code: "INVALID_ROLE" });
   }
 
   // --------------------------------------------------------------------------
   // 5. Cria nova sessão (atualiza todos os cookies)
   // --------------------------------------------------------------------------
   try {
-    await createSession({
-      accessToken: data.tokens.accessToken,
-      refreshToken: data.tokens.refreshToken,
-      role: data.user.role,
-    });
+    await createSession({ accessToken: data.access_token, refreshToken: data.refresh_token, role });
   } catch (sessionError) {
     console.error("🚨 [Refresh] Erro ao criar sessão:", sessionError);
     return jsonError("Erro ao persistir sessão", 500, {
@@ -223,7 +198,7 @@ export async function POST(req: NextRequest) {
   return NextResponse.json(
     {
       success: true,
-      accessToken: data.tokens.accessToken,
+      accessToken: data.access_token,
     },
     {
       status: 200,

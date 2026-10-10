@@ -1,1 +1,1 @@
-export * from "./use-role-dashboard-data";
+export * from "./use-school-overview";

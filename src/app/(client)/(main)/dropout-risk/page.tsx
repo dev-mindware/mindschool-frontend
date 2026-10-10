@@ -3,11 +3,7 @@ import { DropoutRiskPageContent } from "@/components/client/dropout-risk/dropout
 
 export default function DropoutRiskPage() {
   return (
-    <PageWrapper
-      routePath="/dropout-risk"
-      routeLabel="Alerta Precoce"
-      subRoute="Risco de Abandono"
-    >
+    <PageWrapper>
       <DropoutRiskPageContent />
     </PageWrapper>
   );

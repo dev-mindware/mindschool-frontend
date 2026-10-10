@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import { GenericTable, Column } from "@/components/common/generic-table";
+import { Can, DataList, type Column } from "@/components";
 import { AcademicSection } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -15,25 +15,14 @@ import {
 import { ClassModal } from "./class-modal";
 import { ClassDetailsModal } from "./class-details-modal";
 
+const uniq = (v: string[]) => [...new Set(v.filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt"));
+
 interface ClassesListProps {
   sections: AcademicSection[];
-  total: number;
-  totalPages: number;
-  currentPage: number;
-  setCurrentPage: (page: number) => void;
-  goToNextPage: () => void;
-  goToPreviousPage: () => void;
+  isLoading?: boolean;
 }
 
-export function ClassesList({
-  sections,
-  total,
-  totalPages,
-  currentPage,
-  setCurrentPage,
-  goToNextPage,
-  goToPreviousPage,
-}: ClassesListProps) {
+export function ClassesList({ sections, isLoading }: ClassesListProps) {
   const [selectedSection, setSelectedSection] =
     useState<AcademicSection | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
@@ -173,6 +162,7 @@ export function ClassesList({
               <Icon name="Eye" className="h-4 w-4 text-muted-foreground" />
               Ver Detalhes da Turma
             </DropdownMenuItem>
+<Can permission="section:write">
             <DropdownMenuItem
               className="gap-2 cursor-pointer"
               onClick={() => handleEdit(item)}
@@ -180,6 +170,7 @@ export function ClassesList({
               <Icon name="Pencil" className="h-4 w-4" />
               Editar Turma
             </DropdownMenuItem>
+</Can>
           </DropdownMenuContent>
         </DropdownMenu>
       ),
@@ -188,16 +179,31 @@ export function ClassesList({
 
   return (
     <>
-      <GenericTable
+      <DataList<AcademicSection>
+        prefix="turmas"
+        rows={sections}
         columns={columns}
-        data={sections}
-        total={total}
-        page={currentPage}
-        totalPages={totalPages}
-        setPage={setCurrentPage}
-        goToNextPage={goToNextPage}
-        goToPreviousPage={goToPreviousPage}
-        emptyMessage="Nenhuma turma encontrada."
+        isLoading={isLoading}
+        pageSize={10}
+        searchPlaceholder="Pesquisar turma, classe, sala ou director"
+        searchText={(s) => `${s.name} ${s.classLevel} ${s.roomNumber} ${s.mainTeacherName ?? ""}`}
+        filters={[
+          { key: "turno", label: "Turno", icon: "Sun", options: [{ value: "MORNING", label: "Manhã" }, { value: "AFTERNOON", label: "Tarde" }, { value: "EVENING", label: "Noite" }], match: (s, v) => s.shift === v },
+          { key: "ciclo", label: "Ciclo", icon: "Layers", options: [{ value: "PRIMARY", label: "Primário" }, { value: "LOWER_SECONDARY", label: "Iº Ciclo" }, { value: "UPPER_SECONDARY", label: "IIº Ciclo / Médio" }], match: (s, v) => s.cycle === v },
+          { key: "classe", label: "Classe", icon: "GraduationCap", options: uniq(sections.map((s) => s.classLevel)).map((v) => ({ value: v, label: v })), match: (s, v) => s.classLevel === v },
+          { key: "ano", label: "Ano lectivo", icon: "CalendarRange", options: uniq(sections.map((s) => s.academicYear)).map((v) => ({ value: v, label: v })), match: (s, v) => s.academicYear === v },
+          { key: "lotacao", label: "Lotação", icon: "Gauge", options: [{ value: "cheia", label: "Lotada (≥100%)" }, { value: "alta", label: "Alta (≥85%)" }, { value: "livre", label: "Com vagas (<85%)" }], match: (s, v) => { const r = s.capacity > 0 ? s.currentEnrollmentCount / s.capacity : 0; return v === "cheia" ? r >= 1 : v === "alta" ? r >= 0.85 : r < 0.85; } },
+          { key: "estado", label: "Estado", icon: "ToggleLeft", options: [{ value: "on", label: "Activas" }, { value: "off", label: "Inactivas" }], match: (s, v) => (v === "on" ? s.isActive : !s.isActive) },
+          { key: "director", label: "Director de turma", icon: "UserCheck", options: [{ value: "com", label: "Com director" }, { value: "sem", label: "Sem director" }], match: (s, v) => (v === "com" ? Boolean(s.mainTeacherId) : !s.mainTeacherId) },
+        ]}
+        sorts={[
+          { value: "nome", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name, "pt") },
+          { value: "lotacao", label: "Lotação", compare: (a, b) => a.currentEnrollmentCount / (a.capacity || 1) - b.currentEnrollmentCount / (b.capacity || 1) },
+          { value: "capacidade", label: "Capacidade", compare: (a, b) => a.capacity - b.capacity },
+        ]}
+        emptyTitle="Nenhuma turma encontrada"
+        emptyDescription="Ajuste os filtros ou crie uma nova turma."
+        emptyIcon="DoorOpen"
       />
 
       <ClassModal

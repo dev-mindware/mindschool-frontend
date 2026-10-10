@@ -1,5 +1,6 @@
 "use client";
 
+import { RELATIONSHIP_LABELS } from "@/constants/labels";
 import React from "react";
 import { Guardian } from "@/types";
 import {
@@ -16,15 +17,6 @@ interface GuardianDetailsModalProps {
   guardian: Guardian | null;
 }
 
-const RELATIONSHIP_LABELS: Record<string, string> = {
-  FATHER: "Pai",
-  MOTHER: "Mãe",
-  UNCLE: "Tio(a)",
-  GRANDPARENT: "Avô/Avó",
-  LEGAL_GUARDIAN: "Tutor(a) Legal",
-  TUTOR: "Encarregado Indicado",
-  OTHER: "Outro",
-};
 
 const CHANNEL_LABELS: Record<string, string> = {
   WHATSAPP: "WhatsApp",

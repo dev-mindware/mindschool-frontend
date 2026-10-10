@@ -1,13 +1,9 @@
 import { PageWrapper } from "@/components";
-import { TuitionCollectionsContent } from "@/components/client/tuition";
+import { TuitionCollectionsContent } from "@/modules/finance/components";
 
 export default function TuitionCollectionsPage() {
   return (
-    <PageWrapper
-      routePath="/tuition"
-      routeLabel="Propinas & Finanças"
-      subRoute="Cobrança WhatsApp"
-    >
+    <PageWrapper>
       <TuitionCollectionsContent />
     </PageWrapper>
   );

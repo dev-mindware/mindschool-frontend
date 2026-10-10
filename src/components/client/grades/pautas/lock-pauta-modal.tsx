@@ -2,7 +2,8 @@
 
 import React, { useState } from "react";
 import { ConsolidatedPauta } from "@/types/grade";
-import { useGradeStore } from "@/stores/school/grade-store";
+import { usePautas } from "@/hooks/school/use-pautas";
+import { getApiErrorMessage } from "@/utils/api-error";
 import {
   GlobalModal,
   Button,
@@ -24,7 +25,7 @@ export function LockPautaModal({
   pauta,
   onSuccess,
 }: LockPautaModalProps) {
-  const { closeSectionPauta } = useGradeStore();
+  const { close } = usePautas(pauta.term, []);
   const [directorName, setDirectorName] = useState(
     "Prof. António Silva (Dir. Pedagógico)"
   );
@@ -34,7 +35,7 @@ export function LockPautaModal({
 
   const hasMissingGrades = pauta.missingGradesCount > 0;
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     if (hasMissingGrades) {
@@ -46,21 +47,12 @@ export function LockPautaModal({
 
     setIsSubmitting(true);
     try {
-      const res = closeSectionPauta(pauta.sectionId, pauta.term, directorName);
-      if (res.success) {
-        SucessMessage(
-          `Pauta da ${pauta.sectionName} homologada e trancada com sucesso!`
-        );
-        if (onSuccess) onSuccess();
-        onClose();
-      } else {
-        ErrorMessage(
-          `Erro ao fechar pauta: ${res.missingGradesCount} notas em falta.`
-        );
-      }
+      await close.mutateAsync({ sectionId: pauta.sectionId, term: pauta.term, notes: `Homologada por ${directorName}` });
+      SucessMessage(`Pauta da ${pauta.sectionName} homologada e trancada com sucesso!`);
+      if (onSuccess) onSuccess();
+      onClose();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro ao fechar pauta";
-      ErrorMessage(msg);
+      ErrorMessage(getApiErrorMessage(err, "Erro ao fechar pauta"));
     } finally {
       setIsSubmitting(false);
     }

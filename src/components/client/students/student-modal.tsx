@@ -5,7 +5,9 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Student } from "@/types";
-import { useSchoolDataStore } from "@/stores/school/school-data-store";
+import { useSections } from "@/hooks/school/use-sections";
+import { useStudents } from "@/hooks/school/use-students";
+import { getApiErrorMessage } from "@/utils/api-error";
 import { GlobalModal, Button, ButtonSubmit } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import {
@@ -28,6 +30,7 @@ const studentFormSchema = z.object({
   guardianName: z.string().trim().min(3, "Nome do encarregado é obrigatório"),
   guardianPhone: z.string().trim().min(9, "Contacto deve ter pelo menos 9 dígitos"),
   guardianRelationship: z.string().min(1, "Selecione o grau de parentesco"),
+  guardianDocument: z.string().trim().min(4, "Número de documento do encarregado é obrigatório"),
 });
 
 interface StudentModalProps {
@@ -41,7 +44,8 @@ export function StudentModal({
   onClose,
   studentToEdit,
 }: StudentModalProps) {
-  const { addStudent, updateStudent, sections } = useSchoolDataStore();
+  const { data: sections = [] } = useSections();
+  const { createStudent, updateStudent } = useStudents();
 
   const {
     register,
@@ -66,6 +70,7 @@ export function StudentModal({
       guardianName: "",
       guardianPhone: "",
       guardianRelationship: "Pai",
+      guardianDocument: "",
     },
   });
 
@@ -89,6 +94,7 @@ export function StudentModal({
         guardianName: studentToEdit.guardianName,
         guardianPhone: studentToEdit.guardianPhone,
         guardianRelationship: studentToEdit.guardianRelationship,
+        guardianDocument: "",
       });
     } else {
       reset({
@@ -104,64 +110,41 @@ export function StudentModal({
         guardianName: "",
         guardianPhone: "",
         guardianRelationship: "Pai",
+        guardianDocument: "",
       });
     }
   }, [studentToEdit, isOpen, sections, reset]);
 
   const onSubmit = async (data: StudentFormValues) => {
     try {
-      const targetSection = sections.find((s) => s.id === data.sectionId);
-      const sectionName = targetSection ? targetSection.name : "";
-      const classLevel = targetSection ? targetSection.classLevel : "";
-
       if (studentToEdit) {
-        updateStudent(studentToEdit.id, {
-          fullName: data.fullName,
-          gender: data.gender,
-          birthDate: data.birthDate,
-          idDocumentType: data.idDocumentType,
-          idDocumentNumber: data.idDocumentNumber,
-          address: data.address,
-          city: data.city,
-          province: data.province,
-          currentSectionId: data.sectionId,
-          currentSectionName: sectionName,
-          currentClassLevel: classLevel,
-          guardianName: data.guardianName,
-          guardianPhone: data.guardianPhone,
-          guardianRelationship: data.guardianRelationship,
+        await updateStudent.mutateAsync({
+          id: studentToEdit.id,
+          input: {
+            fullName: data.fullName,
+            gender: data.gender,
+            birthDate: data.birthDate,
+            idDocumentType: data.idDocumentType,
+            idDocumentNumber: data.idDocumentNumber,
+          },
         });
         SucessMessage("Dados do estudante atualizados com sucesso!");
       } else {
-        const studentNumber = `MS-2026-${Math.floor(1000 + Math.random() * 9000)}`;
-        addStudent({
-          schoolId: "dev-school-1",
-          studentNumber,
+        await createStudent.mutateAsync({
           fullName: data.fullName,
           gender: data.gender,
           birthDate: data.birthDate,
           idDocumentType: data.idDocumentType,
           idDocumentNumber: data.idDocumentNumber,
-          nationality: "Angolana",
-          address: data.address,
-          city: data.city,
-          province: data.province,
-          status: "ENROLLED",
-          guardianId: "grd-1",
-          guardianName: data.guardianName,
-          guardianPhone: data.guardianPhone,
-          guardianRelationship: data.guardianRelationship,
-          currentSectionId: data.sectionId,
-          currentSectionName: sectionName,
-          currentClassLevel: classLevel,
-          academicYear: "2025/2026",
+          sectionId: data.sectionId,
+          guardian: { name: data.guardianName, phone: data.guardianPhone, documentNumber: data.guardianDocument, relationship: data.guardianRelationship },
         });
         SucessMessage("Novo estudante cadastrado com sucesso!");
       }
 
       onClose();
-    } catch (err: any) {
-      ErrorMessage(err?.message || "Ocorreu um erro ao gravar os dados do estudante.");
+    } catch (err: unknown) {
+      ErrorMessage(getApiErrorMessage(err, "Ocorreu um erro ao gravar os dados do estudante."));
     }
   };
 

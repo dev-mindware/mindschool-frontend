@@ -21,7 +21,8 @@ import { usePwaInstallPrompt } from "@/hooks/common/use-pwa-install-prompt";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
-export function UserInfo() {
+/** `compact`: só o avatar (rail de módulos); o menu abre ao lado com os mesmos itens. */
+export function UserInfo({ compact = false }: { compact?: boolean }) {
   const { user } = useAuth();
   const { isMobile } = useSidebar();
   const { handleLogout } = useLogout();
@@ -37,25 +38,34 @@ export function UserInfo() {
       <SidebarMenuItem>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <SidebarMenuButton
-              size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-muted-foreground"
-            >
-              <Avatar className="w-8 h-8 rounded-lg">
-                <AvatarImage src="" alt={user.name} />
-                <AvatarFallback className="rounded-lg">
-                  {user.name[0]?.toUpperCase() || "U"}
-                </AvatarFallback>
-              </Avatar>
-              <div className="grid flex-1 text-sm leading-tight text-left">
-                <span className="font-medium truncate">{user.name}</span>
-                <span className="text-xs truncate">{user.email}</span>
-              </div>
-              <Icon name="ChevronsUpDown" className="ml-auto size-4" />
-            </SidebarMenuButton>
+            {compact ? (
+              <button type="button" aria-label="Conta" className="flex size-10 items-center justify-center rounded-xl transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 data-[state=open]:bg-white/15">
+                <Avatar className="size-8 rounded-lg">
+                  <AvatarImage src="" alt={user.name} />
+                  <AvatarFallback className="rounded-lg bg-white/20 text-white">{user.name[0]?.toUpperCase() || "U"}</AvatarFallback>
+                </Avatar>
+              </button>
+            ) : (
+              <SidebarMenuButton
+                size="lg"
+                className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-muted-foreground"
+              >
+                <Avatar className="w-8 h-8 rounded-lg">
+                  <AvatarImage src="" alt={user.name} />
+                  <AvatarFallback className="rounded-lg">
+                    {user.name[0]?.toUpperCase() || "U"}
+                  </AvatarFallback>
+                </Avatar>
+                <div className="grid flex-1 text-sm leading-tight text-left">
+                  <span className="font-medium truncate">{user.name}</span>
+                  <span className="text-xs truncate">{user.email}</span>
+                </div>
+                <Icon name="ChevronsUpDown" className="ml-auto size-4" />
+              </SidebarMenuButton>
+            )}
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"
+            className={compact ? "w-60 rounded-lg" : "w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"}
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
@@ -75,15 +85,20 @@ export function UserInfo() {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            <DropdownMenuGroup>
-              <Link href="/settings?tab=subscription">
-                <DropdownMenuItem>
-                  <Icon name="Sparkles" />
-                  Fazer Upgrade
-                </DropdownMenuItem>
-              </Link>
-            </DropdownMenuGroup>
-            <DropdownMenuSeparator />
+            {/* A subscrição é da escola: encarregados e alunos não a gerem. */}
+            {user.role !== "GUARDIAN" && user.role !== "STUDENT" && (
+              <>
+                <DropdownMenuGroup>
+                  <Link href="/settings?tab=subscription">
+                    <DropdownMenuItem>
+                      <Icon name="Sparkles" />
+                      Fazer Upgrade
+                    </DropdownMenuItem>
+                  </Link>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuGroup>
               <Link href={appearanceHref}>
               <DropdownMenuItem>

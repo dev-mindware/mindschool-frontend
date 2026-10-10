@@ -1,4 +1,6 @@
 "use client";
+import { ScoreCell } from "./score-cell";
+import { formatDate } from "@/utils";
 
 import React, { useState } from "react";
 import { ClassSubjectGradeSheet, StudentGradeEntry } from "@/types/grade";
@@ -15,6 +17,7 @@ interface GradeEntryTableProps {
     field: "continuousAssessment" | "teacherTest" | "termExam",
     value: number | undefined
   ) => void;
+  onSetStatus?: (studentId: string, field: "continuousAssessment" | "teacherTest" | "termExam", status: "avaliado" | "ausente" | "dispensado" | "nao_avaliado") => void;
   onLockSheet: () => void;
 }
 
@@ -22,6 +25,7 @@ export function GradeEntryTable({
   sheet,
   isPautaClosed,
   onUpdateGrade,
+  onSetStatus,
   onLockSheet,
 }: GradeEntryTableProps) {
   const isReadOnly = sheet.isLocked || isPautaClosed;
@@ -113,7 +117,7 @@ export function GradeEntryTable({
             </div>
             <p className="text-muted-foreground text-[11px]">
               Docente: {sheet.teacherName} • Última actualização:{" "}
-              {new Date(sheet.updatedAt).toLocaleDateString("pt-AO")}{" "}
+              {formatDate(sheet.updatedAt)}{" "}
               {new Date(sheet.updatedAt).toLocaleTimeString("pt-AO", {
                 hour: "2-digit",
                 minute: "2-digit",
@@ -215,46 +219,24 @@ export function GradeEntryTable({
                   </td>
 
                   {/* Input MAC */}
-                  <td className="py-2 px-2 text-center bg-info-muted/15">
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="20"
-                      disabled={isReadOnly}
-                      value={entry.continuousAssessment ?? ""}
-                      placeholder="0.0 - 20"
-                      onChange={(e) =>
-                        handleInputChange(
-                          entry.studentId,
-                          "continuousAssessment",
-                          e.target.value
-                        )
-                      }
-                      className="w-20 text-center font-medium rounded-md border border-input bg-background py-1.5 text-xs shadow-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:bg-muted/50 disabled:text-muted-foreground"
-                    />
-                  </td>
+                  <ScoreCell
+                    value={entry.continuousAssessment}
+                    status={entry.statuses?.continuousAssessment}
+                    readOnly={isReadOnly}
+                    tone="bg-info-muted/15"
+                    onValueChange={(raw) => handleInputChange(entry.studentId, "continuousAssessment", raw)}
+                    onStatusChange={onSetStatus ? (s) => onSetStatus(entry.studentId, "continuousAssessment", s) : undefined}
+                  />
 
                   {/* Input NPP */}
-                  <td className="py-2 px-2 text-center bg-info-muted/15">
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="20"
-                      disabled={isReadOnly}
-                      value={entry.teacherTest ?? ""}
-                      placeholder="0.0 - 20"
-                      onChange={(e) =>
-                        handleInputChange(
-                          entry.studentId,
-                          "teacherTest",
-                          e.target.value
-                        )
-                      }
-                      className="w-20 text-center font-medium rounded-md border border-input bg-background py-1.5 text-xs shadow-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:bg-muted/50 disabled:text-muted-foreground"
-                    />
-                  </td>
+                  <ScoreCell
+                    value={entry.teacherTest}
+                    status={entry.statuses?.teacherTest}
+                    readOnly={isReadOnly}
+                    tone="bg-info-muted/15"
+                    onValueChange={(raw) => handleInputChange(entry.studentId, "teacherTest", raw)}
+                    onStatusChange={onSetStatus ? (s) => onSetStatus(entry.studentId, "teacherTest", s) : undefined}
+                  />
 
                   {/* MAS Calculado */}
                   <td className="py-2.5 px-3 text-center font-medium text-foreground bg-muted/30">
@@ -264,25 +246,14 @@ export function GradeEntryTable({
                   </td>
 
                   {/* Input NPT */}
-                  <td className="py-2 px-2 text-center bg-primary/5">
-                    <input
-                      type="number"
-                      step="0.1"
-                      min="0"
-                      max="20"
-                      disabled={isReadOnly}
-                      value={entry.termExam ?? ""}
-                      placeholder="0.0 - 20"
-                      onChange={(e) =>
-                        handleInputChange(
-                          entry.studentId,
-                          "termExam",
-                          e.target.value
-                        )
-                      }
-                      className="w-20 text-center font-medium rounded-md border border-input bg-background py-1.5 text-xs shadow-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:bg-muted/50 disabled:text-muted-foreground"
-                    />
-                  </td>
+                  <ScoreCell
+                    value={entry.termExam}
+                    status={entry.statuses?.termExam}
+                    readOnly={isReadOnly}
+                    tone="bg-primary/5"
+                    onValueChange={(raw) => handleInputChange(entry.studentId, "termExam", raw)}
+                    onStatusChange={onSetStatus ? (s) => onSetStatus(entry.studentId, "termExam", s) : undefined}
+                  />
 
                   {/* MT Calculado Oficial */}
                   <td className="py-2.5 px-3 text-center font-medium text-foreground bg-muted/30">

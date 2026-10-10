@@ -22,11 +22,14 @@ const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secon
   CANCELLED: { label: "Cancelada / Anulada", variant: "destructive" },
 };
 
+import { useEnrollmentProof } from "./use-enrollment-proof";
+
 export function EnrollmentDetailsModal({
   isOpen,
   onClose,
   enrollment,
 }: EnrollmentDetailsModalProps) {
+  const proof = useEnrollmentProof();
   if (!enrollment || !isOpen) return null;
 
   const statusConfig = STATUS_LABELS[enrollment.status] || {
@@ -65,9 +68,8 @@ export function EnrollmentDetailsModal({
           <Button
             variant="outline"
             size="sm"
-            onClick={() =>
-              alert(`Comprovativo impresso para processo ${enrollment.enrollmentNumber}`)
-            }
+            onClick={() => void proof.emit(enrollment)}
+            disabled={proof.isPending}
             className="gap-1.5 text-blue-600 border-blue-200"
           >
             <Icon name="FileText" className="h-4 w-4" />

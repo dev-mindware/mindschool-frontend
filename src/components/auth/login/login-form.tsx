@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import Image from "next/image";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { ErrorMessage } from "@/utils/messages";
@@ -9,12 +10,14 @@ import { LoginFormData, loginSchema } from "@/schemas";
 import { ButtonSubmit, Input } from "@/components";
 import { loginAction } from "@/actions/login";
 import { useAuthStore } from "@/stores";
+import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { queryClient } from "@/lib";
 import { getApiErrorMessage } from "@/utils";
 
 export function LoginForm() {
   const router = useRouter();
   const { setUser, setIsAuthenticating } = useAuthStore();
+  const [needsMfa, setNeedsMfa] = useState(false);
 
   const {
     register,
@@ -25,9 +28,15 @@ export function LoginForm() {
     mode: "onChange",
   });
 
-  async function handleLogin({ email, password }: LoginFormData) {
+  async function handleLogin({ email, password, totpCode }: LoginFormData) {
     try {
-      const res = await loginAction({ email, password });
+      const res = await loginAction({ email, password, totpCode });
+
+      if (res.requiresMfa) {
+        setNeedsMfa(true);
+        if (totpCode) ErrorMessage("Código inválido. Tente novamente.");
+        return;
+      }
 
       if (!res.user) {
         ErrorMessage(res.message || "Erro ao tentar fazer login.");
@@ -35,6 +44,7 @@ export function LoginForm() {
       }
 
       setIsAuthenticating(true);
+      useActiveSchoolStore.getState().setMemberships(res.memberships ?? []);
 
       // ✅ Popula o cache do React Query antes de redirecionar para evitar requisição redundante
       queryClient.setQueryData(["user"], res.user);
@@ -81,18 +91,29 @@ export function LoginForm() {
           </Link>
         </div>
 
+        {needsMfa && (
+          <Input
+            label="Código de verificação"
+            startIcon="ShieldCheck"
+            placeholder="Código de 6 dígitos ou de recuperação"
+            autoComplete="one-time-code"
+            inputMode="numeric"
+            {...register("totpCode")}
+          />
+        )}
+
         <ButtonSubmit isLoading={isSubmitting}>
           {isSubmitting ? "" : "Entrar"}
         </ButtonSubmit>
 
       </div>
       <div className="text-sm text-center">
-        Ainda não tem uma conta?{" "}
+        A sua escola ainda não está na MindSchool?{" "}
         <Link
           href="/auth/register"
           className="font-medium text-primary hover:underline underline-offset-4"
         >
-          Criar conta
+          Saiba como activar
         </Link>
       </div>
     </form>
