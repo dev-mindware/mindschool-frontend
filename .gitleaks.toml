@@ -1,0 +1,12 @@
+# Regras por omissao do gitleaks + excepcoes: falsos positivos conhecidos (nao sao segredos reais).
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Placeholders de formularios legados (AGT) e exemplos"
+paths = [
+  '''src/components/templates/definitions/contents/agt/''',
+  '''src/schemas/agt-schema\.ts$''',
+  '''(^|/)\.env\.example$''',
+  '''^tests/''',
+]

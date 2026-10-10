@@ -1,5 +1,5 @@
 "use client";
-import Logo from "@/assets/brand.png";
+
 import { ButtonSubmit, Input } from "@/components";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { ForgotPasswordFormData } from "@/schemas";
@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { forgotPasswordSchema } from "@/schemas";
 import { ErrorMessage } from "@/utils/messages";
 import { OTPModal } from "./otp-modal";
-import { AuthHeader, BackToLogin } from "../_components";
+import { BackToLogin } from "../_components";
 import { cn } from "@/lib";
 import Image from "next/image";
 import { useState } from "react";
@@ -44,35 +44,58 @@ export function RecoveryPassword() {
     <>
       <form
         onSubmit={handleSubmit(onSubmit)}
-        className={cn(
-          "mx-auto flex w-full max-w-sm flex-col gap-5",
-        )}
+        className={cn("mx-auto flex w-full max-w-sm flex-col gap-6")}
       >
-        <div className="space-y-4">
-          <div className="flex items-center justify-center">
-            <Image src={Logo} alt="Logo" className="size-20" />
+        <div className="flex flex-col gap-1.5 text-left">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="relative size-11 rounded-2xl overflow-hidden bg-primary/10 p-1.5 border border-primary/20 shadow-sm">
+              <Image
+                src="/mindgest.png"
+                alt="Logótipo do MindSchool"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-bold tracking-tight text-foreground">
+                MindSchool<span className="text-primary">.</span>
+              </span>
+              <span className="text-[11px] font-medium tracking-wide uppercase text-muted-foreground">
+                Recuperação de Acesso
+              </span>
+            </div>
           </div>
-          <AuthHeader
-            title="Recuperar palavra-passe"
-            description="Introduza o seu endereço de correio electrónico. Enviaremos as instruções para definir uma nova palavra-passe."
-          />
+
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground mt-2">
+            Recuperar palavra-passe
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Introduza o seu email institucional. Enviaremos as instruções para definir uma nova palavra-passe.
+          </p>
         </div>
 
-        <div className="grid gap-6">
+        <div className="grid gap-5">
           <Input
-            label="Email"
+            label="Email Institucional"
             type="email"
             startIcon="Mail"
             {...register("email")}
-            placeholder="Endereço de email"
+            placeholder="exemplo@escola.ao"
             error={errors.email?.message}
+            className="rounded-xl"
           />
 
-          <ButtonSubmit isLoading={isPending} className="w-full">
-            {isPending ? "A enviar..." : "Verificar"}
+          <ButtonSubmit
+            isLoading={isPending}
+            className="w-full rounded-xl py-3 text-base font-semibold shadow-md hover:shadow-lg transition-all"
+          >
+            {isPending ? "A enviar instruções..." : "Verificar Email"}
           </ButtonSubmit>
 
-          <BackToLogin />
+          <div className="pt-2">
+            <BackToLogin />
+          </div>
         </div>
       </form>
       <OTPModal message={message} />

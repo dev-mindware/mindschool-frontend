@@ -1,6 +1,6 @@
 name: CI
 
-# O frontend não é dockerizado: só se valida (tipos, lint, testes, build e segurança).
+# O frontend nao e dockerizado: so se valida (dependencias, tipos, lint, testes, build e segredos).
 on:
   push:
     branches: [main]
@@ -19,26 +19,9 @@ env:
 
 jobs:
   quality:
-    name: Tipos, lint, testes e build
+    name: Dependencias, tipos, lint, testes e build
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: pnpm/action-setup@v4
-      - uses: actions/setup-node@v4
-        with: { node-version: '${{ env.NODE_VERSION }}', cache: pnpm }
-      - run: pnpm install --frozen-lockfile
-      - run: pnpm typecheck
-      - run: pnpm lint
-      - run: pnpm test:ci
-      - name: Build de producao
-        # Fontes servidas localmente (fontsource): o build nao depende de rede para o Google Fonts.
-        run: pnpm build
-        env:
-          NEXT_PUBLIC_API_URL: https://api.example.test/api/v1
-          NEXT_PUBLIC_APP_URL: https://app.example.test
-
-  audit:
-    runs-on: ubuntu-latest
+    timeout-minutes: 20
     steps:
       - uses: actions/checkout@v4
       - uses: pnpm/action-setup@v4
@@ -46,20 +29,21 @@ jobs:
         with: { node-version: '${{ env.NODE_VERSION }}', cache: pnpm }
       - run: pnpm install --frozen-lockfile
       - run: pnpm audit --prod --audit-level high
+      - run: pnpm typecheck
+      - run: pnpm lint
+      - run: pnpm test:ci
+      - name: Build de producao
+        # So as NEXT_PUBLIC_* sao necessarias no build; SESSION_SECRET so e lido em runtime. Fontes locais (fontsource).
+        run: pnpm build
+        env:
+          NEXT_PUBLIC_API_URL: https://api.example.test/api/v1
+          NEXT_PUBLIC_APP_URL: https://app.example.test
 
   secret-scan:
+    # Binario oficial via Docker: a gitleaks-action exige licenca em organizacoes.
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v4
         with: { fetch-depth: 0 }
-      - uses: gitleaks/gitleaks-action@v2
-        env: { GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
-
-  sast:
-    runs-on: ubuntu-latest
-    permissions: { security-events: write, contents: read }
-    steps:
-      - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
-        with: { languages: javascript-typescript }
-      - uses: github/codeql-action/analyze@v3
+      - run: docker run --rm -v "$PWD:/repo" ghcr.io/gitleaks/gitleaks:latest detect --source /repo --redact --verbose

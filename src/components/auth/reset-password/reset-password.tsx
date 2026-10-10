@@ -1,5 +1,5 @@
 "use client";
-import Logo from "@/assets/brand.png";
+
 import Image from "next/image";
 import { ButtonSubmit, Input, ResetPasswordSkeleton, Button, PasswordStrengthBar, AlertError } from "@/components";
 import { useForm } from "react-hook-form";
@@ -8,7 +8,7 @@ import { ResetPasswordFormData, resetPasswordSchema } from "@/schemas";
 import { ErrorMessage } from "@/utils/messages";
 import { useSearchParams } from "next/navigation";
 import { useResetPassword } from "@/hooks/auth";
-import { AuthHeader, BackToLogin } from "../_components";
+import { BackToLogin } from "../_components";
 import { Suspense } from "react";
 import { Wand2 } from "lucide-react";
 import { useModal } from "@/stores";
@@ -68,18 +68,37 @@ function ResetPasswordForm() {
 
   return (
     <>
-      <div className="mx-auto flex w-full max-w-sm flex-col gap-5">
-        <div className="space-y-4">
-          <div className="flex items-center justify-center">
-            <Image src={Logo} alt="Logo" className="size-20" />
+      <div className="mx-auto flex w-full max-w-sm flex-col gap-6">
+        <div className="flex flex-col gap-1.5 text-left">
+          <div className="flex items-center gap-3 mb-2">
+            <div className="relative size-11 rounded-2xl overflow-hidden bg-primary/10 p-1.5 border border-primary/20 shadow-sm">
+              <Image
+                src="/mindgest.png"
+                alt="Logótipo do MindSchool"
+                fill
+                className="object-contain"
+                priority
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-bold tracking-tight text-foreground">
+                MindSchool<span className="text-primary">.</span>
+              </span>
+              <span className="text-[11px] font-medium tracking-wide uppercase text-muted-foreground">
+                Definição de Credencial
+              </span>
+            </div>
           </div>
-          <AuthHeader
-            title="Nova palavra-passe"
-            description="Introduza e confirme a nova palavra-passe para recuperar o acesso à conta."
-          />
+
+          <h1 className="text-3xl font-extrabold tracking-tight text-foreground mt-2">
+            Nova palavra-passe
+          </h1>
+          <p className="text-sm text-muted-foreground">
+            Defina uma palavra-passe robusta para proteger a gestão da sua instituição.
+          </p>
         </div>
 
-        <form onSubmit={handleSubmit(onChangePassword)} className="grid gap-6">
+        <form onSubmit={handleSubmit(onChangePassword)} className="grid gap-5">
           <div className="space-y-2">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-foreground">
@@ -91,17 +110,18 @@ function ResetPasswordForm() {
                     type="password"
                     placeholder="Introduza a nova palavra-passe"
                     {...register("newPassword")}
+                    className="rounded-xl"
                   />
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="shrink-0"
-                  title="Gerar uma palavra-passe segura"
+                  className="shrink-0 rounded-xl size-10"
+                  title="Gerar uma palavra-passe segura automaticamente"
                   onClick={generateStrongPassword}
                 >
-                  <Wand2 className="size-4" />
+                  <Wand2 className="size-4 text-primary" />
                 </Button>
               </div>
             </div>
@@ -118,15 +138,20 @@ function ResetPasswordForm() {
             label="Confirmar nova palavra-passe"
             placeholder="Confirme a nova palavra-passe"
             {...register("confirmPassword")}
-            error={
-              errors.confirmPassword &&
-              errors.confirmPassword?.message
-            }
+            error={errors.confirmPassword && errors.confirmPassword?.message}
+            className="rounded-xl"
           />
-          <ButtonSubmit isLoading={isPending} className="w-full">
-            Confirmar
+
+          <ButtonSubmit
+            isLoading={isPending}
+            className="w-full rounded-xl py-3 text-base font-semibold shadow-md hover:shadow-lg transition-all"
+          >
+            Confirmar e Concluir
           </ButtonSubmit>
-          <BackToLogin />
+
+          <div className="pt-2">
+            <BackToLogin />
+          </div>
         </form>
       </div>
 

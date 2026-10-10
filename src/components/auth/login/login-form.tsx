@@ -1,4 +1,5 @@
 "use client";
+
 import Link from "next/link";
 import Image from "next/image";
 import { useState } from "react";
@@ -18,6 +19,7 @@ export function LoginForm() {
   const router = useRouter();
   const { setUser, setIsAuthenticating } = useAuthStore();
   const [needsMfa, setNeedsMfa] = useState(false);
+  const [rememberMe, setRememberMe] = useState(true);
 
   const {
     register,
@@ -46,7 +48,7 @@ export function LoginForm() {
       setIsAuthenticating(true);
       useActiveSchoolStore.getState().setMemberships(res.memberships ?? []);
 
-      // ✅ Popula o cache do React Query antes de redirecionar para evitar requisição redundante
+      // Popula o cache do React Query antes de redirecionar para evitar requisição redundante
       queryClient.setQueryData(["user"], res.user);
 
       setUser(res.user);
@@ -58,36 +60,77 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(handleLogin)} className="flex flex-col gap-6">
-      <div className="flex flex-col items-center gap-2 text-center">
-        <Image src={"/mindgest.png"} alt="Logótipo do MindSchool" className="size-20" width={100} height={100} />
-        <h1 className="text-2xl font-bold">Bem-vindo(a) ao MindSchool</h1>
+    <form onSubmit={handleSubmit(handleLogin)} className="flex flex-col gap-6 w-full max-w-sm mx-auto">
+      {/* Cabeçalho da marca e título adaptado à referência */}
+      <div className="flex flex-col gap-1.5 text-left">
+        <div className="flex items-center gap-3 mb-2">
+          <div className="relative size-11 rounded-2xl overflow-hidden bg-primary/10 p-1.5 border border-primary/20 shadow-sm">
+            <Image
+              src="/mindgest.png"
+              alt="Logótipo do MindSchool"
+              fill
+              className="object-contain"
+              priority
+            />
+          </div>
+          <div className="flex flex-col">
+            <span className="text-xl font-bold tracking-tight text-foreground">
+              MindSchool<span className="text-primary">.</span>
+            </span>
+            <span className="text-[11px] font-medium tracking-wide uppercase text-muted-foreground">
+              Portal Institucional
+            </span>
+          </div>
+        </div>
+
+        <h1 className="text-3xl font-extrabold tracking-tight text-foreground mt-2">
+          Bem-vindo(a) de volta
+        </h1>
+        <p className="text-sm text-muted-foreground">
+          Inicie sessão para gerir a sua escola, turmas e pautas.
+        </p>
       </div>
 
-      <div className="grid gap-6">
+      <div className="grid gap-5">
         <Input
           type="email"
-          label="Email"
+          label="Endereço de Email"
           startIcon="AtSign"
-          placeholder="Endereço de email"
+          placeholder="exemplo@escola.ao"
           {...register("email")}
           error={errors?.email && errors?.email?.message}
           autoComplete="email"
+          className="rounded-xl"
         />
-        <div className="flex flex-col space-y-2 items-center">
+
+        <div className="flex flex-col space-y-2">
           <Input
             label="Palavra-passe"
             startIcon="Lock"
             type="password"
-            placeholder="Introduza a palavra-passe"
+            placeholder="••••••••••••"
             {...register("password")}
             autoComplete="current-password"
+            className="rounded-xl"
           />
+        </div>
+
+        {/* Linha com 'Lembrar-me' e 'Esqueceu a palavra-passe?' idêntica ao layout */}
+        <div className="flex items-center justify-between text-sm pt-1">
+          <label className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-foreground select-none">
+            <input
+              type="checkbox"
+              className="size-4 rounded border-border text-primary focus:ring-primary/30 accent-primary cursor-pointer"
+              checked={rememberMe}
+              onChange={(e) => setRememberMe(e.target.checked)}
+            />
+            <span>Lembrar-me</span>
+          </label>
           <Link
             href="/auth/forgot-password"
-            className="ml-auto text-sm text-primary underline-offset-4 hover:underline"
+            className="font-medium text-foreground hover:text-primary transition-colors underline-offset-4 hover:underline"
           >
-            Esqueceu a sua palavra-passe?
+            Esqueceu a palavra-passe?
           </Link>
         </div>
 
@@ -99,19 +142,23 @@ export function LoginForm() {
             autoComplete="one-time-code"
             inputMode="numeric"
             {...register("totpCode")}
+            className="rounded-xl"
           />
         )}
 
-        <ButtonSubmit isLoading={isSubmitting}>
+        <ButtonSubmit
+          isLoading={isSubmitting}
+          className="rounded-xl py-3 text-base font-semibold shadow-md hover:shadow-lg transition-all"
+        >
           {isSubmitting ? "" : "Entrar"}
         </ButtonSubmit>
-
       </div>
-      <div className="text-sm text-center">
+
+      <div className="text-sm text-center text-muted-foreground mt-2">
         A sua escola ainda não está na MindSchool?{" "}
         <Link
           href="/auth/register"
-          className="font-medium text-primary hover:underline underline-offset-4"
+          className="font-semibold text-foreground hover:text-primary transition-colors hover:underline underline-offset-4"
         >
           Saiba como activar
         </Link>
