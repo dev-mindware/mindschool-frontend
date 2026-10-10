@@ -11,6 +11,7 @@ import {
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { useListFilters } from "@/hooks/common/use-list-filters";
 import { useCalendar } from "@/hooks/school/use-calendar";
+import { useGoogleReturn } from "@/hooks/school/use-google-return";
 import { EVENT_TYPE_LABEL, type ApiEvent, type ApiHolidayRow } from "@/services/calendar-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -105,6 +106,7 @@ function GooglePanel() {
 
 /** Calendário escolar: vista de calendário (mês) e lista, filtros completos, feriados/pontes e ligação ao Google Calendar. */
 export function CalendarPageContent() {
+  useGoogleReturn();
   const c = useCalendar();
   const { openModal } = useModal();
   const [month, setMonth] = useState(() => new Date());

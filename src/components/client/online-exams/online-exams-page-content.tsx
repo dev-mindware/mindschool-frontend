@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import { SucessMessage, ErrorMessage } from '@/utils/messages';
 import { Can, TitleList, Button, Icon } from '@/components';
+import { useGoogleReturn } from '@/hooks/school/use-google-return';
 import { useExamTargets, useOnlineExams } from '@/hooks/school/use-online-exams';
 import type { ApiExam } from '@/services/exams-service';
 import { getApiErrorMessage } from '@/utils/api-error';
@@ -15,6 +16,7 @@ import { ExamGradingModal } from './exam-grading-modal';
 import { GoogleFormModal } from './google-form-modal';
 
 export function OnlineExamsPageContent() {
+  useGoogleReturn();
   const { allExams, isLoading, metrics, create, addQuestion, removeQuestion, publish, close } = useOnlineExams();
   const { assignments, terms } = useExamTargets();
 

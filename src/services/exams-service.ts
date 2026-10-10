@@ -130,6 +130,6 @@ export const examsService = {
     const { data } = await api.get<{ connected: boolean; integration?: { scopes?: string } | null }>("/s/integrations/google");
     return { connected: data.connected, scopes: data.integration?.scopes ?? null };
   },
-  connectGoogle: async (): Promise<string> => (await api.post<{ url: string }>("/s/integrations/google/connect-url", {})).data.url,
+  connectGoogle: async (): Promise<string> => (await api.post<{ url: string }>("/s/integrations/google/connect-url", { return_to: "exams" })).data.url,
 
 };

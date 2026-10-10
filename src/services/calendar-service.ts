@@ -40,6 +40,12 @@ export interface ApiGoogleStatus {
   capabilities?: { oauth_configured: boolean; api_key_configured: boolean; webhook_configured: boolean };
 }
 
+export interface ApiTeacherGoogleStatus {
+  teacher_id: string;
+  connected: boolean;
+  link: { status: string; calendar_id: string | null; consent_at: string; last_sync_at: string | null; last_error: string | null } | null;
+}
+
 export const EVENT_TYPE_LABEL: Record<string, string> = {
   aulas_inicio: "Início das aulas", aulas_fim: "Fim das aulas", trimestre: "Trimestre", avaliacoes_trimestrais: "Avaliações trimestrais",
   exame_nacional: "Exame nacional", exame_recurso: "Exame de recurso", exame_melhoria: "Exame de melhoria", exame_extraordinario: "Exame extraordinário",
@@ -83,8 +89,14 @@ export const calendarService = {
   importNational: async (academicYearId: string, mode: "preview" | "apply") => (await api.post<unknown>("/s/calendar/import-national", { academic_year_id: academicYearId, mode })).data,
 
   googleStatus: async (): Promise<ApiGoogleStatus> => (await api.get<ApiGoogleStatus>("/s/integrations/google")).data,
-  googleConnect: async (): Promise<string> => (await api.post<{ url: string }>("/s/integrations/google/connect-url", {})).data.url,
+  googleConnect: async (): Promise<string> => (await api.post<{ url: string }>("/s/integrations/google/connect-url", { return_to: "calendar" })).data.url,
   googleDisconnect: async (removeEvents: boolean) => (await api.post("/s/integrations/google/disconnect", { remove_events: removeEvents })).data,
   googleResync: async () => (await api.post("/s/integrations/google/resync", {})).data,
   googlePull: async () => (await api.post("/s/integrations/google/pull", {})).data,
+
+  // ---- Horário do professor no seu próprio Google Calendar (opt-in) ----
+  teacherGoogleStatus: async (): Promise<ApiTeacherGoogleStatus> => (await api.get<ApiTeacherGoogleStatus>("/s/teachers/me/google")).data,
+  teacherGoogleConnect: async (): Promise<string> => (await api.post<{ url: string }>("/s/teachers/me/google/connect-url", { return_to: "timetable" })).data.url,
+  teacherGoogleSync: async () => (await api.post("/s/teachers/me/google/sync", {})).data,
+  teacherGoogleDisconnect: async () => (await api.post("/s/teachers/me/google/disconnect", {})).data,
 };

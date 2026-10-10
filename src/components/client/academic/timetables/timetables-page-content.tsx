@@ -10,7 +10,9 @@ import {
 } from "@/components";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { useListFilters } from "@/hooks/common/use-list-filters";
+import { useGoogleReturn } from "@/hooks/school/use-google-return";
 import { useTimetables } from "@/hooks/school/use-timetables";
+import { TeacherGoogleCard } from "./teacher-google-card";
 import { academicService } from "@/services/academic-service";
 import { SHIFT_LABEL, WEEKDAY, type ApiChange, type ApiEntry, type ApiRoom, type ApiValidation, type Shift } from "@/services/timetables-service";
 import { useModal } from "@/stores/modal/use-modal-store";
@@ -130,6 +132,7 @@ function TimetableGuide({ hasBells, hasRooms, hasYear, creating, onCreate, onBel
 }
 
 export function TimetablesPageContent() {
+  useGoogleReturn();
   const [timetableId, setTimetableId] = useState<string>("");
   const tt = useTimetables(timetableId || undefined);
   const { timetables, sections, entries, slotsFor, bells, hasYear } = tt;
@@ -187,6 +190,7 @@ export function TimetablesPageContent() {
           <Can permission="timetable:write"><Button size="sm" className="gap-1.5" disabled={!hasYear || tt.create.isPending} onClick={() => tt.create.mutateAsync(current?.id).then(() => SucessMessage(current ? "Nova versão criada a partir da actual." : "Horário criado.")).catch(fail)}><Icon name="Plus" className="size-4" />{current ? "Nova versão" : "Criar horário"}</Button></Can>
         </div>
       </TitleList>
+<TeacherGoogleCard />
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
         <DynamicMetricCard title={current ? `v${current.version_number}` : "—"} subtitle="Versão em vista" icon="CalendarRange" description={current ? STATUS_LABEL[current.status] : "Sem horário"} />

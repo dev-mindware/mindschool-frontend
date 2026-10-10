@@ -60,11 +60,11 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(handleLogin)} className="flex flex-col gap-6 w-full max-w-sm mx-auto">
+    <form onSubmit={handleSubmit(handleLogin)} className="flex flex-col gap-6 w-full max-w-sm">
       {/* Cabeçalho da marca e título adaptado à referência */}
       <div className="flex flex-col gap-1.5 text-left">
         <div className="flex items-center gap-3 mb-2">
-          <div className="relative size-11 rounded-2xl overflow-hidden bg-primary/10 p-1.5 border border-primary/20 shadow-sm">
+          <div className="relative size-10 rounded-xl overflow-hidden bg-primary/10 p-1 border border-primary/20 shadow-sm">
             <Image
               src="/mindgest.png"
               alt="Logótipo do MindSchool"
@@ -83,7 +83,7 @@ export function LoginForm() {
           </div>
         </div>
 
-        <h1 className="text-3xl font-extrabold tracking-tight text-foreground mt-2">
+        <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mt-2">
           Bem-vindo(a) de volta
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -100,7 +100,6 @@ export function LoginForm() {
           {...register("email")}
           error={errors?.email && errors?.email?.message}
           autoComplete="email"
-          className="rounded-xl"
         />
 
         <div className="flex flex-col space-y-2">
@@ -111,11 +110,10 @@ export function LoginForm() {
             placeholder="••••••••••••"
             {...register("password")}
             autoComplete="current-password"
-            className="rounded-xl"
           />
         </div>
 
-        {/* Linha com 'Lembrar-me' e 'Esqueceu a palavra-passe?' idêntica ao layout */}
+        {/* Linha com 'Lembrar-me' e 'Esqueceu a palavra-passe?' */}
         <div className="flex items-center justify-between text-sm pt-1">
           <label className="flex items-center gap-2 cursor-pointer text-muted-foreground hover:text-foreground select-none">
             <input
@@ -142,14 +140,10 @@ export function LoginForm() {
             autoComplete="one-time-code"
             inputMode="numeric"
             {...register("totpCode")}
-            className="rounded-xl"
           />
         )}
 
-        <ButtonSubmit
-          isLoading={isSubmitting}
-          className="rounded-xl py-3 text-base font-semibold shadow-md hover:shadow-lg transition-all"
-        >
+        <ButtonSubmit isLoading={isSubmitting}>
           {isSubmitting ? "" : "Entrar"}
         </ButtonSubmit>
       </div>

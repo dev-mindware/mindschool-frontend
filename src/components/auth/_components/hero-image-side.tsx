@@ -1,36 +1,38 @@
 "use client";
 
 import React, { useEffect, useRef, useState, useId } from "react";
-import Image from "next/image";
-import { Sparkles, ArrowRightLeft } from "lucide-react";
 
 interface HeroImageSideProps {
   source?: string;
   title?: string;
   subtitle?: string;
-  badge?: string;
   hoverTitle?: string;
   hoverSubtitle?: string;
-  hoverBadge?: string;
   className?: string;
 }
 
-// Resolução do sistema de coordenadas do SVG
+// Resolução do sistema de coordenadas normalizado do SVG
 const N = 1000;
-const R = 54; // Canto normal arredondado
-const W = 180; // Largura do contorno/notch recortado
-const H = 170; // Altura do contorno/notch recortado
+const R = 44; // Canto normal suavemente arredondado
+const W = 160; // Largura do contorno recortado
+const H = 160; // Altura do contorno recortado
 
 /**
- * Gera os pontos de controlo para os 4 cantos da forma.
- * No estado normal (isHovered = false):
- * - Canto Superior-Esquerdo (C0): Contornado (notch recortado)
- * - Canto Superior-Direito (C1): Normal (arredondado suave)
- * - Canto Inferior-Direito (C2): Contornado (notch recortado)
- * - Canto Inferior-Esquerdo (C3): Normal (arredondado suave)
+ * Calcula os pontos de controlo para os 4 cantos da forma.
+ * Todas as tangentes nos pontos de inflexão são alinhadas a 45 graus em ambos os estados,
+ * garantindo uma transição C1 contínua, pura e fluida a 60fps sem oscilações ou distorções.
  *
- * No estado hover (isHovered = true):
- * - Os cantos contornados ficam normais e os normais ficam contornados!
+ * Estado Normal (!isHovered):
+ * - Top-Left (C0): Contornado
+ * - Top-Right (C1): Normal
+ * - Bottom-Right (C2): Contornado
+ * - Bottom-Left (C3): Normal
+ *
+ * Estado Hover (isHovered):
+ * - Top-Left (C0): Normal
+ * - Top-Right (C1): Contornado
+ * - Bottom-Right (C2): Normal
+ * - Bottom-Left (C3): Contornado
  */
 function getCornerPoints(isHovered: boolean) {
   const c0Contoured = !isHovered;
@@ -39,54 +41,66 @@ function getCornerPoints(isHovered: boolean) {
   const c3Contoured = isHovered;
 
   // C0: Canto Superior-Esquerdo (esquerda -> topo)
-  const c0_start = c0Contoured ? [0, H] : [0, R];
-  const c0_m = c0Contoured ? [W * 0.40, H * 0.58] : [R * 0.293, R * 0.293];
-  const c0_cp1 = c0Contoured ? [0, H * 0.72] : [0, R * 0.58];
-  const c0_cp2 = c0Contoured ? [W * 0.16, H * 0.58] : [R * 0.12, R * 0.38];
-  const c0_cp3 = c0Contoured ? [W * 0.62, H * 0.58] : [R * 0.38, R * 0.12];
-  const c0_cp4 = c0Contoured ? [W * 0.76, 0] : [R * 0.58, 0];
-  const c0_end = c0Contoured ? [W, 0] : [R, 0];
+  const c0_w = c0Contoured ? W : R;
+  const c0_h = c0Contoured ? H : R;
+  const c0_start = [0, c0_h];
+  const c0_c1 = [0, c0Contoured ? H * 0.6 : R * 0.55];
+  const c0_m = c0Contoured ? [W * 0.32, H * 0.68] : [R * 0.293, R * 0.293];
+  const c0_delta = c0Contoured ? W * 0.15 : R * 0.15;
+  const c0_c2 = [c0_m[0] - c0_delta, c0_m[1] + c0_delta];
+  const c0_c3 = [c0_m[0] + c0_delta, c0_m[1] - c0_delta];
+  const c0_c4 = [c0Contoured ? W * 0.6 : R * 0.55, 0];
+  const c0_end = [c0_w, 0];
 
   // C1: Canto Superior-Direito (topo -> direita)
-  const c1_start = c1Contoured ? [N - W, 0] : [N - R, 0];
-  const c1_m = c1Contoured ? [N - W * 0.40, H * 0.58] : [N - R * 0.293, R * 0.293];
-  const c1_cp1 = c1Contoured ? [N - W * 0.76, 0] : [N - R * 0.58, 0];
-  const c1_cp2 = c1Contoured ? [N - W * 0.62, H * 0.58] : [N - R * 0.38, R * 0.12];
-  const c1_cp3 = c1Contoured ? [N - W * 0.16, H * 0.58] : [N - R * 0.12, R * 0.38];
-  const c1_cp4 = c1Contoured ? [N, H * 0.72] : [N, R * 0.58];
-  const c1_end = c1Contoured ? [N, H] : [N, R];
+  const c1_w = c1Contoured ? W : R;
+  const c1_h = c1Contoured ? H : R;
+  const c1_start = [N - c1_w, 0];
+  const c1_c1 = [N - (c1Contoured ? W * 0.6 : R * 0.55), 0];
+  const c1_m = c1Contoured ? [N - W * 0.32, H * 0.68] : [N - R * 0.293, R * 0.293];
+  const c1_delta = c1Contoured ? W * 0.15 : R * 0.15;
+  const c1_c2 = [c1_m[0] - c1_delta, c1_m[1] - c1_delta];
+  const c1_c3 = [c1_m[0] + c1_delta, c1_m[1] + c1_delta];
+  const c1_c4 = [N, c1Contoured ? H * 0.6 : R * 0.55];
+  const c1_end = [N, c1_h];
 
   // C2: Canto Inferior-Direito (direita -> base)
-  const c2_start = c2Contoured ? [N, N - H] : [N, N - R];
-  const c2_m = c2Contoured ? [N - W * 0.40, N - H * 0.58] : [N - R * 0.293, N - R * 0.293];
-  const c2_cp1 = c2Contoured ? [N, N - H * 0.72] : [N, N - R * 0.58];
-  const c2_cp2 = c2Contoured ? [N - W * 0.16, N - H * 0.58] : [N - R * 0.12, N - R * 0.38];
-  const c2_cp3 = c2Contoured ? [N - W * 0.62, N - H * 0.58] : [N - R * 0.38, N - R * 0.12];
-  const c2_cp4 = c2Contoured ? [N - W * 0.76, N] : [N - R * 0.58, N];
-  const c2_end = c2Contoured ? [N - W, N] : [N - R, N];
+  const c2_w = c2Contoured ? W : R;
+  const c2_h = c2Contoured ? H : R;
+  const c2_start = [N, N - c2_h];
+  const c2_c1 = [N, N - (c2Contoured ? H * 0.6 : R * 0.55)];
+  const c2_m = c2Contoured ? [N - W * 0.32, N - H * 0.68] : [N - R * 0.293, N - R * 0.293];
+  const c2_delta = c2Contoured ? W * 0.15 : R * 0.15;
+  const c2_c2 = [c2_m[0] + c2_delta, c2_m[1] - c2_delta];
+  const c2_c3 = [c2_m[0] - c2_delta, c2_m[1] + c2_delta];
+  const c2_c4 = [N - (c2Contoured ? W * 0.6 : R * 0.55), N];
+  const c2_end = [N - c2_w, N];
 
   // C3: Canto Inferior-Esquerdo (base -> esquerda)
-  const c3_start = c3Contoured ? [W, N] : [R, N];
-  const c3_m = c3Contoured ? [W * 0.40, N - H * 0.58] : [R * 0.293, N - R * 0.293];
-  const c3_cp1 = c3Contoured ? [W * 0.76, N] : [R * 0.58, N];
-  const c3_cp2 = c3Contoured ? [W * 0.62, N - H * 0.58] : [R * 0.38, N - R * 0.12];
-  const c3_cp3 = c3Contoured ? [W * 0.16, N - H * 0.58] : [R * 0.12, N - R * 0.38];
-  const c3_cp4 = c3Contoured ? [0, N - H * 0.72] : [0, N - R * 0.58];
-  const c3_end = c3Contoured ? [0, N - H] : [0, N - R];
+  const c3_w = c3Contoured ? W : R;
+  const c3_h = c3Contoured ? H : R;
+  const c3_start = [c3_w, N];
+  const c3_c1 = [c3Contoured ? W * 0.6 : R * 0.55, N];
+  const c3_m = c3Contoured ? [W * 0.32, N - H * 0.68] : [R * 0.293, N - R * 0.293];
+  const c3_delta = c3Contoured ? W * 0.15 : R * 0.15;
+  const c3_c2 = [c3_m[0] + c3_delta, c3_m[1] + c3_delta];
+  const c3_c3 = [c3_m[0] - c3_delta, c3_m[1] - c3_delta];
+  const c3_c4 = [0, N - (c3Contoured ? H * 0.6 : R * 0.55)];
+  const c3_end = [0, N - c3_h];
 
   return [
     { type: "M", p: c0_start },
-    { type: "C", cp1: c0_cp1, cp2: c0_cp2, p: c0_m },
-    { type: "C", cp1: c0_cp3, cp2: c0_cp4, p: c0_end },
+    { type: "C", cp1: c0_c1, cp2: c0_c2, p: c0_m },
+    { type: "C", cp1: c0_c3, cp2: c0_c4, p: c0_end },
     { type: "L", p: c1_start },
-    { type: "C", cp1: c1_cp1, cp2: c1_cp2, p: c1_m },
-    { type: "C", cp1: c1_cp3, cp2: c1_cp4, p: c1_end },
+    { type: "C", cp1: c1_c1, cp2: c1_c2, p: c1_m },
+    { type: "C", cp1: c1_c3, cp2: c1_c4, p: c1_end },
     { type: "L", p: c2_start },
-    { type: "C", cp1: c2_cp1, cp2: c2_cp2, p: c2_m },
-    { type: "C", cp1: c2_cp3, cp2: c2_cp4, p: c2_end },
+    { type: "C", cp1: c2_c1, cp2: c2_c2, p: c2_m },
+    { type: "C", cp1: c2_c3, cp2: c2_c4, p: c2_end },
     { type: "L", p: c3_start },
-    { type: "C", cp1: c3_cp1, cp2: c3_cp2, p: c3_m },
-    { type: "C", cp1: c3_cp3, cp2: c3_cp4, p: c3_end },
+    { type: "C", cp1: c3_c1, cp2: c3_c2, p: c3_m },
+    { type: "C", cp1: c3_c3, cp2: c3_c4, p: c3_end },
     { type: "Z" },
   ];
 }
@@ -129,10 +143,8 @@ export function HeroImageSide({
   source = "/auth/auth_school_hero.jpg",
   title = "Inovação e Rigor no Ensino",
   subtitle = "Pautas oficiais do MED, propinas, matrículas e acompanhamento pedagógico num único ecossistema inteligente.",
-  badge = "MindSchool • Educação & Ensino",
   hoverTitle = "Conformidade Oficial & MED",
   hoverSubtitle = "Geração imediata de mapas de aproveitamento, minipautas seguras e gestão integrada para o futuro da sua escola.",
-  hoverBadge = "Ministério da Educação (MED) • Angola",
   className = "",
 }: HeroImageSideProps) {
   const uniqueId = useId().replace(/:/g, "");
@@ -142,16 +154,14 @@ export function HeroImageSide({
   const pathRef = useRef<SVGPathElement>(null);
   const [isHovered, setIsHovered] = useState(false);
 
-  // Animação contínua e suave via requestAnimationFrame a 60fps
   const animRef = useRef<number | null>(null);
   const currentTRef = useRef<number>(0);
   const targetTRef = useRef<number>(0);
   const startTimeRef = useRef<number | null>(null);
   const startValRef = useRef<number>(0);
-  const duration = 650; // ms de transição
+  const duration = 600; // ms da animação de troca de forma
 
   useEffect(() => {
-    // Inicializa o path com a posição padrão (repouso)
     if (pathRef.current) {
       pathRef.current.setAttribute("d", buildSvgPath(0));
     }
@@ -195,47 +205,41 @@ export function HeroImageSide({
 
   return (
     <div
-      className={`relative flex h-full min-h-[580px] w-full flex-col justify-between overflow-hidden p-3 select-none ${className}`}
+      className={`relative flex h-full w-full select-none cursor-pointer overflow-hidden ${className}`}
       onMouseEnter={() => triggerMorph(true)}
       onMouseLeave={() => triggerMorph(false)}
       role="region"
-      aria-label="Apresentação visual da MindSchool"
+      aria-label="Apresentação visual interativa da MindSchool"
     >
-      {/* Container SVG recortado com o Morphing dos cantos contornados */}
-      <div className="relative h-full w-full min-h-[560px] overflow-hidden drop-shadow-xl transition-all duration-500 ease-out">
+      {/* Container SVG recortado estritamente pela máscara dos cantos */}
+      <div className="relative h-full w-full overflow-hidden">
         <svg
           viewBox="0 0 1000 1000"
-          className="h-full w-full object-cover"
+          className="h-full w-full"
           preserveAspectRatio="none"
         >
           <defs>
             <clipPath id={clipId}>
               <path ref={pathRef} d={buildSvgPath(0)} />
             </clipPath>
-            {/* Gradiente sofisticado para assegurar legibilidade impecável dos textos */}
+            {/* Gradiente escuro limpo apenas para legibilidade perfeita do texto sobre a imagem */}
             <linearGradient id={gradId} x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#090d16" stopOpacity="0.80" />
-              <stop offset="38%" stopColor="#090d16" stopOpacity="0.25" />
-              <stop offset="70%" stopColor="#090d16" stopOpacity="0.10" />
-              <stop offset="100%" stopColor="#090d16" stopOpacity="0.75" />
+              <stop offset="0%" stopColor="#000000" stopOpacity="0.65" />
+              <stop offset="35%" stopColor="#000000" stopOpacity="0.20" />
+              <stop offset="100%" stopColor="#000000" stopOpacity="0.10" />
             </linearGradient>
           </defs>
 
-          {/* Imagem contextual recortada pela máscara morphing */}
+          {/* Imagem nítida e estática sem zoom ou artefactos visuais */}
           <image
             href={source}
             width="1000"
             height="1000"
             preserveAspectRatio="xMidYMid slice"
             clipPath={`url(#${clipId})`}
-            style={{
-              transformOrigin: "center center",
-              transform: isHovered ? "scale(1.04)" : "scale(1.0)",
-              transition: "transform 800ms cubic-bezier(0.2, 0.8, 0.2, 1)",
-            }}
           />
 
-          {/* Camada de contraste / sombra elegante */}
+          {/* Sombra de contraste para o texto */}
           <rect
             width="1000"
             height="1000"
@@ -245,96 +249,51 @@ export function HeroImageSide({
           />
         </svg>
 
-        {/* Textos sobrepostos com alternância dinâmica no hover */}
-        <div className="pointer-events-none absolute inset-0 flex flex-col justify-between p-7 sm:p-9 md:p-11 text-white">
-          {/* Topo: Texto alinhado à direita conforme o layout da imagem em anexo */}
-          <div className="flex flex-col items-end text-right ml-auto max-w-sm sm:max-w-md">
-            {/* Badge de cabeçalho com transição */}
-            <div className="mb-3 inline-flex items-center gap-1.5 rounded-full bg-white/15 px-3 py-1 text-xs font-semibold tracking-wider text-white uppercase backdrop-blur-md border border-white/20 transition-all duration-300">
-              <Sparkles className="size-3 text-primary-300 animate-pulse" />
-              <span>{isHovered ? hoverBadge : badge}</span>
-            </div>
-
-            {/* Alternância do Título */}
-            <div className="relative min-h-[64px] w-full overflow-hidden">
-              <div
-                className={`transition-all duration-500 ease-out transform ${
+        {/* Textos sobrepostos com alternância pura e suave no hover */}
+        <div className="pointer-events-none absolute inset-x-0 top-0 p-8 sm:p-10 md:p-12 text-white">
+          <div className="ml-auto max-w-sm sm:max-w-md text-right">
+            {/* Bloco de Título */}
+            <div className="relative min-h-[56px] w-full">
+              <h2
+                className={`text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-snug drop-shadow-md text-white transition-all duration-500 ease-out ${
                   isHovered
-                    ? "-translate-y-4 opacity-0 pointer-events-none absolute"
-                    : "translate-y-0 opacity-100"
+                    ? "opacity-0 -translate-y-2 pointer-events-none absolute top-0 right-0"
+                    : "opacity-100 translate-y-0"
                 }`}
               >
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight leading-snug drop-shadow-md text-white">
-                  {title}
-                </h2>
-              </div>
-              <div
-                className={`transition-all duration-500 ease-out transform ${
+                {title}
+              </h2>
+              <h2
+                className={`text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-snug drop-shadow-md text-white transition-all duration-500 ease-out ${
                   isHovered
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-4 opacity-0 pointer-events-none absolute"
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-2 pointer-events-none absolute top-0 right-0"
                 }`}
               >
-                <h2 className="text-xl sm:text-2xl md:text-3xl font-extrabold tracking-tight leading-snug drop-shadow-md text-primary-200">
-                  {hoverTitle}
-                </h2>
-              </div>
+                {hoverTitle}
+              </h2>
             </div>
 
-            {/* Alternância do Subtítulo */}
-            <div className="relative mt-2 min-h-[50px] w-full overflow-hidden">
+            {/* Bloco de Subtítulo */}
+            <div className="relative mt-2 min-h-[48px] w-full">
               <p
-                className={`text-xs sm:text-sm font-medium leading-relaxed text-white/90 drop-shadow transition-all duration-500 ${
+                className={`text-xs sm:text-sm font-normal leading-relaxed text-white/90 drop-shadow transition-all duration-500 ease-out ${
                   isHovered
-                    ? "-translate-y-3 opacity-0 pointer-events-none absolute"
-                    : "translate-y-0 opacity-100"
+                    ? "opacity-0 -translate-y-2 pointer-events-none absolute top-0 right-0"
+                    : "opacity-100 translate-y-0"
                 }`}
               >
                 {subtitle}
               </p>
               <p
-                className={`text-xs sm:text-sm font-medium leading-relaxed text-white/95 drop-shadow transition-all duration-500 ${
+                className={`text-xs sm:text-sm font-normal leading-relaxed text-white/90 drop-shadow transition-all duration-500 ease-out ${
                   isHovered
-                    ? "translate-y-0 opacity-100"
-                    : "translate-y-3 opacity-0 pointer-events-none absolute"
+                    ? "opacity-100 translate-y-0"
+                    : "opacity-0 translate-y-2 pointer-events-none absolute top-0 right-0"
                 }`}
               >
                 {hoverSubtitle}
               </p>
-            </div>
-          </div>
-
-          {/* Rodapé: Marca e micro-indicador tátil de alternância */}
-          <div className="flex items-end justify-between pt-6 border-t border-white/10">
-            <div className="flex items-center gap-3">
-              <div className="relative size-9 rounded-xl overflow-hidden bg-white/20 p-1 backdrop-blur-md border border-white/20 shadow-inner">
-                <Image
-                  src="/mindgest.png"
-                  alt="MindSchool"
-                  fill
-                  className="object-contain"
-                />
-              </div>
-              <div className="flex flex-col">
-                <span className="text-xs font-bold tracking-wide uppercase text-white/95">
-                  MindSchool OS
-                </span>
-                <span className="text-[11px] text-white/70">
-                  Ensino &amp; Gestão Pedagógica
-                </span>
-              </div>
-            </div>
-
-            {/* Chip interativo com indicação de hover */}
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-black/40 px-3 py-1 text-[11px] font-medium text-white/80 backdrop-blur-md border border-white/10 transition-colors hover:bg-black/60">
-              <ArrowRightLeft
-                className={`size-3 transition-transform duration-500 ${
-                  isHovered ? "rotate-180 text-primary-300" : "text-white/60"
-                }`}
-              />
-              <span>
-                {isHovered ? "Perspetiva MED Ativa" : "Passe o cursor para alternar"}
-              </span>
             </div>
           </div>
         </div>

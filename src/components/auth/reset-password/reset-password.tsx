@@ -71,7 +71,7 @@ function ResetPasswordForm() {
       <div className="mx-auto flex w-full max-w-sm flex-col gap-6">
         <div className="flex flex-col gap-1.5 text-left">
           <div className="flex items-center gap-3 mb-2">
-            <div className="relative size-11 rounded-2xl overflow-hidden bg-primary/10 p-1.5 border border-primary/20 shadow-sm">
+            <div className="relative size-10 rounded-xl overflow-hidden bg-primary/10 p-1 border border-primary/20 shadow-sm">
               <Image
                 src="/mindgest.png"
                 alt="Logótipo do MindSchool"
@@ -90,7 +90,7 @@ function ResetPasswordForm() {
             </div>
           </div>
 
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mt-2">
             Nova palavra-passe
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -110,14 +110,13 @@ function ResetPasswordForm() {
                     type="password"
                     placeholder="Introduza a nova palavra-passe"
                     {...register("newPassword")}
-                    className="rounded-xl"
                   />
                 </div>
                 <Button
                   type="button"
                   variant="outline"
                   size="icon"
-                  className="shrink-0 rounded-xl size-10"
+                  className="shrink-0"
                   title="Gerar uma palavra-passe segura automaticamente"
                   onClick={generateStrongPassword}
                 >
@@ -139,13 +138,9 @@ function ResetPasswordForm() {
             placeholder="Confirme a nova palavra-passe"
             {...register("confirmPassword")}
             error={errors.confirmPassword && errors.confirmPassword?.message}
-            className="rounded-xl"
           />
 
-          <ButtonSubmit
-            isLoading={isPending}
-            className="w-full rounded-xl py-3 text-base font-semibold shadow-md hover:shadow-lg transition-all"
-          >
+          <ButtonSubmit isLoading={isPending} className="w-full">
             Confirmar e Concluir
           </ButtonSubmit>
 

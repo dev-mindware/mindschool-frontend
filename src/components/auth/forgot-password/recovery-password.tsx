@@ -48,7 +48,7 @@ export function RecoveryPassword() {
       >
         <div className="flex flex-col gap-1.5 text-left">
           <div className="flex items-center gap-3 mb-2">
-            <div className="relative size-11 rounded-2xl overflow-hidden bg-primary/10 p-1.5 border border-primary/20 shadow-sm">
+            <div className="relative size-10 rounded-xl overflow-hidden bg-primary/10 p-1 border border-primary/20 shadow-sm">
               <Image
                 src="/mindgest.png"
                 alt="Logótipo do MindSchool"
@@ -67,7 +67,7 @@ export function RecoveryPassword() {
             </div>
           </div>
 
-          <h1 className="text-3xl font-extrabold tracking-tight text-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mt-2">
             Recuperar palavra-passe
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -83,13 +83,9 @@ export function RecoveryPassword() {
             {...register("email")}
             placeholder="exemplo@escola.ao"
             error={errors.email?.message}
-            className="rounded-xl"
           />
 
-          <ButtonSubmit
-            isLoading={isPending}
-            className="w-full rounded-xl py-3 text-base font-semibold shadow-md hover:shadow-lg transition-all"
-          >
+          <ButtonSubmit isLoading={isPending} className="w-full">
             {isPending ? "A enviar instruções..." : "Verificar Email"}
           </ButtonSubmit>
 
