@@ -4,7 +4,7 @@ import { useAuthStore } from "@/stores";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-const EXCLUDED_PATHS = ["/auth", "/login", "/register", "/billing"];
+const EXCLUDED_PATHS = ["/auth", "/login", "/billing"];
 
 export function SubscriptionGuard({ children }: { children: React.ReactNode }) {
   const router = useRouter();

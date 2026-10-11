@@ -11,8 +11,8 @@ const STATUS_LABEL: Record<string, string> = { trial: "Em período de teste", ac
 const ATTENTION: Record<string, string> = { orders_awaiting_review: "Comprovativos por rever", past_due: "Pagamentos em atraso", trials_ending: "Testes a terminar", dead_letter: "Eventos falhados" };
 const LINKS = [
   { label: "Painel da plataforma", href: "/admin/platform", icon: "Server" as const },
-  { label: "Alunos (suporte)", href: "/students/list", icon: "GraduationCap" as const },
-  { label: "Matrículas", href: "/students/enrollments", icon: "ClipboardList" as const },
+  { label: "Escolas", href: "/admin/schools", icon: "School" as const },
+  { label: "Utilizadores", href: "/admin/users", icon: "Users" as const },
   { label: "Configurações", href: "/settings", icon: "Settings" as const },
 ];
 

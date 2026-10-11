@@ -24,3 +24,5 @@ export * from "./status-badge";
 export * from "./file-upload";
 export * from "./simple-table";
 export * from "./can";
+export * from "./step-up-dialog";
+export * from "./impersonation-banner";

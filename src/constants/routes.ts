@@ -1,7 +1,6 @@
 /* export const PUBLIC_ROUTES = [
   "/",
   "/auth/login",
-  "/auth/register",
   "/auth/forgot-password",
   "/auth/reset-password",
   "/unauthorized",
@@ -33,7 +32,6 @@ import { Role } from "@/types";
 export const PUBLIC_ROUTES = [
   "/",
   "/auth/login",
-  "/auth/register",
   "/auth/forgot-password",
   "/auth/reset-password",
   "/unauthorized",
@@ -44,7 +42,6 @@ export const PUBLIC_ROUTES = [
 export const AUTH_PAGES = [
   "/",
   "/auth/login",
-  "/auth/register",
   "/auth/forgot-password",
   "/auth/reset-password",
 ] as const;
@@ -87,6 +84,8 @@ export const API_AUTH_PREFIX = "/api/auth";
 export const ACCESS_TOKEN_KEY = "access_token";
 export const REFRESH_TOKEN_KEY = "refresh_token";
 export const ROLE_KEY = "user_role";
+/** Cookie (httpOnly) com a sessão do administrador enquanto dura uma personificação: permite voltar a ela ao terminar. */
+export const IMPERSONATION_BACKUP_KEY = "imp_backup";
 
 // Mapa de redirect padrão por role (Landing routes)
 export const ROLE_REDIRECTS: Record<Role, string> = {

@@ -149,13 +149,7 @@ export function LoginForm() {
       </div>
 
       <div className="text-sm text-center text-muted-foreground mt-2">
-        A sua escola ainda não está na MindSchool?{" "}
-        <Link
-          href="/auth/register"
-          className="font-semibold text-foreground hover:text-primary transition-colors hover:underline underline-offset-4"
-        >
-          Saiba como activar
-        </Link>
+        As escolas são activadas pela equipa Mindware; o Titular recebe um convite por email.
       </div>
     </form>
   );

@@ -6,6 +6,7 @@ import axios, {
 import { getAccessToken } from "@/actions/token";
 import { clearLocalSession } from "@/actions/auth";
 import { redirectToLogin } from "@/lib/browser-redirect";
+import { getStepUpToken, isStepUpRequired, requestStepUp } from "@/lib/step-up";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 
 // ============================================================================
@@ -42,7 +43,6 @@ const processQueue = (error: any, token: string | null = null) => {
 // Rotas de auth pública — não enviam Authorization
 const PUBLIC_AUTH_ROUTES = [
   "/auth/login",
-  "/auth/register",
   "/auth/forgot-password",
   "/auth/reset-password",
 ] as const;
@@ -52,7 +52,6 @@ const NO_REFRESH_ROUTES = [
   "/auth/login",
   "/auth/logout",
   "/api/auth/refresh",
-  "/auth/register",
   "/auth/forgot-password",
   "/auth/reset-password",
 ] as const;
@@ -133,6 +132,10 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
     }
   }
 
+  // Token de reautenticação (step-up) ainda válido: segue em todos os pedidos autenticados.
+  const stepUp = getStepUpToken();
+  if (stepUp && !isPublicAuthRoute(url)) config.headers["X-Step-Up-Token"] = stepUp;
+
   // --------------------------------------------------------------------------
   // 2. ROTAS DA ESCOLA: "/s/students" -> "/schools/{schoolId}/students"
   // --------------------------------------------------------------------------
@@ -189,6 +192,16 @@ api.interceptors.response.use(
       dispatchSessionExpired();
       redirectToLogin(); // ✅ Usa o helper testável
       return Promise.reject(err);
+    }
+
+    // ------------------------------------------------------------------------
+    // CASO 2b: operação crítica pede reautenticação (step-up): confirma a identidade e repete o pedido
+    // ------------------------------------------------------------------------
+    if (status === 401 && isStepUpRequired(err.response?.data)) {
+      const token = await requestStepUp();
+      original._retry = true;
+      original.headers = { ...(original.headers ?? {}), "X-Step-Up-Token": token } as typeof original.headers;
+      return api(original);
     }
 
     // ------------------------------------------------------------------------

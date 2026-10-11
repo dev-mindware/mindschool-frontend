@@ -4,6 +4,7 @@ import {
   ACCESS_TOKEN_KEY,
   REFRESH_TOKEN_KEY,
   ROLE_KEY,
+  IMPERSONATION_BACKUP_KEY,
 } from "@/constants/routes";
 
 /**
@@ -96,6 +97,9 @@ export async function createSession(payload: SessionPayload) {
     ...baseCookieOptions,
     expires: refreshExpiresAt,
   });
+
+  // um novo início de sessão nunca herda uma personificação antiga
+  authCookies.delete(IMPERSONATION_BACKUP_KEY);
 }
 
 export async function destroySession() {
@@ -104,6 +108,7 @@ export async function destroySession() {
   authCookies.delete(ACCESS_TOKEN_KEY);
   authCookies.delete(REFRESH_TOKEN_KEY);
   authCookies.delete(ROLE_KEY);
+  authCookies.delete(IMPERSONATION_BACKUP_KEY);
 }
 
 /**
