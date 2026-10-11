@@ -7,6 +7,8 @@ export interface ApiMe {
   email: string;
   full_name: string;
   mfa_enabled: boolean;
+  /** A política exige o segundo factor a este utilizador e ele ainda não o activou. */
+  mfa_enrollment_required?: boolean;
   memberships: Array<{ school_id: string; school_name: string; roles: string[]; permissions?: string[] }>;
   /** Presente numa sessão de personificação (suporte): quem assumiu a identidade, porquê, até quando e se pode escrever. */
   impersonation?: { id: string; admin_user_id: string; reason: string; expires_at: string; write_enabled: boolean };

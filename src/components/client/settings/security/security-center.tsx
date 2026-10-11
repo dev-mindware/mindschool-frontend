@@ -6,6 +6,8 @@ import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, FormModal, Icon, Input, type Column } from "@/components";
 import { useSecurity } from "@/hooks/school/use-security";
 import type { ApiPasskey, ApiSession } from "@/services/security-service";
+import { RecoveryCodesBody } from "./recovery-codes-body";
+import { TOTP_DIGITS, TotpSetupBody } from "./totp-setup-body";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 
@@ -48,10 +50,16 @@ export function SecurityCenter() {
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 className="text-lg font-semibold">Autenticação em dois passos (TOTP)</h3>
-            <p className="text-xs text-muted-foreground">Proteja a conta com um código gerado no telemóvel (Google Authenticator, Authy…).</p>
+            <p className="text-xs text-muted-foreground">Além da palavra-passe, pede um código de 6 dígitos gerado no telemóvel (Google Authenticator, Microsoft Authenticator, Authy…).</p>
           </div>
           <Badge variant="outline" className={s.mfaEnabled ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700" : ""}>{s.mfaEnabled ? "Segundo factor activo" : "Sem segundo factor"}</Badge>
         </div>
+        {!s.mfaEnabled && s.mfaRequired && (
+          <div className="flex items-start gap-2 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+            <Icon name="ShieldAlert" className="mt-0.5 size-4 shrink-0 text-primary" />
+            <p>O seu perfil exige o segundo factor. Leva um minuto: clique em «Configurar autenticador» e siga os três passos.</p>
+          </div>
+        )}
         <div className="flex flex-wrap gap-2">
           {!s.mfaEnabled && (
             <Button size="sm" className="gap-2" disabled={s.enroll.isPending} onClick={() => s.enroll.mutateAsync().then((r) => { setSecret(r); resetFields(); openModal("sec-totp-setup"); }).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>
@@ -98,14 +106,8 @@ export function SecurityCenter() {
         />
       </section>
 
-      <FormModal id="sec-totp-setup" title="Configurar autenticador" description="Adicione a chave ao autenticador e confirme com o código de 6 dígitos." submitLabel="Confirmar" isLoading={s.verify.isPending} disabled={code.trim().length < 6} onSubmit={() => s.verify.mutateAsync(code.trim()).then((r) => { SucessMessage("Autenticador activado."); setSecret(null); setCode(""); if (r.recovery_codes) showCodes(r.recovery_codes); }).catch(fail)}>
-        {secret && (
-          <div className="sm:col-span-2 space-y-2 text-sm">
-            <p>Chave de configuração (ou <a className="underline" href={secret.otpauth_url}>abra a ligação no telemóvel</a>):</p>
-            <p className="select-all break-all rounded bg-muted p-2 font-mono text-xs">{secret.secret}</p>
-          </div>
-        )}
-        <div className="sm:col-span-2"><Input label="Código de 6 dígitos *" startIcon="Hash" value={code} onChange={(e) => setCode(e.target.value)} /></div>
+      <FormModal id="sec-totp-setup" title="Configurar autenticador" description="Três passos rápidos: instalar, ler o código QR e confirmar." submitLabel="Activar" isLoading={s.verify.isPending} disabled={code.length < TOTP_DIGITS} onSubmit={() => s.verify.mutateAsync(code).then((r) => { SucessMessage("Autenticador activado."); setSecret(null); setCode(""); if (r.recovery_codes) showCodes(r.recovery_codes); }).catch((e) => { setCode(""); fail(e); })}>
+        {secret && <TotpSetupBody secret={secret} code={code} onCode={setCode} busy={s.verify.isPending} />}
       </FormModal>
 
       <FormModal id="sec-new-codes" title="Novos códigos de recuperação" description="Os códigos anteriores deixam de funcionar. Confirme com o código actual do autenticador." submitLabel="Gerar códigos" isLoading={s.recovery.isPending} disabled={code.trim().length < 6} onSubmit={() => s.recovery.mutateAsync(code.trim()).then((r) => { setCode(""); SucessMessage("Novos códigos gerados."); showCodes(r.recovery_codes); }).catch(fail)}>
@@ -125,8 +127,8 @@ export function SecurityCenter() {
         <div className="sm:col-span-2"><Input label="Palavra-passe *" type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
       </FormModal>
 
-      <FormModal id="sec-recovery-codes" title="Códigos de recuperação" description="Guarde-os agora num local seguro: não voltam a ser mostrados." readOnly onSubmit={() => closeModal("sec-recovery-codes")}>
-        <div className="sm:col-span-2 grid grid-cols-2 gap-2 rounded-lg border bg-muted/40 p-3 font-mono text-sm">{(codes ?? []).map((c) => <span key={c}>{c}</span>)}</div>
+      <FormModal id="sec-recovery-codes" title="Códigos de recuperação" description="Guarde-os agora num local seguro." readOnly onSubmit={() => closeModal("sec-recovery-codes")}>
+        <RecoveryCodesBody codes={codes ?? []} />
       </FormModal>
 
       <ConfirmModal id="sec-end-session" destructive title="Terminar sessão" description="O dispositivo escolhido perde o acesso de imediato." confirmLabel="Terminar" isLoading={s.revoke.isPending} onConfirm={() => (session ? s.revoke.mutateAsync(session.id).then(() => SucessMessage("Sessão terminada.")).catch(fail) : undefined)} />

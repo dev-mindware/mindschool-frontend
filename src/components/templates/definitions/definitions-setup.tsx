@@ -20,6 +20,7 @@ import { SchoolEmailsContent } from "@/components/client/settings/emails/school-
 import { TeachersPageContent } from "@/components/client/teachers/teachers-page-content";
 import { useAuth } from "@/hooks/auth";
 import { useCan } from "@/hooks/auth/use-can";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 interface DefSetupProps {
   disabledTabs?: string[];
@@ -30,8 +31,10 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
   const searchParams = useSearchParams();
   const { user } = useAuth();
   const { can } = useCan();
+  const isMobile = useIsMobile();
   const role = user?.role ?? "";
-  const isManager = ["DIRECTOR_GENERAL", "PEDAGOGIC_DIRECTOR", "SYSTEM_ADMIN", "OWNER", "MANAGER", "ADMIN"].includes(role);
+  // O administrador de sistema opera a plataforma, não uma escola: só vê as definições da conta (sem «Ambiente Escolar» nem Subscrição).
+  const isManager = ["DIRECTOR_GENERAL", "PEDAGOGIC_DIRECTOR", "OWNER", "MANAGER", "ADMIN"].includes(role);
   const isFinance = ["DIRECTOR_GENERAL", "OWNER", "ADMIN", "FINANCIAL"].includes(role);
   const isStaff = isManager || ["SECRETARY", "FINANCIAL"].includes(role);
   const currentTab = searchParams.get("tab");
@@ -202,7 +205,8 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
           </div>
 
           <div className="border rounded-md grow min-w-0 text-start bg-card shadow-xs" data-tour="setup-active-content">
-            {enabledTabs.map((tab) => (
+            {/* O conteúdo só existe no layout visível: montado nos dois, modais com o mesmo id abriam em duplicado. */}
+            {!isMobile && enabledTabs.map((tab) => (
               <TabsContent key={tab.id} value={tab.id} className="!py-4 sm:p-6 mt-0">
                 {tab.component}
               </TabsContent>
@@ -228,7 +232,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
           </div>
 
           <div className="mt-4 sm:mt-6" data-tour="setup-active-content">
-            {enabledTabs.map((tab) => (
+            {isMobile && enabledTabs.map((tab) => (
               <TabsContent
                 key={tab.id}
                 value={tab.id}
