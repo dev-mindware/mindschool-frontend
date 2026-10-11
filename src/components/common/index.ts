@@ -26,3 +26,4 @@ export * from "./simple-table";
 export * from "./can";
 export * from "./step-up-dialog";
 export * from "./impersonation-banner";
+export * from "./mfa-enrollment-dialog";

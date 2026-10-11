@@ -6,6 +6,7 @@ import axios, {
 import { getAccessToken } from "@/actions/token";
 import { clearLocalSession } from "@/actions/auth";
 import { redirectToLogin } from "@/lib/browser-redirect";
+import { isMfaEnrollmentRequired, notifyMfaEnrollmentRequired } from "@/lib/mfa-enrollment";
 import { getStepUpToken, isStepUpRequired, requestStepUp } from "@/lib/step-up";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 
@@ -277,6 +278,7 @@ api.interceptors.response.use(
     // ------------------------------------------------------------------------
     if (status === 403) {
       console.warn("⛔ [API] 403 Forbidden:", original.url);
+      if (isMfaEnrollmentRequired(err.response?.data)) notifyMfaEnrollmentRequired(); // a janela leva o utilizador a activar o 2.º factor
       // Deixa o RouteProtector / UI tratar
     }
 

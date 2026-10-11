@@ -60,7 +60,7 @@ export const MODULES: readonly ModuleDef[] = [
     id: "secretaria", label: "Secretaria", icon: "Users", audience: "school",
     sections: [
       // O grupo no menu em acordeão não inclui Professores (as «Sessões» da prova de acesso mantêm essa restrição histórica).
-      { label: "Alunos & Matrículas", icon: "GraduationCap", groupRoles: [...PEDAGOGY, "FINANCIAL", "SYSTEM_ADMIN"] },
+      { label: "Alunos & Matrículas", icon: "GraduationCap", groupRoles: [...PEDAGOGY, "FINANCIAL"] },
       { label: "Documentos Oficiais", icon: "FileText" },
     ],
   },
@@ -75,7 +75,7 @@ export const MODULES: readonly ModuleDef[] = [
     sections: [{ label: "Propinas & Finanças", icon: "BadgePercent" }, { label: "Subscrição", loose: true }],
   },
   { id: "relatorios", label: "Relatórios", icon: "ChartNoAxesCombined", audience: "school", sections: [{ label: "Relatórios & MED", icon: "ChartBar" }] },
-  { id: "plataforma", label: "Plataforma", icon: "Server", audience: "school", sections: [{ label: "Administração", icon: "Server" }] },
+  { id: "plataforma", label: "Plataforma", icon: "Server", audience: "school", sections: [{ label: "Administração", icon: "Server", loose: true }] }, // poucas páginas, todas visíveis: sem colapsável
   { id: "configuracoes", label: "Configurações", icon: "Settings", audience: "school", sections: [{}] },
   // Encarregado e aluno: grupos rotulados numa coluna única.
   { id: "acompanhamento", label: "Acompanhamento", icon: "GraduationCap", audience: "family", sections: [{}] },
@@ -103,10 +103,10 @@ export const PAGES: readonly PageDef[] = [
   // Escola
   { name: "Dashboard", url: "/dashboard", icon: "LayoutDashboard", module: "inicio", roles: SCHOOL_ROLES, minPlan: "Base" },
 
-  { name: "Candidaturas", url: "/students/admissions", icon: "FileInput", module: "secretaria", section: "Alunos & Matrículas", roles: [...PEDAGOGY, "FINANCIAL", "SYSTEM_ADMIN"] },
+  { name: "Candidaturas", url: "/students/admissions", icon: "FileInput", module: "secretaria", section: "Alunos & Matrículas", roles: [...PEDAGOGY, "FINANCIAL"] },
   { name: "Sessões da Prova de Acesso", url: "/admissions/sessions", icon: "ClipboardCheck", module: "secretaria", section: "Alunos & Matrículas", roles: PEDAGOGY_T },
-  { name: "Alunos", url: "/students/list", icon: "Users", module: "secretaria", section: "Alunos & Matrículas", roles: [...PEDAGOGY, "FINANCIAL", "SYSTEM_ADMIN"] },
-  { name: "Matrículas", url: "/students/enrollments", icon: "ClipboardList", module: "secretaria", section: "Alunos & Matrículas", roles: [...PEDAGOGY, "SYSTEM_ADMIN"] },
+  { name: "Alunos", url: "/students/list", icon: "Users", module: "secretaria", section: "Alunos & Matrículas", roles: [...PEDAGOGY, "FINANCIAL"] },
+  { name: "Matrículas", url: "/students/enrollments", icon: "ClipboardList", module: "secretaria", section: "Alunos & Matrículas", roles: PEDAGOGY },
   { name: "Encarregados", url: "/students/guardians", icon: "Contact", module: "secretaria", section: "Alunos & Matrículas", roles: PEDAGOGY },
   { name: "Declarações", url: "/certificates/declarations", icon: "FileText", module: "secretaria", section: "Documentos Oficiais", roles: PEDAGOGY },
   { name: "Boletins de Notas", url: "/certificates/report-cards", icon: "ScrollText", module: "secretaria", section: "Documentos Oficiais", roles: PEDAGOGY },
@@ -149,7 +149,7 @@ export const PAGES: readonly PageDef[] = [
   { name: "Relatório Financeiro", url: "/reports/finance", icon: "CircleDollarSign", module: "relatorios", section: "Relatórios & MED", roles: ["DIRECTOR_GENERAL", "OWNER", "ADMIN", "FINANCIAL"] },
   { name: "Multi-Escola", url: "/reports/multi-school", icon: "Building2", module: "relatorios", section: "Relatórios & MED", roles: ["DIRECTOR_GENERAL", "OWNER", "ADMIN"], minPlan: "Pro" },
 
-  { name: "Painel", url: "/admin/platform", icon: "LayoutDashboard", module: "plataforma", section: "Administração", roles: ["SYSTEM_ADMIN"], minPlan: "Base" },
+  { name: "Operações", url: "/admin/platform", icon: "LayoutDashboard", module: "plataforma", section: "Administração", roles: ["SYSTEM_ADMIN"], minPlan: "Base" },
   { name: "Escolas", url: "/admin/schools", icon: "School", module: "plataforma", section: "Administração", roles: ["SYSTEM_ADMIN"], minPlan: "Base" },
   { name: "Utilizadores", url: "/admin/users", icon: "Users", module: "plataforma", section: "Administração", roles: ["SYSTEM_ADMIN"], minPlan: "Base" },
   { name: "Personificações", url: "/admin/impersonations", icon: "UserCog", module: "plataforma", section: "Administração", roles: ["SYSTEM_ADMIN"], minPlan: "Base" },
