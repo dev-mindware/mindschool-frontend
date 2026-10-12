@@ -7,6 +7,7 @@ import { platformService } from "@/services/platform-service";
 import { formatCurrency } from "@/utils/format-currency";
 import { OverviewSectionCard } from "../overview/overview-section-card";
 import { QuickLinks } from "../overview/overview-blocks";
+import { BlockEmptyState } from "../overview/block-empty-state";
 
 const STATUS_LABEL: Record<string, string> = { trial: "Em período de teste", active: "Activas", ativa: "Activas", past_due: "Pagamento em atraso", suspended: "Suspensas", cancelled: "Canceladas", expired: "Expiradas", pending: "Pendentes" };
 const ATTENTION: Record<string, string> = { orders_awaiting_review: "Comprovativos por rever", past_due: "Pagamentos em atraso", trials_ending: "Testes a terminar", dead_letter: "Eventos falhados" };
@@ -44,7 +45,15 @@ export function PlatformDashboard() {
       <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
           <OverviewSectionCard title="Escolas por estado de subscrição" icon="Building2" href={`${ADMIN_PANEL_URL}/dashboard`}>
-            {statuses.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">Ainda não há escolas.</p> : (
+            {statuses.length === 0 ? (
+              <BlockEmptyState
+                icon="Building2"
+                title="Sem escolas registadas"
+                description="Quando novas instituições forem criadas na plataforma, a sua distribuição será apresentada aqui."
+                actionLabel="Criar escola"
+                actionHref={`${ADMIN_PANEL_URL}/schools`}
+              />
+            ) : (
               <ul className="divide-y">
                 {statuses.map(([k, v]) => (
                   <li key={k} className="flex items-center justify-between gap-3 py-2.5 text-sm">
@@ -58,7 +67,14 @@ export function PlatformDashboard() {
         </div>
         <OverviewSectionCard title="Precisa de atenção" icon="ShieldAlert" href={`${ADMIN_PANEL_URL}/dashboard`}>
           <div className="flex flex-wrap gap-2">
-            {attention.length === 0 ? <p className="text-sm text-muted-foreground">Nada pendente.</p> : attention.map(([k, v]) => <Badge key={k} variant={v > 0 ? "warning" : "outline"} className="font-normal">{ATTENTION[k] ?? k}: {v}</Badge>)}
+            {attention.length === 0 ? (
+              <BlockEmptyState
+                icon="CircleCheck"
+                tone="success"
+                title="Tudo operacional"
+                description="Não há alertas críticos ou eventos falhados nas filas."
+              />
+            ) : attention.map(([k, v]) => <Badge key={k} variant={v > 0 ? "warning" : "outline"} className="font-normal">{ATTENTION[k] ?? k}: {v}</Badge>)}
           </div>
         </OverviewSectionCard>
       </div>

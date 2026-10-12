@@ -8,19 +8,29 @@ import { EVENT_TYPE_LABEL } from "@/services/calendar-service";
 import { formatAxisCurrency, formatCurrency } from "@/utils/format-currency";
 import { OverviewLegendRow } from "./overview-legend-row";
 import { OverviewSectionCard } from "./overview-section-card";
+import { BlockEmptyState } from "./block-empty-state";
 import type { useSchoolOverview } from "@/hooks/dashboard/use-school-overview";
 import { icons } from "lucide-react";
 
 type Overview = ReturnType<typeof useSchoolOverview>;
 
-const PALETTE = ["var(--primary)", "color-mix(in oklab, var(--primary) 78%, transparent)", "color-mix(in oklab, var(--primary) 58%, transparent)", "color-mix(in oklab, var(--primary) 42%, transparent)", "color-mix(in oklab, var(--primary) 28%, transparent)", "color-mix(in oklab, var(--primary) 18%, transparent)"];
+const PALETTE = [
+  "var(--primary)",
+  "color-mix(in oklab, var(--primary) 78%, transparent)",
+  "color-mix(in oklab, var(--primary) 58%, transparent)",
+  "color-mix(in oklab, var(--primary) 42%, transparent)",
+  "color-mix(in oklab, var(--primary) 28%, transparent)",
+  "color-mix(in oklab, var(--primary) 18%, transparent)",
+];
 
 function ChartCard({ title, icon, description, children }: { title: string; icon: keyof typeof icons; description?: string; children: React.ReactNode }) {
   return (
     <Card className="flex h-full flex-col gap-0 py-4">
       <CardHeader className="px-4 pb-3">
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon name={icon} className="size-4" /></span>
+          <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <Icon name={icon} className="size-4" />
+          </span>
           {title}
         </CardTitle>
         {description && <CardDescription>{description}</CardDescription>}
@@ -30,15 +40,21 @@ function ChartCard({ title, icon, description, children }: { title: string; icon
   );
 }
 
-const Empty = ({ text }: { text: string }) => <p className="py-8 text-center text-sm text-muted-foreground">{text}</p>;
-
 /** Propinas cobradas por mês (ano civil). */
 export function RevenueChart({ data }: { data: Overview["monthly"] }) {
   const config = { collected: { label: "Cobrado", color: "var(--primary)" } } satisfies ChartConfig;
   const empty = data.every((d) => d.collected === 0);
   return (
     <ChartCard title="Propinas cobradas" icon="ChartColumn" description="Total recebido por mês no ano civil">
-      {empty ? <Empty text="Ainda não há pagamentos registados este ano." /> : (
+      {empty ? (
+        <BlockEmptyState
+          icon="Coins"
+          title="Sem receitas cobradas no período"
+          description="Os pagamentos confirmados de propinas e serviços ao longo do ano civil serão registados aqui."
+          actionLabel="Consultar facturação"
+          actionHref="/tuition/invoices"
+        />
+      ) : (
         <ChartContainer config={config} className="aspect-auto h-[260px] w-full">
           <BarChart data={data} margin={{ top: 14, right: 12, left: -4, bottom: 0 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -59,7 +75,15 @@ export function LevelDonut({ data }: { data: Overview["byLevel"] }) {
   const config = Object.fromEntries(data.map((d, i) => [d.name, { label: d.name, color: PALETTE[i % PALETTE.length] }])) satisfies ChartConfig;
   return (
     <ChartCard title="Alunos por classe" icon="ChartPie" description="Matrículas activas">
-      {total === 0 ? <Empty text="Sem matrículas activas." /> : (
+      {total === 0 ? (
+        <BlockEmptyState
+          icon="GraduationCap"
+          title="Sem turmas ou matrículas activas"
+          description="A distribuição de estudantes por classe e curso aparecerá quando houver alunos matriculados."
+          actionLabel="Realizar matrículas"
+          actionHref="/students/enrollments"
+        />
+      ) : (
         <>
           <ChartContainer config={config} className="mx-auto h-[190px] w-full">
             <PieChart>
@@ -89,7 +113,15 @@ export function AttendanceBars({ rows, rate }: { rows: Overview["attendanceBySec
   const config = { attendance_rate: { label: "Assiduidade (%)", color: "var(--primary)" } } satisfies ChartConfig;
   return (
     <ChartCard title="Assiduidade por turma" icon="CalendarCheck" description={rate !== null ? `Taxa global no período: ${rate}%` : "Presenças e atrasos sobre o total de registos"}>
-      {rows.length === 0 ? <Empty text="Sem registos de assiduidade no período." /> : (
+      {rows.length === 0 ? (
+        <BlockEmptyState
+          icon="CalendarCheck"
+          title="Sem faltas ou presenças registadas"
+          description="Os sumários e chamadas das turmas alimentarão as médias de assiduidade."
+          actionLabel="Registar assiduidade"
+          actionHref="/academic/attendance"
+        />
+      ) : (
         <ChartContainer config={config} className="aspect-auto h-[260px] w-full">
           <BarChart data={rows} margin={{ top: 14, right: 12, left: -16, bottom: 0 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
@@ -111,7 +143,16 @@ const Row = ({ children, right }: { children: React.ReactNode; right?: React.Rea
 export function RiskCard({ alerts }: { alerts: Overview["highRiskAlerts"] }) {
   return (
     <OverviewSectionCard title="Alunos em risco elevado" icon="TriangleAlert" href="/dropout-risk">
-      {alerts.length === 0 ? <Empty text="Sem alertas de risco elevado em aberto." /> : (
+      {alerts.length === 0 ? (
+        <BlockEmptyState
+          icon="ShieldCheck"
+          tone="success"
+          title="Nenhum aluno em risco elevado"
+          description="Excelente! Não há alertas de abandono escolar ou faltas excessivas em aberto."
+          actionLabel="Ver análise preditiva"
+          actionHref="/dropout-risk"
+        />
+      ) : (
         <ul>{alerts.map((a) => (
           <Row key={a.id} right={<Badge variant="destructive">{a.compositeRiskScore}</Badge>}>
             <p className="truncate font-medium">{a.studentName}</p><p className="truncate text-xs text-muted-foreground">{a.className}</p>
@@ -125,7 +166,16 @@ export function RiskCard({ alerts }: { alerts: Overview["highRiskAlerts"] }) {
 export function RequestsCard({ requests }: { requests: Overview["openRequests"] }) {
   return (
     <OverviewSectionCard title="Pedidos à secretaria" icon="Inbox" href="/certificates/requests">
-      {requests.length === 0 ? <Empty text="Sem pedidos por tratar." /> : (
+      {requests.length === 0 ? (
+        <BlockEmptyState
+          icon="CircleCheck"
+          tone="success"
+          title="Sem pedidos pendentes"
+          description="Todos os pedidos de certificados e declarações foram tratados."
+          actionLabel="Abrir secretaria"
+          actionHref="/certificates/requests"
+        />
+      ) : (
         <ul>{requests.map((r) => (
           <Row key={r.id} right={<Badge variant="outline">{r.status === "aberto" ? "Aberto" : "Em análise"}</Badge>}>
             <p className="truncate font-medium">{r.subject}</p><p className="font-mono text-xs text-muted-foreground">{r.protocol}</p>
@@ -139,7 +189,15 @@ export function RequestsCard({ requests }: { requests: Overview["openRequests"] 
 export function EventsCard({ events }: { events: Overview["upcoming"] }) {
   return (
     <OverviewSectionCard title="Próximos eventos" icon="CalendarDays" href="/academic/calendar">
-      {events.length === 0 ? <Empty text="Sem eventos agendados." /> : (
+      {events.length === 0 ? (
+        <BlockEmptyState
+          icon="Calendar"
+          title="Sem eventos agendados"
+          description="Não existem provas, reuniões ou feriados agendados para os próximos dias."
+          actionLabel="Abrir calendário escolar"
+          actionHref="/academic/calendar"
+        />
+      ) : (
         <ul>{events.map((e) => (
           <Row key={e.id} right={<span className="font-mono text-xs text-muted-foreground">{e.start_date.slice(5)}</span>}>
             <p className="truncate font-medium">{e.title}</p><p className="truncate text-xs text-muted-foreground">{EVENT_TYPE_LABEL[e.type] ?? e.type}</p>
@@ -153,7 +211,16 @@ export function EventsCard({ events }: { events: Overview["upcoming"] }) {
 export function DebtorsCard({ debtors }: { debtors: Overview["topDebtors"] }) {
   return (
     <OverviewSectionCard title="Maiores dívidas em atraso" icon="Wallet" href="/tuition/collections">
-      {debtors.length === 0 ? <Empty text="Sem dívidas em atraso." /> : (
+      {debtors.length === 0 ? (
+        <BlockEmptyState
+          icon="BadgePercent"
+          tone="success"
+          title="Cobranças em dia"
+          description="Não foram detectadas propinas em atraso ou alunos inadimplentes."
+          actionLabel="Consultar cobranças"
+          actionHref="/tuition/collections"
+        />
+      ) : (
         <ul>{debtors.map((d) => (
           <Row key={d.student} right={<span className="font-medium tabular-nums">{formatCurrency(Number(d.balance))}</span>}>
             <p className="truncate font-medium">{d.student}</p><p className="text-xs text-muted-foreground">{d.invoices} factura(s) · {d.days_overdue} dias</p>
@@ -167,7 +234,15 @@ export function DebtorsCard({ debtors }: { debtors: Overview["topDebtors"] }) {
 export function LessonsCard({ lessons }: { lessons: Overview["todaysLessons"] }) {
   return (
     <OverviewSectionCard title="As minhas aulas de hoje" icon="BookOpen" href="/academic/lessons">
-      {lessons.length === 0 ? <Empty text="Sem aulas hoje." /> : (
+      {lessons.length === 0 ? (
+        <BlockEmptyState
+          icon="BookCheck"
+          title="Sem aulas para hoje"
+          description="Não constam aulas atribuídas no horário publicado para o dia de hoje."
+          actionLabel="Consultar horário semanal"
+          actionHref="/academic/lessons"
+        />
+      ) : (
         <ul>{[...lessons].sort((a, b) => a.start.localeCompare(b.start)).map((l, i) => (
           <Row key={l.id ?? i} right={<span className="font-mono text-xs text-muted-foreground">{l.start}–{l.end}</span>}>
             <p className="truncate font-medium">{l.subject.name}</p><p className="truncate text-xs text-muted-foreground">{l.section?.name ?? ""}{l.room ? ` · sala ${l.room.code}` : ""}</p>
@@ -202,7 +277,13 @@ export function CashDonut({ collected, overdue }: { collected: number; overdue: 
   const config = { Cobrado: { label: "Cobrado", color: "var(--primary)" }, "Em atraso": { label: "Em atraso", color: "var(--destructive)" } } satisfies ChartConfig;
   return (
     <ChartCard title="Cobrado vs em atraso" icon="ChartPie" description="Peso das propinas em atraso">
-      {total === 0 ? <Empty text="Sem movimentos financeiros." /> : (
+      {total === 0 ? (
+        <BlockEmptyState
+          icon="Coins"
+          title="Sem movimentos financeiros"
+          description="O rácio entre cobranças e valores em dívida será apresentado aqui."
+        />
+      ) : (
         <>
           <ChartContainer config={config} className="mx-auto h-[190px] w-full">
             <PieChart>
@@ -226,7 +307,13 @@ export function IndicatorsBars({ items }: { items: Array<{ name: string; value: 
   const config = { value: { label: "Total", color: "var(--primary)" } } satisfies ChartConfig;
   return (
     <ChartCard title="Outros indicadores" icon="ChartBar" description="Pendências e carga actual">
-      {items.length === 0 ? <Empty text="Sem indicadores adicionais." /> : (
+      {items.length === 0 ? (
+        <BlockEmptyState
+          icon="ChartBar"
+          title="Sem pendências adicionais"
+          description="Não existem tarefas ou alertas pendentes a requerer intervenção."
+        />
+      ) : (
         <ChartContainer config={config} className="aspect-auto h-[220px] w-full">
           <BarChart data={items} layout="vertical" margin={{ top: 4, right: 16, left: 8, bottom: 0 }}>
             <CartesianGrid horizontal={false} strokeDasharray="3 3" />
