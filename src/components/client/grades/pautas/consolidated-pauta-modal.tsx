@@ -1,7 +1,10 @@
 "use client";
 import { formatDateTime } from "@/utils";
 
-import React from "react";
+import React, { useState } from "react";
+import { pautasService } from "@/services/pautas-service";
+import { ErrorMessage } from "@/utils/messages";
+import { getApiErrorMessage } from "@/utils/api-error";
 import { ConsolidatedPauta } from "@/types/grade";
 import { useSubjects } from "@/hooks/school/use-academic";
 import {
@@ -27,8 +30,16 @@ export function ConsolidatedPautaModal({
   onOpenReopenModal,
 }: ConsolidatedPautaModalProps) {
   const { allSubjects: subjects } = useSubjects();
+  const [downloading, setDownloading] = useState<"pdf" | "xlsx" | null>(null);
 
   if (!isOpen) return null;
+
+  const download = (format: "pdf" | "xlsx") => {
+    setDownloading(format);
+    pautasService.download(pauta.sectionId, pauta.term, format)
+      .catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível descarregar a pauta.")))
+      .finally(() => setDownloading(null));
+  };
 
   const termLabel =
     pauta.term === "TRIMESTER_1"
@@ -277,6 +288,18 @@ export function ConsolidatedPautaModal({
             Documento regulamentado pelo Decreto Executivo n.º 424/25 do Ministério da Educação.
           </div>
           <div className="flex items-center gap-2.5">
+            {pauta.isClosed && (
+              <>
+                <Button variant="outline" size="sm" onClick={() => download("pdf")} disabled={downloading !== null} className="gap-2">
+                  <Icon name={downloading === "pdf" ? "LoaderCircle" : "FileText"} className={downloading === "pdf" ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+                  PDF oficial
+                </Button>
+                <Button variant="outline" size="sm" onClick={() => download("xlsx")} disabled={downloading !== null} className="gap-2">
+                  <Icon name={downloading === "xlsx" ? "LoaderCircle" : "FileSpreadsheet"} className={downloading === "xlsx" ? "h-4 w-4 animate-spin" : "h-4 w-4"} />
+                  Excel
+                </Button>
+              </>
+            )}
             <Button variant="outline" size="sm" onClick={handlePrint} className="gap-2">
               <Icon name="Printer" className="h-4 w-4" />
               Imprimir Pauta Geral

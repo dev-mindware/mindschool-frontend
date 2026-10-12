@@ -17,7 +17,7 @@ import { useAuth } from "@/hooks/auth";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { ROLE_LABELS } from "@/constants/roles";
 import { pickPrimaryRole } from "@/utils/api-roles";
-import { MindSchoolLogo } from "@/components/common/logo/mindschool-logo";
+import { SchoolLogo } from "@/components/common/logo/school-logo";
 
 function useSchoolSwitcher() {
   const { schoolId, memberships, selectSchool } = useActiveSchoolStore();
@@ -37,8 +37,8 @@ function SchoolMenu({ memberships, onSwitch, side }: { memberships: ReturnType<t
       <DropdownMenuLabel className="text-xs text-muted-foreground">As minhas escolas</DropdownMenuLabel>
       {memberships.map((m) => (
         <DropdownMenuItem key={m.schoolId} onClick={() => onSwitch(m.schoolId)} className="gap-2 p-2 cursor-pointer">
-          <div className="flex items-center justify-center border rounded-md size-6">
-            <Icon name="School" className="size-3.5 shrink-0" />
+          <div className="flex items-center justify-center overflow-hidden border rounded-md size-6 bg-white dark:bg-zinc-900">
+            {m.logoPath ? <SchoolLogo path={m.logoPath} name={m.schoolName} size={20} /> : <Icon name="School" className="size-3.5 shrink-0" />}
           </div>
           <div className="flex flex-col">
             <span className="text-xs font-medium">{m.schoolName}</span>
@@ -63,7 +63,7 @@ export function SchoolRailButton() {
               aria-label="Escola activa"
               className="flex size-9 items-center justify-center rounded-xl bg-white/95 p-1.5 shadow-sm transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 dark:bg-zinc-900 dark:border dark:border-white/10"
             >
-              <MindSchoolLogo size={24} />
+              <SchoolLogo path={currentUnit?.logoPath} name={currentUnit?.schoolName} size={24} />
             </button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
@@ -89,7 +89,7 @@ export function SidebarCompanyInfo() {
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
               <div className="flex items-center justify-center rounded-lg p-1 aspect-square size-8 shrink-0 bg-sidebar-accent/60 dark:bg-sidebar-accent">
-                <MindSchoolLogo size={24} />
+                <SchoolLogo path={currentUnit?.logoPath} name={currentUnit?.schoolName} size={24} />
               </div>
               <div className="grid flex-1 text-sm leading-tight text-left">
                 <span className="font-semibold truncate">

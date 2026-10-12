@@ -2,7 +2,7 @@
 
 import { z } from "zod";
 import { Role, User } from "@/types";
-import { ApiMe, ApiSubscription, mapApiSubscription, mapApiUser, primaryRoleOf } from "@/utils/map-api-user";
+import { ApiMe, ApiSubscription, mapApiSubscription, mapApiUser, mapMembership, primaryRoleOf } from "@/utils/map-api-user";
 import { loginSchema } from "@/schemas";
 import { api } from "@/services/api";
 import { createSession, destroySession } from "@/lib/session";
@@ -18,7 +18,7 @@ interface LoginActionResult {
   /** A conta tem segundo factor: pedir o codigo (TOTP/recuperacao) e repetir o login. */
   requiresMfa?: boolean;
   mfaMethods?: string[];
-  memberships?: Array<{ schoolId: string; schoolName: string; roles: string[] }>;
+  memberships?: Array<ReturnType<typeof mapMembership>>;
 }
 
 interface ApiLogin {
@@ -59,7 +59,7 @@ export async function loginAction({
       user: mapApiUser(me, activeSchoolId, sub),
       redirectPath: getRouteByRole(role),
       token: accessToken,
-      memberships: me.memberships.map((m) => ({ schoolId: m.school_id, schoolName: m.school_name, roles: m.roles })),
+      memberships: me.memberships.map(mapMembership),
     };
   } catch (error: any) {
     let messageError = "Ocorreu um erro desconhecido!";
@@ -118,7 +118,7 @@ export async function resetPasswordAndLoginAction({
       user: mapApiUser(me, activeSchoolId, sub),
       redirectPath: getRouteByRole(role),
       token: accessToken,
-      memberships: me.memberships.map((m) => ({ schoolId: m.school_id, schoolName: m.school_name, roles: m.roles })),
+      memberships: me.memberships.map(mapMembership),
     };
   } catch (error: any) {
     let messageError = "Não foi possível definir a palavra-passe.";

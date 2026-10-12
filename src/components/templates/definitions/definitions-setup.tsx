@@ -11,6 +11,7 @@ import { Security } from "./contents/security";
 import { SubscriptionManager } from "@/components/client/subscription/subscription-manager";
 import { OnboardingPreferences } from "./contents/onboarding-preferences";
 import { SchoolInstitutionalSettings } from "@/components/client/settings/school/school-institutional-settings";
+import { SchoolBrandingSettings } from "@/components/client/settings/school/school-branding-settings";
 import { UsersPageContent } from "@/components/client/settings/users/users-page-content";
 import { PoliciesPageContent } from "@/components/client/settings/policies/policies-page-content";
 import { ImportsPageContent } from "@/components/client/settings/imports/imports-page-content";
@@ -105,6 +106,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
       category: "workplace",
       isVisible: isStaff,
     },
+    { id: "branding", label: "Identidade Visual", icon: "Palette", component: <SchoolBrandingSettings />, category: "workplace", isVisible: isStaff && can("school:read") },
     { id: "bank-accounts", label: "Dados Bancários", icon: "Landmark", component: <BankAccountsPageContent />, category: "workplace", isVisible: isFinance && can("bank_account:read") },
     { id: "emails", label: "Emails Enviados", icon: "Mail", component: <SchoolEmailsContent />, category: "workplace", isVisible: isFinance && can("email:read") },
     { id: "policies", label: "Políticas da Escola", icon: "SlidersHorizontal", component: <PoliciesPageContent />, category: "workplace", isVisible: isManager },

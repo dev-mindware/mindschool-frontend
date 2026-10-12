@@ -1,4 +1,5 @@
 import api from "./api";
+import { fileNameFrom, saveBlob } from "@/utils/download";
 import { ApiPauta, ApiPautaRow, ApiTerm, SEQUENCE_OF_TERM, gradesService, num } from "./grades-service";
 import type { AssessmentTerm, ConsolidatedPauta, ConsolidatedStudentRow } from "@/types/grade";
 
@@ -71,5 +72,11 @@ export const pautasService = {
 
   reopen: async (sectionId: string, term: AssessmentTerm, reason: string): Promise<void> => {
     await api.post(`/s/sections/${sectionId}/pauta/${await termId(term)}/reopen`, { reason });
+  },
+
+  /** Pauta oficial (instantâneo da última versão fechada) em PDF ou Excel, com a identidade da escola. */
+  download: async (sectionId: string, term: AssessmentTerm, format: "pdf" | "xlsx"): Promise<void> => {
+    const res = await api.get<Blob>(`/s/sections/${sectionId}/pauta/${await termId(term)}/${format}`, { responseType: "blob" });
+    saveBlob(res.data, fileNameFrom(res.headers["content-disposition"], `pauta.${format}`));
   },
 };

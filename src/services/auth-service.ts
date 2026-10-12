@@ -1,5 +1,5 @@
 import { User } from "@/types";
-import { ApiMe, ApiSubscription, mapApiSubscription, mapApiUser } from "@/utils/map-api-user";
+import { ApiMe, ApiSubscription, mapApiSubscription, mapApiUser, mapMembership } from "@/utils/map-api-user";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import api from "./api";
 
@@ -10,7 +10,7 @@ export const authService = {
       const response = await api.get<ApiMe>("/auth/me");
       const store = useActiveSchoolStore.getState();
       store.setMemberships(
-        response.data.memberships.map((m) => ({ schoolId: m.school_id, schoolName: m.school_name, roles: m.roles, permissions: m.permissions })),
+        response.data.memberships.map(mapMembership),
       );
       const schoolId = useActiveSchoolStore.getState().schoolId;
       // Encarregado e aluno não têm permissão sobre a subscrição (403): não se pede.
