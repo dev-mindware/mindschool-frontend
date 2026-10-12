@@ -58,8 +58,12 @@ export function SchoolRailButton() {
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <button type="button" aria-label="Escola activa" className="flex size-9 items-center justify-center rounded-md bg-white p-1 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60">
-              <MindSchoolLogo size={48} />
+            <button
+              type="button"
+              aria-label="Escola activa"
+              className="flex size-9 items-center justify-center rounded-xl bg-white/95 p-1.5 shadow-sm transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 dark:bg-zinc-900 dark:border dark:border-white/10"
+            >
+              <MindSchoolLogo size={24} />
             </button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
@@ -84,18 +88,18 @@ export function SidebarCompanyInfo() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="flex items-center justify-center rounded-md p-1 aspect-square size-10">
-                <MindSchoolLogo size={44} />
+              <div className="flex items-center justify-center rounded-lg p-1 aspect-square size-8 shrink-0 bg-sidebar-accent/60 dark:bg-sidebar-accent">
+                <MindSchoolLogo size={24} />
               </div>
               <div className="grid flex-1 text-sm leading-tight text-left">
-                <span className="font-medium truncate">
+                <span className="font-semibold truncate">
                   {currentUnit?.schoolName || user?.company?.name || "MindSchool"}
                 </span>
                 <span className="text-xs truncate text-muted-foreground">
                   {currentUnit ? (ROLE_LABELS[pickPrimaryRole(currentUnit.roles) ?? "GUARDIAN"] ?? "") : "Unidade Escolar"}
                 </span>
               </div>
-              <Icon name="ChevronsUpDown" className="ml-auto size-4" />
+              <Icon name="ChevronsUpDown" className="ml-auto size-4 shrink-0 text-muted-foreground" />
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <SchoolMenu memberships={memberships} onSwitch={switchSchool} side={isMobile ? "bottom" : "right"} />

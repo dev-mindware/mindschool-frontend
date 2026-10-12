@@ -1,4 +1,4 @@
-import { AppSidebar, BreadcrumbProvider, SidebarInset, PlanGate, StepUpDialog, MfaEnrollmentDialog, ImpersonationBanner } from "@/components";
+import { AppSidebar, BreadcrumbProvider, SidebarInset, PlanGate, StepUpDialog, ImpersonationBanner } from "@/components";
 import { TrialBanner } from "@/components/shared";
 import { NotificationDetail } from "@/components/shared/notifications";
 import { RouteProtector } from "@/contexts";
@@ -25,7 +25,6 @@ export default function ClientLayout({ children }: Props) {
           </SidebarInset>
           <NotificationDetail />
           <StepUpDialog />
-          <MfaEnrollmentDialog />
         </FeatureGateProvider>
       </StoreProvider>
     </RouteProtector>
