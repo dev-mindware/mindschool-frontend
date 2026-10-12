@@ -55,14 +55,20 @@ export const metadata: Metadata = {
   icons: {
     icon: [
       {
-        url: "/mindgest.png",
-        type: "image/png",
+        url: "/Logo_fundo-claro.svg",
+        media: "(prefers-color-scheme: light)",
+        type: "image/svg+xml",
+      },
+      {
+        url: "/Logo_fundo-escuro.svg",
+        media: "(prefers-color-scheme: dark)",
+        type: "image/svg+xml",
       },
     ],
     apple: [
       {
-        url: "/mindgest.png",
-        type: "image/png",
+        url: "/Logo_fundo-claro.svg",
+        type: "image/svg+xml",
       },
     ],
   },
@@ -75,10 +81,10 @@ export const metadata: Metadata = {
     siteName: "MindSchool",
     images: [
       {
-        url: "/mindgest.png",
-        width: 1200,
-        height: 630,
-        alt: "MindSchool: sistema de gestão escolar",
+        url: "/Logo_fundo-claro.svg",
+        width: 974,
+        height: 974,
+        alt: "MindSchool: Sistema Integrado de Gestão Escolar",
       },
     ],
     locale: "pt_AO",
@@ -90,7 +96,7 @@ export const metadata: Metadata = {
     title: "MindSchool | Sistema Integrado de Gestão Escolar",
     description:
       "Sistema de gestão escolar e académica para colégios e instituições de ensino.",
-    images: ["/mindgest.png"],
+    images: ["/Logo_fundo-claro.svg"],
   },
 
   robots: {

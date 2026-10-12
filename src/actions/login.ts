@@ -1,7 +1,7 @@
 "use server";
 
 import { z } from "zod";
-import { User } from "@/types";
+import { Role, User } from "@/types";
 import { ApiMe, ApiSubscription, mapApiSubscription, mapApiUser, primaryRoleOf } from "@/utils/map-api-user";
 import { loginSchema } from "@/schemas";
 import { api } from "@/services/api";
@@ -74,6 +74,62 @@ export async function loginAction({
       messageError = error.message;
     }
 
+    return {
+      user: null,
+      redirectPath: "/auth/login",
+      message: messageError,
+    };
+  }
+}
+
+export async function resetPasswordAndLoginAction({
+  token,
+  newPassword,
+}: {
+  token: string;
+  newPassword: string;
+}): Promise<LoginActionResult> {
+  try {
+    const res = await api.post<ApiLogin>(
+      "/auth/reset-password?login=true",
+      { token, password: newPassword },
+      { headers: { "X-Auth-Mode": "bearer" } },
+    );
+    const { access_token: accessToken, refresh_token: refreshToken } = res.data;
+    if (!accessToken || !refreshToken) {
+      return { user: null, redirectPath: "/auth/login", message: "Palavra-passe alterada com sucesso." };
+    }
+
+    const meRes = await api.get<ApiMe>("/auth/me", { headers: { Authorization: `Bearer ${accessToken}` } });
+    const me = meRes.data;
+    const role = primaryRoleOf(me) || ("titular" as Role);
+
+    await createSession({ accessToken, refreshToken, role });
+
+    const authHeader = { headers: { Authorization: `Bearer ${accessToken}` } };
+    const activeSchoolId = me.memberships[0]?.school_id;
+    const sub = activeSchoolId
+      ? await api.get<ApiSubscription>(`/schools/${activeSchoolId}/subscription`, authHeader)
+          .then((r) => mapApiSubscription(r.data))
+          .catch(() => undefined)
+      : undefined;
+
+    return {
+      user: mapApiUser(me, activeSchoolId, sub),
+      redirectPath: getRouteByRole(role),
+      token: accessToken,
+      memberships: me.memberships.map((m) => ({ schoolId: m.school_id, schoolName: m.school_name, roles: m.roles })),
+    };
+  } catch (error: any) {
+    let messageError = "Não foi possível definir a palavra-passe.";
+    const problem = error?.response?.data;
+    if (problem?.detail) {
+      messageError = problem.detail;
+    } else if (problem?.message) {
+      messageError = problem.message;
+    } else if (error instanceof Error) {
+      messageError = error.message;
+    }
     return {
       user: null,
       redirectPath: "/auth/login",

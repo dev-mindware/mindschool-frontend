@@ -9,6 +9,7 @@ import {
   ROLE_KEY,
   ACCESS_TOKEN_KEY,
   IMPERSONATION_BACKUP_KEY,
+  IMPERSONATION_RETURN_KEY,
 } from "@/constants/routes";
 import { getRouteByRole, isValidRole } from "@/utils/role-redirects";
 import { verifyRole } from "@/lib/session";
@@ -46,7 +47,7 @@ export async function proxy(req: NextRequest) {
   }
 
   // Durante uma personificação a sessão assumida não tem refresh: vale o token de acesso, enquanto existir a cópia da sessão do admin.
-  const inImpersonation = req.cookies.has(IMPERSONATION_BACKUP_KEY) && req.cookies.has(ACCESS_TOKEN_KEY);
+  const inImpersonation = (req.cookies.has(IMPERSONATION_BACKUP_KEY) || req.cookies.has(IMPERSONATION_RETURN_KEY)) &&req.cookies.has(ACCESS_TOKEN_KEY);
   const hasRefreshToken = req.cookies.has(REFRESH_TOKEN_KEY) || inImpersonation;
   const roleCookie = req.cookies.get(ROLE_KEY)?.value;
 

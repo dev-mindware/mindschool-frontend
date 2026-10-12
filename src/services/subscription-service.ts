@@ -48,12 +48,12 @@ export interface ApiCurrentSubscription {
 export interface ApiQuote {
   kind: string;
   effective: string;
-  breakdown: { plan: { name: string; monthly_price: string }; addons: Array<{ name: string; monthly_price: string }>; months: number; monthly_total: string; total: string; currency: string };
+  breakdown: { plan: { name: string; monthly_price: string }; addons: Array<{ name: string; monthly_price: string }>; months: number; monthly_total: string; subtotal?: string; discount?: string; total: string; currency: string; coupon?: { code: string } | null };
   features_lost: Array<{ key: string; message: string }>;
   notes: string[];
 }
 
-export interface OrderRequest { plan_code: string; addon_codes: string[]; period_months: 1 | 3 | 6 | 12 }
+export interface OrderRequest { plan_code: string; addon_codes: string[]; period_months: 1 | 3 | 6 | 12; coupon_code?: string }
 
 export const subscriptionService = {
   catalog: async (): Promise<ApiCatalog> => (await api.get<ApiCatalog>("/subscription/catalog")).data,

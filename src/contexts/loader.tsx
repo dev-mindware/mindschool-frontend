@@ -29,9 +29,14 @@ export function Loader() {
           </svg>
 
           <img
-            src="/mindgest.png"
-            alt="Logo"
-            className="w-12 h-12 z-10 object-contain drop-shadow-sm opacity-90 transition-opacity"
+            src="/Logo_fundo-claro.svg"
+            alt="MindSchool"
+            className="w-12 h-12 z-10 object-contain dark:hidden transition-opacity"
+          />
+          <img
+            src="/Logo_fundo-escuro.svg"
+            alt="MindSchool"
+            className="w-12 h-12 z-10 object-contain hidden dark:block transition-opacity"
           />
         </div>
 

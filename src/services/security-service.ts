@@ -27,6 +27,50 @@ interface RegistrationOptions {
   excludeCredentials?: Array<{ id: string; type: "public-key"; transports?: AuthenticatorTransport[] }>;
 }
 
+interface AuthenticationOptions {
+  challenge: string;
+  rpId?: string;
+  timeout?: number;
+  userVerification?: UserVerificationRequirement;
+  allowCredentials?: Array<{ id: string; type?: "public-key"; transports?: AuthenticatorTransport[] }>;
+}
+
+export const passkeysSupported = (): boolean => typeof window !== "undefined" && Boolean(window.PublicKeyCredential);
+
+/**
+ * Reautenticação com passkey (PIN/biometria): substitui a palavra-passe e o código do segundo factor.
+ * Devolve o token de step-up de curta duração.
+ */
+export async function stepUpWithPasskey(): Promise<{ step_up_token: string; expires_in: number }> {
+  if (!passkeysSupported()) throw new Error("Este navegador não suporta passkeys.");
+  const { data } = await api.post<{ challenge_id: string; options: AuthenticationOptions }>("/auth/webauthn/step-up/options", {});
+  const o = data.options;
+  const cred = (await navigator.credentials.get({
+    publicKey: {
+      challenge: b64uToBuf(o.challenge),
+      ...(o.rpId ? { rpId: o.rpId } : {}),
+      ...(o.timeout ? { timeout: o.timeout } : {}),
+      userVerification: o.userVerification ?? "required",
+      allowCredentials: (o.allowCredentials ?? []).map((c) => ({ type: "public-key" as const, id: b64uToBuf(c.id), ...(c.transports ? { transports: c.transports } : {}) })),
+    },
+  })) as PublicKeyCredential | null;
+  if (!cred) throw new Error("Confirmação cancelada.");
+  const a = cred.response as AuthenticatorAssertionResponse;
+  const response = {
+    id: cred.id,
+    rawId: bufToB64u(cred.rawId),
+    type: cred.type,
+    response: {
+      clientDataJSON: bufToB64u(a.clientDataJSON),
+      authenticatorData: bufToB64u(a.authenticatorData),
+      signature: bufToB64u(a.signature),
+      ...(a.userHandle ? { userHandle: bufToB64u(a.userHandle) } : {}),
+    },
+    clientExtensionResults: cred.getClientExtensionResults(),
+  };
+  return (await api.post<{ step_up_token: string; expires_in: number }>("/auth/step-up", { webauthn: { challenge_id: data.challenge_id, response } })).data;
+}
+
 export const securityService = {
   sessions: async (): Promise<ApiSession[]> => (await api.get<{ data: ApiSession[] }>("/auth/sessions")).data.data,
   revokeSession: async (id: string) => (await api.delete(`/auth/sessions/${id}`)).data,

@@ -10,7 +10,7 @@ import type { PlanType, Role } from "@/types";
  */
 
 export type ModuleId =
-  | "inicio" | "secretaria" | "academico" | "avaliacao" | "vida" | "financeiro" | "relatorios" | "plataforma" | "configuracoes"
+  | "inicio" | "secretaria" | "academico" | "avaliacao" | "vida" | "financeiro" | "relatorios" | "configuracoes"
   | "acompanhamento" | "servicos" | "conta" | "outros";
 
 export type Audience = "school" | "family";
@@ -75,7 +75,6 @@ export const MODULES: readonly ModuleDef[] = [
     sections: [{ label: "Propinas & Finanças", icon: "BadgePercent" }, { label: "Subscrição", loose: true }],
   },
   { id: "relatorios", label: "Relatórios", icon: "ChartNoAxesCombined", audience: "school", sections: [{ label: "Relatórios & MED", icon: "ChartBar" }] },
-  { id: "plataforma", label: "Plataforma", icon: "Server", audience: "school", sections: [{ label: "Administração", icon: "Server", loose: true }] }, // poucas páginas, todas visíveis: sem colapsável
   { id: "configuracoes", label: "Configurações", icon: "Settings", audience: "school", sections: [{}] },
   // Encarregado e aluno: grupos rotulados numa coluna única.
   { id: "acompanhamento", label: "Acompanhamento", icon: "GraduationCap", audience: "family", sections: [{}] },
@@ -149,11 +148,6 @@ export const PAGES: readonly PageDef[] = [
   { name: "Relatório Financeiro", url: "/reports/finance", icon: "CircleDollarSign", module: "relatorios", section: "Relatórios & MED", roles: ["DIRECTOR_GENERAL", "OWNER", "ADMIN", "FINANCIAL"] },
   { name: "Multi-Escola", url: "/reports/multi-school", icon: "Building2", module: "relatorios", section: "Relatórios & MED", roles: ["DIRECTOR_GENERAL", "OWNER", "ADMIN"], minPlan: "Pro" },
 
-  { name: "Operações", url: "/admin/platform", icon: "LayoutDashboard", module: "plataforma", section: "Administração", roles: ["SYSTEM_ADMIN"], minPlan: "Base" },
-  { name: "Escolas", url: "/admin/schools", icon: "School", module: "plataforma", section: "Administração", roles: ["SYSTEM_ADMIN"], minPlan: "Base" },
-  { name: "Utilizadores", url: "/admin/users", icon: "Users", module: "plataforma", section: "Administração", roles: ["SYSTEM_ADMIN"], minPlan: "Base" },
-  { name: "Personificações", url: "/admin/impersonations", icon: "UserCog", module: "plataforma", section: "Administração", roles: ["SYSTEM_ADMIN"], minPlan: "Base" },
-  { name: "Segurança", url: "/admin/security", icon: "ShieldAlert", module: "plataforma", section: "Administração", roles: ["SYSTEM_ADMIN"], minPlan: "Base" },
   { name: "Configurações", url: "/settings", icon: "Settings", module: "configuracoes", roles: SCHOOL_ROLES, minPlan: "Base" },
 ];
 
@@ -174,6 +168,5 @@ export const PAGE_PERMISSION: Readonly<Record<string, readonly string[]>> = {
   "/academic/extracurricular": ["activity:read"], "/communication/circulars": ["announcement:read"],
   "/tuition": ["invoice:read"], "/tuition/submissions": ["tuition_submission:read"], "/tuition/payments": ["payment:read"], "/tuition/invoices": ["invoice:read"],
   "/tuition/collections": ["invoice:read"], "/tuition/plans": ["bank_account:read"], "/plans": ["subscription:read"],
-  "/admin/platform": ["platform:overview"], "/admin/schools": ["platform:school_read"], "/admin/users": ["platform:user_support"], "/admin/impersonations": ["platform:impersonate"], "/admin/security": ["platform:security_alerts", "platform:audit_read"],
   "/reports/med": ["report:med_read"], "/reports/academic": ["report:read"], "/reports/finance": ["report:read"],
 };

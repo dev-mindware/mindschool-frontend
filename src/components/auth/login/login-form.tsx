@@ -9,6 +9,7 @@ import { ErrorMessage } from "@/utils/messages";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { LoginFormData, loginSchema } from "@/schemas";
 import { ButtonSubmit, Input } from "@/components";
+import { MindSchoolLogo } from "@/components/common/logo/mindschool-logo";
 import { loginAction } from "@/actions/login";
 import { useAuthStore } from "@/stores";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
@@ -64,14 +65,8 @@ export function LoginForm() {
       {/* Cabeçalho da marca e título adaptado à referência */}
       <div className="flex flex-col gap-1.5 text-left">
         <div className="flex items-center gap-3 mb-2">
-          <div className="relative size-10 rounded-xl overflow-hidden bg-primary/10 p-1 border border-primary/20 shadow-sm">
-            <Image
-              src="/mindgest.png"
-              alt="Logótipo do MindSchool"
-              fill
-              className="object-contain"
-              priority
-            />
+          <div className="flex items-center justify-center size-20 rounded-md overflow-hidden bg- p-1">
+            <MindSchoolLogo size={64} priority />
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-bold tracking-tight text-foreground">

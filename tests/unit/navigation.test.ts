@@ -34,10 +34,10 @@ describe("navegação modular", () => {
     expect(forRole(role as Role).mode).toBe(mode);
   });
 
-  it("administrador de sistema: só vê a área da plataforma, com as páginas soltas (sem colapsáveis) e sem menus de escola", () => {
+  it("administrador de sistema: não vê menus de escola (a administração vive no painel próprio) e sem menus de escola", () => {
     const items = visible("SYSTEM_ADMIN");
     expect(items.every((i) => !i.items?.length)).toBe(true);
-    expect(items.map((i) => i.url)).toEqual(["/dashboard", "/admin/platform", "/admin/schools", "/admin/users", "/admin/impersonations", "/admin/security", "/settings"]);
+    expect(items.map((i) => i.url)).toEqual(["/dashboard", "/settings"]);
     expect(items.some((i) => i.name === "Alunos & Matrículas")).toBe(false);
   });
 

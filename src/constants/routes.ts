@@ -34,6 +34,7 @@ export const PUBLIC_ROUTES = [
   "/auth/login",
   "/auth/forgot-password",
   "/auth/reset-password",
+  "/auth/impersonar",
   "/unauthorized",
   "/not-found",
 ] as const;
@@ -86,6 +87,11 @@ export const REFRESH_TOKEN_KEY = "refresh_token";
 export const ROLE_KEY = "user_role";
 /** Cookie (httpOnly) com a sessão do administrador enquanto dura uma personificação: permite voltar a ela ao terminar. */
 export const IMPERSONATION_BACKUP_KEY = "imp_backup";
+/** Cookie (httpOnly) com o URL do painel de administração que iniciou a personificação: ao terminar, volta-se lá. */
+export const IMPERSONATION_RETURN_KEY = "imp_return";
+
+/** Painel de administração da plataforma (aplicação própria, noutro domínio): para onde vai o administrador de sistema. */
+export const ADMIN_PANEL_URL = (process.env.NEXT_PUBLIC_ADMIN_PANEL_URL || "http://localhost:3009/mindschool").replace(/\/+$/, "");
 
 // Mapa de redirect padrão por role (Landing routes)
 export const ROLE_REDIRECTS: Record<Role, string> = {
@@ -97,7 +103,7 @@ export const ROLE_REDIRECTS: Record<Role, string> = {
   FINANCIAL: "/dashboard",
   GUARDIAN: "/dashboard",
   STUDENT: "/dashboard",
-  SYSTEM_ADMIN: "/dashboard",
+  SYSTEM_ADMIN: ADMIN_PANEL_URL,
   MED_AUDITOR: "/dashboard",
   OWNER: "/dashboard",
   MANAGER: "/dashboard",

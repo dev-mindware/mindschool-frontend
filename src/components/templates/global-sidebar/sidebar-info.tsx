@@ -17,6 +17,7 @@ import { useAuth } from "@/hooks/auth";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { ROLE_LABELS } from "@/constants/roles";
 import { pickPrimaryRole } from "@/utils/api-roles";
+import { MindSchoolLogo } from "@/components/common/logo/mindschool-logo";
 
 function useSchoolSwitcher() {
   const { schoolId, memberships, selectSchool } = useActiveSchoolStore();
@@ -57,8 +58,8 @@ export function SchoolRailButton() {
       <Tooltip>
         <TooltipTrigger asChild>
           <DropdownMenuTrigger asChild>
-            <button type="button" aria-label="Escola activa" className="flex size-9 items-center justify-center rounded-lg bg-white text-primary shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60">
-              <Icon name="GraduationCap" className="size-5" />
+            <button type="button" aria-label="Escola activa" className="flex size-9 items-center justify-center rounded-md bg-white p-1 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60">
+              <MindSchoolLogo size={48} />
             </button>
           </DropdownMenuTrigger>
         </TooltipTrigger>
@@ -83,8 +84,8 @@ export function SidebarCompanyInfo() {
               size="lg"
               className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
             >
-              <div className="flex items-center justify-center rounded-lg bg-primary text-sidebar-primary-foreground aspect-square size-8">
-                <Icon name="GraduationCap" className="size-4" />
+              <div className="flex items-center justify-center rounded-md p-1 aspect-square size-10">
+                <MindSchoolLogo size={44} />
               </div>
               <div className="grid flex-1 text-sm leading-tight text-left">
                 <span className="font-medium truncate">

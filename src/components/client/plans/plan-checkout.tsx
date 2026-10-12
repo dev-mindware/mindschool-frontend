@@ -35,14 +35,16 @@ export function PlanCheckout() {
   const [addons, setAddons] = useState<string[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
+  const [couponInput, setCouponInput] = useState("");
+  const [coupon, setCoupon] = useState<string | null>(null);
 
   const plan = useMemo(() => catalog?.plans.find((p) => p.code === params.get("plan")) ?? null, [catalog, params]);
   const openOrder = current?.orders.find((o) => ["pending_payment", "payment_proof_submitted", "under_review", "proof_replacement_required"].includes(o.status));
 
   // O preço vem sempre do servidor: recalcula a cada mudança de plano, ciclo ou add-ons.
   const quoteQuery = useQuery({
-    queryKey: ["subscription-quote", plan?.code, months, [...addons].sort().join(",")],
-    queryFn: () => subscriptionService.quote({ plan_code: plan!.code, addon_codes: addons, period_months: months }),
+    queryKey: ["subscription-quote", plan?.code, months, [...addons].sort().join(","), coupon],
+    queryFn: () => subscriptionService.quote({ plan_code: plan!.code, addon_codes: addons, period_months: months, ...(coupon ? { coupon_code: coupon } : {}) }),
     enabled: Boolean(plan),
     staleTime: 60_000,
     retry: false,
@@ -67,7 +69,7 @@ export function PlanCheckout() {
     if (!file || !plan) return;
     setBusy(true);
     try {
-      const order = await createOrder.mutateAsync({ plan_code: plan.code, addon_codes: addons, period_months: months });
+      const order = await createOrder.mutateAsync({ plan_code: plan.code, addon_codes: addons, period_months: months, ...(coupon ? { coupon_code: coupon } : {}) });
       await submitProof.mutateAsync({ orderId: order.id, file });
       openModal("subscription-created");
     } catch (e) {
@@ -150,6 +152,24 @@ export function PlanCheckout() {
         <aside className="self-start lg:sticky lg:top-6 lg:col-span-4">
           <Card className="gap-3 p-6 text-sm shadow-none">
             <h3 className="text-base font-semibold">Resumo</h3>
+            <form
+              className="flex items-center gap-2"
+              onSubmit={(e) => { e.preventDefault(); const c = couponInput.trim().toUpperCase(); if (c.length >= 3) setCoupon(c); }}
+            >
+              <input
+                aria-label="Cupão de desconto"
+                placeholder="Tem um cupão?"
+                value={coupon ?? couponInput}
+                disabled={Boolean(coupon)}
+                onChange={(e) => setCouponInput(e.target.value)}
+                className="h-9 min-w-0 flex-1 rounded-md border bg-background px-3 text-sm uppercase disabled:opacity-70"
+              />
+              {coupon ? (
+                <Button type="button" size="sm" variant="outline" onClick={() => { setCoupon(null); setCouponInput(""); }}>Remover</Button>
+              ) : (
+                <Button type="submit" size="sm" variant="outline" disabled={couponInput.trim().length < 3}>Aplicar</Button>
+              )}
+            </form>
             {quoteError ? (
               <p className="text-destructive">{quoteError}</p>
             ) : !preview ? (
@@ -159,6 +179,9 @@ export function PlanCheckout() {
                 <div className="flex justify-between"><span>Plano {preview.breakdown.plan.name}</span><span>{kz(preview.breakdown.plan.monthly_price)}/mês</span></div>
                 {preview.breakdown.addons.map((a) => <div key={a.name} className="flex justify-between text-muted-foreground"><span>{a.name}</span><span>+{kz(a.monthly_price)}/mês</span></div>)}
                 <div className="flex justify-between text-muted-foreground"><span>Ciclo</span><span>{preview.breakdown.months} {preview.breakdown.months > 1 ? "meses" : "mês"}</span></div>
+                {preview.breakdown.coupon && Number(preview.breakdown.discount) > 0 && (
+                  <div className="flex justify-between text-green-700 dark:text-green-400"><span>Cupão {preview.breakdown.coupon.code}</span><span>− {kz(preview.breakdown.discount!)}</span></div>
+                )}
                 <div className="flex justify-between border-t pt-3 text-base font-semibold"><span>Total</span><span>{kz(preview.breakdown.total)}</span></div>
                 <p className="text-xs text-muted-foreground">{preview.effective === "next_cycle" ? "Produz efeito no próximo ciclo." : "Produz efeito após a validação do pagamento."}</p>
                 {preview.features_lost.length > 0 && (

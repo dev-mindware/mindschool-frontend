@@ -2,22 +2,25 @@
 
 import Image from "next/image";
 import { ButtonSubmit, Input, ResetPasswordSkeleton, Button, PasswordStrengthBar, AlertError } from "@/components";
+import { MindSchoolLogo } from "@/components/common/logo/mindschool-logo";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ResetPasswordFormData, resetPasswordSchema } from "@/schemas";
 import { ErrorMessage } from "@/utils/messages";
 import { useSearchParams } from "next/navigation";
-import { useResetPassword } from "@/hooks/auth";
 import { BackToLogin } from "../_components";
-import { Suspense } from "react";
+import { Suspense, useState } from "react";
 import { Wand2 } from "lucide-react";
 import { useModal } from "@/stores";
 import { SuccessResetModal } from "./success-reset-modal";
+import { resetPasswordAndLoginAction } from "@/actions/login";
 
 function ResetPasswordForm() {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const { openModal } = useModal();
+  const [redirectUrl, setRedirectUrl] = useState<string>("/");
+  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
 
   const {
     register,
@@ -42,8 +45,6 @@ function ResetPasswordForm() {
     setValue("confirmPassword", pass, { shouldValidate: true });
   };
 
-  const { mutateAsync: resetPassword, isPending } = useResetPassword();
-
   async function onChangePassword(data: ResetPasswordFormData) {
     if (!token) {
       ErrorMessage(
@@ -52,17 +53,27 @@ function ResetPasswordForm() {
       return;
     }
 
+    setIsSubmitting(true);
     try {
-      await resetPassword({
+      const res = await resetPasswordAndLoginAction({
         token,
         newPassword: data.newPassword,
       });
+
+      if (!res.user && res.message && res.redirectPath === "/auth/login") {
+        ErrorMessage(res.message);
+        return;
+      }
+
+      setRedirectUrl(res.redirectPath || "/");
       openModal("success-reset-modal");
     } catch (error: any) {
       ErrorMessage(
-        error?.response?.data?.message ||
+        error?.message ||
         "Não foi possível alterar a palavra-passe. Tente novamente mais tarde.",
       );
+    } finally {
+      setIsSubmitting(false);
     }
   }
 
@@ -71,14 +82,8 @@ function ResetPasswordForm() {
       <div className="mx-auto flex w-full max-w-sm flex-col gap-6">
         <div className="flex flex-col gap-1.5 text-left">
           <div className="flex items-center gap-3 mb-2">
-            <div className="relative size-10 rounded-xl overflow-hidden bg-primary/10 p-1 border border-primary/20 shadow-sm">
-              <Image
-                src="/mindgest.png"
-                alt="Logótipo do MindSchool"
-                fill
-                className="object-contain"
-                priority
-              />
+            <div className="flex items-center justify-center size-20 rounded-md overflow-hidden p-1">
+              <MindSchoolLogo size={64} priority />
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold tracking-tight text-foreground">
@@ -140,7 +145,7 @@ function ResetPasswordForm() {
             error={errors.confirmPassword && errors.confirmPassword?.message}
           />
 
-          <ButtonSubmit isLoading={isPending} className="w-full">
+          <ButtonSubmit isLoading={isSubmitting} className="w-full">
             Confirmar e Concluir
           </ButtonSubmit>
 
@@ -150,7 +155,7 @@ function ResetPasswordForm() {
         </form>
       </div>
 
-      <SuccessResetModal />
+      <SuccessResetModal redirectUrl={redirectUrl} />
     </>
   );
 }

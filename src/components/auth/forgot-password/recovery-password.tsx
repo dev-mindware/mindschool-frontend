@@ -11,6 +11,7 @@ import { OTPModal } from "./otp-modal";
 import { BackToLogin } from "../_components";
 import { cn } from "@/lib";
 import Image from "next/image";
+import { MindSchoolLogo } from "@/components/common/logo/mindschool-logo";
 import { useState } from "react";
 import { useForgotPassword } from "@/hooks/auth";
 
@@ -48,14 +49,8 @@ export function RecoveryPassword() {
       >
         <div className="flex flex-col gap-1.5 text-left">
           <div className="flex items-center gap-3 mb-2">
-            <div className="relative size-10 rounded-xl overflow-hidden bg-primary/10 p-1 border border-primary/20 shadow-sm">
-              <Image
-                src="/mindgest.png"
-                alt="Logótipo do MindSchool"
-                fill
-                className="object-contain"
-                priority
-              />
+            <div className="flex items-center justify-center size-20 rounded-md overflow-hidden p-1">
+              <MindSchoolLogo size={64} priority />
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold tracking-tight text-foreground">

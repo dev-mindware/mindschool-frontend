@@ -2,6 +2,7 @@
 
 import { useQuery } from "@tanstack/react-query";
 import { Badge, DashboardSkeleton, DynamicMetricCard, EmptyState } from "@/components";
+import { ADMIN_PANEL_URL } from "@/constants/routes";
 import { platformService } from "@/services/platform-service";
 import { formatCurrency } from "@/utils/format-currency";
 import { OverviewSectionCard } from "../overview/overview-section-card";
@@ -10,9 +11,9 @@ import { QuickLinks } from "../overview/overview-blocks";
 const STATUS_LABEL: Record<string, string> = { trial: "Em período de teste", active: "Activas", ativa: "Activas", past_due: "Pagamento em atraso", suspended: "Suspensas", cancelled: "Canceladas", expired: "Expiradas", pending: "Pendentes" };
 const ATTENTION: Record<string, string> = { orders_awaiting_review: "Comprovativos por rever", past_due: "Pagamentos em atraso", trials_ending: "Testes a terminar", dead_letter: "Eventos falhados" };
 const LINKS = [
-  { label: "Painel da plataforma", href: "/admin/platform", icon: "Server" as const },
-  { label: "Escolas", href: "/admin/schools", icon: "School" as const },
-  { label: "Utilizadores", href: "/admin/users", icon: "Users" as const },
+  { label: "Painel da plataforma", href: `${ADMIN_PANEL_URL}/dashboard`, icon: "Server" as const },
+  { label: "Escolas", href: `${ADMIN_PANEL_URL}/schools`, icon: "School" as const },
+  { label: "Utilizadores", href: `${ADMIN_PANEL_URL}/users`, icon: "Users" as const },
   { label: "Configurações", href: "/settings", icon: "Settings" as const },
 ];
 
@@ -42,7 +43,7 @@ export function PlatformDashboard() {
 
       <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <OverviewSectionCard title="Escolas por estado de subscrição" icon="Building2" href="/admin/platform">
+          <OverviewSectionCard title="Escolas por estado de subscrição" icon="Building2" href={`${ADMIN_PANEL_URL}/dashboard`}>
             {statuses.length === 0 ? <p className="py-8 text-center text-sm text-muted-foreground">Ainda não há escolas.</p> : (
               <ul className="divide-y">
                 {statuses.map(([k, v]) => (
@@ -55,7 +56,7 @@ export function PlatformDashboard() {
             )}
           </OverviewSectionCard>
         </div>
-        <OverviewSectionCard title="Precisa de atenção" icon="ShieldAlert" href="/admin/platform">
+        <OverviewSectionCard title="Precisa de atenção" icon="ShieldAlert" href={`${ADMIN_PANEL_URL}/dashboard`}>
           <div className="flex flex-wrap gap-2">
             {attention.length === 0 ? <p className="text-sm text-muted-foreground">Nada pendente.</p> : attention.map(([k, v]) => <Badge key={k} variant={v > 0 ? "warning" : "outline"} className="font-normal">{ATTENTION[k] ?? k}: {v}</Badge>)}
           </div>

@@ -1,7 +1,7 @@
 "use server";
 
 import { cookies } from "next/headers";
-import { ACCESS_TOKEN_KEY, IMPERSONATION_BACKUP_KEY, REFRESH_TOKEN_KEY, ROLE_KEY } from "@/constants/routes";
+import { ACCESS_TOKEN_KEY, IMPERSONATION_BACKUP_KEY, IMPERSONATION_RETURN_KEY, REFRESH_TOKEN_KEY, ROLE_KEY } from "@/constants/routes";
 import { destroySession, signRole } from "@/lib/session";
 import { resetAccessTokenCache } from "@/services/api";
 import { type ApiMe, primaryRoleOf } from "@/utils/map-api-user";
@@ -57,6 +57,20 @@ export async function leaveImpersonationAction(): Promise<ImpersonationActionRes
   let backup: Backup | null = null;
   try { backup = raw ? (JSON.parse(raw) as Backup) : null; } catch { backup = null; }
   resetAccessTokenCache();
+  // personificação iniciada no painel (outro domínio): termina-se a sessão assumida e volta-se ao painel
+  const panel = jar.get(IMPERSONATION_RETURN_KEY)?.value;
+  if (panel) {
+    jar.delete(IMPERSONATION_RETURN_KEY);
+    if (backup?.a && backup.r && backup.role) {
+      jar.set(ACCESS_TOKEN_KEY, backup.a, { ...COOKIE, expires: new Date(Date.now() + 24 * HOUR) });
+      jar.set(REFRESH_TOKEN_KEY, backup.r, { ...COOKIE, expires: new Date(Date.now() + 7 * 24 * HOUR) });
+      jar.set(ROLE_KEY, backup.role, { ...COOKIE, expires: new Date(Date.now() + 7 * 24 * HOUR) });
+      jar.delete(IMPERSONATION_BACKUP_KEY);
+    } else {
+      await destroySession();
+    }
+    return { ok: true, redirectPath: panel };
+  }
   if (!backup?.a || !backup.r || !backup.role) {
     await destroySession();
     return { ok: false, redirectPath: "/auth/login", message: "A sessão do administrador expirou. Inicie sessão de novo." };
