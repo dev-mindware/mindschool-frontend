@@ -7,7 +7,7 @@ import type { AttendanceStatus } from "@/types";
 
 interface ApiRow {
   enrollment_id: string;
-  student: { id: string; full_name: string };
+  student: { id: string; full_name: string; gender?: "M" | "F" | null };
   attendance_id: string | null;
   status: "presente" | "atraso" | "falta_justificada" | "falta_injustificada" | null;
   justification: string | null;
@@ -49,7 +49,7 @@ export function useRollCall(sectionId: string, sectionSubjectId: string | undefi
         id: r.enrollment_id,
         name: r.student.full_name,
         number: String(i + 1).padStart(2, "0"),
-        gender: "M",
+        gender: r.student.gender === "F" ? "F" : "M",
         status: r.status ? FROM_API[r.status] : undefined,
         notes: r.justification ?? undefined,
       })),
@@ -66,7 +66,34 @@ export function useRollCall(sectionId: string, sectionSubjectId: string | undefi
           ...(r.status === "ABSENT_JUSTIFIED" ? { justification: r.notes && r.notes.trim().length >= 3 ? r.notes.trim() : "Justificada" } : {}),
         })),
       }),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: key }),
+    onMutate: async (records) => {
+      await queryClient.cancelQueries({ queryKey: key });
+      const previous = queryClient.getQueryData<RollCallStudent[]>(key);
+      if (previous) {
+        const byId = new Map(records.map((r) => [r.enrollmentId, r]));
+        queryClient.setQueryData<RollCallStudent[]>(
+          key,
+          previous.map((s) => {
+            const update = byId.get(s.id);
+            if (!update) return s;
+            return {
+              ...s,
+              status: update.status,
+              notes: update.notes !== undefined ? update.notes : s.notes,
+            };
+          }),
+        );
+      }
+      return { previous };
+    },
+    onError: (_err, _variables, context) => {
+      if (context?.previous) {
+        queryClient.setQueryData(key, context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: key });
+    },
   });
 
   return { students: query.data ?? [], isLoading: query.isLoading, isError: query.isError, save };

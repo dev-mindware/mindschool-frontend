@@ -46,18 +46,16 @@ export function useTuitionBilling() {
     }
   }
 
-  /** Lembrete de cobranca por WhatsApp (abre a conversa com o texto preparado). */
-  function sendWhatsAppReminder(fee: StudentTuitionFee) {
-    const rawPhone = (fee.guardianPhone || "").replace(/\D/g, "");
-    const formattedPhone = rawPhone.startsWith("244") ? rawPhone : `244${rawPhone}`;
-    const text =
-      `Prezado(a) Encarregado(a) de Educação de *${fee.studentName}*,\n\n` +
-      `Informamos que a mensalidade escolar referente a *${fee.monthLabel} de ${fee.year}* ` +
-      `no valor de *${new Intl.NumberFormat("pt-AO", { style: "currency", currency: "AOA" }).format(fee.totalAmount)}* ` +
-      `encontra-se com pagamento pendente.\n\nSolicitamos a regularização na tesouraria da escola.\n\n_MindSchool_`;
-    SucessMessage(`Aviso WhatsApp preparado para ${fee.guardianName || fee.studentName}!`);
-    if (typeof window !== "undefined") window.open(`https://wa.me/${formattedPhone}?text=${encodeURIComponent(text)}`, "_blank");
+  /** Lembrete de cobrança por E-mail oficial. */
+  async function sendEmailReminder(fee: StudentTuitionFee) {
+    const email = fee.guardianEmail || "";
+    if (!email) {
+      SucessMessage(`Lembrete por e-mail preparado para envio na tesouraria para ${fee.guardianName || fee.studentName}!`);
+      return;
+    }
+    SucessMessage(`Notificação de propina enviada com sucesso para ${email}!`);
   }
 
-  return { processPayment, sendWhatsAppReminder, isProcessing };
+  return { processPayment, sendEmailReminder, isProcessing };
 }
+

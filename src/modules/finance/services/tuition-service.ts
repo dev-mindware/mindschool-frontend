@@ -29,8 +29,35 @@ interface ApiFinanceSettings {
   enrollment_fee?: string | null;
   monthly_fee?: string | null;
   installments?: number;
+  due_start_day?: number;
   due_day?: number;
-  late_fee?: { type: "fixed" | "percentage"; value: string; grace_days: number } | null;
+  grace_days?: number;
+  late_fee?: {
+    type: "fixed" | "percentage";
+    value: string;
+    grace_days: number;
+    monthly_increase_type?: "fixed" | "percentage";
+    monthly_increase_value?: string;
+  } | null;
+  custom_emoluments?: Array<{
+    id: string;
+    code: string;
+    name: string;
+    price: string;
+    delivery_days: number;
+    requires_payment: boolean;
+    description?: string;
+    active: boolean;
+  }>;
+  email_collections?: {
+    enabled?: boolean;
+    pre_due_days?: number;
+    grace_warning?: boolean;
+    penalty_notification?: boolean;
+    monthly_followup?: boolean;
+    send_hour?: string;
+    templates?: Record<string, { subject?: string; body?: string }>;
+  };
 }
 
 const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
@@ -113,7 +140,8 @@ export const tuitionService = {
   plans: async (): Promise<TuitionPlan[]> => {
     const { data } = await api.get<{ settings: { finance?: ApiFinanceSettings } }>("/s");
     const f = data.settings?.finance ?? {};
-    if (!f.monthly_fee && !f.enrollment_fee) return [];
+    if (!f.monthly_fee && !f.enrollment_fee && !f.due_day) return [];
+    const lf = f.late_fee;
     return [
       {
         id: "school-finance",
@@ -124,8 +152,33 @@ export const tuitionService = {
         registrationFee: Number(f.enrollment_fee ?? 0),
         reEnrollmentFee: 0,
         siblingsDiscountPercent: 0,
-        latePenaltyPercent: f.late_fee?.type === "percentage" ? Number(f.late_fee.value) : 0,
-        penaltyGracePeriodDays: f.late_fee?.grace_days ?? 5,
+        dueStartDay: f.due_start_day ?? 1,
+        dueDay: f.due_day ?? 20,
+        penaltyGracePeriodDays: f.grace_days ?? (lf?.grace_days ?? 2),
+        latePenaltyType: lf?.type ?? "percentage",
+        latePenaltyPercent: lf?.type === "percentage" ? Number(lf.value) : 0,
+        latePenaltyValue: Number(lf?.value ?? 0),
+        monthlyIncreaseType: lf?.monthly_increase_type ?? "percentage",
+        monthlyIncreaseValue: Number(lf?.monthly_increase_value ?? 0),
+        customEmoluments: (f.custom_emoluments ?? []).map((e) => ({
+          id: e.id,
+          code: e.code,
+          name: e.name,
+          description: e.description,
+          price: Number(e.price),
+          deliveryDays: e.delivery_days,
+          requiresPayment: e.requires_payment,
+          active: e.active,
+        })),
+        emailCollections: {
+          enabled: f.email_collections?.enabled ?? true,
+          preDueDays: f.email_collections?.pre_due_days ?? 5,
+          graceWarning: f.email_collections?.grace_warning ?? true,
+          penaltyNotification: f.email_collections?.penalty_notification ?? true,
+          monthlyFollowup: f.email_collections?.monthly_followup ?? true,
+          sendHour: f.email_collections?.send_hour ?? "08:00",
+          templates: f.email_collections?.templates,
+        },
         academicYear: "",
         currency: "AOA",
         isActive: true,
@@ -135,15 +188,85 @@ export const tuitionService = {
     ];
   },
 
-  savePlan: async (v: { monthlyAmount: number; registrationFee: number; latePenaltyPercent: number; penaltyGracePeriodDays: number }): Promise<void> => {
+  savePlan: async (v: {
+    monthlyAmount: number;
+    registrationFee: number;
+    dueStartDay?: number;
+    dueDay?: number;
+    graceDays?: number;
+    latePenaltyType?: "percentage" | "fixed";
+    latePenaltyValue?: number;
+    latePenaltyPercent?: number;
+    penaltyGracePeriodDays?: number;
+    monthlyIncreaseType?: "percentage" | "fixed";
+    monthlyIncreaseValue?: number;
+    customEmoluments?: Array<{
+      id: string;
+      code: string;
+      name: string;
+      price: number;
+      deliveryDays: number;
+      requiresPayment: boolean;
+      description?: string;
+      active: boolean;
+    }>;
+    emailCollections?: {
+      enabled: boolean;
+      preDueDays: number;
+      graceWarning: boolean;
+      penaltyNotification: boolean;
+      monthlyFollowup: boolean;
+      sendHour?: string;
+      templates?: Record<string, { subject?: string; body?: string }>;
+    };
+  }): Promise<void> => {
+    const penaltyVal = v.latePenaltyValue ?? v.latePenaltyPercent ?? 0;
+    const grace = v.graceDays ?? v.penaltyGracePeriodDays ?? 2;
     await patchSettings({
       finance: {
         monthly_fee: v.monthlyAmount.toFixed(2),
         enrollment_fee: v.registrationFee.toFixed(2),
+        due_start_day: v.dueStartDay ?? 1,
+        due_day: v.dueDay ?? 20,
+        grace_days: grace,
         late_fee:
-          v.latePenaltyPercent > 0
-            ? { policy_version: "1", type: "percentage", value: String(v.latePenaltyPercent), grace_days: v.penaltyGracePeriodDays }
+          penaltyVal > 0
+            ? {
+                policy_version: "2",
+                type: v.latePenaltyType ?? "percentage",
+                value: String(penaltyVal),
+                grace_days: grace,
+                monthly_increase_type: v.monthlyIncreaseType ?? "percentage",
+                monthly_increase_value: String(v.monthlyIncreaseValue ?? 0),
+              }
             : null,
+        ...(v.customEmoluments
+          ? {
+              custom_emoluments: v.customEmoluments.map((e) => ({
+                id: e.id,
+                code: e.code,
+                name: e.name,
+                price: e.price.toFixed(2),
+                delivery_days: e.deliveryDays,
+                requires_payment: e.requiresPayment,
+                description: e.description,
+                active: e.active,
+              })),
+            }
+          : {}),
+        ...(v.emailCollections
+          ? {
+              email_collections: {
+                enabled: v.emailCollections.enabled,
+                pre_due_days: v.emailCollections.preDueDays,
+                grace_warning: v.emailCollections.graceWarning,
+                penalty_notification: v.emailCollections.penaltyNotification,
+                monthly_followup: v.emailCollections.monthlyFollowup,
+                ...(v.emailCollections.sendHour ? { send_hour: v.emailCollections.sendHour } : {}),
+                ...(v.emailCollections.templates ? { templates: v.emailCollections.templates } : {}),
+              },
+            }
+          : {}),
       },
     });
   },

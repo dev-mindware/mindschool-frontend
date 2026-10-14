@@ -1,12 +1,12 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import { useRouter } from 'next/navigation';
 import { TitleList, Button, Icon } from '@/components';
 import { FilterPopover } from '@/components/shared/filters/filter-popover';
 import { useSections } from '@/hooks/school/use-sections';
 import { usePautas } from '@/hooks/school/use-pautas';
 import { AssessmentTerm, ConsolidatedPauta, PautaAuditEntry } from '@/types/grade';
-import { ConsolidatedPautaModal } from './consolidated-pauta-modal';
 import { LockPautaModal } from './lock-pauta-modal';
 import { ReopenPautaModal } from './reopen-pauta-modal';
 import { PautasMetrics } from './pautas-metrics';
@@ -27,8 +27,7 @@ export function PautasPageContent() {
   const auditLogs: PautaAuditEntry[] = [];
 
   // Selected pauta for modals
-  const [viewingPauta, setViewingPauta] = useState<ConsolidatedPauta | null>(null);
-  const [isViewOpen, setIsViewOpen] = useState(false);
+  const router = useRouter();
 
   const [lockingPauta, setLockingPauta] = useState<ConsolidatedPauta | null>(null);
   const [isLockOpen, setIsLockOpen] = useState(false);
@@ -63,10 +62,7 @@ export function PautasPageContent() {
       <PautasTable
         pautas={allPautas}
         toolbar={<FilterPopover label="Trimestre" icon="CalendarRange" options={TERMS} value={selectedTerm} onChange={(val) => val && setSelectedTerm(val as AssessmentTerm)} />}
-        onViewPauta={(item) => {
-          setViewingPauta(item);
-          setIsViewOpen(true);
-        }}
+        onViewPauta={(item) => router.push(`/grades/pautas/${item.sectionId}?term=${selectedTerm}`)}
         onLockPauta={(item) => {
           setLockingPauta(item);
           setIsLockOpen(true);
@@ -81,26 +77,6 @@ export function PautasPageContent() {
       <PautasAuditLogSection auditLogs={auditLogs} />
 
       {/* Modais Integrados */}
-      {viewingPauta && (
-        <ConsolidatedPautaModal
-          isOpen={isViewOpen}
-          onClose={() => {
-            setIsViewOpen(false);
-            setViewingPauta(null);
-          }}
-          pauta={viewingPauta}
-          onOpenLockModal={() => {
-            setIsViewOpen(false);
-            setLockingPauta(viewingPauta);
-            setIsLockOpen(true);
-          }}
-          onOpenReopenModal={() => {
-            setIsViewOpen(false);
-            setReopeningPauta(viewingPauta);
-            setIsReopenOpen(true);
-          }}
-        />
-      )}
 
       {lockingPauta && (
         <LockPautaModal

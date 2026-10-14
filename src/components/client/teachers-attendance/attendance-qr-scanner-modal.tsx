@@ -50,7 +50,7 @@ export function AttendanceQrScannerModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Terminal de Ponto por Leitura QR (Portão / Balcão)"
-      className="!w-[95vw] sm:!max-w-xl lg:!max-w-2xl"
+      size="xl"
     >
       <div className="space-y-5">
         <div className="text-center p-6 bg-slate-950 text-white rounded-2xl border border-slate-800 space-y-4 shadow-inner">

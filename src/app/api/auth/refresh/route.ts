@@ -37,8 +37,25 @@ function isAllowedOrigin(req: NextRequest): boolean {
   }
 
   try {
-    const allowed = new URL(appUrl);
     const current = new URL(origin);
+
+    // Permite se a origem corresponder ao Host do pedido atual (mesma aplicação / IP / domínio)
+    const host = req.headers.get("host");
+    if (host && current.host === host) {
+      return true;
+    }
+
+    // Em desenvolvimento, permite origens locais (ex.: aceder via telemóvel na rede local)
+    if (
+      process.env.NODE_ENV !== "production" &&
+      /^https?:\/\/(localhost|127\.0\.0\.1|192\.168\.\d+\.\d+|10\.\d+\.\d+\.\d+|172\.(1[6-9]|2\d|3[01])\.\d+\.\d+)(:\d+)?$/.test(
+        origin
+      )
+    ) {
+      return true;
+    }
+
+    const allowed = new URL(appUrl);
 
     // ✅ FIX: normaliza portos default (80/443) vs string vazia
     const normalizePort = (proto: string, port: string): string => {

@@ -140,11 +140,11 @@ export function DropoutRiskInterventionModal({
           />
         </div>
 
-        <div className="flex items-center justify-end gap-3 pt-4 border-t border-border">
-          <Button variant="outline" type="button" onClick={onClose}>
+        <div className="flex items-center justify-end gap-3 pt-3">
+          <Button variant="outline" type="button" className="w-max" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" className="gap-2 font-medium">
+          <Button type="submit" className="w-max gap-2 font-medium">
             <Icon name="Check" className="w-4 h-4" />
             Gravar Intervenção
           </Button>

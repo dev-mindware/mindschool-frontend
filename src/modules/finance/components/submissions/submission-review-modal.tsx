@@ -3,7 +3,15 @@
 import { useCan } from "@/hooks/auth/use-can";
 import { useEffect, useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Button, FormTextarea, GlobalModal, Icon, Input } from "@/components";
+import { Button, FormTextarea, Icon, Input } from "@/components";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { useTuitionSubmissions } from "@/modules/finance/hooks/use-tuition-payments";
 import { tuitionPaymentsService, type ApiSubmission } from "@/modules/finance/services/tuition-payments-service";
 import { useModal } from "@/stores/modal/use-modal-store";
@@ -17,7 +25,7 @@ export const SUBMISSION_REVIEW_MODAL = "submission-review";
 export function SubmissionReviewModal({ submission }: { submission: ApiSubmission | null }) {
   const { review, start } = useTuitionSubmissions();
   const { can } = useCan();
-  const { closeModal } = useModal();
+  const { open, closeModal } = useModal();
   const [confirmed, setConfirmed] = useState("");
   const [reason, setReason] = useState("");
   const [preview, setPreview] = useState<{ url: string; mime: string } | null>(null);
@@ -53,27 +61,18 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
       .catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a decisão.")));
 
   return (
-    <GlobalModal
-      id={SUBMISSION_REVIEW_MODAL}
-      size="4xl"
-      icon={<Icon name="FileCheck" className="size-5" />}
-      title={`Comprovativo ${s.protocol}`}
-      description={`${s.student.full_name} · enviado por ${s.submitted_by.full_name}`}
-      headerExtra={<SubmissionBadge status={s.status} />}
-      preventOutsideClose
-      footer={actionable ? (
-        <>
-          <Button type="button" variant="outline" disabled={busy || reason.trim().length < 5} onClick={() => decide("replacement_required")}>Pedir novo comprovativo</Button>
-          <Button type="button" variant="destructive" disabled={busy || reason.trim().length < 5} onClick={() => decide("rejected")}>Rejeitar</Button>
-          <Button type="button" disabled={busy || invalid} onClick={() => decide("approved")} className="gap-2">
-            {busy && <Icon className="animate-spin" name="LoaderCircle" />}
-            {partial ? "Aprovar valor parcial" : "Aprovar pagamento"}
-          </Button>
-        </>
-      ) : (
-        <Button type="button" variant="outline" onClick={() => closeModal(SUBMISSION_REVIEW_MODAL)}>Fechar</Button>
-      )}
-    >
+    <Sheet open={Boolean(open[SUBMISSION_REVIEW_MODAL])} onOpenChange={(next) => !next && closeModal(SUBMISSION_REVIEW_MODAL)}>
+      <SheetContent className="w-full sm:max-w-4xl flex flex-col p-0 gap-0">
+        <SheetHeader className="p-6 border-b shrink-0">
+          <SheetTitle className="flex items-center gap-2 text-lg font-bold">
+            <Icon name="FileCheck" className="size-5" />
+            {`Comprovativo ${s.protocol}`}
+          </SheetTitle>
+          <SheetDescription className="text-xs">{`${s.student.full_name} · enviado por ${s.submitted_by.full_name}`}</SheetDescription>
+          <div><SubmissionBadge status={s.status} /></div>
+        </SheetHeader>
+
+      <div className="flex-1 overflow-y-auto p-6">
       <div className="grid gap-5 lg:grid-cols-2">
         <div className="min-h-[320px] overflow-hidden rounded-lg border bg-muted/30">
           {previewError && <p className="p-6 text-center text-sm text-muted-foreground">Não foi possível carregar o ficheiro.</p>}
@@ -122,6 +121,23 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
           {!OPEN_SUBMISSION.includes(s.status) && s.confirmed_amount && <p className="text-xs text-muted-foreground">Valor confirmado: {formatCurrency(Number(s.confirmed_amount))}{s.reviewed_by ? ` · por ${s.reviewed_by.full_name}` : ""}</p>}
         </div>
       </div>
-    </GlobalModal>
+      </div>
+
+        <SheetFooter>
+          {actionable ? (
+            <>
+              <Button type="button" variant="outline" disabled={busy || reason.trim().length < 5} onClick={() => decide("replacement_required")}>Pedir novo comprovativo</Button>
+              <Button type="button" variant="destructive" disabled={busy || reason.trim().length < 5} onClick={() => decide("rejected")}>Rejeitar</Button>
+              <Button type="button" disabled={busy || invalid} onClick={() => decide("approved")} className="gap-2">
+                {busy && <Icon className="animate-spin" name="LoaderCircle" />}
+                {partial ? "Aprovar valor parcial" : "Aprovar pagamento"}
+              </Button>
+            </>
+          ) : (
+            <Button type="button" variant="outline" onClick={() => closeModal(SUBMISSION_REVIEW_MODAL)}>Fechar</Button>
+          )}
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

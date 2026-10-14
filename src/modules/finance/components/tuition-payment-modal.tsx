@@ -1,7 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { GlobalModal } from "@/components";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -57,16 +64,16 @@ export function TuitionPaymentModal({ isOpen, onClose, fee }: TuitionPaymentModa
   }
 
   return (
-    <GlobalModal
-      id="tuition-payment"
-      isOpen={isOpen}
-      onClose={onClose}
-      canClose
-      title="Liquidação de Mensalidade Escolar"
-      description={`Registo de pagamento e emissão de Factura-Recibo para ${fee.studentName}.`}
-      className="max-w-xl"
-    >
-      <form onSubmit={handleConfirmPayment} className="space-y-5">
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-xl flex flex-col p-0 gap-0">
+        <SheetHeader className="p-6 border-b shrink-0">
+          <SheetTitle className="text-lg font-bold">Liquidação de Mensalidade Escolar</SheetTitle>
+          <SheetDescription className="text-xs">
+            {`Registo de pagamento e emissão de Factura-Recibo para ${fee.studentName}.`}
+          </SheetDescription>
+        </SheetHeader>
+
+      <form id="tuition-payment-form" onSubmit={handleConfirmPayment} className="flex-1 overflow-y-auto p-6 space-y-5">
         {/* Resumo do Aluno e Mensalidade */}
         <div className="rounded-xl border bg-muted/40 p-4 space-y-3">
           <div className="flex items-start justify-between border-b pb-3">
@@ -146,36 +153,27 @@ export function TuitionPaymentModal({ isOpen, onClose, fee }: TuitionPaymentModa
 
         </div>
 
-        {/* Botões de Ação */}
-        <div className="flex justify-end gap-3 pt-2 border-t">
-          <Button
-            type="button"
-            variant="outline"
-            onClick={onClose}
-            disabled={isProcessing}
-            className="h-10 px-4 text-xs font-medium"
-          >
+      </form>
+
+        <SheetFooter>
+          <Button type="button" variant="outline" onClick={onClose} disabled={isProcessing}>
             Cancelar
           </Button>
-          <Button
-            type="submit"
-            disabled={isProcessing}
-            className="h-10 px-5 text-xs font-semibold tracking-tight gap-2"
-          >
+          <Button type="submit" form="tuition-payment-form" disabled={isProcessing} className="gap-2">
             {isProcessing ? (
               <>
-                <Icon name="Loader2" className="w-3.5 h-3.5 animate-spin" />
+                <Icon name="Loader2" className="animate-spin" />
                 A Processar...
               </>
             ) : (
               <>
-                <Icon name="Check" className="w-3.5 h-3.5" />
+                <Icon name="Check" />
                 Registar pagamento
               </>
             )}
           </Button>
-        </div>
-      </form>
-    </GlobalModal>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

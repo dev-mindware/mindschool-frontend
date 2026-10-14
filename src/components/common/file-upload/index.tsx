@@ -10,6 +10,10 @@ export const PROOF_ACCEPT: Accept = { "application/pdf": [".pdf"], "image/png": 
 /** Comprovativos que o servidor só aceita em PDF ou PNG (subscrições). */
 export const PROOF_ACCEPT_PDF_PNG: Accept = { "application/pdf": [".pdf"], "image/png": [".png"] };
 export const CSV_ACCEPT: Accept = { "text/csv": [".csv"] };
+export const EXCEL_ACCEPT: Accept = {
+  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
+  "application/vnd.ms-excel": [".xls"],
+};
 
 interface FileUploadProps {
   value: File | null;

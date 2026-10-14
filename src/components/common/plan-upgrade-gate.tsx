@@ -20,23 +20,23 @@ export function PlanUpgradeGate({
     switch (plan) {
       case "Pro":
         return [
-          "Gestão de fornecedores",
-          "Reservas de stock",
-          "Gestão avançada de POS",
-          "Relatórios de acesso e auditoria",
+          "Provas e exames online com correcção automática",
+          "Gestão de transporte escolar e rotas em tempo real",
+          "Saúde escolar e acompanhamento psicopedagógico",
+          "Auditoria avançada e exportação ministerial (MED)",
         ];
       case "Smart":
         return [
-          "POS operacional para vendas em balcão",
-          "Movimentos e configurações do caixa",
-          "Gestão de stock",
-          "Relatórios de clientes",
+          "Assiduidade docente e controlo de ponto via QR/biometria",
+          "Sistema preditivo de alerta de abandono escolar",
+          "Relatórios pedagógicos consolidados de aproveitamento",
+          "Notificações automáticas para encarregados de educação",
         ];
       default:
         return [
-          "Gestão de clientes e vendas",
-          "Facturação e emissão de documentos",
-          "Relatórios básicos de facturação",
+          "Gestão académica de turmas, matrículas e horários",
+          "Pautas trimestrais e lançamento de notas",
+          "Cobrança de propinas e emissão de recibos",
         ];
     }
   };

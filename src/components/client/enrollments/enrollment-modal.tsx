@@ -6,14 +6,20 @@ import { useStudents } from "@/hooks/school/use-students";
 import { useEnrollments } from "@/hooks/school/use-enrollments";
 import { getApiErrorMessage } from "@/utils/api-error";
 import {
-  GlobalModal,
   Input,
   SelectField,
   Button,
   ButtonSubmit,
-  Icon,
   PaginatedSelect,
 } from "@/components";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 
 interface EnrollmentModalProps {
@@ -167,15 +173,16 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
   ];
 
   return (
-    <GlobalModal
-      isOpen={isOpen}
-      onClose={onClose}
-      canClose
-      title="Boletim de Matrícula Digital (UC-01)"
-      description="Efectue a inscrição de novos ingressos ou confirmação anual de alunos existentes"
-      className="!max-h-[88vh] !w-[95vw] sm:!max-w-2xl lg:!max-w-3xl overflow-y-auto"
-    >
-      <form onSubmit={handleSubmit} className="space-y-5 pt-2">
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
+        <SheetHeader className="p-6 border-b shrink-0">
+          <SheetTitle className="text-lg font-bold">Boletim de Matrícula Digital (UC-01)</SheetTitle>
+          <SheetDescription className="text-xs">
+            Efectue a inscrição de novos ingressos ou confirmação anual de alunos existentes
+          </SheetDescription>
+        </SheetHeader>
+
+      <form id="enrollment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
         {/* Toggle de Aluno Existente vs Novo Ingresso */}
         <div className="flex gap-2 p-1 bg-muted/60 rounded-lg">
           <Button
@@ -313,16 +320,17 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
           </div>
         </div>
 
-        {/* Botões de Acção no Padrão MindGest */}
-        <div className="flex justify-end gap-4 pt-4 border-t">
+      </form>
+
+        <SheetFooter>
           <Button type="button" variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <ButtonSubmit isLoading={isSubmitting} className="w-max">
+          <ButtonSubmit form="enrollment-form" isLoading={isSubmitting}>
             Confirmar Matrícula
           </ButtonSubmit>
-        </div>
-      </form>
-    </GlobalModal>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

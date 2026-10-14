@@ -36,7 +36,7 @@ export function TuitionPaymentsContent() {
   const [selectedFeeForPayment, setSelectedFeeForPayment] = useState<StudentTuitionFee | null>(null);
   const { allFees, summary, isLoading, counts } = useTuition();
 
-  const { sendWhatsAppReminder } = useTuitionBilling();
+  const { sendEmailReminder } = useTuitionBilling();
 
   function handleOpenReceipt(fee: StudentTuitionFee) {
     tuitionService.openReceipt(fee.id).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível abrir o recibo.")));
@@ -166,11 +166,11 @@ export function TuitionPaymentsContent() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => sendWhatsAppReminder(item)}
-                    title="Enviar lembrete pelo WhatsApp"
-                    className="h-8 w-8 p-0 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50"
+                    onClick={() => sendEmailReminder(item)}
+                    title="Enviar lembrete por E-mail"
+                    className="h-8 w-8 p-0 text-primary hover:text-primary/90"
                   >
-                    <Icon name="MessageSquare" className="w-3.5 h-3.5" />
+                    <Icon name="Mail" className="w-3.5 h-3.5" />
                   </Button>
                 </FeatureGate>
               </>

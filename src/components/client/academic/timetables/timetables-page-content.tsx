@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import {
-  Alert, Badge, Button, ButtonOnlyAction, DataList, EmptyState, FilterPopover, FormModal, FormSelect, Icon, Input, Tabs, TabsContent, TabsList, TabsTrigger, TitleList, WeekTimetable,
+  Alert, AlertTitle, AlertDescription, Badge, Button, ButtonOnlyAction, DataList, EmptyState, FilterPopover, FormModal, FormSelect, Icon, Input, Tabs, TabsContent, TabsList, TabsTrigger, TitleList, WeekTimetable,
   type Column, type TimetableBlock, type TimetableSlot,
   Can,
 } from "@/components";
@@ -107,22 +107,31 @@ function ChangeModal({ entry, timetableId }: { entry: ApiEntry | null; timetable
 /** Estado vazio guiado: explica o fluxo (grelha de tempos → salas → horário → aulas → validar e publicar). */
 function TimetableGuide({ hasBells, hasRooms, hasYear, creating, onCreate, onBells, onRooms }: { hasBells: boolean; hasRooms: boolean; hasYear: boolean; creating: boolean; onCreate: () => void; onBells: () => void; onRooms: () => void }) {
   const steps = [
-    { done: hasBells, title: "Defina os tempos de aula", text: "Duração, número de tempos e intervalo de cada turno.", action: "Criar grelha de tempos", run: onBells },
-    { done: hasRooms, title: "Registe as salas", text: "Opcional, mas evita choques de ocupação.", action: "Adicionar sala", run: onRooms },
-    { done: false, title: "Crie o horário", text: "Começa como rascunho; só é visível depois de publicado.", action: "Criar horário", run: onCreate, primary: true },
-    { done: false, title: "Preencha as aulas", text: "Clique num tempo livre da turma para atribuir disciplina, professor e sala.", },
-    { done: false, title: "Valide e publique", text: "A API impede choques de professor, turma e sala antes de publicar.", },
+    { done: hasBells, title: "1. Defina os tempos de aula", text: "Duração, número de tempos e intervalo de cada turno escolar.", action: "Criar grelha de tempos", run: onBells },
+    { done: hasRooms, title: "2. Registe as salas escolares", text: "Opcional, mas evita conflitos de ocupação física de turmas.", action: "Adicionar sala", run: onRooms },
+    { done: false, title: "3. Crie a versão do horário", text: "Começa como rascunho; as turmas só veem o horário quando publicado.", action: "Criar horário", run: onCreate, primary: true },
+    { done: false, title: "4. Preencha as aulas na grelha", text: "Clique num tempo livre da turma para atribuir disciplina, professor e sala." },
+    { done: false, title: "5. Valide e publique oficialmente", text: "A API impede automaticamente choques de professor, turma e sala. Valide e publique para todos os utilizadores.", isFinal: true },
   ];
   return (
-    <EmptyState icon="CalendarRange" title="Ainda não há horário escolar" description={hasYear ? "Siga os passos abaixo para montar a grade semanal das turmas e dos professores." : "Não há ano lectivo activo. Crie o ano lectivo em Configurações antes de montar o horário."}>
-      <ol className="mt-1 grid w-full max-w-3xl gap-3 text-left sm:grid-cols-2">
+    <EmptyState icon="CalendarRange" title="Ainda não há horário escolar" description={hasYear ? "Siga os passos abaixo para configurar os turnos, salas e montar a grade semanal das turmas." : "Não há ano lectivo activo. Crie o ano lectivo em Configurações antes de montar o horário."}>
+      <ol className="mt-2 grid w-full max-w-3xl gap-3 text-left sm:grid-cols-2">
         {steps.map((st, i) => (
-          <li key={st.title} className={"flex gap-3 rounded-lg border bg-background p-3 " + (st.done ? "border-emerald-500/40" : "")}>
-            <span className={"flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold " + (st.done ? "bg-emerald-500/15 text-emerald-700" : "bg-primary/10 text-primary")}>{st.done ? <Icon name="Check" className="size-4" /> : i + 1}</span>
-            <div className="min-w-0 space-y-1">
-              <p className="text-sm font-medium">{st.title}</p>
+          <li key={st.title} className={"flex gap-3 rounded-lg border bg-background/80 p-3.5 transition-colors " + (st.done ? "border-emerald-500/40 bg-emerald-500/[0.04]" : "border-border") + (st.isFinal ? " sm:col-span-2" : "")}>
+            <span className={"flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold " + (st.done ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" : "bg-primary/10 text-primary")}>
+              {st.done ? <Icon name="Check" className="size-4" /> : i + 1}
+            </span>
+            <div className="min-w-0 flex-1 space-y-1">
+              <div className="flex flex-wrap items-center justify-between gap-1">
+                <p className="text-sm font-medium">{st.title}</p>
+                {st.done && <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Configurado</span>}
+              </div>
               <p className="text-xs text-muted-foreground">{st.text}</p>
-              {st.action && st.run && <Button size="sm" variant={st.primary ? "default" : "outline"} className="mt-1 h-7 text-xs" disabled={!hasYear || (st.primary && creating)} onClick={st.run}>{st.action}</Button>}
+              {st.action && st.run && (
+                <Button size="sm" variant={st.primary ? "default" : "outline"} className="mt-1 h-7 text-xs" disabled={!hasYear || (st.primary && creating)} onClick={st.run}>
+                  {st.action}
+                </Button>
+              )}
             </div>
           </li>
         ))}
@@ -186,7 +195,7 @@ export function TimetablesPageContent() {
     <div className="space-y-6">
       <TitleList title="Horários Escolares" suTitle="Versões do horário (rascunho → validado → publicado), vista semanal por turma e por professor; choques são impedidos pela API.">
         <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" variant="outline" className="gap-1.5" onClick={() => window.print()}><Icon name="Printer" className="size-4" />Imprimir</Button>
+          <Button size="sm" variant="outline" className="gap-1.5" disabled={!current} onClick={() => window.print()}><Icon name="Printer" className="size-4" />Imprimir</Button>
           <Can permission="timetable:write"><Button size="sm" className="gap-1.5" disabled={!hasYear || tt.create.isPending} onClick={() => tt.create.mutateAsync(current?.id).then(() => SucessMessage(current ? "Nova versão criada a partir da actual." : "Horário criado.")).catch(fail)}><Icon name="Plus" className="size-4" />{current ? "Nova versão" : "Criar horário"}</Button></Can>
         </div>
       </TitleList>
@@ -228,27 +237,86 @@ export function TimetablesPageContent() {
         </TabsList>
 
         <TabsContent value="section" className="space-y-5">
-          <div className="mt-6 flex flex-wrap items-end gap-4">
-            <div className="w-72"><FormSelect label="Turma" value={section?.id ?? ""} onValueChange={(v) => f.setFilter("turma", v)} options={sections.map((s) => ({ value: s.id, label: `${s.classLevel} ${s.name} (${SHIFT_LABEL[SHIFT_OF[s.shift] ?? "manha"]})` }))} /></div>
-            {bar}
-          </div>
-          {section && sectionSlots.length === 0 && <Alert><p className="text-sm">Não há grelha de tempos para o turno desta turma. Crie-a no separador «Tempos».</p></Alert>}
-          {!current ? <TimetableGuide hasBells={bells.length > 0} hasRooms={tt.rooms.length > 0} hasYear={hasYear} creating={tt.create.isPending} onCreate={() => tt.create.mutateAsync(undefined).then(() => SucessMessage("Horário criado.")).catch(fail)} onBells={() => openModal("tt-new-bell")} onRooms={() => openModal("tt-new-room")} /> : (
-            <WeekTimetable<ApiEntry>
-              blocks={sectionEntries.map(toBlock)}
-              slots={sectionSlots}
-              onBlockClick={(b) => { setPicked(b.data!); openModal("tt-entry"); }}
-              onEmptyClick={editable && section ? (weekday, s) => { setSlotTarget({ sectionId: section.id, weekday, slot: s.lessonNo ?? 1 }); openModal("tt-add-entry"); } : undefined}
+          {!current ? (
+            <TimetableGuide
+              hasBells={bells.length > 0}
+              hasRooms={tt.rooms.length > 0}
+              hasYear={hasYear}
+              creating={tt.create.isPending}
+              onCreate={() => tt.create.mutateAsync(undefined).then(() => SucessMessage("Horário criado.")).catch(fail)}
+              onBells={() => openModal("tt-new-bell")}
+              onRooms={() => openModal("tt-new-room")}
             />
+          ) : (
+            <>
+              <div className="mt-6 flex flex-wrap items-end gap-4">
+                <div className="w-72">
+                  <FormSelect
+                    label="Turma"
+                    value={section?.id ?? ""}
+                    onValueChange={(v) => f.setFilter("turma", v)}
+                    options={sections.map((s) => ({ value: s.id, label: `${s.classLevel} ${s.name} (${SHIFT_LABEL[SHIFT_OF[s.shift] ?? "manha"]})` }))}
+                  />
+                </div>
+                {bar}
+              </div>
+
+              {section && sectionSlots.length === 0 && (
+                <Alert className="border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200">
+                  <Icon name="Clock" className="size-4 text-amber-600 dark:text-amber-400" />
+                  <AlertTitle>Sem grelha de tempos para o turno desta turma</AlertTitle>
+                  <AlertDescription className="text-amber-800/90 dark:text-amber-300/90 flex flex-wrap items-center justify-between gap-3 mt-1">
+                    <span>O turno <strong>{SHIFT_LABEL[SHIFT_OF[section.shift] ?? "manha"]}</strong> ainda não possui tempos de aula configurados.</span>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      className="h-7 text-xs border-amber-500/40 bg-background hover:bg-amber-500/15"
+                      onClick={() => openModal("tt-new-bell")}
+                    >
+                      <Icon name="Plus" className="size-3.5 mr-1" />
+                      Criar grelha para {SHIFT_LABEL[SHIFT_OF[section.shift] ?? "manha"]}
+                    </Button>
+                  </AlertDescription>
+                </Alert>
+              )}
+
+              <WeekTimetable<ApiEntry>
+                blocks={sectionEntries.map(toBlock)}
+                slots={sectionSlots}
+                onBlockClick={(b) => { setPicked(b.data!); openModal("tt-entry"); }}
+                onEmptyClick={editable && section ? (weekday, s) => { setSlotTarget({ sectionId: section.id, weekday, slot: s.lessonNo ?? 1 }); openModal("tt-add-entry"); } : undefined}
+              />
+            </>
           )}
         </TabsContent>
 
         <TabsContent value="teacher" className="space-y-5">
-          <div className="mt-6 flex flex-wrap items-end gap-4">
-            <div className="w-72"><FormSelect label="Professor" value={teacher ?? ""} onValueChange={(v) => f.setFilter("professor", v)} options={teachers.map(([id, name]) => ({ value: id, label: name }))} /></div>
-            {bar}
-          </div>
-          {teachers.length === 0 ? <EmptyState icon="GraduationCap" title="Sem aulas por professor" description="Quando houver aulas atribuídas no horário, a grade semanal de cada professor aparece aqui." /> : <WeekTimetable<ApiEntry> blocks={teacherEntries.map((e) => ({ ...toBlock(e), subtitle: `${e.section.name}` }))} onBlockClick={(b) => { setPicked(b.data!); openModal("tt-entry"); }} />}
+          {!current ? (
+            <EmptyState
+              icon="CalendarRange"
+              title="Horário escolar ainda não criado"
+              description="Para consultar a grade semanal por professor, crie primeiro a versão do horário no separador «Por turma»."
+            />
+          ) : (
+            <>
+              <div className="mt-6 flex flex-wrap items-end gap-4">
+                <div className="w-72"><FormSelect label="Professor" value={teacher ?? ""} onValueChange={(v) => f.setFilter("professor", v)} options={teachers.map(([id, name]) => ({ value: id, label: name }))} /></div>
+                {bar}
+              </div>
+              {teachers.length === 0 ? (
+                <EmptyState
+                  icon="GraduationCap"
+                  title="Sem aulas por professor"
+                  description="Quando houver aulas atribuídas no horário, a grade semanal de cada professor aparece aqui."
+                />
+              ) : (
+                <WeekTimetable<ApiEntry>
+                  blocks={teacherEntries.map((e) => ({ ...toBlock(e), subtitle: `${e.section.name}` }))}
+                  onBlockClick={(b) => { setPicked(b.data!); openModal("tt-entry"); }}
+                />
+              )}
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="bells" className="space-y-4">

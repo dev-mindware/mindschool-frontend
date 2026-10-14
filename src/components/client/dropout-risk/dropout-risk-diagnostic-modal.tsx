@@ -176,20 +176,20 @@ export function DropoutRiskDiagnosticModal({
         </div>
 
         {/* Rodapé com Acções */}
-        <div className="flex items-center justify-between pt-4 border-t border-border">
+        <div className="flex items-center justify-between pt-3">
           {selectedAlert.status !== "RESOLVED" && (
             <Button
               variant="outline"
               size="sm"
               onClick={() => onResolveAlert(selectedAlert.id)}
-              className="text-emerald-700 border-emerald-300 hover:bg-emerald-50 gap-1.5 text-xs font-medium"
+              className="w-max text-emerald-700 border-emerald-300 hover:bg-emerald-50 gap-1.5 text-xs font-medium"
             >
               <Icon name="CheckCheck" className="w-4 h-4" />
               Marcar Caso Como Resolvido
             </Button>
           )}
           <div className="flex items-center gap-2 ml-auto">
-            <Button variant="outline" size="sm" onClick={onClose}>
+            <Button variant="outline" size="sm" className="w-max" onClick={onClose}>
               Fechar
             </Button>
           </div>

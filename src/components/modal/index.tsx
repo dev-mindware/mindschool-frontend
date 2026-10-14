@@ -101,7 +101,7 @@ export function GlobalModal({
         {canClose && <DialogClose onClick={handleClose} />}
 
         {hasHeader && (
-          <DialogHeader className="relative shrink-0 space-y-1 border-b border-border/40 pb-3">
+          <DialogHeader className="relative shrink-0 space-y-1 pb-2">
             <div className="flex items-center justify-between gap-3">
               <div className={cn("flex min-w-0 items-center gap-3", { "w-full flex-col text-center": sucess })}>
                 {sucess && <IconCheckSucessfull />}
@@ -120,10 +120,10 @@ export function GlobalModal({
         )}
 
         {/* O scroll fica só aqui; o rodapé nunca desaparece para baixo. */}
-        <div className="min-h-0 flex-1 overflow-y-auto py-4">{children}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto py-3">{children}</div>
 
         {footer && (
-          <DialogFooter className="mt-auto flex shrink-0 flex-row flex-wrap items-center justify-end gap-2 border-t border-border/40 pt-4 [&>button]:w-full sm:[&>button]:w-auto">
+          <DialogFooter className="mt-auto flex shrink-0 flex-row flex-wrap items-center justify-end gap-2 pt-2 [&>button]:w-max">
             {footer}
           </DialogFooter>
         )}

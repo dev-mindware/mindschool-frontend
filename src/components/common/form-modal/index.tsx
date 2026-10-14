@@ -59,7 +59,7 @@ export function FormModal({ id, title, description, submitLabel = "Guardar", isL
       size={SIZE[size]}
       footer={
         <>
-          <Button type="button" variant="outline" onClick={close}>{readOnly ? "Fechar" : "Cancelar"}</Button>
+          <Button type="button" variant="outline" className="w-max" onClick={close}>{readOnly ? "Fechar" : "Cancelar"}</Button>
           {!readOnly && <ButtonSubmit form={formId} className="w-max" isLoading={Boolean(isLoading)} disabled={disabled}>{submitLabel}</ButtonSubmit>}
         </>
       }

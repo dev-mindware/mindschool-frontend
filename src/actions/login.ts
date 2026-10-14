@@ -31,6 +31,7 @@ export async function loginAction({
   password,
   totpCode,
 }: z.infer<typeof loginSchema>): Promise<LoginActionResult> {
+  resetAccessTokenCache();
   try {
     const res = await api.post<ApiLogin>("/auth/login", {
       email,

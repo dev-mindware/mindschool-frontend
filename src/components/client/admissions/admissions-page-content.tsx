@@ -8,7 +8,7 @@ import { Icon } from "@/components";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { useAdmissions } from "@/hooks/school/use-admissions";
 import { ApplicationsList } from "./applications-list";
-import { CandidateApplicationModal } from "./candidate-application-modal";
+import { CandidateApplicationDrawer } from "./candidate-application-drawer";
 
 export function AdmissionsPageContent() {
   const { applications } = useAdmissions();
@@ -83,8 +83,8 @@ export function AdmissionsPageContent() {
 
       <ApplicationsList applications={applications} />
 
-      {/* Modal de Nova Candidatura */}
-      <CandidateApplicationModal
+      {/* Drawer de Nova Candidatura (MindGest UX Standard: formulário com scroll reside em Drawer) */}
+      <CandidateApplicationDrawer
         isOpen={isNewModalOpen}
         onClose={() => setIsNewModalOpen(false)}
       />

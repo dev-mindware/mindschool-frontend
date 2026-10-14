@@ -5,7 +5,7 @@ export const kz = (v: string | number) => formatCurrencyCompact(v);
 
 export const FEATURE_LABEL: Record<string, string> = {
   dashboard_advanced: "Dashboard avançado", exams_full: "Exames e recurso completos", finance_advanced: "Financeiro avançado", archive_advanced: "Arquivo documental avançado",
-  whatsapp: "Comunicação por WhatsApp", sms: "Comunicação por SMS", portal: "Portal do aluno e do encarregado", portal_teacher_full: "Portal completo do professor",
+  email_collections: "Cobrança e avisos por e-mail", portal: "Portal do aluno e do encarregado", portal_teacher_full: "Portal completo do professor",
   portal_premium: "Portal Premium", reports_advanced: "Relatórios avançados", bi_analytics: "BI e Analytics", api_access: "API e integrações", multi_school: "Multi-escola",
   central_management: "Gestão centralizada", automation_advanced: "Automação avançada", sla_support: "Suporte dedicado e SLA", calendar_general: "Calendário geral da escola",
   google_calendar: "Integração com o Google Calendar", rooms: "Gestão de salas", lessons_summaries: "Aulas, substituições e sumários", timetable_solver: "Geração automática de horários",

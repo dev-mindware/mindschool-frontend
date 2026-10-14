@@ -30,10 +30,11 @@ export function ConfirmModal({ id, title, description, confirmLabel = "Confirmar
       size="md"
       footer={
         <>
-          <Button type="button" variant="outline" onClick={() => closeModal(id)}>Cancelar</Button>
+          <Button type="button" variant="outline" className="w-max" onClick={() => closeModal(id)}>Cancelar</Button>
           <Button
             type="button"
             variant={destructive ? "destructive" : "default"}
+            className="w-max"
             disabled={Boolean(isLoading)}
             onClick={async () => {
               try {

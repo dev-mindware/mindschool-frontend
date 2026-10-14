@@ -39,4 +39,6 @@ export * from "./date-picker"
 export * from "./scroll-area"
 export * from "./input-currency"
 export * from "./radio-group"
-export * from "./drawer"
+export * from "./drawer"
+export * from "./sheet"
+

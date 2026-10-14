@@ -2,6 +2,38 @@ import { EducationCycle } from "@/types/academic";
 
 export type TuitionStatus = "PAID" | "PENDING" | "OVERDUE" | "EXEMPT";
 
+export interface CustomEmolument {
+  id: string;
+  code: string;
+  name: string;
+  price: number;
+  deliveryDays: number;
+  requiresPayment: boolean;
+  description?: string;
+  active: boolean;
+}
+
+export interface EmailTemplateItem {
+  subject: string;
+  body: string;
+}
+
+export interface EmailCollectionsConfig {
+  enabled: boolean;
+  preDueDays: number;
+  graceWarning: boolean;
+  penaltyNotification: boolean;
+  monthlyFollowup: boolean;
+  sendHour?: string;
+  templates?: {
+    pre_due?: EmailTemplateItem;
+    grace?: EmailTemplateItem;
+    penalty?: EmailTemplateItem;
+    monthly?: EmailTemplateItem;
+    receipt?: EmailTemplateItem;
+  };
+}
+
 export interface TuitionPlan {
   id: string;
   name: string;
@@ -11,8 +43,16 @@ export interface TuitionPlan {
   registrationFee: number;
   reEnrollmentFee: number;
   siblingsDiscountPercent: number;
-  latePenaltyPercent: number;
+  dueStartDay: number;
+  dueDay: number;
   penaltyGracePeriodDays: number;
+  latePenaltyType: "percentage" | "fixed";
+  latePenaltyPercent: number;
+  latePenaltyValue: number;
+  monthlyIncreaseType: "percentage" | "fixed";
+  monthlyIncreaseValue: number;
+  customEmoluments: CustomEmolument[];
+  emailCollections: EmailCollectionsConfig;
   academicYear: string;
   currency: "AOA";
   isActive: boolean;
@@ -41,6 +81,7 @@ export interface StudentTuitionFee {
   receiptNumber?: string;
   guardianName: string;
   guardianPhone: string;
+  guardianEmail?: string;
 }
 
 export interface TuitionPaymentInput {

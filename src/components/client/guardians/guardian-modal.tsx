@@ -14,7 +14,15 @@ import {
 import { useGuardians } from '@/hooks/school/use-guardians';
 import { useStudents } from '@/hooks/school/use-students';
 import { getApiErrorMessage } from '@/utils/api-error';
-import { GlobalModal, Button, ButtonSubmit } from '@/components';
+import { Button, ButtonSubmit } from '@/components';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from '@/components/ui/sheet';
 import { SucessMessage, ErrorMessage } from '@/utils/messages';
 import { GuardianPersonalInfoFields } from './guardian-personal-info-fields';
 import { GuardianContactsFields } from './guardian-contacts-fields';
@@ -232,15 +240,18 @@ export function GuardianModal({
   };
 
   return (
-    <GlobalModal
-      isOpen={isOpen}
-      onClose={onClose}
-      canClose
-      title={guardianToEdit ? 'Editar Encarregado de Educação' : 'Registar Encarregado de Educação'}
-      description="Gerencie os dados cadastrais, contactos e a lista de todos os educandos a cargo"
-      className="!max-h-[88vh] !w-[95vw] sm:!max-w-2xl lg:!max-w-3xl overflow-y-auto"
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-2">
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
+        <SheetHeader className="p-6 border-b shrink-0">
+          <SheetTitle className="text-lg font-bold">
+            {guardianToEdit ? 'Editar Encarregado de Educação' : 'Registar Encarregado de Educação'}
+          </SheetTitle>
+          <SheetDescription className="text-xs">
+            Gerencie os dados cadastrais, contactos e a lista de todos os educandos a cargo
+          </SheetDescription>
+        </SheetHeader>
+
+      <form id="guardian-form" onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-6 space-y-6">
         <GuardianPersonalInfoFields register={register} errors={errors} />
 
         <GuardianContactsFields
@@ -269,15 +280,17 @@ export function GuardianModal({
           onRemoveWard={handleRemoveWard}
         />
 
-        <div className="flex justify-end gap-4 pt-4 border-t">
+      </form>
+
+        <SheetFooter>
           <Button type="button" variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <ButtonSubmit isLoading={isSubmitting} className="w-max">
+          <ButtonSubmit form="guardian-form" isLoading={isSubmitting}>
             {guardianToEdit ? 'Guardar Alterações' : 'Cadastrar Encarregado'}
           </ButtonSubmit>
-        </div>
-      </form>
-    </GlobalModal>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

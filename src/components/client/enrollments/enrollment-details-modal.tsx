@@ -3,12 +3,19 @@
 import React from "react";
 import { Enrollment } from "@/types";
 import {
-  GlobalModal,
   Button,
   Badge,
   DetailRow,
   Icon,
 } from "@/components";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 
 interface EnrollmentDetailsModalProps {
   isOpen: boolean;
@@ -38,50 +45,29 @@ export function EnrollmentDetailsModal({
   };
 
   return (
-    <GlobalModal
-      isOpen={isOpen}
-      onClose={onClose}
-      canClose
-      title={
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-            <Icon name="FileCheck2" className="h-6 w-6" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-foreground">
-              Boletim de Matrícula: {enrollment.enrollmentNumber}
-            </h3>
-            <div className="flex flex-wrap items-center gap-2 mt-1">
-              <span className="text-xs text-muted-foreground">
-                Ano Lectivo: {enrollment.academicYear}
-              </span>
-              <Badge variant={statusConfig.variant} className="text-xs">
-                {statusConfig.label}
-              </Badge>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
+        <SheetHeader className="p-6 border-b shrink-0">
+          <div className="flex items-center gap-3 pr-6">
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+              <Icon name="FileCheck2" className="h-6 w-6" />
+            </div>
+            <div className="space-y-1 text-left">
+              <SheetTitle className="text-lg font-bold">
+                Boletim de Matrícula: {enrollment.enrollmentNumber}
+              </SheetTitle>
+              <SheetDescription asChild>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-muted-foreground">Ano Lectivo: {enrollment.academicYear}</span>
+                  <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
+                </div>
+              </SheetDescription>
             </div>
           </div>
-        </div>
-      }
-      className="!max-h-[85vh] !w-[95vw] sm:!max-w-2xl lg:!max-w-3xl overflow-y-auto"
-      footer={
-        <div className="flex justify-between items-center w-full">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => void proof.emit(enrollment)}
-            disabled={proof.isPending}
-            className="gap-1.5 text-blue-600 border-blue-200"
-          >
-            <Icon name="FileText" className="h-4 w-4" />
-            Emitir Comprovativo (PDF)
-          </Button>
-          <Button variant="outline" onClick={onClose}>
-            Fechar
-          </Button>
-        </div>
-      }
-    >
-      <div className="space-y-6 pt-2">
+        </SheetHeader>
+
+      <div className="flex-1 overflow-y-auto p-6">
+      <div className="space-y-6">
         {/* Informações do Estudante */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-card border">
           <div className="space-y-2">
@@ -137,6 +123,18 @@ export function EnrollmentDetailsModal({
           </div>
         )}
       </div>
-    </GlobalModal>
+      </div>
+
+        <SheetFooter>
+          <Button variant="outline" onClick={() => void proof.emit(enrollment)} disabled={proof.isPending}>
+            <Icon name="FileText" className="h-4 w-4" />
+            Emitir Comprovativo (PDF)
+          </Button>
+          <Button variant="outline" onClick={onClose}>
+            Fechar
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

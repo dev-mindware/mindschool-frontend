@@ -1,7 +1,15 @@
 'use client';
 
 import React, { useState } from 'react';
-import { GlobalModal, SelectField, Button, FormTextarea, Icon, Input } from '@/components';
+import { SelectField, Button, Checkbox, FormTextarea, Icon, Input } from '@/components';
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from '@/components/ui/sheet';
 import type { ApiExam, ApiQuestionType, NewQuestion } from '@/services/exams-service';
 
 interface ExamQuestionsModalProps {
@@ -61,10 +69,17 @@ export function AddQuestionModal({ isOpen, onClose, activeExam, isSaving, onAddQ
     setCorrect((cur) => (type === 'escolha_multipla_unica' ? [id] : cur.includes(id) ? cur.filter((x) => x !== id) : [...cur, id]));
 
   return (
-    <GlobalModal isOpen={isOpen} onClose={onClose} title={activeExam ? `Questões: ${activeExam.title}` : 'Questões'} className="!w-[95vw] sm:!max-w-2xl lg:!max-w-4xl">
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
+        <SheetHeader className="p-6 border-b shrink-0">
+          <SheetTitle className="text-lg font-bold">{activeExam ? `Questões: ${activeExam.title}` : 'Questões'}</SheetTitle>
+          <SheetDescription className="text-xs">Lista e adiciona as perguntas da prova.</SheetDescription>
+        </SheetHeader>
+
+      <div className="flex-1 overflow-y-auto p-6">
       {activeExam && (
         <div className="space-y-5">
-          <div className="space-y-2 max-h-[30vh] overflow-y-auto pr-1">
+          <div className="space-y-2">
             {activeExam.questions.length === 0 && <p className="text-xs text-muted-foreground">Ainda não há questões.</p>}
             {activeExam.questions.map((q) => (
               <div key={q.id} className="flex items-start justify-between gap-3 rounded-lg border border-border p-3">
@@ -90,7 +105,7 @@ export function AddQuestionModal({ isOpen, onClose, activeExam, isSaving, onAddQ
               {activeExam.google_form ? 'A prova está ligada a um Google Form: desligue-o para alterar as questões.' : 'Só é possível alterar as questões enquanto a prova é um rascunho.'}
             </p>
           ) : (
-            <form onSubmit={submit} className="space-y-3 border-t border-border pt-4">
+            <form id="add-question-form" onSubmit={submit} className="space-y-3 pt-2">
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                 <div className="sm:col-span-2">
                   <SelectField
@@ -109,7 +124,7 @@ export function AddQuestionModal({ isOpen, onClose, activeExam, isSaving, onAddQ
                   <p className="text-xs font-medium text-foreground">Opções (marque a(s) certa(s))</p>
                   {options.map((text, i) => (
                     <div key={LETTERS[i]} className="flex items-center gap-2">
-                      <input type={type === 'escolha_multipla_unica' ? 'radio' : 'checkbox'} checked={correct.includes(LETTERS[i]!)} onChange={() => toggleCorrect(LETTERS[i]!)} />
+                      <Checkbox checked={correct.includes(LETTERS[i]!)} onCheckedChange={() => toggleCorrect(LETTERS[i]!)} aria-label={`Opção ${LETTERS[i]!.toUpperCase()} correcta`} />
                       <span className="w-5 text-xs font-mono uppercase">{LETTERS[i]}</span>
                       <div className="flex-1"><Input value={text} onChange={(e) => setOptions((cur) => cur.map((o, j) => (j === i ? e.target.value : o)))} placeholder={`Opção ${LETTERS[i]!.toUpperCase()}${i < 2 ? " *" : ""}`} /></div>
                     </div>
@@ -122,16 +137,22 @@ export function AddQuestionModal({ isOpen, onClose, activeExam, isSaving, onAddQ
               {type === 'resposta_curta' && (
                 <Input label="Resposta esperada (alternativas separadas por |)" value={expected} onChange={(e) => setExpected(e.target.value)} placeholder="Ex: Brasília" />
               )}
-              <div className="flex justify-end">
-                <Button type="submit" size="sm" disabled={isSaving} className="gap-1.5">
-                  <Icon name="Plus" className="size-4" />
-                  Adicionar questão
-                </Button>
-              </div>
             </form>
           )}
         </div>
       )}
-    </GlobalModal>
+      </div>
+
+        <SheetFooter>
+          <Button type="button" variant="outline" onClick={onClose}>Fechar</Button>
+          {activeExam && !locked && (
+            <Button type="submit" form="add-question-form" disabled={isSaving} className="gap-1.5">
+              <Icon name="Plus" className="size-4" />
+              Adicionar questão
+            </Button>
+          )}
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

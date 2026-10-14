@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { SucessMessage, ErrorMessage } from '@/utils/messages';
+import { useRouter } from 'next/navigation';
 import { Can, TitleList, Button, Icon } from '@/components';
 import { useGoogleReturn } from '@/hooks/school/use-google-return';
 import { useExamTargets, useOnlineExams } from '@/hooks/school/use-online-exams';
@@ -12,7 +13,6 @@ import { OnlineExamsTable } from './online-exams-table';
 import { CreateExamModal, CREATE_EXAM_MODAL_ID } from './create-exam-modal';
 import { useModal } from '@/stores/modal/use-modal-store';
 import { AddQuestionModal } from './add-question-modal';
-import { ExamGradingModal } from './exam-grading-modal';
 import { GoogleFormModal } from './google-form-modal';
 
 export function OnlineExamsPageContent() {
@@ -22,7 +22,7 @@ export function OnlineExamsPageContent() {
 
   const { openModal } = useModal();
   const [questionsFor, setQuestionsFor] = useState<string | null>(null);
-  const [gradingFor, setGradingFor] = useState<string | null>(null);
+  const router = useRouter();
   const [formFor, setFormFor] = useState<string | null>(null);
 
   // As modais leem sempre a versao mais recente da prova (a lista e invalidada a cada alteracao).
@@ -49,7 +49,7 @@ export function OnlineExamsPageContent() {
         isLoading={isLoading}
         onOpenQuestions={(e) => setQuestionsFor(e.id)}
         onOpenGoogleForm={(e) => setFormFor(e.id)}
-        onOpenGrading={(e) => setGradingFor(e.id)}
+        onOpenGrading={(e) => router.push(`/online-exams/${e.id}/grading`)}
         onPublish={(e) => run(publish.mutateAsync(e.id), 'Prova publicada.')}
         onClose={(e) => run(close.mutateAsync(e.id), 'Prova encerrada.')}
       />
@@ -79,7 +79,6 @@ export function OnlineExamsPageContent() {
       />
 
       <GoogleFormModal isOpen={Boolean(formFor)} onClose={() => setFormFor(null)} activeExam={byId(formFor)} />
-      <ExamGradingModal isOpen={Boolean(gradingFor)} onClose={() => setGradingFor(null)} activeExam={byId(gradingFor)} />
     </div>
   );
 }

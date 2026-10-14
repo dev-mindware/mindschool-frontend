@@ -4,12 +4,19 @@ import { RELATIONSHIP_LABELS } from "@/constants/labels";
 import React from "react";
 import { Guardian } from "@/types";
 import {
-  GlobalModal,
   Button,
   Badge,
   DetailRow,
   Icon,
 } from "@/components";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 
 interface GuardianDetailsModalProps {
   isOpen: boolean;
@@ -35,49 +42,29 @@ export function GuardianDetailsModal({
   const phoneClean = guardian.phonePrimary.replace(/[^0-9]/g, "");
 
   return (
-    <GlobalModal
-      isOpen={isOpen}
-      onClose={onClose}
-      canClose
-      title={
-        <div className="flex items-center gap-3">
-          <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-            <Icon name="UserCheck" className="h-6 w-6" />
-          </div>
-          <div>
-            <h3 className="text-lg font-bold text-foreground">
-              {guardian.fullName}
-            </h3>
-            <div className="flex flex-wrap items-center gap-2 mt-1">
-              <span className="text-xs text-muted-foreground">
-                BI: {guardian.idDocumentNumber || "Não informado"}
-              </span>
-              <Badge variant="outline" className="text-xs">
-                {CHANNEL_LABELS[guardian.preferredContactChannel] || guardian.preferredContactChannel}
-              </Badge>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
+        <SheetHeader className="p-6 border-b shrink-0">
+          <div className="flex items-center gap-3 pr-6">
+            <div className="h-12 w-12 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
+              <Icon name="UserCheck" className="h-6 w-6" />
+            </div>
+            <div className="space-y-1 text-left">
+              <SheetTitle className="text-lg font-bold">{guardian.fullName}</SheetTitle>
+              <SheetDescription asChild>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-xs text-muted-foreground">BI: {guardian.idDocumentNumber || "Não informado"}</span>
+                  <Badge variant="outline">
+                    {CHANNEL_LABELS[guardian.preferredContactChannel] || guardian.preferredContactChannel}
+                  </Badge>
+                </div>
+              </SheetDescription>
             </div>
           </div>
-        </div>
-      }
-      className="!max-h-[85vh] !w-[95vw] sm:!max-w-2xl lg:!max-w-3xl overflow-y-auto"
-      footer={
-        <div className="flex justify-between items-center w-full">
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={() => window.open(`https://wa.me/${phoneClean}`, "_blank")}
-            className="text-emerald-600 gap-1.5"
-          >
-            <Icon name="MessageSquare" className="h-4 w-4" />
-            Abrir WhatsApp
-          </Button>
-          <Button variant="outline" onClick={onClose}>
-            Fechar
-          </Button>
-        </div>
-      }
-    >
-      <div className="space-y-6 pt-2">
+        </SheetHeader>
+
+      <div className="flex-1 overflow-y-auto p-6">
+      <div className="space-y-6">
         {/* Informações Pessoais e Profissionais */}
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-card border">
           <div className="space-y-2">
@@ -164,6 +151,18 @@ export function GuardianDetailsModal({
           )}
         </div>
       </div>
-    </GlobalModal>
+      </div>
+
+        <SheetFooter>
+          <Button variant="outline" onClick={() => window.open(`https://wa.me/${phoneClean}`, "_blank")}>
+            <Icon name="MessageSquare" className="h-4 w-4" />
+            Abrir WhatsApp
+          </Button>
+          <Button variant="outline" onClick={onClose}>
+            Fechar
+          </Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

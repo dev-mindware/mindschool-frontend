@@ -51,7 +51,7 @@ export function useTuition(searchQuery = "", statusFilter: TuitionStatus | "ALL"
   const summary = useMemo(() => tuitionService.summary(fees), [fees]);
 
   const savePlanMutation = useMutation({
-    mutationFn: (p: Pick<TuitionPlan, "monthlyAmount" | "registrationFee" | "latePenaltyPercent" | "penaltyGracePeriodDays">) => tuitionService.savePlan(p),
+    mutationFn: (p: Parameters<typeof tuitionService.savePlan>[0]) => tuitionService.savePlan(p),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: financeKeys.plans(schoolId) }),
   });
 

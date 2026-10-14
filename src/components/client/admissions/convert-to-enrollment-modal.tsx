@@ -5,12 +5,21 @@ import { AdmissionApplication } from "@/types/admission";
 import { useAdmissions } from "@/hooks/school/use-admissions";
 import { useSections } from "@/hooks/school/use-sections";
 import {
-  GlobalModal,
   Button,
   ButtonSubmit,
   Icon,
+  Input,
   PaginatedSelect,
+  Progress,
 } from "@/components";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 
 interface ConvertToEnrollmentModalProps {
@@ -118,28 +127,25 @@ export function ConvertToEnrollmentModal({
   };
 
   return (
-    <GlobalModal
-      isOpen={isOpen}
-      onClose={onClose}
-      canClose
-      title={
-        <div className="flex items-center gap-3">
-          <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 shrink-0">
-            <Icon name="UserCheck" className="h-5 w-5" />
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
+        <SheetHeader className="p-6 border-b shrink-0">
+          <div className="flex items-center gap-3">
+            <div className="h-10 w-10 rounded-full bg-emerald-100 dark:bg-emerald-950/50 flex items-center justify-center text-emerald-600 shrink-0">
+              <Icon name="UserCheck" className="h-5 w-5" />
+            </div>
+            <div className="space-y-1 text-left">
+              <SheetTitle className="text-lg font-bold">
+                Efetivar Matrícula em 1 Clique (UC-01)
+              </SheetTitle>
+              <SheetDescription className="text-xs">
+                Conversão automática de candidato aprovado em estudante matriculado
+              </SheetDescription>
+            </div>
           </div>
-          <div>
-            <h3 className="text-lg font-bold text-foreground">
-              Efetivar Matrícula em 1 Clique (UC-01)
-            </h3>
-            <p className="text-xs text-muted-foreground">
-              Conversão automática de candidato aprovado em estudante matriculado
-            </p>
-          </div>
-        </div>
-      }
-      className="!max-h-[88vh] !w-[95vw] sm:!max-w-2xl lg:!max-w-3xl overflow-y-auto"
-    >
-      <form onSubmit={handleSubmit} className="space-y-5 pt-2">
+        </SheetHeader>
+
+      <form id="convert-enrollment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
         {/* Banner Informativo */}
         <div className="p-3.5 rounded-lg border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 text-xs space-y-1 text-emerald-950 dark:text-emerald-200">
           <div className="font-semibold flex items-center gap-1.5 text-sm text-emerald-800 dark:text-emerald-300">
@@ -228,55 +234,45 @@ export function ConvertToEnrollmentModal({
                   {isFull && " (Lotação Esgotada)"}
                 </span>
               </div>
-              <div className="w-full bg-secondary h-2.5 rounded-full overflow-hidden">
-                <div
-                  className={`h-full transition-all duration-300 ${
-                    isFull
-                      ? "bg-red-500"
-                      : currentSection.currentEnrollmentCount / currentSection.capacity > 0.85
-                      ? "bg-amber-500"
-                      : "bg-emerald-500"
-                  }`}
-                  style={{
-                    width: `${Math.min(
-                      100,
-                      (currentSection.currentEnrollmentCount / currentSection.capacity) * 100
-                    )}%`,
-                  }}
-                />
-              </div>
+              <Progress
+                value={Math.min(
+                  100,
+                  (currentSection.currentEnrollmentCount / currentSection.capacity) * 100
+                )}
+                indicatorClassName={
+                  isFull
+                    ? "bg-red-500"
+                    : currentSection.currentEnrollmentCount / currentSection.capacity > 0.85
+                    ? "bg-amber-500"
+                    : "bg-emerald-500"
+                }
+              />
             </div>
           )}
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Ano Lectivo
-            </label>
-            <input
-              type="text"
-              value={academicYear}
-              onChange={(e) => setAcademicYear(e.target.value)}
-              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              required
-            />
-          </div>
+          <Input
+            label="Ano Lectivo"
+            value={academicYear}
+            onChange={(e) => setAcademicYear(e.target.value)}
+            required
+          />
         </div>
+      </form>
 
-        {/* Rodapé */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t">
+        <SheetFooter>
           <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
           <ButtonSubmit
+            form="convert-enrollment-form"
             isLoading={isSubmitting}
             disabled={isFull}
-            className="gap-2 bg-emerald-600 hover:bg-emerald-700 text-white font-medium"
           >
             <Icon name="UserPlus" className="h-4 w-4" />
             Confirmar Matrícula do Aluno
           </ButtonSubmit>
-        </div>
-      </form>
-    </GlobalModal>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

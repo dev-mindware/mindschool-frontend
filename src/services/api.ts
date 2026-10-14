@@ -120,16 +120,43 @@ export const api = axios.create({
 api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   const url = config.url || "";
 
+  // Ajusta baseURL no browser se acedido a partir de outro dispositivo (ex.: telemóvel na mesma rede)
+  if (typeof window !== "undefined" && config.baseURL) {
+    try {
+      const parsed = new URL(config.baseURL);
+      if (
+        (parsed.hostname === "localhost" || parsed.hostname === "127.0.0.1") &&
+        window.location.hostname &&
+        window.location.hostname !== "localhost" &&
+        window.location.hostname !== "127.0.0.1"
+      ) {
+        parsed.hostname = window.location.hostname;
+        config.baseURL = parsed.toString().replace(/\/$/, "");
+      }
+    } catch {
+      // Ignora erro de parsing e mantém baseURL original
+    }
+  }
+
   // --------------------------------------------------------------------------
-  // 1. ANEXA TOKEN (exceto em rotas públicas de auth)
+  // 1. ANEXA TOKEN (exceto em rotas públicas de auth ou se o pedido já tem Authorization explícito)
   // --------------------------------------------------------------------------
-  if (!isPublicAuthRoute(url)) {
-    if (!accessTokenCache) {
-      accessTokenCache = await getAccessToken();
+  if (!isPublicAuthRoute(url) && !config.headers.Authorization) {
+    let token: string | null = null;
+
+    if (typeof window !== "undefined") {
+      // No browser: usa cache de memória para evitar round-trips de Server Action em cada pedido
+      if (!accessTokenCache) {
+        accessTokenCache = await getAccessToken();
+      }
+      token = accessTokenCache;
+    } else {
+      // No servidor (Server Actions / SSR): NUNCA partilha cache em memória entre sessões/dispositivos
+      token = await getAccessToken();
     }
 
-    if (accessTokenCache) {
-      config.headers.Authorization = `Bearer ${accessTokenCache}`;
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
     }
   }
 

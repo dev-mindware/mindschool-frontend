@@ -8,7 +8,15 @@ import { Student } from "@/types";
 import { useSections } from "@/hooks/school/use-sections";
 import { useStudents } from "@/hooks/school/use-students";
 import { getApiErrorMessage } from "@/utils/api-error";
-import { GlobalModal, Button, ButtonSubmit } from "@/components";
+import { Button, ButtonSubmit } from "@/components";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetDescription,
+  SheetFooter,
+} from "@/components/ui/sheet";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import {
   StudentIdentificationFields,
@@ -149,15 +157,18 @@ export function StudentModal({
   };
 
   return (
-    <GlobalModal
-      isOpen={isOpen}
-      onClose={onClose}
-      canClose
-      title={studentToEdit ? "Editar Estudante" : "Ficha de Registo do Estudante"}
-      description="Preencha as informações pessoais, documentos e encarregado de educação"
-      className="!max-h-[85vh] !w-full sm:!max-w-2xl overflow-y-auto"
-    >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6 pt-2">
+    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+      <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
+        <SheetHeader className="p-6 border-b shrink-0">
+          <SheetTitle className="text-lg font-bold">
+            {studentToEdit ? "Editar Estudante" : "Ficha de Registo do Estudante"}
+          </SheetTitle>
+          <SheetDescription className="text-xs">
+            Preencha as informações pessoais, documentos e encarregado de educação
+          </SheetDescription>
+        </SheetHeader>
+
+      <form id="student-form" onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-6 space-y-6">
         <StudentIdentificationFields
           register={register}
           errors={errors}
@@ -181,15 +192,17 @@ export function StudentModal({
           setValue={setValue}
         />
 
-        <div className="flex justify-end gap-4 pt-4 border-t">
+      </form>
+
+        <SheetFooter>
           <Button type="button" variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <ButtonSubmit isLoading={isSubmitting} className="w-max">
+          <ButtonSubmit form="student-form" isLoading={isSubmitting}>
             {studentToEdit ? "Guardar Alterações" : "Cadastrar Estudante"}
           </ButtonSubmit>
-        </div>
-      </form>
-    </GlobalModal>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

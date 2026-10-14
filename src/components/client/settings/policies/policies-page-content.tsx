@@ -1,199 +1,926 @@
 "use client";
 
-import { useEffect, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState, type ReactNode } from "react";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Can, Button, Card, CardContent, CardHeader, CardTitle, Checkbox, EmptyState, FormModal, FormSelect, Icon, Input, TitleList } from "@/components";
+import {
+  Can,
+  Button,
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Checkbox,
+  EmptyState,
+  FormModal,
+  FormSelect,
+  Icon,
+  Input,
+  TitleList,
+  Badge,
+} from "@/components";
 import { deepMerge, patchSettings, readRawSettings } from "@/services/school-settings-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { icons } from "lucide-react";
 
-/** Valores por omissao (os mesmos da API: `resolveSettings`); o que a escola grava sobrepoe-se. */
+/** Valores por omissão recomendados pelo Ministério da Educação de Angola (MED). */
 const DEFAULTS = {
   evaluation: {
-    mt_weights: { mac: 1, mas: 1, pp: 1 }, mt_rounding: "integer", absent_policy: "zero", pass_mark: 10, review_window_days: 10, council_min_attendees: 3,
-    final_exam: { admission_min_mfd: 7, weight_mfd: 50, recurso_enabled: true, melhoria_enabled: true },
+    mt_weights: { mac: 1, mas: 1, pp: 1 },
+    mt_rounding: "integer",
+    absent_policy: "zero",
+    pass_mark: 10,
+    review_window_days: 10,
+    council_min_attendees: 3,
+    final_exam: {
+      admission_min_mfd: 7,
+      weight_mfd: 50,
+      recurso_enabled: true,
+      melhoria_enabled: true,
+    },
   },
-  admission: { entrance_exam_required_level_numbers: [] as number[], min_pass_score: 10, waitlist_tiebreak: "submission_order" },
-  calendar: { lective_weekdays: [1, 2, 3, 4, 5], summary_deadline_days: 1, enforce_lective_attendance: false },
-  risk: { weights: { frequencia: 1, desempenho: 1, financeiro: 1 }, thresholds: { moderado: 35, elevado: 65 }, overdue_days: 30 },
-  finance: { installments: 10, due_day: 5, reminder_days: [3, 1] as number[] },
+  admission: {
+    entrance_exam_required_level_numbers: [] as number[],
+    min_pass_score: 10,
+    waitlist_tiebreak: "submission_order",
+  },
+  calendar: {
+    lective_weekdays: [1, 2, 3, 4, 5],
+    summary_deadline_days: 1,
+    enforce_lective_attendance: false,
+  },
+  risk: {
+    weights: { frequencia: 1, desempenho: 1, financeiro: 1 },
+    thresholds: { moderado: 35, elevado: 65 },
+    overdue_days: 30,
+  },
+  finance: {
+    installments: 10,
+    due_day: 20,
+    reminder_days: [5, 2] as number[],
+  },
 } as const;
 
 type Settings = {
-  evaluation: { mt_weights: { mac: number; mas: number; pp: number }; mt_rounding: string; absent_policy: string; pass_mark: number; review_window_days: number; council_min_attendees: number; final_exam: { admission_min_mfd: number; weight_mfd: number; recurso_enabled: boolean; melhoria_enabled: boolean } };
-  admission: { entrance_exam_required_level_numbers: number[]; min_pass_score: number | null; waitlist_tiebreak: string };
-  calendar: { lective_weekdays: number[]; summary_deadline_days: number; enforce_lective_attendance: boolean };
-  risk: { weights: { frequencia: number; desempenho: number; financeiro: number }; thresholds: { moderado: number; elevado: number }; overdue_days: number };
-  finance: { installments: number; due_day: number; reminder_days: number[] };
+  evaluation: {
+    mt_weights: { mac: number; mas: number; pp: number };
+    mt_rounding: string;
+    absent_policy: string;
+    pass_mark: number;
+    review_window_days: number;
+    council_min_attendees: number;
+    final_exam: {
+      admission_min_mfd: number;
+      weight_mfd: number;
+      recurso_enabled: boolean;
+      melhoria_enabled: boolean;
+    };
+  };
+  admission: {
+    entrance_exam_required_level_numbers: number[];
+    min_pass_score: number | null;
+    waitlist_tiebreak: string;
+  };
+  calendar: {
+    lective_weekdays: number[];
+    summary_deadline_days: number;
+    enforce_lective_attendance: boolean;
+  };
+  risk: {
+    weights: { frequencia: number; desempenho: number; financeiro: number };
+    thresholds: { moderado: number; elevado: number };
+    overdue_days: number;
+  };
+  finance: {
+    installments: number;
+    due_day: number;
+    reminder_days: number[];
+  };
 };
+
 type Block = keyof Settings;
 
 const WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
 const num = (v: string) => (v === "" ? 0 : Number(v));
-const list = (v: string) => v.split(",").map((x) => Number(x.trim())).filter((x) => Number.isInteger(x) && x > 0);
+const list = (v: string) =>
+  v
+    .split(",")
+    .map((x) => Number(x.trim()))
+    .filter((x) => Number.isInteger(x) && x > 0);
 
-function Check({ label, checked, onChange }: { label: string; checked: boolean; onChange: (v: boolean) => void }) {
-  return <label className="flex items-center gap-2 text-sm sm:col-span-2"><Checkbox checked={checked} onCheckedChange={(v) => onChange(Boolean(v))} />{label}</label>;
+function Check({
+  label,
+  checked,
+  onChange,
+}: {
+  label: string;
+  checked: boolean;
+  onChange: (v: boolean) => void;
+}) {
+  return (
+    <label className="flex items-center gap-2 text-sm sm:col-span-2 cursor-pointer">
+      <Checkbox checked={checked} onCheckedChange={(v) => onChange(Boolean(v))} />
+      <span className="text-xs font-medium text-foreground">{label}</span>
+    </label>
+  );
 }
 
-function PolicyCard({ icon, title, hint, rows, onEdit }: { icon: keyof typeof icons; title: string; hint: string; rows: Array<[string, ReactNode]>; onEdit: () => void }) {
+function PolicyCard({
+  icon,
+  title,
+  hint,
+  badge,
+  rows,
+  onEdit,
+}: {
+  icon: keyof typeof icons;
+  title: string;
+  hint: string;
+  badge?: string;
+  rows: Array<[string, ReactNode]>;
+  onEdit: () => void;
+}) {
   return (
-    <Card className="h-full gap-0 py-4">
+    <Card className="h-full gap-0 py-4 border-border/70 hover:border-border transition-all">
       <CardHeader className="flex flex-row items-start justify-between gap-2 px-4 pb-3">
         <div className="space-y-1">
-          <CardTitle className="flex items-center gap-2 text-base font-semibold">
-            <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon name={icon} className="size-4" /></span>
-            {title}
-          </CardTitle>
+          <div className="flex items-center gap-2">
+            <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <Icon name={icon} className="size-4" />
+            </span>
+            <CardTitle className="text-base font-semibold">{title}</CardTitle>
+            {badge && (
+              <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0 h-4">
+                {badge}
+              </Badge>
+            )}
+          </div>
           <p className="text-xs text-muted-foreground">{hint}</p>
         </div>
-        <Can permission="school:update"><Button size="sm" variant="outline" className="gap-1.5 shrink-0" onClick={onEdit}><Icon name="Pencil" className="size-3.5" />Editar</Button></Can>
+        <Can permission="school:update">
+          <Button size="sm" variant="outline" className="gap-1.5 shrink-0 h-8 text-xs" onClick={onEdit}>
+            <Icon name="Pencil" className="size-3" />
+            Configurar
+          </Button>
+        </Can>
       </CardHeader>
       <CardContent className="px-4">
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-          {rows.map(([k, v]) => (<div key={k} className="flex flex-col"><dt className="text-[11px] uppercase tracking-wide text-muted-foreground">{k}</dt><dd className="font-medium">{v}</dd></div>))}
+        <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
+          {rows.map(([k, v]) => (
+            <div key={k} className="flex flex-col">
+              <dt className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+                {k}
+              </dt>
+              <dd className="font-semibold text-foreground text-xs mt-0.5">{v}</dd>
+            </div>
+          ))}
         </dl>
       </CardContent>
     </Card>
   );
 }
 
-/** Políticas da escola: avaliação, exames finais, prova de acesso, calendário, risco de abandono e propinas. Cada bloco edita-se num modal. */
+/** Políticas da escola: parâmetros explicativos, presets do MED, simulador didático de MT e modais ajustados. */
 export function PoliciesPageContent() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const qc = useQueryClient();
   const { open, openModal } = useModal();
-  const raw = useQuery({ queryKey: ["settings-raw", schoolId], queryFn: readRawSettings, enabled: Boolean(schoolId), staleTime: 30 * 1000 });
+  const raw = useQuery({
+    queryKey: ["settings-raw", schoolId],
+    queryFn: readRawSettings,
+    enabled: Boolean(schoolId),
+    staleTime: 30 * 1000,
+  });
+
   const [s, setS] = useState<Settings | null>(null);
   const [draft, setDraft] = useState<Settings | null>(null);
   const [saving, setSaving] = useState(false);
 
+  // Estados do Simulador Didático de Notas
+  const [simMac, setSimMac] = useState<number>(12);
+  const [simMas, setSimMas] = useState<number>(14);
+  const [simPp, setSimPp] = useState<number>(9);
+
   useEffect(() => {
-    if (raw.data) setS(deepMerge(JSON.parse(JSON.stringify(DEFAULTS)), raw.data) as unknown as Settings);
+    if (raw.data) {
+      setS(deepMerge(JSON.parse(JSON.stringify(DEFAULTS)), raw.data) as unknown as Settings);
+    }
   }, [raw.data]);
 
-  const edit = (id: string) => { setDraft(JSON.parse(JSON.stringify(s)) as Settings); openModal(id); };
+  const edit = (id: string) => {
+    setDraft(JSON.parse(JSON.stringify(s)) as Settings);
+    openModal(id);
+  };
+
   const save = (blocks: Block[]) => async () => {
     if (!draft) return;
     setSaving(true);
     try {
-      await patchSettings(Object.fromEntries(blocks.map((b) => [b, draft[b]])) as Record<string, unknown>);
-      SucessMessage("Definições guardadas.");
+      await patchSettings(
+        Object.fromEntries(blocks.map((b) => [b, draft[b]])) as Record<string, unknown>
+      );
+      SucessMessage("Políticas escolares guardadas com sucesso.");
       await qc.invalidateQueries({ queryKey: ["settings-raw", schoolId] });
       void qc.invalidateQueries({ queryKey: ["school", schoolId] });
     } catch (e) {
-      ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar."));
+      ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar as alterações."));
       throw e;
     } finally {
       setSaving(false);
     }
   };
 
-  if (raw.isLoading || !s) return <div className="text-sm text-muted-foreground">A carregar…</div>;
-  if (raw.isError) return <EmptyState icon="Lock" title="Sem acesso" description="Não foi possível carregar as políticas da escola." />;
+  function applyPreset(presetType: "secundario_geral" | "primario_i_ciclo" | "tecnico_profissional") {
+    if (!s) return;
+    let patch: Partial<Settings> = {};
+    if (presetType === "secundario_geral") {
+      patch = {
+        evaluation: {
+          ...s.evaluation,
+          mt_weights: { mac: 1, mas: 1, pp: 1 },
+          mt_rounding: "integer",
+          absent_policy: "zero",
+          pass_mark: 10,
+          final_exam: { admission_min_mfd: 7, weight_mfd: 50, recurso_enabled: true, melhoria_enabled: true },
+        },
+      };
+      SucessMessage("Preset 'Ensino Secundário Geral (MED)' carregado.");
+    } else if (presetType === "primario_i_ciclo") {
+      patch = {
+        evaluation: {
+          ...s.evaluation,
+          mt_weights: { mac: 1, mas: 1, pp: 1 },
+          mt_rounding: "integer",
+          absent_policy: "zero",
+          pass_mark: 10,
+          final_exam: { admission_min_mfd: 7, weight_mfd: 40, recurso_enabled: false, melhoria_enabled: false },
+        },
+        admission: { ...s.admission, entrance_exam_required_level_numbers: [] },
+      };
+      SucessMessage("Preset 'Ensino Primário & I Ciclo (MED)' carregado.");
+    } else {
+      patch = {
+        evaluation: {
+          ...s.evaluation,
+          mt_weights: { mac: 1, mas: 1, pp: 2 },
+          mt_rounding: "integer",
+          absent_policy: "zero",
+          pass_mark: 10,
+          final_exam: { admission_min_mfd: 8, weight_mfd: 50, recurso_enabled: true, melhoria_enabled: true },
+        },
+      };
+      SucessMessage("Preset 'Ensino Técnico-Profissional (MED)' carregado.");
+    }
+
+    setSaving(true);
+    patchSettings(patch)
+      .then(async () => {
+        await qc.invalidateQueries({ queryKey: ["settings-raw", schoolId] });
+        void qc.invalidateQueries({ queryKey: ["school", schoolId] });
+      })
+      .catch((e) => ErrorMessage(getApiErrorMessage(e, "Erro ao aplicar preset.")))
+      .finally(() => setSaving(false));
+  }
+
+  // Cálculo da simulação de MT com base nos pesos activos
+  const simResult = useMemo(() => {
+    if (!s) return { rawMt: 0, roundedMt: 0, passed: false };
+    const w = s.evaluation.mt_weights;
+    const totalW = (w.mac || 1) + (w.mas || 1) + (w.pp || 1);
+    const raw = (simMac * (w.mac || 1) + simMas * (w.mas || 1) + simPp * (w.pp || 1)) / totalW;
+    const rounded = s.evaluation.mt_rounding === "integer" ? Math.round(raw) : Number(raw.toFixed(2));
+    return {
+      rawMt: Number(raw.toFixed(2)),
+      roundedMt: rounded,
+      passed: rounded >= s.evaluation.pass_mark,
+    };
+  }, [s, simMac, simMas, simPp]);
+
+  if (raw.isLoading || !s)
+    return <div className="text-xs text-muted-foreground p-4">A carregar políticas da escola…</div>;
+  if (raw.isError)
+    return (
+      <EmptyState
+        icon="Lock"
+        title="Sem acesso"
+        description="Não foi possível carregar as políticas da escola."
+      />
+    );
 
   const d = draft ?? s;
   const ev = d.evaluation;
-  const setEv = (patch: Partial<Settings["evaluation"]>) => setDraft({ ...d, evaluation: { ...ev, ...patch } });
+  const setEv = (patch: Partial<Settings["evaluation"]>) =>
+    setDraft({ ...d, evaluation: { ...ev, ...patch } });
   const yn = (v: boolean) => (v ? "Sim" : "Não");
   const modalProps = { isLoading: saving, size: "lg" as const };
   const isOpen = (id: string) => Boolean(open[id]);
 
   return (
     <div className="space-y-6">
-      <TitleList title="Políticas da Escola" suTitle="Parâmetros de avaliação, exames, admissão, calendário, risco de abandono e pagamento. Os valores iniciais são de referência: valide-os com a Direcção." />
+      <TitleList
+        title="Políticas da Escola"
+        suTitle="Parâmetros regulamentares de avaliação contínua, exames finais, provas de acesso, assiduidade e risco de abandono escolar alinhados com o Ministério da Educação (MED)."
+      />
 
-      <div className="grid gap-4 lg:grid-cols-2">
-        <PolicyCard icon="ClipboardCheck" title="Avaliação" hint="Média trimestral (MT), faltas a avaliações e reapreciação." onEdit={() => edit("policy-evaluation")} rows={[
-          ["Pesos MAC / MAS / PP", `${s.evaluation.mt_weights.mac} / ${s.evaluation.mt_weights.mas} / ${s.evaluation.mt_weights.pp}`], ["Arredondamento", s.evaluation.mt_rounding === "integer" ? "Inteiro" : "2 casas"],
-          ["Falta a avaliação", s.evaluation.absent_policy === "zero" ? "Conta como 0" : "Não entra na média"], ["Nota mínima", s.evaluation.pass_mark],
-          ["Prazo de reapreciação", `${s.evaluation.review_window_days} dias`], ["Quórum do conselho", s.evaluation.council_min_attendees],
-        ]} />
-        <PolicyCard icon="GraduationCap" title="Exames finais" hint="Valores de referência: a documentação oficial não os fixa." onEdit={() => edit("policy-final-exam")} rows={[
-          ["MFD mínima de admissão", s.evaluation.final_exam.admission_min_mfd], ["Peso da MFD", `${s.evaluation.final_exam.weight_mfd}%`],
-          ["Recurso", yn(s.evaluation.final_exam.recurso_enabled)], ["Melhoria", yn(s.evaluation.final_exam.melhoria_enabled)],
-        ]} />
-        <PolicyCard icon="UserPlus" title="Admissões" hint="Provas de acesso e desempate da lista de espera." onEdit={() => edit("policy-admission")} rows={[
-          ["Classes com prova", s.admission.entrance_exam_required_level_numbers.join(", ") || "Nenhuma"], ["Nota mínima", s.admission.min_pass_score ?? "—"],
-          ["Desempate", s.admission.waitlist_tiebreak === "age" ? "Idade" : "Ordem de submissão"],
-        ]} />
-        <PolicyCard icon="CalendarDays" title="Calendário" hint="Dias lectivos e prazo dos sumários." onEdit={() => edit("policy-calendar")} rows={[
-          ["Dias lectivos", s.calendar.lective_weekdays.map((n) => WEEKDAYS[n - 1]).join(", ")], ["Prazo do sumário", `${s.calendar.summary_deadline_days} dia(s)`],
-          ["Recusar assiduidade em dias não lectivos", yn(s.calendar.enforce_lective_attendance)],
-        ]} />
-        <PolicyCard icon="TriangleAlert" title="Risco de abandono" hint="Pesos e limiares (0–100) dos níveis moderado e elevado." onEdit={() => edit("policy-risk")} rows={[
-          ["Pesos (freq. / desemp. / fin.)", `${s.risk.weights.frequencia} / ${s.risk.weights.desempenho} / ${s.risk.weights.financeiro}`], ["Limiares (mod. / elev.)", `${s.risk.thresholds.moderado} / ${s.risk.thresholds.elevado}`],
-          ["Atraso financeiro relevante", `${s.risk.overdue_days} dias`],
-        ]} />
-        <PolicyCard icon="Wallet" title="Pagamento das propinas" hint="Os valores (propina, matrícula, mora) editam-se em Propinas → Tabela de preços." onEdit={() => edit("policy-finance")} rows={[
-          ["Prestações", s.finance.installments], ["Dia de vencimento", s.finance.due_day], ["Lembretes (dias antes)", s.finance.reminder_days.join(", ") || "—"],
-        ]} />
+      {/* Barra de Presets Rápidos Recomendados */}
+      <div className="rounded-xl border border-border/60 bg-gradient-to-r from-muted/40 via-card to-muted/30 p-4 space-y-2.5">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2">
+            <span className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+              <Icon name="Sparkles" className="size-4" />
+            </span>
+            <div>
+              <p className="text-xs font-semibold text-foreground">Modelos Oficiais Recomendados (MED Angola)</p>
+              <p className="text-[11px] text-muted-foreground">
+                Aplique com um clique a parametrização recomendada para o seu subsistema de ensino.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex flex-wrap gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={saving}
+              onClick={() => applyPreset("primario_i_ciclo")}
+              className="h-8 text-xs font-medium"
+            >
+              Primário & I Ciclo
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={saving}
+              onClick={() => applyPreset("secundario_geral")}
+              className="h-8 text-xs font-medium"
+            >
+              Secundário Geral (II Ciclo)
+            </Button>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              disabled={saving}
+              onClick={() => applyPreset("tecnico_profissional")}
+              className="h-8 text-xs font-medium"
+            >
+              Técnico-Profissional
+            </Button>
+          </div>
+        </div>
       </div>
 
+      {/* Simulador Interativo Didático da Média Trimestral (MT) */}
+      <div className="rounded-xl border border-primary/20 bg-primary/[0.02] p-4 sm:p-5 space-y-3">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Icon name="Calculator" className="size-4 text-primary" />
+            <h4 className="text-xs font-bold uppercase tracking-wider text-primary">
+              Simulador Didáctico da Média Trimestral (MT)
+            </h4>
+          </div>
+          <Badge variant="outline" className="text-[10px] font-mono">
+            Fórmula: (MAC×{s.evaluation.mt_weights.mac} + MAS×{s.evaluation.mt_weights.mas} + PP×{s.evaluation.mt_weights.pp}) /{" "}
+            {s.evaluation.mt_weights.mac + s.evaluation.mt_weights.mas + s.evaluation.mt_weights.pp}
+          </Badge>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1 items-end">
+          <div className="space-y-1">
+            <label className="text-[11px] font-medium text-muted-foreground">MAC (Contínua):</label>
+            <Input
+              type="number"
+              min={0}
+              max={20}
+              value={simMac}
+              onChange={(e) => setSimMac(Number(e.target.value))}
+              className="h-8 text-xs font-semibold"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[11px] font-medium text-muted-foreground">MAS (Sumativa):</label>
+            <Input
+              type="number"
+              min={0}
+              max={20}
+              value={simMas}
+              onChange={(e) => setSimMas(Number(e.target.value))}
+              className="h-8 text-xs font-semibold"
+            />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[11px] font-medium text-muted-foreground">PP (Prova Periódica):</label>
+            <Input
+              type="number"
+              min={0}
+              max={20}
+              value={simPp}
+              onChange={(e) => setSimPp(Number(e.target.value))}
+              className="h-8 text-xs font-semibold"
+            />
+          </div>
+          <div className="rounded-lg bg-card border p-2 text-center space-y-0.5">
+            <p className="text-[10px] text-muted-foreground uppercase font-bold">Resultado MT</p>
+            <p className="text-sm font-bold text-foreground">
+              {simResult.roundedMt} valores{" "}
+              <span className="text-[10px] font-normal text-muted-foreground">
+                ({simResult.rawMt} real)
+              </span>
+            </p>
+            <Badge
+              variant="outline"
+              className={
+                simResult.passed
+                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 text-[9px] py-0 h-4"
+                  : "border-destructive/30 bg-destructive/10 text-destructive text-[9px] py-0 h-4"
+              }
+            >
+              {simResult.passed ? "Transição Aprovada" : "Classificação Não Satisfatória"}
+            </Badge>
+          </div>
+        </div>
+      </div>
+
+      {/* Grid de Cartões de Políticas */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <PolicyCard
+          icon="ClipboardCheck"
+          title="Avaliação Pedagógica"
+          hint="Pesos de cálculo da MT (MAC, MAS, PP), regra de faltas e arredondamento."
+          badge="Normativo MED"
+          onEdit={() => edit("policy-evaluation")}
+          rows={[
+            [
+              "Pesos MAC / MAS / PP",
+              `${s.evaluation.mt_weights.mac} / ${s.evaluation.mt_weights.mas} / ${s.evaluation.mt_weights.pp}`,
+            ],
+            [
+              "Critério de Arredondamento",
+              s.evaluation.mt_rounding === "integer" ? "Inteiro (Padrão MED)" : "2 Casas Decimais",
+            ],
+            [
+              "Falta a Avaliação",
+              s.evaluation.absent_policy === "zero"
+                ? "Atribuição de 0 valores"
+                : "Excluída do cálculo da média",
+            ],
+            ["Nota Mínima de Transição", `${s.evaluation.pass_mark} valores`],
+            ["Prazo de Reapreciação de Notas", `${s.evaluation.review_window_days} dias úteis`],
+            ["Quórum Mínimo do Conselho", `${s.evaluation.council_min_attendees} docentes`],
+          ]}
+        />
+
+        <PolicyCard
+          icon="GraduationCap"
+          title="Exames Finais & Recursos"
+          hint="Regras de admissão a exame, pesos da MFD e épocas de melhoria."
+          badge="Exames Escolares"
+          onEdit={() => edit("policy-final-exam")}
+          rows={[
+            ["MFD Mínima para Admissão", `${s.evaluation.final_exam.admission_min_mfd} valores`],
+            ["Peso da MFD na Nota Final", `${s.evaluation.final_exam.weight_mfd}%`],
+            ["Exame de Recurso Habilitado", yn(s.evaluation.final_exam.recurso_enabled)],
+            ["Exame de Melhoria de Nota", yn(s.evaluation.final_exam.melhoria_enabled)],
+          ]}
+        />
+
+        <PolicyCard
+          icon="UserPlus"
+          title="Admissões & Acesso"
+          hint="Classes sujeitas a exame de acesso e critério de desempate."
+          onEdit={() => edit("policy-admission")}
+          rows={[
+            [
+              "Classes com Prova de Acesso",
+              s.admission.entrance_exam_required_level_numbers.length
+                ? s.admission.entrance_exam_required_level_numbers.map((c) => `${c}ª Classe`).join(", ")
+                : "Todas com acesso directo",
+            ],
+            [
+              "Nota Mínima de Entrada",
+              s.admission.min_pass_score ? `${s.admission.min_pass_score} valores` : "Sem nota de corte",
+            ],
+            [
+              "Critério de Desempate",
+              s.admission.waitlist_tiebreak === "age" ? "Prioridade por Idade" : "Ordem de Submissão",
+            ],
+          ]}
+        />
+
+        <PolicyCard
+          icon="CalendarDays"
+          title="Calendário & Assiduidade"
+          hint="Dias lectivos de funcionamento e prazos para lançamento de sumários."
+          onEdit={() => edit("policy-calendar")}
+          rows={[
+            [
+              "Dias Lectivos Semanais",
+              s.calendar.lective_weekdays.map((n) => WEEKDAYS[n - 1]).join(", "),
+            ],
+            ["Prazo para Registo de Sumário", `${s.calendar.summary_deadline_days} dia(s)`],
+            [
+              "Bloquear Presenças ao Fim-de-Semana",
+              s.calendar.enforce_lective_attendance ? "Sim (Estrito)" : "Não (Apenas aviso)",
+            ],
+          ]}
+        />
+
+        <PolicyCard
+          icon="TriangleAlert"
+          title="Risco de Abandono Escolar"
+          hint="Ponderação tripla para alerta precoce de desistência de estudantes."
+          badge="Alerta Precoce"
+          onEdit={() => edit("policy-risk")}
+          rows={[
+            [
+              "Ponderação (Assiduidade / Notas / Propinas)",
+              `${s.risk.weights.frequencia} : ${s.risk.weights.desempenho} : ${s.risk.weights.financeiro}`,
+            ],
+            ["Limiar de Alerta Moderado", `${s.risk.thresholds.moderado} pts`],
+            ["Limiar de Alerta Elevado", `${s.risk.thresholds.elevado} pts`],
+            ["Atraso Financeiro com Impacto", `${s.risk.overdue_days} dias`],
+          ]}
+        />
+
+        <PolicyCard
+          icon="Wallet"
+          title="Regime Financeiro & Propinas"
+          hint="Prestações do ano lectivo e agendamento de cobrança."
+          onEdit={() => edit("policy-finance")}
+          rows={[
+            ["Número de Prestações", `${s.finance.installments} mensalidades`],
+            ["Dia Limite de Vencimento", `Dia ${s.finance.due_day} de cada mês`],
+            [
+              "Lembretes Preventivos",
+              s.finance.reminder_days.length
+                ? `${s.finance.reminder_days.join(" e ")} dias antes`
+                : "Sem envio prévio",
+            ],
+          ]}
+        />
+      </div>
+
+      {/* Modais de Configuração no Padrão MindGest (w-max, grid-cols-1, sem bordas internas) */}
       {isOpen("policy-evaluation") && (
-        <FormModal id="policy-evaluation" title="Política de avaliação" description="Como se calcula a média trimestral (MT) e como se tratam faltas a avaliações." onSubmit={save(["evaluation"])} {...modalProps}>
-          <Input label="Peso MAC" type="number" value={ev.mt_weights.mac} onChange={(e) => setEv({ mt_weights: { ...ev.mt_weights, mac: num(e.target.value) } })} />
-          <Input label="Peso MAS" type="number" value={ev.mt_weights.mas} onChange={(e) => setEv({ mt_weights: { ...ev.mt_weights, mas: num(e.target.value) } })} />
-          <Input label="Peso da prova periódica" type="number" value={ev.mt_weights.pp} onChange={(e) => setEv({ mt_weights: { ...ev.mt_weights, pp: num(e.target.value) } })} />
-          <FormSelect label="Arredondamento da MT" value={ev.mt_rounding} onValueChange={(v) => setEv({ mt_rounding: v })} options={[{ value: "integer", label: "Inteiro" }, { value: "two_decimals", label: "Duas casas decimais" }]} />
-          <FormSelect label="Falta a uma avaliação" value={ev.absent_policy} onValueChange={(v) => setEv({ absent_policy: v })} options={[{ value: "zero", label: "Conta como 0" }, { value: "excluded", label: "Não entra na média" }]} />
-          <Input label="Nota mínima de aprovação" type="number" value={ev.pass_mark} onChange={(e) => setEv({ pass_mark: num(e.target.value) })} />
-          <Input label="Prazo de reapreciação (dias)" type="number" value={ev.review_window_days} onChange={(e) => setEv({ review_window_days: num(e.target.value) })} />
-          <Input label="Quórum do conselho de turma" type="number" value={ev.council_min_attendees} onChange={(e) => setEv({ council_min_attendees: num(e.target.value) })} />
+        <FormModal
+          id="policy-evaluation"
+          title="Política de Avaliação Pedagógica"
+          description="Como se calcula a Média Trimestral (MT) e como são tratadas faltas e pedidos de reapreciação."
+          onSubmit={save(["evaluation"])}
+          {...modalProps}
+        >
+          <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
+            <div className="grid grid-cols-3 gap-3">
+              <Input
+                label="Peso MAC"
+                type="number"
+                value={ev.mt_weights.mac}
+                onChange={(e) =>
+                  setEv({ mt_weights: { ...ev.mt_weights, mac: num(e.target.value) } })
+                }
+              />
+              <Input
+                label="Peso MAS"
+                type="number"
+                value={ev.mt_weights.mas}
+                onChange={(e) =>
+                  setEv({ mt_weights: { ...ev.mt_weights, mas: num(e.target.value) } })
+                }
+              />
+              <Input
+                label="Peso PP"
+                type="number"
+                value={ev.mt_weights.pp}
+                onChange={(e) =>
+                  setEv({ mt_weights: { ...ev.mt_weights, pp: num(e.target.value) } })
+                }
+              />
+            </div>
+            <FormSelect
+              label="Arredondamento da Média Trimestral"
+              value={ev.mt_rounding}
+              onValueChange={(v) => setEv({ mt_rounding: v })}
+              options={[
+                { value: "integer", label: "Número Inteiro (Exigido pelo MED em pautas)" },
+                { value: "two_decimals", label: "Duas Casas Decimais" },
+              ]}
+            />
+            <FormSelect
+              label="Tratamento de Falta a Avaliação"
+              value={ev.absent_policy}
+              onValueChange={(v) => setEv({ absent_policy: v })}
+              options={[
+                { value: "zero", label: "Conta como 0 valores no trimestre" },
+                { value: "excluded", label: "Não entra no cálculo da média" },
+              ]}
+            />
+            <Input
+              label="Nota Mínima de Aprovação"
+              type="number"
+              value={ev.pass_mark}
+              onChange={(e) => setEv({ pass_mark: num(e.target.value) })}
+            />
+            <Input
+              label="Prazo para Pedido de Reapreciação (dias úteis)"
+              type="number"
+              value={ev.review_window_days}
+              onChange={(e) => setEv({ review_window_days: num(e.target.value) })}
+            />
+            <Input
+              label="Quórum Mínimo para Conselho de Turma"
+              type="number"
+              value={ev.council_min_attendees}
+              onChange={(e) => setEv({ council_min_attendees: num(e.target.value) })}
+            />
+          </div>
         </FormModal>
       )}
 
       {isOpen("policy-final-exam") && (
-        <FormModal id="policy-final-exam" title="Exames finais" description="Valores de referência: valide-os com a Direcção." onSubmit={save(["evaluation"])} {...modalProps}>
-          <Input label="MFD mínima para admissão" type="number" value={ev.final_exam.admission_min_mfd} onChange={(e) => setEv({ final_exam: { ...ev.final_exam, admission_min_mfd: num(e.target.value) } })} />
-          <Input label="Peso da MFD na classificação (%)" type="number" value={ev.final_exam.weight_mfd} onChange={(e) => setEv({ final_exam: { ...ev.final_exam, weight_mfd: num(e.target.value) } })} />
-          <Check label="Exame de recurso activo" checked={ev.final_exam.recurso_enabled} onChange={(v) => setEv({ final_exam: { ...ev.final_exam, recurso_enabled: v } })} />
-          <Check label="Exame de melhoria activo" checked={ev.final_exam.melhoria_enabled} onChange={(v) => setEv({ final_exam: { ...ev.final_exam, melhoria_enabled: v } })} />
+        <FormModal
+          id="policy-final-exam"
+          title="Política de Exames Finais & Recursos"
+          description="Parâmetros de acesso e ponderação das provas de exame final."
+          onSubmit={save(["evaluation"])}
+          {...modalProps}
+        >
+          <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
+            <Input
+              label="MFD Mínima para Admissão a Exame"
+              type="number"
+              value={ev.final_exam.admission_min_mfd}
+              onChange={(e) =>
+                setEv({
+                  final_exam: { ...ev.final_exam, admission_min_mfd: num(e.target.value) },
+                })
+              }
+            />
+            <Input
+              label="Peso da MFD na Classificação Final (%)"
+              type="number"
+              value={ev.final_exam.weight_mfd}
+              onChange={(e) =>
+                setEv({ final_exam: { ...ev.final_exam, weight_mfd: num(e.target.value) } })
+              }
+            />
+            <Check
+              label="Permitir Exame de Recurso aos alunos não aprovados"
+              checked={ev.final_exam.recurso_enabled}
+              onChange={(v) => setEv({ final_exam: { ...ev.final_exam, recurso_enabled: v } })}
+            />
+            <Check
+              label="Permitir Exame de Melhoria de Nota"
+              checked={ev.final_exam.melhoria_enabled}
+              onChange={(v) => setEv({ final_exam: { ...ev.final_exam, melhoria_enabled: v } })}
+            />
+          </div>
         </FormModal>
       )}
 
       {isOpen("policy-admission") && (
-        <FormModal id="policy-admission" title="Admissões" description="Classes que exigem prova de acesso e critério de desempate da lista de espera." onSubmit={save(["admission"])} {...modalProps}>
-          <Input label="Classes com prova de acesso (separadas por vírgula)" placeholder="Ex: 7, 10" value={d.admission.entrance_exam_required_level_numbers.join(", ")} onChange={(e) => setDraft({ ...d, admission: { ...d.admission, entrance_exam_required_level_numbers: list(e.target.value) } })} />
-          <Input label="Nota mínima da prova" type="number" value={d.admission.min_pass_score ?? ""} onChange={(e) => setDraft({ ...d, admission: { ...d.admission, min_pass_score: e.target.value === "" ? null : Number(e.target.value) } })} />
-          <FormSelect label="Desempate da lista de espera" value={d.admission.waitlist_tiebreak} onValueChange={(v) => setDraft({ ...d, admission: { ...d.admission, waitlist_tiebreak: v } })} options={[{ value: "submission_order", label: "Ordem de submissão" }, { value: "age", label: "Idade" }]} />
+        <FormModal
+          id="policy-admission"
+          title="Política de Admissões & Inscrições"
+          description="Classes que exigem exame de acesso e critério de desempate."
+          onSubmit={save(["admission"])}
+          {...modalProps}
+        >
+          <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
+            <Input
+              label="Classes com Prova de Acesso (números separados por vírgula)"
+              placeholder="Ex: 7, 10"
+              value={d.admission.entrance_exam_required_level_numbers.join(", ")}
+              onChange={(e) =>
+                setDraft({
+                  ...d,
+                  admission: {
+                    ...d.admission,
+                    entrance_exam_required_level_numbers: list(e.target.value),
+                  },
+                })
+              }
+            />
+            <Input
+              label="Nota Mínima para Aprovação na Prova"
+              type="number"
+              value={d.admission.min_pass_score ?? ""}
+              onChange={(e) =>
+                setDraft({
+                  ...d,
+                  admission: {
+                    ...d.admission,
+                    min_pass_score: e.target.value === "" ? null : Number(e.target.value),
+                  },
+                })
+              }
+            />
+            <FormSelect
+              label="Critério de Desempate na Lista de Espera"
+              value={d.admission.waitlist_tiebreak}
+              onValueChange={(v) => setDraft({ ...d, admission: { ...d.admission, waitlist_tiebreak: v } })}
+              options={[
+                { value: "submission_order", label: "Ordem Cronológica de Inscrição" },
+                { value: "age", label: "Prioridade ao Aluno Mais Jovem" },
+              ]}
+            />
+          </div>
         </FormModal>
       )}
 
       {isOpen("policy-calendar") && (
-        <FormModal id="policy-calendar" title="Calendário" onSubmit={save(["calendar"])} {...modalProps}>
-          <div className="sm:col-span-2 space-y-1.5">
-            <span className="text-sm font-medium">Dias lectivos</span>
-            <div className="flex flex-wrap gap-2">
-              {WEEKDAYS.map((w, i) => {
-                const n = i + 1;
-                const on = d.calendar.lective_weekdays.includes(n);
-                return <Button key={w} type="button" size="sm" variant={on ? "default" : "outline"} onClick={() => setDraft({ ...d, calendar: { ...d.calendar, lective_weekdays: on ? d.calendar.lective_weekdays.filter((x) => x !== n) : [...d.calendar.lective_weekdays, n].sort() } })}>{w}</Button>;
-              })}
+        <FormModal
+          id="policy-calendar"
+          title="Calendário Escolar & Assiduidade"
+          onSubmit={save(["calendar"])}
+          {...modalProps}
+        >
+          <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
+            <div className="space-y-1.5">
+              <span className="text-xs font-medium text-foreground">Dias Lectivos de Funcionamento</span>
+              <div className="flex flex-wrap gap-2">
+                {WEEKDAYS.map((w, i) => {
+                  const n = i + 1;
+                  const on = d.calendar.lective_weekdays.includes(n);
+                  return (
+                    <Button
+                      key={w}
+                      type="button"
+                      size="sm"
+                      variant={on ? "default" : "outline"}
+                      onClick={() =>
+                        setDraft({
+                          ...d,
+                          calendar: {
+                            ...d.calendar,
+                            lective_weekdays: on
+                              ? d.calendar.lective_weekdays.filter((x) => x !== n)
+                              : [...d.calendar.lective_weekdays, n].sort(),
+                          },
+                        })
+                      }
+                      className="h-8 px-3 text-xs"
+                    >
+                      {w}
+                    </Button>
+                  );
+                })}
+              </div>
             </div>
+            <Input
+              label="Prazo para Lançamento do Sumário da Aula (dias)"
+              type="number"
+              value={d.calendar.summary_deadline_days}
+              onChange={(e) =>
+                setDraft({
+                  ...d,
+                  calendar: { ...d.calendar, summary_deadline_days: num(e.target.value) },
+                })
+              }
+            />
+            <Check
+              label="Bloquear registo de presenças em dias não lectivos (por omissão apenas avisa)"
+              checked={d.calendar.enforce_lective_attendance}
+              onChange={(v) =>
+                setDraft({
+                  ...d,
+                  calendar: { ...d.calendar, enforce_lective_attendance: v },
+                })
+              }
+            />
           </div>
-          <Input label="Prazo do sumário (dias)" type="number" value={d.calendar.summary_deadline_days} onChange={(e) => setDraft({ ...d, calendar: { ...d.calendar, summary_deadline_days: num(e.target.value) } })} />
-          <Check label="Recusar assiduidade em dias não lectivos (por omissão só avisa)" checked={d.calendar.enforce_lective_attendance} onChange={(v) => setDraft({ ...d, calendar: { ...d.calendar, enforce_lective_attendance: v } })} />
         </FormModal>
       )}
 
       {isOpen("policy-risk") && (
-        <FormModal id="policy-risk" title="Risco de abandono" description="Pesos das componentes e limiares (0–100) para os níveis moderado e elevado." onSubmit={save(["risk"])} {...modalProps}>
-          {(["frequencia", "desempenho", "financeiro"] as const).map((k) => <Input key={k} label={`Peso: ${k}`} type="number" value={d.risk.weights[k]} onChange={(e) => setDraft({ ...d, risk: { ...d.risk, weights: { ...d.risk.weights, [k]: num(e.target.value) } } })} />)}
-          <Input label="Limiar moderado" type="number" value={d.risk.thresholds.moderado} onChange={(e) => setDraft({ ...d, risk: { ...d.risk, thresholds: { ...d.risk.thresholds, moderado: num(e.target.value) } } })} />
-          <Input label="Limiar elevado" type="number" value={d.risk.thresholds.elevado} onChange={(e) => setDraft({ ...d, risk: { ...d.risk, thresholds: { ...d.risk.thresholds, elevado: num(e.target.value) } } })} />
-          <Input label="Atraso financeiro relevante (dias)" type="number" value={d.risk.overdue_days} onChange={(e) => setDraft({ ...d, risk: { ...d.risk, overdue_days: num(e.target.value) } })} />
+        <FormModal
+          id="policy-risk"
+          title="Risco de Abandono Escolar Precoce"
+          description="Pesos das componentes e limiares (0–100) para intervenção pedagógica."
+          onSubmit={save(["risk"])}
+          {...modalProps}
+        >
+          <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
+            <div className="grid grid-cols-3 gap-3">
+              <Input
+                label="Peso Frequência"
+                type="number"
+                value={d.risk.weights.frequencia}
+                onChange={(e) =>
+                  setDraft({
+                    ...d,
+                    risk: {
+                      ...d.risk,
+                      weights: { ...d.risk.weights, frequencia: num(e.target.value) },
+                    },
+                  })
+                }
+              />
+              <Input
+                label="Peso Desempenho"
+                type="number"
+                value={d.risk.weights.desempenho}
+                onChange={(e) =>
+                  setDraft({
+                    ...d,
+                    risk: {
+                      ...d.risk,
+                      weights: { ...d.risk.weights, desempenho: num(e.target.value) },
+                    },
+                  })
+                }
+              />
+              <Input
+                label="Peso Financeiro"
+                type="number"
+                value={d.risk.weights.financeiro}
+                onChange={(e) =>
+                  setDraft({
+                    ...d,
+                    risk: {
+                      ...d.risk,
+                      weights: { ...d.risk.weights, financeiro: num(e.target.value) },
+                    },
+                  })
+                }
+              />
+            </div>
+            <Input
+              label="Limiar para Alerta Moderado (0–100)"
+              type="number"
+              value={d.risk.thresholds.moderado}
+              onChange={(e) =>
+                setDraft({
+                  ...d,
+                  risk: {
+                    ...d.risk,
+                    thresholds: { ...d.risk.thresholds, moderado: num(e.target.value) },
+                  },
+                })
+              }
+            />
+            <Input
+              label="Limiar para Alerta Crítico / Elevado (0–100)"
+              type="number"
+              value={d.risk.thresholds.elevado}
+              onChange={(e) =>
+                setDraft({
+                  ...d,
+                  risk: {
+                    ...d.risk,
+                    thresholds: { ...d.risk.thresholds, elevado: num(e.target.value) },
+                  },
+                })
+              }
+            />
+            <Input
+              label="Atraso Financeiro Relevante para Risco (dias)"
+              type="number"
+              value={d.risk.overdue_days}
+              onChange={(e) =>
+                setDraft({ ...d, risk: { ...d.risk, overdue_days: num(e.target.value) } })
+              }
+            />
+          </div>
         </FormModal>
       )}
 
       {isOpen("policy-finance") && (
-        <FormModal id="policy-finance" title="Pagamento das propinas" description="Os valores (propina, matrícula, mora) editam-se em Propinas → Tabela de preços." onSubmit={save(["finance"])} {...modalProps}>
-          <Input label="N.º de prestações" type="number" value={d.finance.installments} onChange={(e) => setDraft({ ...d, finance: { ...d.finance, installments: num(e.target.value) } })} />
-          <Input label="Dia de vencimento" type="number" value={d.finance.due_day} onChange={(e) => setDraft({ ...d, finance: { ...d.finance, due_day: num(e.target.value) } })} />
-          <Input label="Lembretes (dias antes, vírgulas)" value={d.finance.reminder_days.join(", ")} onChange={(e) => setDraft({ ...d, finance: { ...d.finance, reminder_days: list(e.target.value) } })} />
+        <FormModal
+          id="policy-finance"
+          title="Regime Financeiro & Prestações"
+          description="Número de mensalidades e calendário base de facturação."
+          onSubmit={save(["finance"])}
+          {...modalProps}
+        >
+          <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
+            <Input
+              label="Número de Prestações no Ano Lectivo"
+              type="number"
+              value={d.finance.installments}
+              onChange={(e) =>
+                setDraft({ ...d, finance: { ...d.finance, installments: num(e.target.value) } })
+              }
+            />
+            <Input
+              label="Dia Limite de Vencimento"
+              type="number"
+              value={d.finance.due_day}
+              onChange={(e) =>
+                setDraft({ ...d, finance: { ...d.finance, due_day: num(e.target.value) } })
+              }
+            />
+            <Input
+              label="Dias de Antecedência para Lembretes (separados por vírgula)"
+              value={d.finance.reminder_days.join(", ")}
+              onChange={(e) =>
+                setDraft({ ...d, finance: { ...d.finance, reminder_days: list(e.target.value) } })
+              }
+            />
+          </div>
         </FormModal>
       )}
     </div>

@@ -8,6 +8,7 @@ import { useSections } from "@/hooks/school/use-sections";
 import type { AnnouncementAudience, AnnouncementStatus, ApiAnnouncement } from "@/services/announcements-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { cn } from "@/lib/utils";
 
 const STATUS_LABEL: Record<AnnouncementStatus, string> = { rascunho: "Rascunho", publicado: "Publicado", arquivado: "Arquivado" };
 const STATUS_VARIANT: Record<AnnouncementStatus, "warning" | "success" | "secondary"> = { rascunho: "warning", publicado: "success", arquivado: "secondary" };
@@ -96,20 +97,22 @@ export function CommunicationPageContent() {
         emptyIcon="Megaphone"
       />
 
-      <FormModal id="announcement-form" title={editing ? "Editar comunicado" : "Novo comunicado"} description={editing ? "Só rascunhos podem ser editados." : "É criado como rascunho; publique-o para chegar ao portal."} submitLabel={editing ? "Guardar" : "Criar rascunho"} size="lg"
+      <FormModal id="announcement-form" title={editing ? "Editar comunicado" : "Novo comunicado"} description={editing ? "Só rascunhos podem ser editados." : "É criado como rascunho; publique-o para chegar ao portal."} submitLabel={editing ? "Guardar" : "Criar rascunho"} size="md"
         isLoading={a.create.isPending || a.update.isPending} disabled={title.trim().length < 3 || body.trim().length < 3 || (!editing && audience === "turma" && !sectionId)} onSubmit={save}>
-        <div className="sm:col-span-2"><Input label="Título *" value={title} onChange={(e) => setTitle(e.target.value)} /></div>
-        {!editing && (
-          <>
-            <FormSelect label="Destinatários" value={audience} onValueChange={(v) => setAudience(v as AnnouncementAudience)} options={[{ value: "escola", label: "Toda a escola" }, { value: "turma", label: "Uma turma" }]} />
-            {audience === "turma" && <FormSelect label="Turma *" value={sectionId} onValueChange={setSectionId} options={sections.map((s) => ({ value: s.id, label: s.name }))} />}
-          </>
-        )}
-        <div className="sm:col-span-2"><FormTextarea label="Mensagem *" value={body} onChange={setBody} rows={6} /></div>
+        <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
+          <Input label="Título *" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Reunião geral de encarregados de educação" />
+          {!editing && (
+            <div className={cn("grid grid-cols-1 gap-3", audience === "turma" && "sm:grid-cols-2")}>
+              <FormSelect label="Destinatários" value={audience} onValueChange={(v) => setAudience(v as AnnouncementAudience)} options={[{ value: "escola", label: "Toda a escola" }, { value: "turma", label: "Uma turma" }]} />
+              {audience === "turma" && <FormSelect label="Turma *" value={sectionId} onValueChange={setSectionId} options={sections.map((s) => ({ value: s.id, label: s.name }))} />}
+            </div>
+          )}
+          <FormTextarea label="Mensagem *" value={body} onChange={setBody} rows={5} placeholder="Escreva o comunicado a publicar no portal..." />
+        </div>
       </FormModal>
 
-      <FormModal id="announcement-view" title={viewing?.title ?? "Comunicado"} description={viewing ? `${AUDIENCE_LABEL[viewing.audience]}${viewing.section_id ? ` — ${sectionName(viewing.section_id)}` : ""} • ${STATUS_LABEL[viewing.status]}` : undefined} size="lg" readOnly onSubmit={() => undefined}>
-        {viewing && <div className="sm:col-span-2 whitespace-pre-wrap text-sm">{viewing.body}</div>}
+      <FormModal id="announcement-view" title={viewing?.title ?? "Comunicado"} description={viewing ? `${AUDIENCE_LABEL[viewing.audience]}${viewing.section_id ? ` — ${sectionName(viewing.section_id)}` : ""} • ${STATUS_LABEL[viewing.status]}` : undefined} size="md" readOnly onSubmit={() => undefined}>
+        {viewing && <div className="sm:col-span-2 whitespace-pre-wrap text-sm leading-relaxed">{viewing.body}</div>}
       </FormModal>
 
       <ConfirmModal id="announcement-archive" title="Arquivar comunicado" description={archiving ? `Arquivar "${archiving.title}"? Deixa de aparecer no portal.` : ""} destructive confirmLabel="Arquivar"
