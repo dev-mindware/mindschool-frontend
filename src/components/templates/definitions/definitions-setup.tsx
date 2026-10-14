@@ -34,6 +34,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
   const { user } = useAuth();
   const { can } = useCan();
   const isMobile = useIsMobile();
+  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const role = user?.role ?? "";
   // O administrador de sistema opera a plataforma, não uma escola: só vê as definições da conta (sem «Ambiente Escolar» nem Subscrição).
   const isManager = ["DIRECTOR_GENERAL", "PEDAGOGIC_DIRECTOR", "OWNER", "MANAGER", "ADMIN"].includes(role);
@@ -164,8 +165,6 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
       </TabsTrigger>
     );
   };
-
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
 
   return (
     <div data-tour="setup-layout" className="space-y-4">

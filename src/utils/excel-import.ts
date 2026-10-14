@@ -1,21 +1,28 @@
 "use client";
 
-import * as XLSX from "xlsx";
+import { readSheet, type Row as ReadRow } from "read-excel-file/browser";
+import writeXlsxFile, { type Row as WriteRow } from "write-excel-file/browser";
+
+function escapeCsvCell(val: unknown): string {
+  if (val === null || val === undefined) return "";
+  const str = String(val);
+  if (str.includes(",") || str.includes('"') || str.includes("\n") || str.includes("\r")) {
+    return `"${str.replace(/"/g, '""')}"`;
+  }
+  return str;
+}
 
 /**
- * Utilitário para ler folhas de cálculo Excel (.xlsx / .xls) e gerar ficheiros para descarregamento.
+ * Utilitário para ler folhas de cálculo Excel (.xlsx / .xls) e extrair os dados em formato CSV para validação na API.
  */
 export async function readExcelAsCsv(file: File): Promise<{ csv: string; rowCount: number; headers: string[] }> {
-  const buffer = await file.arrayBuffer();
-  const workbook = XLSX.read(buffer, { type: "array" });
-  const firstSheetName = workbook.SheetNames[0];
-  if (!firstSheetName) {
-    throw new Error("A folha de cálculo não contém nenhuma aba com dados.");
+  const rows: ReadRow[] = await readSheet(file);
+  if (!rows || rows.length === 0) {
+    throw new Error("A folha de cálculo não contém nenhuma linha com dados.");
   }
-  const worksheet = workbook.Sheets[firstSheetName];
-  const csv = XLSX.utils.sheet_to_csv(worksheet);
-  const rows = XLSX.utils.sheet_to_json<string[]>(worksheet, { header: 1 });
-  const headers = (rows[0] as string[]) || [];
+
+  const csv = rows.map((r) => r.map((cell) => escapeCsvCell(cell)).join(",")).join("\n");
+  const headers = (rows[0] as unknown[])?.map((h) => String(h ?? "").trim()) || [];
 
   return {
     csv,
@@ -27,22 +34,68 @@ export async function readExcelAsCsv(file: File): Promise<{ csv: string; rowCoun
 /**
  * Cria e descarrega um ficheiro Excel (.xlsx) gerado dinamicamente com cabeçalhos e linhas.
  */
-export function downloadExcelFile(filename: string, sheetName: string, data: Array<Record<string, unknown>>): void {
-  const worksheet = XLSX.utils.json_to_sheet(data);
-  const workbook = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-  XLSX.writeFile(workbook, filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`);
+export async function downloadExcelFile(filename: string, sheetName: string, data: Array<Record<string, unknown>>): Promise<void> {
+  if (!data || data.length === 0) return;
+  const headers = Object.keys(data[0] || {});
+
+  const headerRow: WriteRow = headers.map((h) => ({
+    value: h,
+    fontWeight: "bold",
+  }));
+
+  const dataRows: WriteRow[] = data.map((item) =>
+    headers.map((h) => ({
+      value: item[h] !== null && item[h] !== undefined ? String(item[h]) : "",
+    }))
+  );
+
+  const file = filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`;
+  await writeXlsxFile([headerRow, ...dataRows], {
+    sheet: sheetName || "Dados",
+  }).toFile(file);
 }
 
 /**
- * Converte texto CSV (de modelos ou rejeições) para um ficheiro Excel (.xlsx) nativo e faz o download.
+ * Converte texto CSV (de modelos ou relatórios de rejeição) para um ficheiro Excel (.xlsx) nativo e faz o download.
  */
-export function downloadCsvAsExcel(filename: string, sheetName: string, csvContent: string): void {
-  const workbook = XLSX.read(csvContent, { type: "string" });
-  const firstSheetName = workbook.SheetNames[0] || "Dados";
-  const worksheet = workbook.Sheets[firstSheetName] || XLSX.utils.aoa_to_sheet([]);
-  
-  const targetWb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(targetWb, worksheet, sheetName);
-  XLSX.writeFile(targetWb, filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`);
+export async function downloadCsvAsExcel(filename: string, sheetName: string, csvContent: string): Promise<void> {
+  const lines = csvContent.split(/\r?\n/).filter((l) => l.trim().length > 0);
+  if (lines.length === 0) return;
+
+  const parseCsvLine = (line: string): string[] => {
+    const result: string[] = [];
+    let cur = "";
+    let inQuotes = false;
+    for (let i = 0; i < line.length; i++) {
+      const c = line[i];
+      if (c === '"') {
+        if (inQuotes && line[i + 1] === '"') {
+          cur += '"';
+          i++;
+        } else {
+          inQuotes = !inQuotes;
+        }
+      } else if (c === "," && !inQuotes) {
+        result.push(cur);
+        cur = "";
+      } else {
+        cur += c;
+      }
+    }
+    result.push(cur);
+    return result;
+  };
+
+  const rows: WriteRow[] = lines.map((line, idx) => {
+    const cells = parseCsvLine(line);
+    return cells.map((cell) => ({
+      value: cell,
+      fontWeight: idx === 0 ? "bold" : undefined,
+    }));
+  });
+
+  const file = filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`;
+  await writeXlsxFile(rows, {
+    sheet: sheetName || "Folha 1",
+  }).toFile(file);
 }
