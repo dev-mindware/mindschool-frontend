@@ -52,7 +52,7 @@ export function useTimetables(timetableId?: string) {
     }) => {
       // 1. Localizar ou provisionar a atribuição (SectionSubject)
       const currentAssignments = assignments.data ?? [];
-      let match = currentAssignments.find(
+      const match = currentAssignments.find(
         (a) => a.sectionId === v.sectionId && a.subjectId === v.subjectId,
       );
       let sectionSubjectId = match?.id;
@@ -101,7 +101,7 @@ export function useTimetables(timetableId?: string) {
       if (!currentAssignments || currentAssignments.length === 0) {
         currentAssignments = await academicService.assignments();
       }
-      let match = currentAssignments.find(
+      const match = currentAssignments.find(
         (a) => a.sectionId === v.sectionId && a.subjectId === v.subjectId,
       );
       let sectionSubjectId = match?.id;

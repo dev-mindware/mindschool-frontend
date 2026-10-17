@@ -39,7 +39,8 @@ export function PercInput({
   showSlider = true,
   placeholder = "0",
 }: PercInputProps) {
-  const inputId = id || name || React.useId();
+  const generatedId = React.useId();
+  const inputId = id || name || generatedId;
 
   const numValue = React.useMemo(() => {
     if (value === undefined || value === null || value === "") return min;
