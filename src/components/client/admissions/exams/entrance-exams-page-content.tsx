@@ -2,7 +2,6 @@
 import { formatDate } from "@/utils";
 
 import React, { useState } from "react";
-import Link from "next/link";
 import { TitleList } from "@/components/common/title-list";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -192,18 +191,10 @@ export function EntranceExamsPageContent() {
   return (
     <div className="space-y-6">
       {/* Header com TitleList */}
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
-        <TitleList
-          title="Provas & Exames de Acesso"
-          suTitle="Convocatórias, pautas e lançamento de pontuações de admissão (purpose: prova_admissao)"
-        />
-        <Link href="/students/admissions">
-          <Button variant="outline" className="gap-2">
-            <Icon name="ArrowLeft" className="w-4 h-4" />
-            Voltar a Candidaturas
-          </Button>
-        </Link>
-      </div>
+      <TitleList
+        title="Provas & Exames de Acesso"
+        suTitle="Convocatórias, pautas e lançamento de pontuações de admissão (purpose: prova_admissao)"
+      />
 
       {/* Cartões de Métricas */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

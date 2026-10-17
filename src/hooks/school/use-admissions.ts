@@ -40,6 +40,7 @@ export function useAdmissions() {
     submitApplication: async (
       c: Omit<Candidate, "id" | "schoolId" | "createdAt" | "convertedStudentId">,
       a: { desiredClassLevelId: string; desiredClassLevelName: string; desiredShift?: string; requiresEntranceExam?: boolean; entranceExamId?: string; entranceExamTitle?: string },
+      docs?: import("@/services/admissions-service").ApplicationDocuments,
     ) => {
       await admissionsService.submit({
         fullName: c.fullName,
@@ -50,6 +51,8 @@ export function useAdmissions() {
         guardianPhone: c.guardianPhone,
         previousSchoolName: c.previousSchoolName,
         desiredClassLevelName: a.desiredClassLevelName,
+        entranceExamSessionId: a.entranceExamId,
+        documents: docs,
       });
       await refresh();
     },

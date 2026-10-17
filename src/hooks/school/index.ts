@@ -28,3 +28,4 @@ export * from "./use-security";
 export * from "./use-absences";
 export * from "./use-admin-school";
 export * from "./use-announcements";
+export * from "./use-teaching-scope";

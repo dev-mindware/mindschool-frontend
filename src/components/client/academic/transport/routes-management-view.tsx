@@ -32,7 +32,7 @@ export function RoutesManagementView() {
         <ButtonOnlyAction data={r} actions={[
           { permission: "transport:write", label: "Paragens e passageiros", icon: "Route", onClick: (x) => { setDetailId(x.id); openModal("transport-route-detail"); } },
           { permission: "transport:write", label: "Alocar aluno", icon: "UserPlus", onClick: (x) => openModal("transport-assign", { routeId: x.id }), className: !r.is_active || r.seats_free === 0 ? "pointer-events-none opacity-40" : "" },
-          { permission: "transport:write", label: "Lista de passageiros", icon: "Printer", onClick: (x) => openModal("transport-manifest", { routeId: x.id }) },
+          { permission: "transport:write", label: "Lista de passageiros (PDF)", icon: "FileDown", onClick: (x) => openModal("transport-manifest", { routeId: x.id }) },
           { permission: "transport:write", label: r.is_active ? "Desactivar rota" : "Activar rota", icon: "CirclePower", onClick: (x) => void setActive.mutateAsync({ id: x.id, isActive: !x.is_active }).then(() => SucessMessage(x.is_active ? "Rota desactivada." : "Rota activada.")).catch(err) },
         ]} />
       ),

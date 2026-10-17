@@ -44,6 +44,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
           ? "date"
           : type;
 
+    const minVal = props.min !== undefined ? Number(props.min) : 0;
+    const maxVal = props.max !== undefined ? Number(props.max) : 999999;
+    const stepVal = props.step !== undefined ? Number(props.step) : 1;
+
     const propagateChange = (newValue: number) => {
       if (onChange) {
         const event = {
@@ -54,26 +58,68 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
       }
     };
 
-    const currentValue = Number(value ?? props.defaultValue ?? 0);
+    const numericValue = React.useMemo(() => {
+      if (value !== undefined && value !== null && value !== "") {
+        const n = Number(value);
+        return isNaN(n) ? minVal : n;
+      }
+      if (props.defaultValue !== undefined && props.defaultValue !== null && props.defaultValue !== "") {
+        const n = Number(props.defaultValue);
+        return isNaN(n) ? minVal : n;
+      }
+      return minVal;
+    }, [value, props.defaultValue, minVal]);
 
-    const handleDecrement = () => {
-      propagateChange(Math.max(0, currentValue - 1));
+    const isAtMin = numericValue <= minVal;
+    const isAtMax = numericValue >= maxVal;
+
+    const handleDecrement = (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (disabled || isAtMin) return;
+      const next = Math.max(minVal, numericValue - stepVal);
+      propagateChange(next);
     };
 
-    const handleIncrement = () => {
-      propagateChange(currentValue + 1);
+    const handleIncrement = (e: React.MouseEvent) => {
+      e.preventDefault();
+      if (disabled || isAtMax) return;
+      const next = Math.min(maxVal, numericValue + stepVal);
+      propagateChange(next);
     };
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       let rawValue = e.target.value;
-      if (rawValue.length > 1 && rawValue.startsWith("0")) {
+      if (rawValue.length > 1 && rawValue.startsWith("0") && !rawValue.startsWith("0.")) {
         rawValue = rawValue.replace(/^0+/, "");
         if (rawValue === "") rawValue = "0";
       }
       e.target.value = rawValue;
 
+      if (rawValue === "") {
+        if (onChange) {
+          const event = {
+            target: { name: name || "", value: "", type: "number", valueAsNumber: NaN },
+            currentTarget: { name: name || "", value: "", type: "number", valueAsNumber: NaN },
+          } as unknown as React.ChangeEvent<HTMLInputElement>;
+          onChange(event);
+        }
+        return;
+      }
+
       const newValue = Number(rawValue);
-      propagateChange(isNaN(newValue) ? 0 : newValue);
+      if (!isNaN(newValue)) {
+        propagateChange(newValue);
+      }
+    };
+
+    const handleBlur = (e: React.FocusEvent<HTMLInputElement>) => {
+      let clamped = numericValue;
+      if (isNaN(clamped) || clamped < minVal) clamped = minVal;
+      else if (clamped > maxVal) clamped = maxVal;
+      if (clamped !== numericValue) {
+        propagateChange(clamped);
+      }
+      props.onBlur?.(e);
     };
 
     return (
@@ -89,8 +135,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <button
               type="button"
               onClick={handleDecrement}
-              disabled={disabled}
-              className="flex items-center justify-center w-10 h-10 rounded-md bg-muted hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={disabled || isAtMin}
+              aria-label="Diminuir quantidade"
+              className="flex items-center justify-center min-w-[44px] min-h-[44px] sm:min-w-10 sm:min-h-10 rounded-md bg-muted hover:bg-muted/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <Minus className="w-5 h-5 text-foreground" />
             </button>
@@ -109,11 +156,16 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 name={name}
                 type="number"
                 inputMode="numeric"
-                min={0}
-                max={999999}
-                step={1}
-                value={currentValue}
+                role="spinbutton"
+                aria-valuenow={numericValue}
+                aria-valuemin={minVal}
+                aria-valuemax={maxVal}
+                min={minVal}
+                max={maxVal}
+                step={stepVal}
+                value={numericValue}
                 onChange={handleChange}
+                onBlur={handleBlur}
                 className={cn(
                   "w-full bg-transparent placeholder:text-muted-foreground text-foreground outline-none text-center",
                   "disabled:cursor-not-allowed disabled:opacity-50",
@@ -127,8 +179,9 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             <button
               type="button"
               onClick={handleIncrement}
-              disabled={disabled}
-              className="flex items-center justify-center w-10 h-10 rounded-md bg-muted hover:bg-muted/80 disabled:opacity-50 disabled:cursor-not-allowed"
+              disabled={disabled || isAtMax}
+              aria-label="Aumentar quantidade"
+              className="flex items-center justify-center min-w-[44px] min-h-[44px] sm:min-w-10 sm:min-h-10 rounded-md bg-muted hover:bg-muted/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <Plus className="w-5 h-5 text-foreground" />
             </button>

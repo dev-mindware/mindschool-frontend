@@ -56,7 +56,7 @@ export function PortalRequestsView() {
 
       <FormModal id={APPROVE} title="Aprovar pedido" description={target ? `${target.book_title} — ${target.student_name}` : undefined} submitLabel="Aprovar e emprestar" isLoading={approve.isPending} disabled={!(Number(days) >= 1 && Number(days) <= 60)}
         onSubmit={() => (target ? approve.mutateAsync({ id: target.id, days: Number(days) }).then(() => { SucessMessage("Pedido aprovado: empréstimo criado."); }).catch(fail) : undefined)}>
-        <div className="sm:col-span-2"><Input label="Prazo do empréstimo (dias)" type="number" min={1} max={60} value={days} onChange={(e) => setDays(e.target.value)} /></div>
+        <div className="sm:col-span-2"><Input label="Prazo do empréstimo (dias)" type="quantity" min={1} max={60} step={1} value={days} onChange={(e) => setDays(e.target.value)} /></div>
         <p className="sm:col-span-2 text-xs text-muted-foreground">Aplicam-se as regras do balcão: exemplares disponíveis, máximo de 3 obras e nenhum atraso.</p>
       </FormModal>
 

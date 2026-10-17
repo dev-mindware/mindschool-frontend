@@ -491,12 +491,13 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
           <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
             <div className="w-64">
               <Input
-                type="number"
+                type="quantity"
                 label="Carga Horária Semanal (Tempos/semana) *"
                 startIcon="Clock"
                 placeholder="4"
                 min={1}
                 max={40}
+                step={1}
                 value={weeklyHours}
                 onChange={(e) => setWeeklyHours(Number(e.target.value))}
               />

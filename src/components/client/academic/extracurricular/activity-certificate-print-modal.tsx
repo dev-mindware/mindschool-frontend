@@ -10,9 +10,19 @@ export function ActivityCertificatePrintModal({ target }: { target?: Certificate
   const { profile } = useSchoolSettingsStore();
 
   return (
-    <FormModal id="activity-certificate" title="Certificado de participação" description="Pré-visualize e imprima." size="lg" submitLabel="Imprimir" keepOpen onSubmit={() => window.print()}>
+    <FormModal
+      id="activity-certificate"
+      title="Certificado de participação"
+      description="Pré-visualize e transfira o certificado em PDF."
+      size="lg"
+      submitLabel="Baixar PDF"
+      keepOpen
+      printContentId="activity-certificate-print-content"
+      pdfFilename={`Certificado_${target?.studentName || "participacao"}.pdf`}
+      onSubmit={() => {}}
+    >
       {target && (
-        <div className="sm:col-span-2 space-y-6 rounded-lg border-4 border-double border-amber-400 bg-white p-10 text-center text-slate-900 print:border-0">
+        <div id="activity-certificate-print-content" className="sm:col-span-2 space-y-6 rounded-lg border-4 border-double border-amber-400 bg-white p-10 text-center text-slate-900 print:border-0">
           <div className="text-[11px] font-bold uppercase tracking-widest text-slate-600">República de Angola • Ministério da Educação</div>
           <div className="text-lg font-black uppercase">{profile.schoolName}</div>
           <h2 className="font-serif text-2xl font-bold">Certificado de Participação</h2>

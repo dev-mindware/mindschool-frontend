@@ -9,6 +9,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { cn } from "@/lib/utils";
 
+import { PrintDownloadDropdown } from "@/components/common/print-download-dropdown";
+
 interface FormModalProps {
   /** Id do modal na `useModal` store (abrir com `openModal(id, data)`). */
   id: string;
@@ -25,6 +27,9 @@ interface FormModalProps {
   readOnly?: boolean;
   keepOpen?: boolean;
   disabled?: boolean;
+  printContentId?: string;
+  pdfFilename?: string;
+  pdfOrientation?: "portrait" | "landscape";
 }
 
 const SIZE = { sm: "md", md: "xl", lg: "3xl", xl: "5xl" } as const;
@@ -33,14 +38,30 @@ const SIZE = { sm: "md", md: "xl", lg: "3xl", xl: "5xl" } as const;
  * Modal de formulário padrão (MindGest): todo o formulário vive num `GlobalModal` aberto por id, com botões
  * Cancelar / Guardar (`ButtonSubmit`). Os campos usam `Input`, `FormSelect`, `FormTextarea` e `DatePicker`.
  */
-export function FormModal({ id, title, description, submitLabel = "Guardar", isLoading, onSubmit, onClose, children, size = "md", readOnly, keepOpen, disabled }: FormModalProps) {
+export function FormModal({
+  id,
+  title,
+  description,
+  submitLabel = "Guardar",
+  isLoading,
+  onSubmit,
+  onClose,
+  children,
+  size = "md",
+  readOnly,
+  keepOpen,
+  disabled,
+  printContentId,
+  pdfFilename,
+  pdfOrientation = "portrait",
+}: FormModalProps) {
   const { open, closeModal } = useModal();
   const formId = useId();
   if (!open[id]) return null;
 
   const close = () => { onClose?.(); closeModal(id); };
-  const submit = async (e: FormEvent) => {
-    e.preventDefault();
+  const submit = async (e?: FormEvent) => {
+    e?.preventDefault();
     try {
       await onSubmit();
       if (!keepOpen) close();
@@ -48,6 +69,12 @@ export function FormModal({ id, title, description, submitLabel = "Guardar", isL
       /* o erro já é mostrado pela mutação (toast); o modal mantém-se aberto */
     }
   };
+
+  const isPdfDownloadModal = Boolean(
+    printContentId ||
+    submitLabel?.toLowerCase().includes("imprimir") ||
+    submitLabel?.toLowerCase().includes("baixar")
+  );
 
   return (
     <GlobalModal
@@ -60,7 +87,20 @@ export function FormModal({ id, title, description, submitLabel = "Guardar", isL
       footer={
         <>
           <Button type="button" variant="outline" className="w-max" onClick={close}>{readOnly ? "Fechar" : "Cancelar"}</Button>
-          {!readOnly && <ButtonSubmit form={formId} className="w-max" isLoading={Boolean(isLoading)} disabled={disabled}>{submitLabel}</ButtonSubmit>}
+          {!readOnly && (
+            isPdfDownloadModal ? (
+              <PrintDownloadDropdown
+                elementId={printContentId || formId}
+                filename={pdfFilename || `${title.toLowerCase().replace(/[^a-z0-9]/g, "_")}.pdf`}
+                orientation={pdfOrientation}
+                disabled={disabled}
+                label="Baixar PDF"
+                className="w-max"
+              />
+            ) : (
+              <ButtonSubmit form={formId} className="w-max" isLoading={Boolean(isLoading)} disabled={disabled}>{submitLabel}</ButtonSubmit>
+            )
+          )}
         </>
       }
     >

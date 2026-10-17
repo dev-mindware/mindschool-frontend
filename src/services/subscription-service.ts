@@ -2,11 +2,13 @@ import api from "./api";
 
 export interface ApiPlan { code: string; name: string; monthly_price: string; currency: string; rank: number; features: string[]; limits: Record<string, { limit: number | null; unit: string }> }
 export interface ApiAddon { code: string; name: string; description: string | null; monthly_price: string; grants: string[]; limit_grants?: Record<string, number>; min_plan_rank: number | null }
+export interface ApiBillingPeriod { months: number; billed_months: number }
 export interface ApiCatalog {
   plans: ApiPlan[];
   addons: ApiAddon[];
   features: Array<{ key: string; message: string }>;
   quotas: Array<{ key: string; unit: string; label: string }>;
+  billing_periods?: ApiBillingPeriod[];
   payment_instructions: string | null;
 }
 
@@ -48,12 +50,23 @@ export interface ApiCurrentSubscription {
 export interface ApiQuote {
   kind: string;
   effective: string;
-  breakdown: { plan: { name: string; monthly_price: string }; addons: Array<{ name: string; monthly_price: string }>; months: number; monthly_total: string; subtotal?: string; discount?: string; total: string; currency: string; coupon?: { code: string } | null };
+  breakdown: {
+    plan: { name: string; monthly_price: string };
+    addons: Array<{ name: string; monthly_price: string }>;
+    months: number;
+    monthly_total: string;
+    subtotal?: string;
+    period_discount?: string;
+    discount?: string;
+    total: string;
+    currency: string;
+    coupon?: { code: string } | null;
+  };
   features_lost: Array<{ key: string; message: string }>;
   notes: string[];
 }
 
-export interface OrderRequest { plan_code: string; addon_codes: string[]; period_months: 1 | 3 | 6 | 12; coupon_code?: string }
+export interface OrderRequest { plan_code: string; addon_codes: string[]; period_months: number; coupon_code?: string }
 
 export const subscriptionService = {
   catalog: async (): Promise<ApiCatalog> => (await api.get<ApiCatalog>("/subscription/catalog")).data,

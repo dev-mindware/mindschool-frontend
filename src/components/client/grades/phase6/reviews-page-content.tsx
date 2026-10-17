@@ -74,10 +74,10 @@ export function GradeReviewsPageContent() {
             {actionable && (
               <div className="grid gap-3 border-t pt-3 sm:grid-cols-2">
                 <FormTextarea label="Parecer / fundamentação (mín. 10 caracteres para decidir)" value={note} onChange={setNote} />
-                <Input label="Nota corrigida (para deferir)" type="number" value={newValue} onChange={(e) => setNewValue(e.target.value)} />
+                <Input label="Nota corrigida (0-20)" type="quantity" min={0} max={20} step={0.5} value={newValue} onChange={(e) => setNewValue(e.target.value)} />
                 <div className="flex flex-wrap items-end gap-2">
                   {active.status === "pedido" && <Button size="sm" variant="outline" disabled={start.isPending} onClick={() => run(start.mutateAsync({ id: active.id, note: note.trim() || undefined }), "Revisão iniciada.")}>Iniciar revisão</Button>}
-                  <Button size="sm" disabled={note.trim().length < 10 || newValue === "" || decide.isPending} onClick={() => run(decide.mutateAsync({ id: active.id, decision: "deferido", note: note.trim(), numericValue: Number(newValue) }), "Pedido deferido: nova versão da nota criada.")}>Deferir</Button>
+                  <Button size="sm" disabled={note.trim().length < 10 || newValue === "" || Number(newValue) < 0 || Number(newValue) > 20 || decide.isPending} onClick={() => run(decide.mutateAsync({ id: active.id, decision: "deferido", note: note.trim(), numericValue: Number(newValue) }), "Pedido deferido: nova versão da nota criada.")}>Deferir</Button>
                   <Button size="sm" variant="destructive" disabled={note.trim().length < 10 || decide.isPending} onClick={() => run(decide.mutateAsync({ id: active.id, decision: "indeferido", note: note.trim() }), "Pedido indeferido.")}>Indeferir</Button>
                 </div>
               </div>

@@ -4,9 +4,12 @@ import { EntranceExamsPageContent } from "@/components/client/admissions/exams/e
 export default function StudentAdmissionsExamsPage() {
   return (
     <PageWrapper
-      routePath="/students/admissions"
-      routeLabel="Alunos & Matrículas"
       subRoute="Provas de Acesso"
+      segments={[
+        { label: "Alunos & Matrículas" },
+        { label: "Candidaturas", href: "/students/admissions" },
+        { label: "Provas de Acesso" },
+      ]}
     >
       <EntranceExamsPageContent />
     </PageWrapper>

@@ -5,9 +5,11 @@ interface ApiSection {
   id: string;
   school_id: string;
   academic_year_id: string;
+  academic_year?: { id: string; name: string } | null;
   class_level: { id: string; name: string; level_number: number; cycle: string };
   name: string;
-  shift: "manha" | "tarde" | "noite";
+  room_number?: string | null;
+  shift: "manha" | "tarde" | "noite" | "diurno";
   capacity: number;
   enrolled_count: number;
   available_seats: number;
@@ -31,11 +33,11 @@ export const sectionsService = {
       name: s.name,
       classLevel: s.class_level.name,
       cycle: CYCLE[s.class_level.cycle] ?? "PRIMARY",
-      shift: s.shift === "manha" ? "MORNING" : s.shift === "tarde" ? "AFTERNOON" : "EVENING",
-      roomNumber: "",
+      shift: s.shift === "manha" ? "MORNING" : s.shift === "tarde" ? "AFTERNOON" : s.shift === "noite" ? "EVENING" : "DIURNO",
+      roomNumber: s.room_number?.trim() || "—",
       capacity: s.capacity,
       currentEnrollmentCount: s.enrolled_count,
-      academicYear: s.academic_year_id,
+      academicYear: s.academic_year?.name || "2026/2027",
       isActive: true,
       createdAt: "",
       updatedAt: "",

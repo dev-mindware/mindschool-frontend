@@ -45,7 +45,15 @@ export function useAcademicSections(searchQuery = "", shiftFilter: Shift | "ALL"
   const totalCap = sections.reduce((a, s) => a + s.capacity, 0);
   const totalEnr = sections.reduce((a, s) => a + s.currentEnrollmentCount, 0);
   const save = useMutation({
-    mutationFn: (v: { id?: string; name: string; classLevelName: string; shift: Shift; capacity: number }) => academicService.saveSection(v.id, v),
+    mutationFn: (v: {
+      id?: string;
+      name: string;
+      classLevelName: string;
+      shift: Shift;
+      capacity: number;
+      academicYear?: string;
+      roomNumber?: string;
+    }) => academicService.saveSection(v.id, v),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sections", schoolId] }),
   });
   return {
@@ -72,7 +80,8 @@ export function useSubjects(searchQuery = "", cycleFilter: EducationCycle | "ALL
   }, [subjects, searchQuery, cycleFilter]);
   const paging = usePaging(filtered);
   const save = useMutation({
-    mutationFn: (v: { id?: string; name: string; isCore: boolean }) => academicService.saveSubject(v.id, v),
+    mutationFn: (v: { id?: string; name: string; isCore: boolean; gradingScale?: "quantitativa" | "qualitativa" | "mista" }) =>
+      academicService.saveSubject(v.id, v),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["subjects", schoolId] }),
   });
   return {
@@ -83,10 +92,9 @@ export function useSubjects(searchQuery = "", cycleFilter: EducationCycle | "ALL
     ...paging,
     counts: {
       total: subjects.length,
-      primary: 0,
-      lowerSecondary: subjects.length,
-      upperSecondary: 0,
-      totalWeeklyHours: subjects.reduce((a, s) => a + s.weeklyHours, 0),
+      core: subjects.filter((s) => Boolean(s.isCore)).length,
+      quantitative: subjects.filter((s) => !s.gradingScale || s.gradingScale === "quantitativa").length,
+      active: subjects.filter((s) => s.isActive).length,
     },
   };
 }
@@ -148,3 +156,9 @@ export function useAcademic() {
     },
   };
 }
+
+export function useAcademicYears() {
+  const { data: years = [], isLoading } = useAcademicQuery("academic-years", academicService.years);
+  return { years, isLoading };
+}
+

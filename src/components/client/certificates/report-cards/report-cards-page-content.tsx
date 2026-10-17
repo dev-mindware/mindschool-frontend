@@ -4,7 +4,7 @@ import { useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { StudentSelect } from "@/components/shared/filters/student-select";
 import { Can, Badge, Button, ButtonOnlyAction, DataList, FormModal, FormSelect, Icon, TitleList, type Column } from "@/components";
-import { openDocumentPdf, useCertificates } from "@/hooks/school/use-certificates";
+import { downloadDocumentExcel, openDocumentPdf, useCertificates } from "@/hooks/school/use-certificates";
 import { useGradeTerms } from "@/hooks/school/use-grades";
 import { useStudents } from "@/hooks/school/use-students";
 import { useModal } from "@/stores/modal/use-modal-store";
@@ -20,7 +20,7 @@ function IssueBoletimModal() {
   const [termId, setTermId] = useState("last");
 
   return (
-    <FormModal id="boletim-issue" title="Emitir boletim de notas" description="Só se emite com a pauta do período fechada. O boletim é numerado e guardado em PDF." submitLabel="Emitir boletim" isLoading={issue.isPending} disabled={!studentId} onSubmit={() =>
+    <FormModal id="boletim-issue" title="Emitir boletim de notas" description="Só se emite com a pauta do período fechada. O boletim é numerado e guardado em PDF e Excel." submitLabel="Emitir boletim" isLoading={issue.isPending} disabled={!studentId} onSubmit={() =>
       issue.mutateAsync({ studentId, documentType: "DECLARATION_WITH_GRADES", purpose: "Boletim de notas", termId: termId === "last" ? undefined : termId })
         .then(async (d) => { SucessMessage(`Boletim ${d.documentNumber} emitido.`); await openDocumentPdf(d.id); })
         .catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível emitir o boletim (a pauta do período tem de estar fechada).")); throw e; })}>
@@ -30,7 +30,7 @@ function IssueBoletimModal() {
   );
 }
 
-/** Boletim de notas oficial: emitido pela API a partir das pautas fechadas, numerado e guardado em PDF. */
+/** Boletim de notas oficial: emitido pela API a partir das pautas fechadas, numerado e exportável em PDF e Excel. */
 export function ReportCardsPageContent() {
   const { documents } = useCertificates();
   const { openModal } = useModal();
@@ -40,7 +40,30 @@ export function ReportCardsPageContent() {
     { key: "documentNumber", header: "N.º", render: (_, d) => <Badge variant="outline" className="font-mono">{d.documentNumber}</Badge> },
     { key: "studentName", header: "Aluno", render: (_, d) => <span className="font-medium">{d.studentName}</span> },
     { key: "issueDate", header: "Emitido em", render: (_, d) => <span className="font-mono text-xs">{d.issueDate}</span> },
-    { key: "action", header: "Acção", render: (_, d) => <ButtonOnlyAction data={d} actions={[{ label: "Abrir PDF", icon: "FileText", onClick: (x) => void openDocumentPdf(x.id).catch((e) => ErrorMessage(getApiErrorMessage(e, "Sem PDF."))) }]} /> },
+    {
+      key: "action",
+      header: "Acções",
+      render: (_, d) => (
+        <ButtonOnlyAction
+          data={d}
+          actions={[
+            {
+              label: "Abrir PDF",
+              icon: "FileText",
+              onClick: (x) => void openDocumentPdf(x.id).catch((e) => ErrorMessage(getApiErrorMessage(e, "Sem PDF."))),
+            },
+            {
+              label: "Exportar Excel (.xlsx)",
+              icon: "Download",
+              onClick: (x) =>
+                void downloadDocumentExcel(x.id, `Boletim_${x.documentNumber}.xlsx`).catch((e) =>
+                  ErrorMessage(getApiErrorMessage(e, "Não foi possível descarregar em Excel.")),
+                ),
+            },
+          ]}
+        />
+      ),
+    },
   ];
 
   return (

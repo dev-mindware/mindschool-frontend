@@ -4,7 +4,14 @@ import { PlanCheckout } from "@/components/client/plans/plan-checkout";
 
 export default function Page() {
   return (
-    <PageWrapper routePath="/plans/checkout" routeLabel="Subscrição" subRoute="Checkout">
+    <PageWrapper
+      subRoute="Checkout"
+      segments={[
+        { label: "Subscrição" },
+        { label: "Planos", href: "/plans" },
+        { label: "Checkout" },
+      ]}
+    >
       <Suspense fallback={null}>
         <PlanCheckout />
       </Suspense>

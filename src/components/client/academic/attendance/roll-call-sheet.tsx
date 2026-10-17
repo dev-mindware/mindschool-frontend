@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { Badge, Button, DataList, Icon, Input, type Column } from "@/components";
 import { useRollCall } from "@/hooks/school/use-roll-call";
@@ -13,6 +13,7 @@ interface RollCallSheetProps {
   className: string;
   subjectName: string;
   date: string;
+  timeSlotLabel?: string;
 }
 
 const STATUS_BUTTONS: Array<{ status: AttendanceStatus; label: string; title: string; icon: "Check" | "X" | "FileText" | "Clock"; on: string }> = [
@@ -24,18 +25,29 @@ const STATUS_BUTTONS: Array<{ status: AttendanceStatus; label: string; title: st
 const STATUS_LABEL: Record<string, string> = { PRESENT: "Presente", ABSENT_UNJUSTIFIED: "Falta injustificada", ABSENT_JUSTIFIED: "Falta justificada", LATE: "Atraso" };
 
 /** Folha de chamada: marcação rápida por aluno (gravada de imediato com optimistic update) com filtros por estado e género. */
-export function RollCallSheet({ classId, sectionSubjectId, className, subjectName, date }: RollCallSheetProps) {
+export function RollCallSheet({ classId, sectionSubjectId, className, subjectName, date, timeSlotLabel }: RollCallSheetProps) {
   const { students, save, isLoading } = useRollCall(classId, sectionSubjectId, date);
   const [notes, setNotes] = useState<Record<string, string>>({});
   type Row = (typeof students)[number];
 
+  // Limpa as anotações locais quando a turma, disciplina ou data mudam (evita vazamento entre dias/aulas)
+  useEffect(() => {
+    setNotes({});
+  }, [classId, sectionSubjectId, date]);
+
   const statusOf = (id: string): AttendanceStatus | undefined => students.find((r) => r.id === id)?.status;
-  const notesOf = (id: string) => notes[id] ?? students.find((r) => r.id === id)?.notes ?? "";
+  const notesOf = (id: string) => {
+    if (notes[id] !== undefined) return notes[id];
+    return students.find((r) => r.id === id)?.notes ?? "";
+  };
+
   const persist = (records: Array<{ enrollmentId: string; status: AttendanceStatus; notes?: string }>, ok?: string) =>
     save.mutate(records, { onSuccess: () => ok && SucessMessage(ok), onError: (e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a chamada.")) });
 
   const count = (s: AttendanceStatus) => students.filter((x) => x.status === s).length;
   const unmarkedCount = students.filter((x) => !x.status).length;
+
+  const curStatus = (id: string) => statusOf(id);
 
   const columns: Column<Row>[] = [
     { key: "number", header: "Nº", render: (_, s) => <span className="font-mono text-xs text-muted-foreground">{s.number}</span> },
@@ -54,7 +66,7 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
                   key={b.status}
                   type="button"
                   title={b.title}
-                  onClick={() => persist([{ enrollmentId: s.id, status: b.status, notes: notes[s.id] }])}
+                  onClick={() => persist([{ enrollmentId: s.id, status: b.status, notes: notesOf(s.id) }])}
                   className={`flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-all ${
                     active ? b.on : "border-border bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
@@ -71,19 +83,46 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
         );
       },
     },
-    { key: "notes", header: "Observações", render: (_, s) => <Input label="" value={notesOf(s.id)} onChange={(e) => setNotes((p) => ({ ...p, [s.id]: e.target.value }))} onBlur={() => notes[s.id] !== undefined && curStatus(s.id) && persist([{ enrollmentId: s.id, status: curStatus(s.id)!, notes: notes[s.id] }])} placeholder="Adicionar nota..." className="h-8 min-w-48 text-xs" /> },
+    {
+      key: "notes",
+      header: "Observações",
+      render: (_, s) => (
+        <Input
+          label=""
+          value={notesOf(s.id)}
+          onChange={(e) => setNotes((p) => ({ ...p, [s.id]: e.target.value }))}
+          onBlur={() => {
+            const currentNote = notes[s.id];
+            if (currentNote !== undefined) {
+              const currentStatus = curStatus(s.id) || "PRESENT";
+              persist([{ enrollmentId: s.id, status: currentStatus, notes: currentNote }]);
+            }
+          }}
+          placeholder="Adicionar nota..."
+          className="h-8 min-w-48 text-xs"
+        />
+      ),
+    },
   ];
-
-  const curStatus = (id: string) => statusOf(id);
 
   return (
     <div className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
-          <p className="font-semibold">{className} • {subjectName}</p>
-          <p className="text-xs text-muted-foreground">{new Date(`${date}T00:00:00`).toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} • {isLoading ? "a carregar…" : `${students.length} alunos`}</p>
+          <div className="flex items-center gap-2">
+            <p className="font-semibold text-base">{className} • {subjectName}</p>
+            {timeSlotLabel && (
+              <Badge variant="outline" className="font-mono text-xs font-semibold bg-primary/10 text-primary border-primary/30">
+                <Icon name="Clock" className="size-3 mr-1" />
+                {timeSlotLabel}
+              </Badge>
+            )}
+          </div>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            {new Date(`${date}T00:00:00`).toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} • {isLoading ? "a carregar…" : `${students.length} alunos`}
+          </p>
         </div>
-        <Button size="sm" variant="outline" className="gap-1.5 text-emerald-600 hover:text-emerald-700" onClick={() => persist(students.map((s) => ({ enrollmentId: s.id, status: "PRESENT" as AttendanceStatus })), "Todos os alunos foram marcados como presentes.")}><Icon name="CheckCheck" className="size-4" />Marcar todos presentes</Button>
+        <Button size="sm" variant="outline" className="gap-1.5 text-emerald-600 hover:text-emerald-700" onClick={() => persist(students.map((s) => ({ enrollmentId: s.id, status: "PRESENT" as AttendanceStatus, notes: notesOf(s.id) })), "Todos os alunos foram marcados como presentes.")}><Icon name="CheckCheck" className="size-4" />Marcar todos presentes</Button>
       </div>
 
       <div className="flex flex-wrap items-center gap-4 text-xs bg-muted/40 p-3 rounded-lg border border-border/40">

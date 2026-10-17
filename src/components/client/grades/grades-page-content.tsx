@@ -8,9 +8,9 @@ import {
   SelectField,
   Button,
   Icon,
+  EmptyState,
 } from "@/components";
-import { useSections } from "@/hooks/school/use-sections";
-import { useSubjects } from "@/hooks/school/use-academic";
+import { useTeachingScope } from "@/hooks/school/use-teaching-scope";
 import { useGradeSheet } from "@/hooks/school/use-grades";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { ErrorMessage } from "@/utils/messages";
@@ -24,14 +24,29 @@ const TERMS: { value: AssessmentTerm; label: string }[] = [
 ];
 
 export function GradesPageContent() {
-  const { data: sections = [] } = useSections();
-  const { allSubjects: subjects } = useSubjects();
+  const { isTeacher, mySections: sections, getSubjectsForSection, isLoading: isScopeLoading } = useTeachingScope();
 
   const [pickedSectionId, setSelectedSectionId] = useState<string>("");
   const [pickedSubjectId, setSelectedSubjectId] = useState<string>("");
   const [selectedTerm, setSelectedTerm] = useState<AssessmentTerm>("TRIMESTER_2");
-  const selectedSectionId = pickedSectionId || sections[0]?.id || "";
-  const selectedSubjectId = pickedSubjectId || subjects[0]?.id || "";
+
+  const selectedSectionId = useMemo(() => {
+    if (pickedSectionId && sections.some((s) => s.id === pickedSectionId)) {
+      return pickedSectionId;
+    }
+    return sections[0]?.id || "";
+  }, [pickedSectionId, sections]);
+
+  const availableSubjects = useMemo(() => {
+    return getSubjectsForSection(selectedSectionId);
+  }, [getSubjectsForSection, selectedSectionId]);
+
+  const selectedSubjectId = useMemo(() => {
+    if (pickedSubjectId && availableSubjects.some((s) => s.id === pickedSubjectId)) {
+      return pickedSubjectId;
+    }
+    return availableSubjects[0]?.id || "";
+  }, [pickedSubjectId, availableSubjects]);
 
   const { sheet: activeSheet, pautaStatus, isLoading, isMissingAssignment, saveGrade } = useGradeSheet(selectedSectionId, selectedSubjectId, selectedTerm);
 
@@ -78,13 +93,13 @@ export function GradesPageContent() {
     return opts;
   }, [paginatedSections, selectedSectionId, sections]);
 
-  // Subject options
+  // Subject options restritos ao escopo docente da turma
   const subjectOptions = useMemo(() => {
-    return subjects.map((subj) => ({
+    return availableSubjects.map((subj) => ({
       value: subj.id,
-      label: `${subj.name} (${subj.code})`,
+      label: subj.name,
     }));
-  }, [subjects]);
+  }, [availableSubjects]);
 
   // A pauta geral da turma esta fechada?
   const isPautaClosed = pautaStatus === "fechada";
@@ -112,7 +127,23 @@ export function GradesPageContent() {
   }, [activeSheet]);
 
   const selectedSection = sections.find((s) => s.id === selectedSectionId);
-  const selectedSubject = subjects.find((s) => s.id === selectedSubjectId);
+  if (!isScopeLoading && isTeacher && sections.length === 0) {
+    return (
+      <div className="space-y-6">
+        <TitleList
+          title="Lançamento de Notas (MED)"
+          suTitle="Registo de notas e cálculo de MAC, NPP e NPT com recálculo automático de MAS e MT oficial (Decreto Executivo n.º 424/25)."
+        />
+        <EmptyState
+          icon="BookOpen"
+          title="Nenhuma Turma Atribuída"
+          description="Não tem turmas atribuídas no presente ano lectivo. Os professores apenas podem lançar notas das turmas e disciplinas que lhes foram formalmente atribuídas pela Direcção Pedagógica."
+        />
+      </div>
+    );
+  }
+
+  const selectedSubject = availableSubjects.find((s) => s.id === selectedSubjectId);
 
   return (
     <div className="space-y-6">
@@ -233,12 +264,16 @@ export function GradesPageContent() {
           }}
         />
       ) : (
-        <div className="p-8 text-center text-muted-foreground text-sm border rounded-lg">
+        <div className="p-8 text-center text-muted-foreground text-sm border rounded-lg bg-card">
           {isLoading
             ? "A carregar a mini-pauta…"
-            : isMissingAssignment
-              ? "Esta disciplina não está atribuída a esta turma (Académico → Atribuições)."
-              : "Selecione uma turma e disciplina para carregar a mini-pauta."}
+            : availableSubjects.length === 0
+              ? isTeacher
+                ? "Não lecciona nenhuma disciplina nesta turma."
+                : "Esta turma não possui disciplinas atribuídas (Académico → Atribuições)."
+              : isMissingAssignment
+                ? "Esta disciplina não está atribuída a esta turma (Académico → Atribuições)."
+                : "Selecione uma turma e disciplina para carregar a mini-pauta."}
         </div>
       )}
     </div>

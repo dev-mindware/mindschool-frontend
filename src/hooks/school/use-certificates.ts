@@ -57,6 +57,19 @@ export async function openDocumentPdf(documentId: string): Promise<void> {
   window.open(URL.createObjectURL(data), "_blank");
 }
 
+/** Descarrega o documento oficial emitido em formato Excel (.xlsx). */
+export async function downloadDocumentExcel(documentId: string, filename = "documento.xlsx"): Promise<void> {
+  const { data } = await api.get<Blob>(`/s/documents/${documentId}/excel`, { responseType: "blob" });
+  const url = URL.createObjectURL(data);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  URL.revokeObjectURL(url);
+}
+
 /** Documentos oficiais emitidos (API `documents`), com a forma do antigo `useCertificateStore`. */
 export function useCertificates() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
@@ -72,10 +85,25 @@ export function useCertificates() {
   });
 
   const issue = useMutation({
-    mutationFn: async (v: { studentId: string; documentType: OfficialDocumentType; purpose: string; termId?: string }) => {
+    mutationFn: async (v: {
+      studentId: string;
+      documentType: OfficialDocumentType;
+      purpose: string;
+      termId?: string;
+      checkedByName?: string;
+      registryBook?: string;
+      registrySheet?: string;
+    }) => {
       const type = TO_API[v.documentType];
       if (!type) throw new Error("Este tipo de documento ainda não está disponível na API.");
-      const { data } = await api.post<ApiDocument>(`/s/students/${v.studentId}/documents`, { type, purpose: v.purpose, ...(v.termId ? { term_id: v.termId } : {}) });
+      const { data } = await api.post<ApiDocument>(`/s/students/${v.studentId}/documents`, {
+        type,
+        purpose: v.purpose,
+        ...(v.termId ? { term_id: v.termId } : {}),
+        ...(v.checkedByName ? { checked_by_name: v.checkedByName } : {}),
+        ...(v.registryBook ? { registry_book: v.registryBook } : {}),
+        ...(v.registrySheet ? { registry_sheet: v.registrySheet } : {}),
+      });
       return toItem(data);
     },
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["documents", schoolId] }),

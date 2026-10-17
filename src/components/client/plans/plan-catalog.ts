@@ -23,9 +23,8 @@ export const QUOTA_ORDER = ["students", "users", "teachers", "sections", "academ
 
 export const PERIODS = [
   { value: 1, label: "Mensal", hint: "1 mês" },
-  { value: 3, label: "Trimestral", hint: "3 meses" },
   { value: 6, label: "Semestral", hint: "6 meses" },
-  { value: 12, label: "Anual", hint: "12 meses" },
+  { value: 12, label: "Anual", hint: "12 meses (2 meses grátis)" },
 ] as const;
 
 /** Linhas curtas do cartão: o essencial (alunos, utilizadores) e uma referência ao resto. O pormenor vai para o modal. */

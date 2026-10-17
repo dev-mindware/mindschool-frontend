@@ -95,7 +95,13 @@ export function ClassDetailsModal({
             <DetailRow label="Sala de Aulas" value={section.roomNumber} />
             <DetailRow
               label="Turno Lectivo"
-              value={section.shift === "MORNING" ? "Manhã (07:30 - 12:30)" : "Tarde (13:00 - 18:00)"}
+              value={
+                section.shift === "MORNING"
+                  ? "Manhã"
+                  : section.shift === "AFTERNOON"
+                  ? "Tarde"
+                  : "Noite / Pós-laboral"
+              }
             />
             <DetailRow label="Director de Turma" value={section.mainTeacherName || "Ainda não atribuído"} />
           </div>

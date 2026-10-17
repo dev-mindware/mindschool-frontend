@@ -20,11 +20,28 @@ export function CertificatesPageContent() {
   const { openModal } = useModal();
   const metrics = getMetrics();
 
-  const handleIssueSave = async (docData: { documentType: OfficialDocumentType; student: Student; purpose: string; notes?: string; issuerRole: string }) => {
+  const handleIssueSave = async (docData: {
+    documentType: OfficialDocumentType;
+    student: Student;
+    purpose: string;
+    notes?: string;
+    issuerRole: string;
+    checkedByName?: string;
+    registryBook?: string;
+    registrySheet?: string;
+  }) => {
     try {
       // O boletim exige o período (pauta fechada): usa-se o último período disponível.
       const termId = docData.documentType === 'DECLARATION_WITH_GRADES' ? terms[terms.length - 1]?.id : undefined;
-      const doc = await issue.mutateAsync({ studentId: docData.student.id, documentType: docData.documentType, purpose: docData.purpose, termId });
+      const doc = await issue.mutateAsync({
+        studentId: docData.student.id,
+        documentType: docData.documentType,
+        purpose: docData.purpose,
+        termId,
+        checkedByName: docData.checkedByName,
+        registryBook: docData.registryBook,
+        registrySheet: docData.registrySheet,
+      });
       SucessMessage(`Documento ${doc.documentNumber} emitido com sucesso!`);
       await openDocumentPdf(doc.id);
     } catch (err: unknown) {

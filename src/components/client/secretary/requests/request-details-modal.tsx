@@ -5,6 +5,9 @@ import { useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { Button, FormModal, FormTextarea, Icon, Input, StatusBadge, type StatusStyle } from "@/components";
 import { useSecretaryRequest, useSecretaryRequests } from "@/hooks/school/use-secretary-requests";
+import { useCertificates, openDocumentPdf } from "@/hooks/school/use-certificates";
+import { useGradeTerms } from "@/hooks/school/use-grades";
+import { type OfficialDocumentType } from "@/types/certificate";
 import { REQUEST_STATUS_LABEL, REQUEST_TYPE_LABEL, type ApiRequest, type RequestStatus } from "@/services/secretary-requests-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -17,6 +20,13 @@ const REQUEST_STATUS_STYLE: Record<RequestStatus, StatusStyle> = {
   concluido: { label: REQUEST_STATUS_LABEL.concluido, variant: "success" },
   rejeitado: { label: REQUEST_STATUS_LABEL.rejeitado, variant: "destructive" },
   cancelado: { label: REQUEST_STATUS_LABEL.cancelado, variant: "outline" },
+};
+
+const REQUEST_TYPE_TO_OFFICIAL_DOC: Record<string, OfficialDocumentType | undefined> = {
+  declaracao_matricula: "DECLARATION_ENROLLMENT",
+  declaracao_notas: "DECLARATION_WITH_GRADES",
+  certificado: "HABILITATION_CERTIFICATE",
+  transferencia: "TRANSFER_GUIDE",
 };
 
 export function RequestStatusBadge({ status }: { status: RequestStatus }) {
@@ -33,12 +43,43 @@ interface RequestDetailsModalProps {
 export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: RequestDetailsModalProps) {
   const { data: request } = useSecretaryRequest(requestId ?? undefined);
   const { assign, setStatus, comment } = useSecretaryRequests();
+  const { issue } = useCertificates();
+  const { data: terms = [] } = useGradeTerms();
   const { openModal } = useModal();
   const [note, setNote] = useState("");
   const [message, setMessage] = useState("");
+  const [isIssuing, setIsIssuing] = useState(false);
   const run = (p: Promise<unknown>, ok: string, after?: () => void) => p.then(() => { SucessMessage(ok); after?.(); }).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
   const open = request && ["aberto", "em_analise", "aguarda_pagamento"].includes(request.status);
   const unpaid = request?.status === "aguarda_pagamento";
+
+  const targetDocType = request?.type ? REQUEST_TYPE_TO_OFFICIAL_DOC[request.type] : undefined;
+  const canIssueDoc = Boolean(request && request.student_id && targetDocType && !unpaid);
+
+  const handleIssueOfficialDoc = async () => {
+    if (!request?.student_id || !targetDocType) return;
+    setIsIssuing(true);
+    try {
+      const termId = targetDocType === "DECLARATION_WITH_GRADES" ? terms[terms.length - 1]?.id : undefined;
+      const doc = await issue.mutateAsync({
+        studentId: request.student_id,
+        documentType: targetDocType,
+        purpose: request.subject || "Requerimento de Secretaria",
+        termId,
+      });
+      await setStatus.mutateAsync({
+        id: request.id,
+        status: "concluido",
+        resolution: `Documento oficial ${doc.documentNumber} emitido com código QR de autenticação.`,
+      });
+      SucessMessage(`Documento ${doc.documentNumber} emitido e requerimento concluído com sucesso!`);
+      await openDocumentPdf(doc.id);
+    } catch (err: unknown) {
+      ErrorMessage(getApiErrorMessage(err, "Não foi possível emitir o documento oficial."));
+    } finally {
+      setIsIssuing(false);
+    }
+  };
 
   return (
     <FormModal id="request-detail" title={request?.protocol ?? "Requerimento"} description={request ? `${REQUEST_TYPE_LABEL[request.type]} • ${REQUEST_STATUS_LABEL[request.status]}` : undefined} size="lg" readOnly onSubmit={() => undefined}>
@@ -80,10 +121,21 @@ export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: Req
                   <Button size="sm" variant="outline" disabled={note.trim().length < 3} onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "em_analise", resolution: note.trim(), waiveFee: true }), "Taxa isenta; pedido em análise.", () => setNote(""))}>Isentar taxa e iniciar análise</Button>
                 </div>
               ) : (
-              <div className="flex gap-2">
-                <Button size="sm" className="gap-1" onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "concluido", resolution: note.trim() || undefined }), "Pedido concluído.", () => setNote(""))}><Icon name="Check" className="size-3.5" />Concluir</Button>
-                <Button size="sm" variant="destructive" disabled={note.trim().length < 3} onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "rejeitado", resolution: note.trim() }), "Pedido indeferido.", () => setNote(""))}>Indeferir</Button>
-              </div>
+                <div className="flex flex-wrap gap-2">
+                  {canIssueDoc && (
+                    <Button
+                      size="sm"
+                      className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-xs"
+                      disabled={isIssuing}
+                      onClick={handleIssueOfficialDoc}
+                    >
+                      <Icon name="FileCheck" className="size-3.5" />
+                      {isIssuing ? "A emitir documento..." : "Emitir Documento Oficial com QR"}
+                    </Button>
+                  )}
+                  <Button size="sm" className="gap-1" onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "concluido", resolution: note.trim() || undefined }), "Pedido concluído.", () => setNote(""))}><Icon name="Check" className="size-3.5" />Concluir</Button>
+                  <Button size="sm" variant="destructive" disabled={note.trim().length < 3} onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "rejeitado", resolution: note.trim() }), "Pedido indeferido.", () => setNote(""))}>Indeferir</Button>
+                </div>
               )}
               <div className="flex items-end gap-2">
                 <div className="flex-1"><Input label="Mensagem ao requerente" value={message} onChange={(e) => setMessage(e.target.value)} /></div>
@@ -92,7 +144,7 @@ export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: Req
             </div>
           )}
 
-          <div className="flex justify-end"><Button size="sm" variant="ghost" className="gap-1.5" onClick={() => { onPrintSlip(request); openModal("request-slip"); }}><Icon name="Printer" className="size-4" />Comprovativo</Button></div>
+          <div className="flex justify-end"><Button size="sm" variant="ghost" className="gap-1.5" onClick={() => { onPrintSlip(request); openModal("request-slip"); }}><Icon name="FileDown" className="size-4" />Comprovativo (PDF)</Button></div>
         </div>
       )}
     </FormModal>

@@ -11,18 +11,10 @@ import { getApiErrorMessage } from "@/utils/api-error";
 const MODAL = "bank-account-form";
 const DEACTIVATE = "bank-account-deactivate";
 
+import { validIban } from "@/schemas/helps";
+
 /** IBAN em grupos de 4 para leitura (a API guarda sem espaços). */
 export const formatIban = (iban: string) => iban.replace(/\s+/g, "").replace(/(.{4})/g, "$1 ").trim();
-
-/** Validação mod-97 do IBAN angolano (AO + 23 dígitos), igual à da API. */
-function validIban(raw: string): boolean {
-  const iban = raw.replace(/\s+/g, "").toUpperCase();
-  if (!/^AO\d{23}$/.test(iban)) return false;
-  const digits = (iban.slice(4) + iban.slice(0, 4)).replace(/[A-Z]/g, (c) => String(c.charCodeAt(0) - 55));
-  let rem = 0;
-  for (const ch of digits) rem = (rem * 10 + Number(ch)) % 97;
-  return rem === 1;
-}
 
 const copy = (text: string, label: string) => navigator.clipboard.writeText(text).then(() => SucessMessage(`${label} copiado.`)).catch(() => ErrorMessage("Não foi possível copiar."));
 

@@ -10,9 +10,19 @@ export function ProtocolSlipModal({ request }: { request: ApiRequest | null }) {
   const { profile } = useSchoolSettingsStore();
 
   return (
-    <FormModal id="request-slip" title="Comprovativo de entrada e protocolo" description="Pré-visualize e imprima." size="lg" submitLabel="Imprimir" keepOpen onSubmit={() => window.print()}>
+    <FormModal
+      id="request-slip"
+      title="Comprovativo de entrada e protocolo"
+      description="Pré-visualize e transfira o comprovativo em PDF."
+      size="lg"
+      submitLabel="Baixar PDF"
+      keepOpen
+      printContentId="request-slip-print-content"
+      pdfFilename={`Comprovativo_Protocolo_${request?.protocol || "pedido"}.pdf`}
+      onSubmit={() => {}}
+    >
       {request && (
-        <div className="sm:col-span-2 space-y-5 rounded-lg border bg-white p-6 font-sans text-slate-900 print:border-0">
+        <div id="request-slip-print-content" className="sm:col-span-2 space-y-5 rounded-lg border bg-white p-6 font-sans text-slate-900 print:border-0">
           <div className="space-y-1 border-b border-slate-300 pb-4 text-center">
             <div className="text-[10px] font-bold uppercase tracking-widest text-slate-600">República de Angola • Ministério da Educação</div>
             <div className="text-sm font-black uppercase">{profile.schoolName}</div>

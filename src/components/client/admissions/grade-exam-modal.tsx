@@ -57,6 +57,12 @@ export function GradeExamModal({
     }
   };
 
+  const scoreNum = parseFloat(score);
+  const scoreError =
+    score !== "" && (isNaN(scoreNum) || scoreNum < 0 || scoreNum > 20)
+      ? "A nota deve estar entre 0 e 20 valores (escala nacional do MED)"
+      : undefined;
+
   return (
     <GlobalModal
       isOpen={isOpen}
@@ -77,7 +83,7 @@ export function GradeExamModal({
           </div>
         </div>
       }
-      className="!max-h-[88vh] !w-[95vw] sm:!max-w-xl overflow-y-auto"
+      size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4 pt-2">
         <div className="p-3.5 rounded-lg border bg-muted/40 text-xs space-y-1">
@@ -97,14 +103,15 @@ export function GradeExamModal({
 
         <div className="space-y-3">
           <Input
-            label="Nota da Prova de Acesso (0 a 20 valores)"
+            label="Nota da Prova de Acesso (0 a 20 valores) *"
             type="number"
             step="0.1"
-            min="0"
-            max="20"
+            min={0}
+            max={20}
             placeholder="Ex: 14.5"
             value={score}
             onChange={(e) => setScore(e.target.value)}
+            error={scoreError}
             required
           />
 

@@ -42,22 +42,22 @@ export function SubjectsPageContent() {
           icon="BookOpen"
         />
         <DynamicMetricCard
-          title={counts.primary}
-          subtitle="Ensino Primário"
-          description="Matriz da 1ª à 6ª classe"
-          icon="Bookmark"
+          title={counts.core}
+          subtitle="Disciplinas Nucleares"
+          description="Disciplinas chave de transição e aprovação"
+          icon="Star"
         />
         <DynamicMetricCard
-          title={counts.lowerSecondary}
-          subtitle="Iº Ciclo Secundário"
-          description="Matriz da 7ª à 9ª classe"
-          icon="Layers"
+          title={counts.quantitative}
+          subtitle="Regime Quantitativo"
+          description="Escala numérica de 0 a 20 valores"
+          icon="GraduationCap"
         />
         <DynamicMetricCard
-          title={`${counts.totalWeeklyHours}h`}
-          subtitle="Carga Horária Semanal"
-          description="Soma de horas lectivas semanais"
-          icon="Clock"
+          title={counts.active}
+          subtitle="Disciplinas Activas"
+          description="Em vigor na matriz curricular"
+          icon="CircleCheck"
         />
       </div>
 

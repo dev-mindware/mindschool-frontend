@@ -14,11 +14,11 @@ interface ApiSectionSubject {
   section_id: string;
   academic_year_id: string;
   subject: { id: string; name: string; is_core_subject: boolean };
-  teacher: { id: string; full_name: string };
+  teacher: { id: string; user_id?: string | null; full_name: string };
   weekly_hours: number;
 }
 
-const SHIFT_TO_API: Record<Shift, string> = { MORNING: "manha", AFTERNOON: "tarde", EVENING: "noite" };
+const SHIFT_TO_API: Record<Shift, string> = { MORNING: "manha", AFTERNOON: "tarde", EVENING: "noite", DIURNO: "diurno" };
 
 const codeOf = (name: string) =>
   name
@@ -39,6 +39,7 @@ const toSubject = (s: ApiSubject): Subject => ({
   weeklyHours: 0,
   isActive: true,
   isCore: s.is_core_subject,
+  gradingScale: s.grading_scale as "quantitativa" | "qualitativa" | "mista",
   createdAt: "",
   updatedAt: "",
 });
@@ -54,25 +55,52 @@ export const academicService = {
 
   saveSection: async (
     id: string | undefined,
-    v: { name: string; classLevelName: string; shift: Shift; capacity: number },
+    v: { name: string; classLevelName: string; shift: Shift; capacity: number; academicYear?: string; roomNumber?: string },
   ): Promise<void> => {
     if (id) {
-      await api.patch(`/s/sections/${id}`, { name: v.name, shift: SHIFT_TO_API[v.shift], capacity: v.capacity });
+      await api.patch(`/s/sections/${id}`, {
+        name: v.name,
+        shift: SHIFT_TO_API[v.shift],
+        capacity: v.capacity,
+        room_number: v.roomNumber?.trim() || null,
+      });
       return;
     }
-    const [year, levels] = await Promise.all([academicService.activeYear(), academicService.classLevels()]);
-    if (!year) throw new Error("Não há ano lectivo activo.");
+    const [years, levels] = await Promise.all([academicService.years(), academicService.classLevels()]);
+    const year =
+      years.find((y) => y.id === v.academicYear || y.name === v.academicYear) ??
+      years.find((y) => y.name?.includes("2026/2027") || y.name?.includes("26/27")) ??
+      years.find((y) => y.status === "activo") ??
+      years[0];
+    if (!year) throw new Error("Não há ano lectivo disponível nesta escola.");
     const level = levels.find((l) => l.name === v.classLevelName || `${l.level_number}ª Classe` === v.classLevelName);
     if (!level) throw new Error(`A classe "${v.classLevelName}" não existe nesta escola.`);
-    await api.post("/s/sections", { academic_year_id: year.id, class_level_id: level.id, name: v.name, shift: SHIFT_TO_API[v.shift], capacity: v.capacity });
+    await api.post("/s/sections", {
+      academic_year_id: year.id,
+      class_level_id: level.id,
+      name: v.name,
+      shift: SHIFT_TO_API[v.shift],
+      capacity: v.capacity,
+      room_number: v.roomNumber?.trim() || null,
+    });
   },
 
   // ---- disciplinas ----
   subjects: async (): Promise<Subject[]> => (await fetchAllPages<ApiSubject>("/s/subjects")).map(toSubject),
 
-  saveSubject: async (id: string | undefined, v: { name: string; isCore: boolean }): Promise<void> => {
-    if (id) await api.patch(`/s/subjects/${id}`, { name: v.name, is_core_subject: v.isCore });
-    else await api.post("/s/subjects", { name: v.name, grading_scale: "quantitativa", is_core_subject: v.isCore });
+  saveSubject: async (
+    id: string | undefined,
+    v: { name: string; isCore: boolean; gradingScale?: "quantitativa" | "qualitativa" | "mista" },
+  ): Promise<void> => {
+    if (id) {
+      await api.patch(`/s/subjects/${id}`, { name: v.name, is_core_subject: v.isCore });
+    } else {
+      await api.post("/s/subjects", {
+        name: v.name,
+        grading_scale: v.gradingScale || "quantitativa",
+        is_core_subject: v.isCore ?? false,
+      });
+    }
   },
 
   // ---- atribuicoes (disciplina x turma x professor) ----
@@ -86,6 +114,7 @@ export const academicService = {
         id: r.id,
         schoolId: "",
         teacherId: r.teacher.id,
+        teacherUserId: r.teacher.user_id ?? undefined,
         teacherName: r.teacher.full_name,
         sectionId: sec.id,
         sectionName: `${sec.classLevel} ${sec.name}`,
@@ -98,8 +127,13 @@ export const academicService = {
     );
   },
 
-  assign: async (v: { sectionId: string; subjectId: string; teacherId: string; weeklyHours: number }): Promise<void> => {
-    await api.post(`/s/sections/${v.sectionId}/subjects`, { subject_id: v.subjectId, teacher_id: v.teacherId, weekly_hours: v.weeklyHours });
+  assign: async (v: { sectionId: string; subjectId: string; teacherId: string; weeklyHours: number }): Promise<{ id: string }> => {
+    const res = await api.post<{ id: string }>(`/s/sections/${v.sectionId}/subjects`, {
+      subject_id: v.subjectId,
+      teacher_id: v.teacherId,
+      weekly_hours: v.weeklyHours,
+    });
+    return res.data;
   },
 
   unassign: async (sectionId: string, id: string): Promise<void> => {

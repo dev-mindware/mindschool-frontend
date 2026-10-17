@@ -14,12 +14,14 @@ export interface StudentFormValues {
   address: string;
   city: string;
   province: string;
-  sectionId: string;
-  guardianName: string;
-  guardianPhone: string;
+  sectionId?: string;
+  guardianMode: "existing" | "new";
+  guardianId?: string;
+  guardianName?: string;
+  guardianPhone?: string;
   guardianRelationship: string;
   /** Numero do documento do encarregado (a API identifica-o por este numero). */
-  guardianDocument: string;
+  guardianDocument?: string;
 }
 
 interface StudentIdentificationFieldsProps {

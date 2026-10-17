@@ -1,7 +1,6 @@
 'use client';
 
 import React, { useState } from 'react';
-import Link from 'next/link';
 import { useParams } from 'next/navigation';
 import { SucessMessage, ErrorMessage } from '@/utils/messages';
 import { Button, Badge, EmptyState, Icon, Input, TitleList } from '@/components';
@@ -51,14 +50,10 @@ export function ExamGradingPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title={`Mesa de Correcção: ${activeExam.title}`} suTitle="Corrija as submissões e lance as notas na mini-pauta.">
-        <Button variant="outline" size="sm" asChild>
-          <Link href="/online-exams">
-            <Icon name="ArrowLeft" className="size-4" />
-            Voltar às provas
-          </Link>
-        </Button>
-      </TitleList>
+      <TitleList
+        title={`Mesa de Correcção: ${activeExam.title}`}
+        suTitle="Corrija as submissões e lance as notas na mini-pauta."
+      />
 
       <div className="grid grid-cols-1 lg:grid-cols-[300px_1fr] gap-6 items-start">
         <div className="space-y-2">
@@ -125,8 +120,8 @@ export function ExamGradingPageContent() {
                         <div className="w-40">
                           <Input
                             label={`Nota (0 a ${a.question.max_score})`}
-                            type="number"
-                            step="0.25"
+                            type="quantity"
+                            step={0.25}
                             min={0}
                             max={a.question.max_score}
                             value={scores[a.answer_id] ?? String(a.score_awarded ?? '')}

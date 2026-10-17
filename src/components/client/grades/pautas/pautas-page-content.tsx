@@ -2,9 +2,9 @@
 
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { TitleList, Button, Icon } from '@/components';
+import { TitleList, Button, Icon, EmptyState } from '@/components';
 import { FilterPopover } from '@/components/shared/filters/filter-popover';
-import { useSections } from '@/hooks/school/use-sections';
+import { useTeachingScope } from '@/hooks/school/use-teaching-scope';
 import { usePautas } from '@/hooks/school/use-pautas';
 import { AssessmentTerm, ConsolidatedPauta, PautaAuditEntry } from '@/types/grade';
 import { LockPautaModal } from './lock-pauta-modal';
@@ -20,9 +20,10 @@ const TERMS: { value: AssessmentTerm; label: string }[] = [
 ];
 
 export function PautasPageContent() {
-  const { data: sections = [] } = useSections();
+  const { isTeacher, mySections: sections, isLoading: isScopeLoading } = useTeachingScope();
   const [selectedTerm, setSelectedTerm] = useState<AssessmentTerm>('TRIMESTER_2');
-  const { pautas: allPautas } = usePautas(selectedTerm, sections.map((s) => s.id));
+  const sectionIds = useMemo(() => sections.map((s) => s.id), [sections]);
+  const { pautas: allPautas } = usePautas(selectedTerm, sectionIds);
   // O livro de auditoria vem da API de auditoria (ainda nao ligada nesta vista).
   const auditLogs: PautaAuditEntry[] = [];
 
@@ -43,6 +44,22 @@ export function PautasPageContent() {
     const auditCount = auditLogs.filter((a) => a.term === selectedTerm).length;
     return { total, closed, pending, auditCount };
   }, [allPautas, auditLogs, selectedTerm]);
+
+  if (!isScopeLoading && isTeacher && sections.length === 0) {
+    return (
+      <div className="space-y-6">
+        <TitleList
+          title="Pautas Trimestrais & Homologação MED"
+          suTitle="Consolidação de médias de disciplinas, validação de conformidade e fecho auditado pela Direcção Pedagógica."
+        />
+        <EmptyState
+          icon="Table"
+          title="Nenhuma Turma Atribuída"
+          description="Não tem turmas atribuídas no presente ano lectivo. Os professores apenas podem consultar as pautas das turmas em que leccionam."
+        />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">

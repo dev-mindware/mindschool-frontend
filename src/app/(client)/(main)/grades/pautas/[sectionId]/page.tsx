@@ -4,8 +4,10 @@ import { ConsolidatedPautaPageContent } from "@/components/client/grades/pautas/
 export default function ConsolidatedPautaPage() {
   return (
     <PageWrapper
+      subRoute="Pauta Consolidada"
       segments={[
-        { label: "Pautas", href: "/grades/pautas" },
+        { label: "Avaliações & Pautas" },
+        { label: "Pautas Trimestrais", href: "/grades/pautas" },
         { label: "Pauta Consolidada" },
       ]}
     >

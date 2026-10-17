@@ -1,10 +1,5 @@
-import { PageWrapper } from "@/components";
-import { SecretaryRequestsContent } from "@/components/client/secretary/requests";
+import { redirect } from "next/navigation";
 
 export default function CertificateRequestsPage() {
-  return (
-    <PageWrapper>
-      <SecretaryRequestsContent />
-    </PageWrapper>
-  );
+  redirect("/certificates/documents?tab=requests");
 }

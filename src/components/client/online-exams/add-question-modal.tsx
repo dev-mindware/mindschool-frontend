@@ -115,7 +115,7 @@ export function AddQuestionModal({ isOpen, onClose, activeExam, isSaving, onAddQ
                     options={(Object.keys(TYPE_LABEL) as ApiQuestionType[]).map((t) => ({ label: TYPE_LABEL[t], value: t }))}
                   />
                 </div>
-                <Input label="Pontos" type="number" value={String(points)} onChange={(e) => setPoints(Number(e.target.value))} />
+                <Input label="Pontos" type="quantity" min={1} max={20} step={1} value={points} onChange={(e) => setPoints(Number(e.target.value))} />
               </div>
               <FormTextarea label="Enunciado *" value={prompt} onChange={setPrompt} rows={2} />
 

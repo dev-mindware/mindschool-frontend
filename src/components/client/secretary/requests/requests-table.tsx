@@ -26,7 +26,7 @@ export function RequestsTable() {
       key: "action", header: "Acção",
       render: (_, r) => <ButtonOnlyAction data={r} actions={[
         { label: "Abrir / tratar", icon: "Eye", onClick: (x) => { setSelectedId(x.id); openModal("request-detail"); } },
-        { label: "Comprovativo", icon: "Printer", onClick: (x) => { setSlip(x); openModal("request-slip"); } },
+        { label: "Comprovativo (PDF)", icon: "FileDown", onClick: (x) => { setSlip(x); openModal("request-slip"); } },
       ]} />,
     },
   ];

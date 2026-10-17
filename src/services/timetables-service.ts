@@ -1,7 +1,7 @@
 import api from "./api";
 import { fetchAllPages } from "./api-pagination";
 
-export type Shift = "manha" | "tarde" | "noite";
+export type Shift = "manha" | "tarde" | "noite" | "diurno";
 
 export interface ApiTimetable {
   id: string;
@@ -43,7 +43,7 @@ export interface ApiValidation { timetable_id: string; status: string; hard: Api
 export interface ApiRoom { id: string; code: string; name: string; capacity: number | null; is_active: boolean }
 
 export const WEEKDAY = ["", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
-export const SHIFT_LABEL: Record<Shift, string> = { manha: "Manhã", tarde: "Tarde", noite: "Noite" };
+export const SHIFT_LABEL: Record<Shift, string> = { manha: "Manhã", tarde: "Tarde", noite: "Noite", diurno: "Diurno" };
 
 export interface ApiChange { id: string; type: string; effective_date: string; reason: string; created_at: string }
 export interface NewChange { type: "troca_tempo" | "troca_professor" | "troca_sala" | "anulacao"; entryId: string; effectiveDate: string; reason: string; weekday?: number; firstSlot?: number; span?: number; teacherId?: string; roomId?: string | null }
@@ -53,9 +53,27 @@ export const timetablesService = {
   create: async (academicYearId: string, cloneFrom?: string) =>
     (await api.post<ApiTimetable>("/s/timetables", { academic_year_id: academicYearId, ...(cloneFrom ? { clone_from: cloneFrom } : {}) })).data,
   entries: async (id: string): Promise<ApiEntry[]> => (await api.get<{ data: ApiEntry[] }>(`/s/timetables/${id}/entries`)).data.data,
-  addEntry: async (id: string, v: { sectionSubjectId: string; weekday: number; firstSlot: number; span: number; roomId?: string }) =>
+  addEntry: async (id: string, v: { sectionSubjectId: string; weekday: number; firstSlot?: number; span?: number; startTime?: string; endTime?: string; roomId?: string; shift?: Shift }) =>
     (await api.post<ApiEntry>(`/s/timetables/${id}/entries`, {
-      section_subject_id: v.sectionSubjectId, weekday: v.weekday, first_slot: v.firstSlot, span: v.span, ...(v.roomId ? { room_id: v.roomId } : {}),
+      section_subject_id: v.sectionSubjectId,
+      weekday: v.weekday,
+      ...(v.firstSlot ? { first_slot: v.firstSlot } : {}),
+      ...(v.span ? { span: v.span } : {}),
+      ...(v.startTime ? { start_time: v.startTime } : {}),
+      ...(v.endTime ? { end_time: v.endTime } : {}),
+      ...(v.roomId ? { room_id: v.roomId } : {}),
+      ...(v.shift ? { shift: v.shift } : {}),
+    })).data,
+  updateEntry: async (id: string, entryId: string, v: { sectionSubjectId?: string; weekday?: number; firstSlot?: number; span?: number; startTime?: string; endTime?: string; roomId?: string | null; shift?: Shift }) =>
+    (await api.patch<ApiEntry>(`/s/timetables/${id}/entries/${entryId}`, {
+      ...(v.sectionSubjectId ? { section_subject_id: v.sectionSubjectId } : {}),
+      ...(v.weekday ? { weekday: v.weekday } : {}),
+      ...(v.firstSlot ? { first_slot: v.firstSlot } : {}),
+      ...(v.span ? { span: v.span } : {}),
+      ...(v.startTime ? { start_time: v.startTime } : {}),
+      ...(v.endTime ? { end_time: v.endTime } : {}),
+      ...(v.roomId !== undefined ? { room_id: v.roomId } : {}),
+      ...(v.shift ? { shift: v.shift } : {}),
     })).data,
   removeEntry: async (id: string, entryId: string) => (await api.delete(`/s/timetables/${id}/entries/${entryId}`)).data,
   validate: async (id: string): Promise<ApiValidation> => (await api.post<ApiValidation>(`/s/timetables/${id}/validate`, {})).data,

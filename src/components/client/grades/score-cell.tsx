@@ -25,7 +25,21 @@ export function ScoreCell({ value, status, readOnly, tone, onValueChange, onStat
         disabled={readOnly || current !== "avaliado"}
         value={value ?? ""}
         placeholder="0.0 - 20"
-        onChange={(e) => onValueChange(e.target.value)}
+        onChange={(e) => {
+          const val = e.target.value;
+          if (val === "") {
+            onValueChange("");
+            return;
+          }
+          const n = Number(val);
+          if (!isNaN(n)) {
+            if (n < 0) onValueChange("0");
+            else if (n > 20) onValueChange("20");
+            else onValueChange(val);
+          } else {
+            onValueChange(val);
+          }
+        }}
         className="w-20 text-center font-medium rounded-md border border-input bg-background py-1.5 text-xs shadow-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:bg-muted/50 disabled:text-muted-foreground"
       />
       {onStatusChange && (

@@ -5,7 +5,6 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Student } from "@/types";
-import { useSections } from "@/hooks/school/use-sections";
 import { useStudents } from "@/hooks/school/use-students";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { Button, ButtonSubmit } from "@/components";
@@ -24,22 +23,83 @@ import {
 } from "./student-identification-fields";
 import { StudentAcademicFields } from "./student-academic-fields";
 import { StudentGuardianFields } from "./student-guardian-fields";
+import { validateIdDocumentByType } from "@/schemas/helps";
 
-const studentFormSchema = z.object({
-  fullName: z.string().trim().min(3, "O nome deve ter pelo menos 3 caracteres"),
-  gender: z.enum(["MALE", "FEMALE"]),
-  birthDate: z.string().min(1, "Data de nascimento é obrigatória"),
-  idDocumentType: z.enum(["IDENTITY_CARD", "BIRTH_CERTIFICATE", "PASSPORT"]),
-  idDocumentNumber: z.string().trim().min(3, "Número de documento é obrigatório"),
-  address: z.string().trim().min(2, "Endereço é obrigatório"),
-  city: z.string().trim().min(1, "Cidade é obrigatória"),
-  province: z.string().trim().min(1, "Província é obrigatória"),
-  sectionId: z.string().min(1, "Selecione a turma"),
-  guardianName: z.string().trim().min(3, "Nome do encarregado é obrigatório"),
-  guardianPhone: z.string().trim().min(9, "Contacto deve ter pelo menos 9 dígitos"),
-  guardianRelationship: z.string().min(1, "Selecione o grau de parentesco"),
-  guardianDocument: z.string().trim().min(4, "Número de documento do encarregado é obrigatório"),
-});
+const studentFormSchema = z
+  .object({
+    fullName: z.string().trim().min(3, "O nome deve ter pelo menos 3 caracteres"),
+    gender: z.enum(["MALE", "FEMALE"]),
+    birthDate: z.string().min(1, "Data de nascimento é obrigatória"),
+    idDocumentType: z.enum(["IDENTITY_CARD", "BIRTH_CERTIFICATE", "PASSPORT"]),
+    idDocumentNumber: z.string().trim().min(3, "Número de documento é obrigatório"),
+    address: z.string().trim().min(2, "Endereço é obrigatório"),
+    city: z.string().trim().min(1, "Cidade é obrigatória"),
+    province: z.string().trim().min(1, "Província é obrigatória"),
+    guardianMode: z.enum(["existing", "new"]),
+    guardianId: z.string().optional(),
+    guardianName: z.string().optional(),
+    guardianPhone: z.string().optional(),
+    guardianRelationship: z.string().min(1, "Selecione o grau de parentesco"),
+    guardianDocument: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    // Validação estrita do documento do aluno
+    const docCheck = validateIdDocumentByType(data.idDocumentNumber, data.idDocumentType);
+    if (!docCheck.valid && docCheck.message) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["idDocumentNumber"],
+        message: docCheck.message,
+      });
+    }
+
+    if (data.guardianMode === "existing") {
+      if (!data.guardianId || data.guardianId.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["guardianId"],
+          message: "Selecione um encarregado existente",
+        });
+      }
+    } else {
+      if (!data.guardianName || data.guardianName.trim().length < 3) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["guardianName"],
+          message: "Nome do encarregado é obrigatório",
+        });
+      }
+      if (!data.guardianPhone || data.guardianPhone.trim().length === 0) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["guardianPhone"],
+          message: "Contacto deve ter pelo menos 9 dígitos",
+        });
+      } else {
+        const digits = data.guardianPhone.replace(/\D/g, "");
+        if (digits.length < 9) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["guardianPhone"],
+            message: "Contacto deve ter pelo menos 9 dígitos",
+          });
+        } else if (!/^(91|92|93|94|95|97|99)\d{7}$/.test(digits) && !digits.startsWith("244")) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["guardianPhone"],
+            message: "Prefixo inválido para operadoras angolanas (91, 92, 93, 94, 95, 97, 99)",
+          });
+        }
+      }
+      if (!data.guardianDocument || data.guardianDocument.trim().length < 4) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["guardianDocument"],
+          message: "Número de documento do encarregado é obrigatório",
+        });
+      }
+    }
+  });
 
 interface StudentModalProps {
   isOpen: boolean;
@@ -52,7 +112,6 @@ export function StudentModal({
   onClose,
   studentToEdit,
 }: StudentModalProps) {
-  const { data: sections = [] } = useSections();
   const { createStudent, updateStudent } = useStudents();
 
   const {
@@ -74,7 +133,8 @@ export function StudentModal({
       address: "Luanda, Angola",
       city: "Luanda",
       province: "Luanda",
-      sectionId: sections[0]?.id || "",
+      guardianMode: "existing",
+      guardianId: "",
       guardianName: "",
       guardianPhone: "",
       guardianRelationship: "Pai",
@@ -84,8 +144,9 @@ export function StudentModal({
 
   const selectedGender = watch("gender");
   const selectedDocType = watch("idDocumentType");
-  const selectedSectionId = watch("sectionId");
   const selectedRelationship = watch("guardianRelationship");
+  const guardianMode = watch("guardianMode");
+  const selectedGuardianId = watch("guardianId");
 
   useEffect(() => {
     if (studentToEdit) {
@@ -98,10 +159,11 @@ export function StudentModal({
         address: studentToEdit.address,
         city: studentToEdit.city,
         province: studentToEdit.province,
-        sectionId: studentToEdit.currentSectionId,
-        guardianName: studentToEdit.guardianName,
-        guardianPhone: studentToEdit.guardianPhone,
-        guardianRelationship: studentToEdit.guardianRelationship,
+        guardianMode: studentToEdit.guardianId ? "existing" : "new",
+        guardianId: studentToEdit.guardianId || "",
+        guardianName: studentToEdit.guardianName || "",
+        guardianPhone: studentToEdit.guardianPhone || "",
+        guardianRelationship: studentToEdit.guardianRelationship || "Pai",
         guardianDocument: "",
       });
     } else {
@@ -114,14 +176,15 @@ export function StudentModal({
         address: "Luanda, Angola",
         city: "Luanda",
         province: "Luanda",
-        sectionId: sections[0]?.id || "",
+        guardianMode: "existing",
+        guardianId: "",
         guardianName: "",
         guardianPhone: "",
         guardianRelationship: "Pai",
         guardianDocument: "",
       });
     }
-  }, [studentToEdit, isOpen, sections, reset]);
+  }, [studentToEdit, isOpen, reset]);
 
   const onSubmit = async (data: StudentFormValues) => {
     try {
@@ -138,15 +201,27 @@ export function StudentModal({
         });
         SucessMessage("Dados do estudante atualizados com sucesso!");
       } else {
-        await createStudent.mutateAsync({
+        const payload: Parameters<typeof createStudent.mutateAsync>[0] = {
           fullName: data.fullName,
           gender: data.gender,
           birthDate: data.birthDate,
           idDocumentType: data.idDocumentType,
           idDocumentNumber: data.idDocumentNumber,
-          sectionId: data.sectionId,
-          guardian: { name: data.guardianName, phone: data.guardianPhone, documentNumber: data.guardianDocument, relationship: data.guardianRelationship },
-        });
+          guardianRelationship: data.guardianRelationship,
+        };
+
+        if (data.guardianMode === "existing" && data.guardianId) {
+          payload.guardianId = data.guardianId;
+        } else if (data.guardianName && data.guardianPhone && data.guardianDocument) {
+          payload.guardian = {
+            name: data.guardianName,
+            phone: data.guardianPhone,
+            documentNumber: data.guardianDocument,
+            relationship: data.guardianRelationship,
+          };
+        }
+
+        await createStudent.mutateAsync(payload);
         SucessMessage("Novo estudante cadastrado com sucesso!");
       }
 
@@ -168,31 +243,30 @@ export function StudentModal({
           </SheetDescription>
         </SheetHeader>
 
-      <form id="student-form" onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-6 space-y-6">
-        <StudentIdentificationFields
-          register={register}
-          errors={errors}
-          selectedGender={selectedGender}
-          selectedDocType={selectedDocType}
-          setValue={setValue}
-        />
+        <form id="student-form" onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-6 space-y-6">
+          <StudentIdentificationFields
+            register={register}
+            errors={errors}
+            selectedGender={selectedGender}
+            selectedDocType={selectedDocType}
+            setValue={setValue}
+          />
 
-        <StudentAcademicFields
-          register={register}
-          errors={errors}
-          selectedSectionId={selectedSectionId}
-          sections={sections}
-          setValue={setValue}
-        />
+          <StudentAcademicFields
+            register={register}
+            errors={errors}
+          />
 
-        <StudentGuardianFields
-          register={register}
-          errors={errors}
-          selectedRelationship={selectedRelationship}
-          setValue={setValue}
-        />
-
-      </form>
+          <StudentGuardianFields
+            register={register}
+            errors={errors}
+            selectedRelationship={selectedRelationship}
+            guardianMode={guardianMode}
+            selectedGuardianId={selectedGuardianId}
+            setValue={setValue}
+            isEditing={Boolean(studentToEdit)}
+          />
+        </form>
 
         <SheetFooter>
           <Button type="button" variant="outline" onClick={onClose}>

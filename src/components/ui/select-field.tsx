@@ -18,6 +18,7 @@ interface SelectFieldProps {
   options: Option[];
   onValueChange: (value: string) => void;
   className?: string;
+  disabled?: boolean;
 }
 
 export function SelectField({
@@ -27,11 +28,16 @@ export function SelectField({
   options,
   onValueChange,
   className,
+  disabled,
 }: SelectFieldProps) {
   return (
     <div className={`flex flex-col ${className ?? ""}`}>
       <label className="text-sm font-medium mb-1">{label}</label>
-      <Select value={value !== undefined && value !== null ? String(value) : ""} onValueChange={onValueChange}>
+      <Select
+        value={value !== undefined && value !== null ? String(value) : ""}
+        onValueChange={onValueChange}
+        disabled={disabled}
+      >
         <SelectTrigger>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>

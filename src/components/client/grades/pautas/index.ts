@@ -5,3 +5,4 @@ export * from "./pautas-audit-log";
 export * from "./consolidated-pauta-page-content";
 export * from "./lock-pauta-modal";
 export * from "./reopen-pauta-modal";
+export * from "./pauta-export-modal";

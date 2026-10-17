@@ -6,6 +6,8 @@ import { Button, FormModal, Icon, Input } from "@/components";
 import { useTransport } from "@/hooks/school/use-transport";
 import { getApiErrorMessage } from "@/utils/api-error";
 
+import { formatPhone } from "@/utils/format-phone";
+
 const EMPTY_STOPS = [{ name: "", time: "" }, { name: "", time: "" }];
 
 export function NewRouteModal() {
@@ -24,9 +26,9 @@ export function NewRouteModal() {
     <FormModal id="transport-new-route" title="Nova rota" description="Defina a viatura, o motorista e as paragens por ordem." size="lg" submitLabel="Criar rota" isLoading={createRoute.isPending} disabled={f.name.trim().length < 2} onSubmit={submit}>
       <div className="sm:col-span-2"><Input label="Nome da rota *" startIcon="Route" placeholder="Ex: Rota Norte (Cacuaco)" value={f.name} onChange={(e) => set("name", e.target.value)} /></div>
       <Input label="Matrícula da viatura" startIcon="Bus" placeholder="LD-12-34-AB" value={f.plate} onChange={(e) => set("plate", e.target.value)} />
-      <Input label="Lotação *" type="quantity" value={f.capacity} onChange={(e) => set("capacity", Math.max(1, Number(e.target.value) || 1))} />
+      <Input label="Lotação *" type="quantity" min={1} max={120} step={1} value={f.capacity} onChange={(e) => set("capacity", Math.max(1, Math.min(120, Number(e.target.value) || 1)))} />
       <Input label="Motorista" startIcon="User" value={f.driver} onChange={(e) => set("driver", e.target.value)} />
-      <Input label="Telefone" startIcon="Phone" value={f.phone} onChange={(e) => set("phone", e.target.value)} />
+      <Input label="Telefone" startIcon="Phone" placeholder="Ex: 923 000 000" value={f.phone} onChange={(e) => set("phone", formatPhone(e.target.value))} />
       <div className="sm:col-span-2 space-y-2">
         <p className="text-sm font-medium">Paragens (por ordem)</p>
         {stops.map((s, i) => (

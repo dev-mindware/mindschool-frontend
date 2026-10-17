@@ -63,7 +63,11 @@ export function useRollCall(sectionId: string, sectionSubjectId: string | undefi
         records: records.map((r) => ({
           enrollment_id: r.enrollmentId,
           status: TO_API[r.status],
-          ...(r.status === "ABSENT_JUSTIFIED" ? { justification: r.notes && r.notes.trim().length >= 3 ? r.notes.trim() : "Justificada" } : {}),
+          ...(r.notes && r.notes.trim().length >= 3
+            ? { justification: r.notes.trim() }
+            : r.status === "ABSENT_JUSTIFIED"
+              ? { justification: "Falta justificada" }
+              : {}),
         })),
       }),
     onMutate: async (records) => {

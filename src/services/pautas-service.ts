@@ -62,6 +62,7 @@ export const pautasService = {
       approvalRate: students.length
         ? Number(((students.filter((s) => s.termAverageTotal >= 10 && s.failedSubjectsCount === 0).length / students.length) * 100).toFixed(1))
         : 0,
+      subjects: p.subjects.map((s) => ({ id: s.subject.id, name: s.subject.name, sectionSubjectId: s.section_subject_id })),
     };
   },
 

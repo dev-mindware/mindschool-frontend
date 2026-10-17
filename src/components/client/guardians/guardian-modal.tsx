@@ -27,12 +27,13 @@ import { SucessMessage, ErrorMessage } from '@/utils/messages';
 import { GuardianPersonalInfoFields } from './guardian-personal-info-fields';
 import { GuardianContactsFields } from './guardian-contacts-fields';
 import { GuardianWardsSection } from './guardian-wards-section';
+import { phoneNumberSchema, optionalPhoneNumberSchema } from '@/schemas/helps';
 
 const guardianFormSchema = z.object({
   fullName: z.string().trim().min(3, 'Nome completo deve ter pelo menos 3 caracteres'),
   idDocumentNumber: z.string().trim().optional().or(z.literal('')),
-  phonePrimary: z.string().trim().min(9, 'Contacto deve ter pelo menos 9 dígitos'),
-  phoneSecondary: z.string().trim().optional().or(z.literal('')),
+  phonePrimary: phoneNumberSchema.refine((v) => !!v && v.trim().length > 0, 'Contacto principal é obrigatório'),
+  phoneSecondary: optionalPhoneNumberSchema,
   email: z.string().trim().email('Email inválido').or(z.literal('')).optional(),
   address: z.string().trim().optional().or(z.literal('')),
   profession: z.string().trim().optional().or(z.literal('')),

@@ -14,9 +14,12 @@ import {
 } from "@/components/ui/popover"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./select"
 import { ptBR } from "date-fns/locale"
-import { Matcher } from "react-day-picker"
+import { AlertError } from "@/components/common/alert-error"
+import type { Matcher } from "react-day-picker"
 
 interface DatePickerProps {
+  label?: string;
+  error?: string;
   startYear?: number;
   endYear?: number;
   value?: Date;
@@ -28,13 +31,16 @@ interface DatePickerProps {
 }
 
 export function DatePicker({
+  label,
+  error,
   startYear = getYear(new Date()) - 100,
   endYear = getYear(new Date()) + 100,
   value,
   onChange,
   placeholder = "Escolha a data",
-  disabledDates = { before: new Date() },
+  disabledDates,
   className,
+  id,
 }: DatePickerProps) {
   // Se não existir um valor, utiliza a data actual apenas para montar os selectores.
   const date = value ?? new Date();
@@ -67,14 +73,16 @@ export function DatePicker({
     }
   };
 
-  return (
+  const pickerContent = (
     <Popover>
       <PopoverTrigger asChild>
         <Button
+          id={id}
           variant="outline"
           className={cn(
             "w-full justify-start text-left font-normal",
             !value && "text-muted-foreground",
+            error && "border-red-500 ring-1 ring-red-400",
             className
           )}
         >
@@ -129,4 +137,20 @@ export function DatePicker({
       </PopoverContent>
     </Popover>
   );
+
+  if (label || error) {
+    return (
+      <div className="w-full space-y-1.5">
+        {label && (
+          <label htmlFor={id} className="block text-sm font-medium text-foreground">
+            {label}
+          </label>
+        )}
+        {pickerContent}
+        {error && <AlertError errorMessage={error} />}
+      </div>
+    );
+  }
+
+  return pickerContent;
 }

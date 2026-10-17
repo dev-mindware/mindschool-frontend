@@ -1,4 +1,4 @@
-export type Shift = "MORNING" | "AFTERNOON" | "EVENING";
+export type Shift = "MORNING" | "AFTERNOON" | "EVENING" | "DIURNO";
 
 export type EducationCycle =
   | "PRIMARY"
@@ -16,6 +16,8 @@ export interface AcademicSection {
   capacity: number;
   currentEnrollmentCount: number;
   academicYear: string;
+  startTime?: string;
+  endTime?: string;
   mainTeacherId?: string;
   mainTeacherName?: string;
   isActive: boolean;
@@ -32,6 +34,7 @@ export interface Subject {
   weeklyHours: number;
   isActive: boolean;
   isCore?: boolean; // Disciplina Nuclear / Chave
+  gradingScale?: "quantitativa" | "qualitativa" | "mista";
   description?: string;
   createdAt: string;
   updatedAt: string;
@@ -41,6 +44,7 @@ export interface TeacherAssignment {
   id: string;
   schoolId: string;
   teacherId: string;
+  teacherUserId?: string;
   teacherName: string;
   teacherEmail?: string;
   teacherPhone?: string;

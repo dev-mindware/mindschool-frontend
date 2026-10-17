@@ -24,7 +24,7 @@ export function NewBookModal() {
       <Input label="Título *" startIcon="BookMarked" value={f.title} onChange={(e) => set("title", e.target.value)} />
       <Input label="Autor *" startIcon="User" value={f.author} onChange={(e) => set("author", e.target.value)} />
       <Input label="ISBN" startIcon="Hash" value={f.isbn} onChange={(e) => set("isbn", e.target.value)} />
-      <Input label="Exemplares *" type="quantity" value={f.copies} onChange={(e) => set("copies", Math.max(1, Number(e.target.value) || 1))} />
+      <Input label="Exemplares *" type="quantity" min={1} max={5000} step={1} value={f.copies} onChange={(e) => set("copies", Math.max(1, Math.min(5000, Number(e.target.value) || 1)))} />
       <Input label="Categoria" startIcon="Folder" placeholder="Ex: Manual do MED" value={f.category} onChange={(e) => set("category", e.target.value)} />
       <Input label="Localização" startIcon="MapPin" placeholder="Estante B, prateleira 3" value={f.location} onChange={(e) => set("location", e.target.value)} />
     </FormModal>

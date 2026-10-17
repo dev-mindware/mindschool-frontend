@@ -21,9 +21,31 @@ import { getApiErrorMessage } from "@/utils/api-error";
 const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
 const CHANGE_LABEL: Record<string, string> = { troca_tempo: "Troca de tempo", troca_professor: "Troca de professor", troca_sala: "Troca de sala", anulacao: "Anulação" };
 const STATUS_LABEL = { rascunho: "Rascunho", validado: "Validado", publicado: "Publicado", arquivado: "Arquivado" } as const;
-const SHIFT_OF: Record<string, Shift> = { MORNING: "manha", AFTERNOON: "tarde", EVENING: "noite" };
+const SHIFT_OF: Record<string, Shift> = {
+  MORNING: "manha",
+  AFTERNOON: "tarde",
+  EVENING: "noite",
+  DIURNO: "diurno",
+  manha: "manha",
+  tarde: "tarde",
+  noite: "noite",
+  diurno: "diurno",
+};
+const SHIFT_RANGE: Record<string, { startHour: number; endHour: number }> = {
+  diurno: { startHour: 7, endHour: 18 },
+  DIURNO: { startHour: 7, endHour: 18 },
+  manha: { startHour: 7, endHour: 13 },
+  MORNING: { startHour: 7, endHour: 13 },
+  tarde: { startHour: 13, endHour: 18 },
+  AFTERNOON: { startHour: 13, endHour: 18 },
+  noite: { startHour: 17, endHour: 21 },
+  EVENING: { startHour: 17, endHour: 21 },
+};
 const ROOM_TYPES = ["sala", "laboratorio", "informatica", "ginasio", "biblioteca", "outro"];
 const DAYS = [1, 2, 3, 4, 5];
+
+import { TimetableEntryModal } from "./timetable-entry-modal";
+import { TimetableExportModal } from "./timetable-export-modal";
 
 const withLessonNo = (slots: Array<{ position: number; start: string; end: string; kind: "aula" | "intervalo" }>): TimetableSlot[] => {
   let n = 0;
@@ -31,36 +53,74 @@ const withLessonNo = (slots: Array<{ position: number; start: string; end: strin
 };
 const toBlock = (e: ApiEntry): TimetableBlock<ApiEntry> => ({ id: e.id, weekday: e.weekday, start: e.start, end: e.end, title: e.subject.name, subtitle: e.teacher.full_name, meta: e.room?.code ?? e.location_label ?? undefined, data: e });
 
-function SlotModal({ target, timetableId }: { target: { sectionId: string; weekday: number; slot: number } | null; timetableId: string }) {
-  const { assignments, rooms, addEntry } = useTimetables(timetableId);
-  const [assignmentId, setAssignmentId] = useState("");
-  const [span, setSpan] = useState("1");
-  const [roomId, setRoomId] = useState("");
-  const options = assignments.filter((a) => a.sectionId === target?.sectionId);
-
-  return (
-    <FormModal id="tt-add-entry" title={target ? `${WEEKDAY[target.weekday]}, ${target.slot}.º tempo` : "Adicionar aula"} description="Choques de professor, turma e sala são recusados pela API." submitLabel="Adicionar" isLoading={addEntry.isPending} disabled={!assignmentId} onSubmit={() => (target ? addEntry.mutateAsync({ sectionSubjectId: assignmentId, weekday: target.weekday, firstSlot: target.slot, span: Number(span), roomId: roomId || undefined }).then(() => { SucessMessage("Aula adicionada."); setAssignmentId(""); }).catch(fail) : undefined)}>
-      <div className="sm:col-span-2"><FormSelect label="Disciplina e professor *" value={assignmentId} onValueChange={setAssignmentId} options={options.map((a) => ({ value: a.id, label: `${a.subjectName} — ${a.teacherName}` }))} /></div>
-      <FormSelect label="Duração" value={span} onValueChange={setSpan} options={[{ value: "1", label: "1 tempo" }, { value: "2", label: "2 tempos (duplo)" }]} />
-      <FormSelect label="Sala" value={roomId || "none"} onValueChange={(v) => setRoomId(v === "none" ? "" : v)} options={[{ value: "none", label: "Sem sala" }, ...rooms.filter((r) => r.is_active).map((r) => ({ value: r.id, label: `${r.code} — ${r.name}` }))]} />
-    </FormModal>
-  );
-}
-
 function BellModal() {
   const { createBell } = useTimetables();
-  const [f, setF] = useState({ shift: "manha" as Shift, name: "Grelha", from: new Date().toISOString().slice(0, 10), start: "07:30", minutes: 45, periods: 6, breakAfter: 3, breakMin: 15 });
+  const [f, setF] = useState({
+    shift: "manha" as Shift,
+    name: "Grelha Manhã",
+    from: new Date().toISOString().slice(0, 10),
+    start: "07:30",
+    minutes: 45,
+    periods: 6,
+    breakAfter: 3,
+    breakMin: 15,
+  });
+
+  const onShiftChange = (s: Shift) => {
+    const defaults: Record<Shift, { start: string; periods: number; breakAfter: number }> = {
+      manha: { start: "07:30", periods: 6, breakAfter: 3 },
+      tarde: { start: "13:00", periods: 6, breakAfter: 3 },
+      diurno: { start: "07:30", periods: 10, breakAfter: 4 },
+      noite: { start: "17:00", periods: 5, breakAfter: 2 },
+    };
+    const d = defaults[s] ?? defaults.manha;
+    setF((p) => ({
+      ...p,
+      shift: s,
+      name: `Grelha ${SHIFT_LABEL[s] ?? s}`,
+      start: d.start,
+      periods: d.periods,
+      breakAfter: d.breakAfter,
+    }));
+  };
+
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }));
   return (
-    <FormModal id="tt-new-bell" title="Nova grelha de tempos" description="Define os tempos de aula e o intervalo de um turno." submitLabel="Criar grelha" isLoading={createBell.isPending} onSubmit={() => createBell.mutateAsync({ shift: f.shift, name: f.name, validFrom: f.from, start: f.start, periodMinutes: f.minutes, periods: f.periods, breakAfter: f.breakAfter, breakMinutes: f.breakMin }).then(() => SucessMessage("Grelha criada.")).catch(fail)}>
-      <FormSelect label="Turno" value={f.shift} onValueChange={(v) => set("shift", v as Shift)} options={(Object.keys(SHIFT_LABEL) as Shift[]).map((s) => ({ value: s, label: SHIFT_LABEL[s] }))} />
+    <FormModal
+      id="tt-new-bell"
+      title="Nova grelha de tempos"
+      description="Define os tempos de aula e o intervalo de um turno."
+      submitLabel="Criar grelha"
+      isLoading={createBell.isPending}
+      onSubmit={() =>
+        createBell
+          .mutateAsync({
+            shift: f.shift,
+            name: f.name,
+            validFrom: f.from,
+            start: f.start,
+            periodMinutes: f.minutes,
+            periods: f.periods,
+            breakAfter: f.breakAfter,
+            breakMinutes: f.breakMin,
+          })
+          .then(() => SucessMessage("Grelha criada."))
+          .catch(fail)
+      }
+    >
+      <FormSelect
+        label="Turno"
+        value={f.shift}
+        onValueChange={(v) => onShiftChange(v as Shift)}
+        options={(Object.keys(SHIFT_LABEL) as Shift[]).map((s) => ({ value: s, label: SHIFT_LABEL[s] }))}
+      />
       <Input label="Nome" value={f.name} onChange={(e) => set("name", e.target.value)} />
       <Input label="Válida desde" type="date" value={f.from} onChange={(e) => set("from", e.target.value)} />
       <Input label="Início" type="time" value={f.start} onChange={(e) => set("start", e.target.value)} />
-      <Input label="Minutos por tempo" type="number" value={f.minutes} onChange={(e) => set("minutes", Number(e.target.value))} />
-      <Input label="N.º de tempos" type="number" value={f.periods} onChange={(e) => set("periods", Number(e.target.value))} />
-      <Input label="Intervalo após o tempo" type="number" value={f.breakAfter} onChange={(e) => set("breakAfter", Number(e.target.value))} />
-      <Input label="Duração do intervalo (min)" type="number" value={f.breakMin} onChange={(e) => set("breakMin", Number(e.target.value))} />
+      <Input label="Minutos por tempo" type="quantity" min={30} max={120} step={5} value={f.minutes} onChange={(e) => set("minutes", Number(e.target.value))} />
+      <Input label="N.º de tempos" type="quantity" min={1} max={12} step={1} value={f.periods} onChange={(e) => set("periods", Number(e.target.value))} />
+      <Input label="Intervalo após o tempo" type="quantity" min={1} max={10} step={1} value={f.breakAfter} onChange={(e) => set("breakAfter", Number(e.target.value))} />
+      <Input label="Duração do intervalo (min)" type="quantity" min={5} max={60} step={5} value={f.breakMin} onChange={(e) => set("breakMin", Number(e.target.value))} />
     </FormModal>
   );
 }
@@ -74,7 +134,7 @@ function RoomModal() {
       <Input label="Código *" placeholder="Ex: B14" value={f.code} onChange={(e) => set("code", e.target.value)} />
       <Input label="Nome *" value={f.name} onChange={(e) => set("name", e.target.value)} />
       <FormSelect label="Tipo" value={f.type} onValueChange={(v) => set("type", v)} options={ROOM_TYPES.map((t) => ({ value: t, label: t }))} />
-      <Input label="Lotação" type="number" value={f.capacity} onChange={(e) => set("capacity", e.target.value)} />
+      <Input label="Lotação" type="quantity" min={1} max={200} step={1} value={f.capacity} onChange={(e) => set("capacity", e.target.value)} />
     </FormModal>
   );
 }
@@ -94,7 +154,7 @@ function ChangeModal({ entry, timetableId }: { entry: ApiEntry | null; timetable
     <FormModal id="tt-request-change" title="Pedir mudança ao horário" description="O horário está publicado: a mudança fica registada com efeito na data indicada." submitLabel="Registar mudança" isLoading={requestChange.isPending} disabled={reason.trim().length < 5 || (type === "troca_professor" && !teacherId)} onSubmit={() => (entry ? requestChange.mutateAsync({ type, entryId: entry.id, effectiveDate: date, reason: reason.trim(), weekday: type === "troca_tempo" ? Number(weekday) : undefined, firstSlot: type === "troca_tempo" ? Number(slot) : undefined, teacherId: type === "troca_professor" ? teacherId : undefined, roomId: type === "troca_sala" ? (roomId === "none" ? null : roomId) : undefined }).then(() => SucessMessage("Mudança registada.")).catch(fail) : undefined)}>
       <FormSelect label="Tipo de mudança" value={type} onValueChange={(v) => setType(v as typeof type)} options={Object.entries(CHANGE_LABEL).map(([value, label]) => ({ value, label }))} />
       <Input label="Em vigor desde" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      {type === "troca_tempo" && (<><FormSelect label="Novo dia" value={weekday} onValueChange={setWeekday} options={DAYS.map((d) => ({ value: String(d), label: WEEKDAY[d] ?? "" }))} /><Input label="Novo tempo" type="number" value={slot} onChange={(e) => setSlot(e.target.value)} /></>)}
+      {type === "troca_tempo" && (<><FormSelect label="Novo dia" value={weekday} onValueChange={setWeekday} options={DAYS.map((d) => ({ value: String(d), label: WEEKDAY[d] ?? "" }))} /><Input label="Novo tempo" type="quantity" min={1} max={12} step={1} value={slot} onChange={(e) => setSlot(e.target.value)} /></>)}
       {type === "troca_professor" && <div className="sm:col-span-2"><FormSelect label="Novo professor *" value={teacherId} onValueChange={setTeacherId} options={teachers.map((t) => ({ value: t.id, label: t.full_name }))} /></div>}
       {type === "troca_sala" && <div className="sm:col-span-2"><FormSelect label="Nova sala" value={roomId} onValueChange={setRoomId} options={[{ value: "none", label: "Sem sala" }, ...rooms.map((r) => ({ value: r.id, label: `${r.code} — ${r.name}` }))]} /></div>}
       <div className="sm:col-span-2"><Input label="Motivo (mín. 5 caracteres) *" value={reason} onChange={(e) => setReason(e.target.value)} /></div>
@@ -145,7 +205,7 @@ export function TimetablesPageContent() {
   const [timetableId, setTimetableId] = useState<string>("");
   const tt = useTimetables(timetableId || undefined);
   const { timetables, sections, entries, slotsFor, bells, hasYear } = tt;
-  const { openModal } = useModal();
+  const { openModal, closeModal } = useModal();
   const f = useListFilters("horario", ["turma", "professor", "disciplina", "sala"]);
 
   useEffect(() => {
@@ -154,8 +214,17 @@ export function TimetablesPageContent() {
 
   const current = timetables.find((t) => t.id === timetableId);
   const editable = current?.status === "rascunho" || current?.status === "validado";
-  const [slotTarget, setSlotTarget] = useState<{ sectionId: string; weekday: number; slot: number } | null>(null);
+  const [slotTarget, setSlotTarget] = useState<{
+    sectionId: string;
+    weekday: number;
+    slot: number;
+    start?: string;
+    end?: string;
+  } | null>(null);
+  const [isAddEntryOpen, setIsAddEntryOpen] = useState(false);
+  const [isExportOpen, setIsExportOpen] = useState(false);
   const [picked, setPicked] = useState<ApiEntry | null>(null);
+  const [entryToEdit, setEntryToEdit] = useState<ApiEntry | null>(null);
   const [report, setReport] = useState<ApiValidation | null>(null);
 
   const section = sections.find((s) => s.id === (f.get("turma") || sections[0]?.id));
@@ -168,6 +237,9 @@ export function TimetablesPageContent() {
   const sectionEntries = narrow(entries.filter((e) => e.section.id === section?.id));
   const teacherEntries = narrow(entries.filter((e) => e.teacher.id === teacher));
   const sectionSlots = section ? withLessonNo(slotsFor(section.shift)) : [];
+  const currentShiftHours = section
+    ? SHIFT_RANGE[section.shift] ?? { startHour: 7, endHour: 18 }
+    : { startHour: 7, endHour: 18 };
 
   const roomColumns: Column<ApiRoom>[] = [
     { key: "code", header: "Código", render: (_, r) => <span className="font-mono text-xs font-semibold">{r.code}</span> },
@@ -195,7 +267,16 @@ export function TimetablesPageContent() {
     <div className="space-y-6">
       <TitleList title="Horários Escolares" suTitle="Versões do horário (rascunho → validado → publicado), vista semanal por turma e por professor; choques são impedidos pela API.">
         <div className="flex flex-wrap items-center gap-2">
-          <Button size="sm" variant="outline" className="gap-1.5" disabled={!current} onClick={() => window.print()}><Icon name="Printer" className="size-4" />Imprimir</Button>
+          <Button
+            size="sm"
+            variant="outline"
+            className="gap-1.5"
+            disabled={!current}
+            onClick={() => setIsExportOpen(true)}
+          >
+            <Icon name="Download" className="size-4" />
+            Exportar Horário (PDF)
+          </Button>
           <Can permission="timetable:write"><Button size="sm" className="gap-1.5" disabled={!hasYear || tt.create.isPending} onClick={() => tt.create.mutateAsync(current?.id).then(() => SucessMessage(current ? "Nova versão criada a partir da actual." : "Horário criado.")).catch(fail)}><Icon name="Plus" className="size-4" />{current ? "Nova versão" : "Criar horário"}</Button></Can>
         </div>
       </TitleList>
@@ -249,16 +330,40 @@ export function TimetablesPageContent() {
             />
           ) : (
             <>
-              <div className="mt-6 flex flex-wrap items-end gap-4">
-                <div className="w-72">
-                  <FormSelect
-                    label="Turma"
-                    value={section?.id ?? ""}
-                    onValueChange={(v) => f.setFilter("turma", v)}
-                    options={sections.map((s) => ({ value: s.id, label: `${s.classLevel} ${s.name} (${SHIFT_LABEL[SHIFT_OF[s.shift] ?? "manha"]})` }))}
-                  />
+              <div className="mt-6 flex flex-wrap items-end justify-between gap-4">
+                <div className="flex flex-wrap items-end gap-4">
+                  <div className="w-72">
+                    <FormSelect
+                      label="Turma"
+                      value={section?.id ?? ""}
+                      onValueChange={(v) => f.setFilter("turma", v)}
+                      options={sections.map((s) => ({ value: s.id, label: `${s.classLevel} ${s.name} (${SHIFT_LABEL[SHIFT_OF[s.shift] ?? "manha"]})` }))}
+                    />
+                  </div>
+                  {bar}
                 </div>
-                {bar}
+
+                {editable && section && (
+                  <Button
+                    size="sm"
+                    className="gap-2 shrink-0 h-10"
+                    onClick={() => {
+                      setEntryToEdit(null);
+                      const firstAula = sectionSlots.find((s) => s.kind === "aula");
+                      setSlotTarget({
+                        sectionId: section.id,
+                        weekday: 1,
+                        slot: firstAula?.position ?? 1,
+                        start: firstAula?.start ?? "07:30",
+                        end: firstAula?.end ?? "08:15",
+                      });
+                      setIsAddEntryOpen(true);
+                    }}
+                  >
+                    <Icon name="Plus" className="size-4" />
+                    Adicionar Aula
+                  </Button>
+                )}
               </div>
 
               {section && sectionSlots.length === 0 && (
@@ -283,8 +388,20 @@ export function TimetablesPageContent() {
               <WeekTimetable<ApiEntry>
                 blocks={sectionEntries.map(toBlock)}
                 slots={sectionSlots}
+                startHour={currentShiftHours.startHour}
+                endHour={currentShiftHours.endHour}
                 onBlockClick={(b) => { setPicked(b.data!); openModal("tt-entry"); }}
-                onEmptyClick={editable && section ? (weekday, s) => { setSlotTarget({ sectionId: section.id, weekday, slot: s.lessonNo ?? 1 }); openModal("tt-add-entry"); } : undefined}
+                onEmptyClick={editable && section ? (weekday, s) => {
+                  setEntryToEdit(null);
+                  setSlotTarget({
+                    sectionId: section.id,
+                    weekday,
+                    slot: s.position,
+                    start: s.start,
+                    end: s.end,
+                  });
+                  setIsAddEntryOpen(true);
+                } : undefined}
               />
             </>
           )}
@@ -312,6 +429,8 @@ export function TimetablesPageContent() {
               ) : (
                 <WeekTimetable<ApiEntry>
                   blocks={teacherEntries.map((e) => ({ ...toBlock(e), subtitle: `${e.section.name}` }))}
+                  startHour={7}
+                  endHour={18}
                   onBlockClick={(b) => { setPicked(b.data!); openModal("tt-entry"); }}
                 />
               )}
@@ -362,7 +481,40 @@ export function TimetablesPageContent() {
         </TabsContent>
       </Tabs>
 
-      {current && <SlotModal target={slotTarget} timetableId={current.id} />}
+      {current && (
+        <TimetableEntryModal
+          isOpen={isAddEntryOpen}
+          onClose={() => {
+            setIsAddEntryOpen(false);
+            setSlotTarget(null);
+            setEntryToEdit(null);
+          }}
+          timetableId={current.id}
+          entryToEdit={entryToEdit}
+          defaultSectionId={slotTarget?.sectionId || section?.id}
+          defaultWeekday={slotTarget?.weekday ?? 1}
+          defaultSlot={slotTarget?.slot ?? 1}
+          defaultStart={slotTarget?.start}
+          defaultEnd={slotTarget?.end}
+          sections={sections}
+          subjects={tt.subjects}
+          teachers={tt.teachers}
+          rooms={tt.rooms}
+          assignments={tt.assignments}
+          existingEntries={tt.entries}
+        />
+      )}
+      {current && (
+        <TimetableExportModal
+          isOpen={isExportOpen}
+          onClose={() => setIsExportOpen(false)}
+          sections={sections}
+          activeSectionId={section?.id}
+          entries={tt.entries}
+          slots={sectionSlots}
+          academicYear={section?.academicYear}
+        />
+      )}
       {current && <ChangeModal entry={picked} timetableId={current.id} />}
       <BellModal />
       <RoomModal />
@@ -372,7 +524,40 @@ export function TimetablesPageContent() {
           <div className="sm:col-span-2 space-y-3 text-sm">
             <p className="text-muted-foreground">{WEEKDAY[picked.weekday]} {picked.start}–{picked.end}{picked.room ? ` • sala ${picked.room.code}` : ""}</p>
             <div className="flex flex-wrap gap-2 border-t pt-3">
-              {editable && <Button size="sm" variant="destructive" disabled={tt.removeEntry.isPending} onClick={() => tt.removeEntry.mutateAsync(picked.id).then(() => { SucessMessage("Aula removida."); setPicked(null); }).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Remover do horário</Button>}
+              {editable && (
+                <>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="gap-1.5"
+                    onClick={() => {
+                      setEntryToEdit(picked);
+                      closeModal("tt-entry");
+                      setIsAddEntryOpen(true);
+                    }}
+                  >
+                    <Icon name="Pencil" className="size-4" />
+                    Editar aula
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="destructive"
+                    disabled={tt.removeEntry.isPending}
+                    onClick={() =>
+                      tt.removeEntry
+                        .mutateAsync(picked.id)
+                        .then(() => {
+                          SucessMessage("Aula removida.");
+                          setPicked(null);
+                          closeModal("tt-entry");
+                        })
+                        .catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))
+                    }
+                  >
+                    Remover do horário
+                  </Button>
+                </>
+              )}
               {!editable && current && <Button size="sm" variant="outline" onClick={() => openModal("tt-request-change")}>Pedir mudança</Button>}
             </div>
           </div>

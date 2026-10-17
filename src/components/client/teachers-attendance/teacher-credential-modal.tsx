@@ -1,7 +1,6 @@
 'use client';
 
-import React from 'react';
-import { GlobalModal, Button, Icon } from '@/components';
+import { GlobalModal, Button, Icon, PrintDownloadDropdown } from '@/components';
 import { TeacherQrCredential } from '@/types/teacher-attendance';
 
 interface TeacherCredentialModalProps {
@@ -26,7 +25,7 @@ export function TeacherCredentialModal({
     >
       <div className="space-y-6 text-center">
         {/* Design do Cartão PVC Simulado */}
-        <div className="w-80 mx-auto rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-6 shadow-xl border border-slate-700 relative overflow-hidden text-left">
+        <div id="teacher-qr-card-sheet" className="w-80 mx-auto rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-6 shadow-xl border border-slate-700 relative overflow-hidden text-left">
           {/* Marca d'água */}
           <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
             <Icon name="GraduationCap" className="w-48 h-48 text-white" />
@@ -73,15 +72,11 @@ export function TeacherCredentialModal({
         </div>
 
         <div className="flex items-center justify-center gap-3">
-          <Button
-            variant="default"
-            size="sm"
-            onClick={() => window.print()}
-            className="gap-1.5 text-xs font-semibold"
-          >
-            <Icon name="Printer" className="w-4 h-4" />
-            Imprimir Cartão
-          </Button>
+          <PrintDownloadDropdown
+            elementId="teacher-qr-card-sheet"
+            filename={`Cartao_Docente_${credential.teacherName.replace(/\s+/g, "_")}.pdf`}
+            label="Baixar Cartão (PDF)"
+          />
           <Button variant="outline" size="sm" onClick={onClose}>
             Fechar
           </Button>

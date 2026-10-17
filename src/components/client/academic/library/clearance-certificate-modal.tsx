@@ -18,12 +18,23 @@ export function ClearanceCertificateModal() {
   const cleared = Boolean(student) && pending.length === 0;
 
   return (
-    <FormModal id="library-clearance" title="Declaração de Nada Consta" description="Verifique as pendências do aluno e imprima a declaração." size="lg" submitLabel="Imprimir" disabled={!cleared} keepOpen onSubmit={() => window.print()}>
+    <FormModal
+      id="library-clearance"
+      title="Declaração de Nada Consta"
+      description="Verifique as pendências do aluno e transfira a declaração em PDF."
+      size="lg"
+      submitLabel="Baixar PDF"
+      disabled={!cleared}
+      keepOpen
+      printContentId="library-clearance-print-content"
+      pdfFilename={`Declaracao_Nada_Consta_${student?.fullName || "aluno"}.pdf`}
+      onSubmit={() => {}}
+    >
       <div className="sm:col-span-2 print:hidden">
         <StudentSelect label="Aluno *" students={students} value={studentId} onChange={setStudentId} />
       </div>
       {student && (
-        <div className="sm:col-span-2 space-y-4 rounded-lg border bg-white p-6 text-sm text-slate-900 print:border-0">
+        <div id="library-clearance-print-content" className="sm:col-span-2 space-y-4 rounded-lg border bg-white p-6 text-sm text-slate-900 print:border-0">
           <div className="space-y-1 border-b pb-3 text-center">
             <div className="text-sm font-black uppercase">{profile.schoolName}</div>
             <div className="text-[11px] text-slate-500">Biblioteca Escolar</div>

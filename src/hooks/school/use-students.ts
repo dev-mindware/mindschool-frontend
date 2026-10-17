@@ -51,7 +51,10 @@ export function useStudents(searchQuery = "", statusFilter: StudentStatus | "ALL
     [all],
   );
 
-  const invalidate = () => queryClient.invalidateQueries({ queryKey: ["students", schoolId] });
+  const invalidate = () => {
+    queryClient.invalidateQueries({ queryKey: ["students", schoolId] });
+    queryClient.invalidateQueries({ queryKey: ["guardians", schoolId] });
+  };
   const createStudent = useMutation({ mutationFn: (input: CreateStudentInput) => studentsService.create(input), onSuccess: invalidate });
   const updateStudent = useMutation({
     mutationFn: ({ id, input }: { id: string; input: Parameters<typeof studentsService.update>[1] }) => studentsService.update(id, input),

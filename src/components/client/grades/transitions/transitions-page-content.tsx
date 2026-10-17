@@ -14,6 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { useSections } from "@/hooks/school/use-sections";
 import { useTransitions } from "@/hooks/school/use-transitions";
 import { ConsolidatedStudentRow } from "@/types/grade";
+import { TransitionsExportModal } from "./transitions-export-modal";
 import Link from "next/link";
 
 export function TransitionsPageContent() {
@@ -21,6 +22,12 @@ export function TransitionsPageContent() {
 
   const [pickedSectionId, setSelectedSectionId] = useState<string>("");
   const selectedSectionId = pickedSectionId || sections[0]?.id || "";
+  const [isExportOpen, setIsExportOpen] = useState(false);
+
+  const selectedSection = useMemo(
+    () => sections.find((s) => s.id === selectedSectionId),
+    [sections, selectedSectionId]
+  );
 
   // Paginated Section Search
   const [sectionSearch, setSectionSearch] = useState("");
@@ -201,20 +208,21 @@ export function TransitionsPageContent() {
     },
   ];
 
-  const handlePrintAta = () => {
-    window.print();
-  };
-
-  return (
+    return (
     <div className="space-y-6">
       <TitleList
         title="Motor de Transição de Classe (Conselho de Notas)"
         suTitle="Aplicação automatizada das regras do Decreto Executivo n.º 424/25 e regime de excepções da 7.ª e 8.ª classe."
       >
         <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={handlePrintAta} className="gap-2">
-            <Icon name="Printer" className="h-4 w-4" />
-            Imprimir Ata do Conselho
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={() => setIsExportOpen(true)}
+            className="gap-2"
+          >
+            <Icon name="Download" className="h-4 w-4" />
+            <span>Baixar Ata (PDF)</span>
           </Button>
         </div>
       </TitleList>
@@ -299,6 +307,16 @@ export function TransitionsPageContent() {
         emptyTitle="Nenhum estudante para deliberação"
         emptyDescription="Escolha uma turma com pautas fechadas."
         emptyIcon="Scale"
+      />
+
+      <TransitionsExportModal
+        isOpen={isExportOpen}
+        onClose={() => setIsExportOpen(false)}
+        sectionName={selectedSection?.name || "Turma"}
+        classLevel={selectedSection?.classLevel || "7.ª Classe"}
+        shift={selectedSection?.shift || "Manhã"}
+        students={studentsList}
+        stats={stats}
       />
     </div>
   );

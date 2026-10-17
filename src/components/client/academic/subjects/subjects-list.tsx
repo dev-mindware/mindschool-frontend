@@ -42,19 +42,27 @@ export function SubjectsList({ subjects, isLoading }: SubjectsListProps) {
       key: "name",
       header: "Nome da Disciplina",
       render: (_, item) => (
-        <span className="font-medium text-foreground">{item.name}</span>
+        <div className="flex items-center gap-2">
+          <span className="font-medium text-foreground">{item.name}</span>
+          {item.isCore && (
+            <Badge variant="warning" className="text-[10px] py-0 px-1.5 flex items-center gap-1">
+              <Icon name="Star" className="w-2.5 h-2.5 fill-current" />
+              Nuclear
+            </Badge>
+          )}
+        </div>
       ),
     },
     {
-      key: "cycle",
-      header: "Ciclo de Ensino",
+      key: "gradingScale",
+      header: "Regime de Avaliação",
       render: (_, item) => {
-        const cycleMap: Record<string, { label: string; variant: "info" | "default" | "warning" }> = {
-          PRIMARY: { label: "Primário", variant: "info" },
-          LOWER_SECONDARY: { label: "Iº Ciclo", variant: "default" },
-          UPPER_SECONDARY: { label: "IIº Ciclo / Médio", variant: "warning" },
+        const scaleMap: Record<string, { label: string; variant: "default" | "secondary" | "outline" }> = {
+          quantitativa: { label: "Quantitativa (0–20)", variant: "default" },
+          qualitativa: { label: "Qualitativa", variant: "secondary" },
+          mista: { label: "Mista", variant: "outline" },
         };
-        const conf = cycleMap[item.cycle] || cycleMap.PRIMARY;
+        const conf = (item.gradingScale && scaleMap[item.gradingScale]) || scaleMap.quantitativa;
         return (
           <Badge variant={conf.variant} className="text-xs">
             {conf.label}
@@ -64,11 +72,11 @@ export function SubjectsList({ subjects, isLoading }: SubjectsListProps) {
     },
     {
       key: "weeklyHours",
-      header: "Carga Horária Semanal",
+      header: "Carga Horária",
       render: (_, item) => (
-        <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-muted px-2.5 py-1 rounded-full text-foreground">
-          <Icon name="Clock" className="w-3.5 h-3.5 text-muted-foreground" />
-          {item.weeklyHours}h / semana
+        <span className="inline-flex items-center gap-1.5 text-xs font-medium bg-muted/60 px-2.5 py-1 rounded-full text-muted-foreground">
+          <Icon name="Clock" className="w-3.5 h-3.5" />
+          {item.weeklyHours > 0 ? `${item.weeklyHours}h / semana` : "Definida por turma"}
         </span>
       ),
     },
@@ -129,9 +137,8 @@ export function SubjectsList({ subjects, isLoading }: SubjectsListProps) {
         searchPlaceholder="Pesquisar por nome, código ou descrição"
         searchText={(s) => `${s.name} ${s.code} ${s.description ?? ""}`}
         filters={[
-          { key: "ciclo", label: "Ciclo", icon: "Layers", options: [{ value: "PRIMARY", label: "Primário" }, { value: "LOWER_SECONDARY", label: "Iº Ciclo" }, { value: "UPPER_SECONDARY", label: "IIº Ciclo / Médio" }], match: (s, v) => s.cycle === v },
+          { key: "regime", label: "Regime", icon: "GraduationCap", options: [{ value: "quantitativa", label: "Quantitativa (0–20)" }, { value: "qualitativa", label: "Qualitativa" }, { value: "mista", label: "Mista" }], match: (s, v) => (s.gradingScale ?? "quantitativa") === v },
           { key: "tipo", label: "Tipo", icon: "Star", options: [{ value: "nuclear", label: "Nuclear" }, { value: "geral", label: "Geral" }], match: (s, v) => (v === "nuclear" ? Boolean(s.isCore) : !s.isCore) },
-          { key: "carga", label: "Carga semanal", icon: "Clock", options: [{ value: "baixa", label: "Até 2 h" }, { value: "media", label: "3 a 4 h" }, { value: "alta", label: "5 h ou mais" }], match: (s, v) => (v === "baixa" ? s.weeklyHours <= 2 : v === "media" ? s.weeklyHours >= 3 && s.weeklyHours <= 4 : s.weeklyHours >= 5) },
           { key: "estado", label: "Estado", icon: "ToggleLeft", options: [{ value: "on", label: "Activas" }, { value: "off", label: "Inactivas" }], match: (s, v) => (v === "on" ? s.isActive : !s.isActive) },
         ]}
         sorts={[

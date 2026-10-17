@@ -6,6 +6,7 @@ import { SchoolStatusBadge } from "@/components/common/school-status-badge";
 import { Student } from "@/types";
 import { StudentDetailsSheet } from "./student-details-sheet";
 import { StudentModal } from "./student-modal";
+import { StudentIdCardModal } from "./student-id-card-modal";
 
 const STATUS_OPTIONS = [
   { value: "ENROLLED", label: "Matriculados" },
@@ -29,6 +30,8 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent }: 
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
   const [editOpen, setEditOpen] = useState(false);
+  const [cardStudent, setCardStudent] = useState<Student | null>(null);
+  const [cardOpen, setCardOpen] = useState(false);
 
   const levels = useMemo(() => uniq(students.map((s) => s.currentClassLevel)), [students]);
   const sections = useMemo(() => uniq(students.map((s) => s.currentSectionName)), [students]);
@@ -55,6 +58,7 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent }: 
       render: (_, s) => (
         <ButtonOnlyAction data={s} actions={[
           { label: "Ver ficha", icon: "Eye", onClick: (x) => { setSelected(x); setDetailsOpen(true); } },
+          { label: "Cartão de Estudante", icon: "CreditCard", onClick: (x) => { setCardStudent(x); setCardOpen(true); } },
           { permission: "student:write", label: "Editar", icon: "Pencil", onClick: (x) => { setEditing(x); setEditOpen(true); } },
           ...(onDeleteStudent ? [{ permission: "student:write", label: "Remover", icon: "Trash2" as const, variant: "destructive" as const, onClick: (x: Student) => onDeleteStudent(x.id) }] : []),
         ]} />
@@ -91,8 +95,20 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent }: 
         emptyDescription="Ajuste os filtros ou cadastre um novo aluno."
         emptyIcon="GraduationCap"
       />
-      <StudentDetailsSheet isOpen={detailsOpen} onClose={() => setDetailsOpen(false)} student={selected} onEdit={(s) => { setEditing(s); setEditOpen(true); }} />
+      <StudentDetailsSheet
+        isOpen={detailsOpen}
+        onClose={() => setDetailsOpen(false)}
+        student={selected}
+        onEdit={(s) => { setEditing(s); setEditOpen(true); }}
+        onOpenCard={(s) => { setCardStudent(s); setCardOpen(true); }}
+      />
       <StudentModal isOpen={editOpen} onClose={() => setEditOpen(false)} studentToEdit={editing} />
+      <StudentIdCardModal
+        isOpen={cardOpen}
+        onClose={() => setCardOpen(false)}
+        studentId={cardStudent?.id ?? ""}
+        studentName={cardStudent?.fullName ?? ""}
+      />
     </>
   );
 }

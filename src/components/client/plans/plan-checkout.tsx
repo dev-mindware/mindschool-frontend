@@ -31,7 +31,8 @@ export function PlanCheckout() {
   const params = useSearchParams();
   const { catalog, current, isLoading, createOrder, submitProof } = useSubscription();
   const { openModal, closeModal } = useModal();
-  const [months, setMonths] = useState<1 | 3 | 6 | 12>(1);
+  const initialPeriod = Number(params.get("period"));
+  const [months, setMonths] = useState<1 | 6 | 12>(initialPeriod === 12 ? 12 : initialPeriod === 6 ? 6 : 1);
   const [addons, setAddons] = useState<string[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [busy, setBusy] = useState(false);
@@ -85,7 +86,6 @@ export function PlanCheckout() {
   return (
     <div className="mx-auto max-w-6xl">
       <div className="mb-6">
-        <Link href="/plans" className="mb-2 inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"><Icon name="ArrowLeft" className="size-4" />Planos</Link>
         <h1 className="text-2xl font-bold">Concluir subscrição</h1>
         <p className="text-muted-foreground">Plano {plan.name}. Pague por transferência e envie o comprovativo.</p>
       </div>
@@ -100,7 +100,7 @@ export function PlanCheckout() {
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="space-y-6 lg:col-span-8">
           <Step n={1} title="Ciclo de facturação">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+            <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {PERIODS.map((p) => (
                 <button key={p.value} type="button" onClick={() => setMonths(p.value)} className={`rounded-lg border-2 p-3 text-left transition ${months === p.value ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/40"}`}>
                   <p className="font-medium">{p.label}</p>
@@ -179,6 +179,9 @@ export function PlanCheckout() {
                 <div className="flex justify-between"><span>Plano {preview.breakdown.plan.name}</span><span>{kz(preview.breakdown.plan.monthly_price)}/mês</span></div>
                 {preview.breakdown.addons.map((a) => <div key={a.name} className="flex justify-between text-muted-foreground"><span>{a.name}</span><span>+{kz(a.monthly_price)}/mês</span></div>)}
                 <div className="flex justify-between text-muted-foreground"><span>Ciclo</span><span>{preview.breakdown.months} {preview.breakdown.months > 1 ? "meses" : "mês"}</span></div>
+                {preview.breakdown.period_discount && Number(preview.breakdown.period_discount) > 0 && (
+                  <div className="flex justify-between text-green-700 dark:text-green-400"><span>Desconto anual (2 meses grátis)</span><span>− {kz(preview.breakdown.period_discount)}</span></div>
+                )}
                 {preview.breakdown.coupon && Number(preview.breakdown.discount) > 0 && (
                   <div className="flex justify-between text-green-700 dark:text-green-400"><span>Cupão {preview.breakdown.coupon.code}</span><span>− {kz(preview.breakdown.discount!)}</span></div>
                 )}

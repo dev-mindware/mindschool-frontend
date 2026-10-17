@@ -1,40 +1,108 @@
-import { useId } from "react"
+"use client";
 
-import { Input } from "@/components/ui/input"
+import * as React from "react";
+import { NumericFormat, NumericFormatProps } from "react-number-format";
+import { AlertError } from "@/components/common/alert-error";
+import { cn } from "@/lib/utils";
 
-interface PriceInputProps {
-  id?: string
-  placeholder?: string
-  className?: string
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  [key: string]: any 
+export interface PriceInputProps
+  extends Omit<NumericFormatProps, "onValueChange" | "value"> {
+  label?: string;
+  error?: string;
+  value?: number | string;
+  onValueChange?: (value: number) => void;
+  currencyPrefix?: string;
+  currencySuffix?: string;
+  disabled?: boolean;
+  className?: string;
 }
 
-export default function PriceInput({
-  id,
-  placeholder = "0.00",
+export function PriceInput({
+  label,
+  error,
+  value,
+  onValueChange,
+  currencyPrefix = "Kz",
+  currencySuffix = "AOA",
+  disabled = false,
   className,
+  id,
+  name,
+  placeholder = "0,00",
+  decimalScale = 2,
+  fixedDecimalScale = true,
+  allowNegative = false,
   ...rest
 }: PriceInputProps) {
-  const generatedId = useId()
+  const generatedId = React.useId();
+  const inputId = id || name || generatedId;
 
   return (
-    <div className="*:not-first:mt-2">
-      <div className="relative flex rounded-md shadow-xs">
-        <span className="absolute inset-y-0 flex items-center justify-center text-sm pointer-events-none text-muted-foreground start-0 ps-4">
-          kz
-        </span>
-        <Input
-          id={id ?? generatedId}
-          className={`shadow-none -me-px rounded-e-none ps-8 ${className ?? ""}`}
+    <div className={cn("w-full space-y-1.5", className)}>
+      {label && (
+        <label
+          htmlFor={inputId}
+          className="block text-sm font-medium text-foreground"
+        >
+          {label}
+        </label>
+      )}
+
+      <div
+        className={cn(
+          "relative flex items-center rounded-md border text-sm transition-colors duration-200 overflow-hidden bg-background",
+          error
+            ? "border-red-500 ring-1 ring-red-400"
+            : "border-input focus-within:border-primary-500 focus-within:ring-[3px] focus-within:ring-ring/50",
+          disabled && "opacity-50 cursor-not-allowed bg-muted/30"
+        )}
+      >
+        {currencyPrefix && (
+          <span className="flex items-center self-stretch px-3 bg-muted border-r border-border text-muted-foreground font-medium text-xs select-none shrink-0">
+            {currencyPrefix}
+          </span>
+        )}
+
+        <NumericFormat
+          id={inputId}
+          name={name}
+          value={value ?? ""}
+          thousandSeparator="."
+          decimalSeparator=","
+          decimalScale={decimalScale}
+          fixedDecimalScale={fixedDecimalScale}
+          allowNegative={allowNegative}
+          disabled={disabled}
           placeholder={placeholder}
-          type="text"
+          className={cn(
+            "flex-1 bg-transparent placeholder:text-muted-foreground text-foreground outline-none px-3 py-2 min-w-0",
+            "disabled:cursor-not-allowed"
+          )}
+          onFocus={(e) => {
+            const target = e.target;
+            target.select();
+            setTimeout(() => {
+              try {
+                target.select();
+              } catch (err) {}
+            }, 50);
+          }}
+          onValueChange={(values) => {
+            onValueChange?.(values.floatValue ?? 0);
+          }}
           {...rest}
         />
-        <span className="inline-flex items-center px-3 text-sm border border-input bg-background text-muted-foreground -z-10 rounded-e-md">
-          AOA
-        </span>
+
+        {currencySuffix && (
+          <span className="inline-flex items-center self-stretch px-3 text-xs font-semibold border-l border-border bg-muted/50 text-muted-foreground select-none shrink-0">
+            {currencySuffix}
+          </span>
+        )}
       </div>
+
+      {error && <AlertError errorMessage={error} />}
     </div>
-  )
+  );
 }
+
+export default PriceInput;

@@ -58,6 +58,9 @@ export interface AdmissionApplication {
   decidedAt?: string;
   submissionDate: string;
   documentsVerifiedAt?: string;
+  passportPhotoUrl?: string;
+  idDocumentCopyUrl?: string;
+  previousSchoolCertificateUrl?: string;
 }
 
 export interface EntranceExam {

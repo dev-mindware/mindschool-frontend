@@ -9,3 +9,5 @@ export * from "./api-error";
 export * from "./api-roles";
 export * from "./map-api-user";
 export * from "./format-number";
+export * from "./format-id-document";
+export * from "./format-phone";

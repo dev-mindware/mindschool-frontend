@@ -86,6 +86,7 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
           MORNING: { label: "Manhã", icon: "Sun", color: "text-warning" },
           AFTERNOON: { label: "Tarde", icon: "Sunset", color: "text-warning" },
           EVENING: { label: "Noite", icon: "Moon", color: "text-info" },
+          DIURNO: { label: "Diurno", icon: "SunMedium", color: "text-amber-500" },
         };
         const conf = shiftMap[item.shift] || shiftMap.MORNING;
         return (
@@ -99,11 +100,17 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
     {
       key: "roomNumber",
       header: "Sala",
-      render: (_, item) => (
-        <span className="text-xs font-mono bg-muted px-2 py-0.5 rounded">
-          {item.roomNumber}
-        </span>
-      ),
+      render: (_, item) => {
+        const room = item.roomNumber?.trim();
+        if (!room || room === "—") {
+          return <span className="text-xs text-muted-foreground italic">Sem sala</span>;
+        }
+        return (
+          <span className="text-xs font-mono bg-muted/80 px-2 py-0.5 rounded border border-border/50 text-foreground font-medium">
+            {room}
+          </span>
+        );
+      },
     },
     {
       key: "capacity",

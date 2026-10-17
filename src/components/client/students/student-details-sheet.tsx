@@ -19,6 +19,7 @@ interface StudentDetailsSheetProps {
   onClose: () => void;
   student: Student | null;
   onEdit?: (student: Student) => void;
+  onOpenCard?: (student: Student) => void;
 }
 
 export function StudentDetailsSheet({
@@ -26,6 +27,7 @@ export function StudentDetailsSheet({
   onClose,
   student,
   onEdit,
+  onOpenCard,
 }: StudentDetailsSheetProps) {
   if (!student) return null;
 
@@ -151,6 +153,20 @@ export function StudentDetailsSheet({
         </div>
 
         <div className="mt-4 pt-4 border-t flex justify-end gap-2">
+          {onOpenCard && (
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                onClose();
+                onOpenCard(student);
+              }}
+              className="gap-1.5"
+            >
+              <Icon name="CreditCard" className="w-4 h-4 text-primary" />
+              Cartão de Estudante
+            </Button>
+          )}
           {onEdit && (
             <Button
               variant="outline"

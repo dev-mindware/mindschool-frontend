@@ -94,6 +94,8 @@ export interface CreateStudentInput {
   idDocumentType: IdDocumentType;
   idDocumentNumber: string;
   sectionId?: string;
+  guardianId?: string;
+  guardianRelationship?: string;
   guardian?: { name: string; phone: string; documentNumber: string; relationship: string };
 }
 
@@ -118,7 +120,15 @@ export const studentsService = {
       document_type: DOC_TO_API[input.idDocumentType],
       document_number: input.idDocumentNumber,
     });
-    if (input.guardian) {
+    if (input.guardianId) {
+      await api.post(`/s/students/${created.id}/guardians`, {
+        guardian_id: input.guardianId,
+        relationship_type: RELATIONSHIP_TO_API[input.guardianRelationship ?? ""] ?? "outro",
+        is_primary_contact: true,
+        can_view_grades: true,
+        can_view_finance: true,
+      });
+    } else if (input.guardian) {
       const g = await api.post<{ id: string }>("/s/guardians", {
         full_name: input.guardian.name,
         phone: input.guardian.phone.startsWith("+") ? input.guardian.phone : `+244${input.guardian.phone}`,
@@ -150,4 +160,66 @@ export const studentsService = {
       ...(input.status ? { status: input.status } : {}),
     });
   },
+
+  /** Obtém os dados completos e paleta de cores derivada para pré-visualização do cartão de estudante. */
+  getCardData: async (studentId: string): Promise<StudentCardPreviewData> => {
+    const { data } = await api.get<StudentCardPreviewData>(`/s/students/${studentId}/card`);
+    return data;
+  },
+
+  /** Descarrega o PDF oficial do cartão de estudante gerado no backend. */
+  downloadCardPdf: async (studentId: string, studentName: string): Promise<void> => {
+    const response = await api.get(`/s/students/${studentId}/card/pdf`, {
+      responseType: "blob",
+    });
+    const blob = new Blob([response.data], { type: "application/pdf" });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    const safeName = studentName.replace(/[^a-zA-Z0-9]/g, "_");
+    a.download = `Cartao_Estudante_${safeName}.pdf`;
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    window.URL.revokeObjectURL(url);
+  },
 };
+
+export interface StudentCardPreviewData {
+  student: {
+    id: string;
+    fullName: string;
+    studentNumber?: string | null;
+    identityCardNumber?: string | null;
+    birthDate?: string | null;
+    photoUrl?: string | null;
+    courseName?: string | null;
+    className?: string | null;
+    classLevel?: string | null;
+    academicYear?: string | null;
+    validity?: string | null;
+    address?: string | null;
+  };
+  school: {
+    name: string;
+    nif?: string | null;
+    address?: string | null;
+    phone?: string | null;
+    email?: string | null;
+    logoUrl?: string | null;
+    primaryColor?: string | null;
+  };
+  palette: {
+    primary: string;
+    dark: string;
+    medium: string;
+    light: string;
+    pastel: string;
+    accent: string;
+    textDark: string;
+    textMuted: string;
+    cardBg: string;
+  };
+  verificationUrl?: string | null;
+}
+

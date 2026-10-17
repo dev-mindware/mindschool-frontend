@@ -61,7 +61,7 @@ export function CertificatesTable({ documents, isLoading, onViewPreview }: Certi
         </div>
       ),
     },
-    { key: 'actions', header: 'Acção', render: (_, d) => <ButtonOnlyAction data={d} actions={[{ label: 'Visualizar / imprimir', icon: 'Printer', onClick: onViewPreview }]} /> },
+    { key: 'actions', header: 'Acção', render: (_, d) => <ButtonOnlyAction data={d} actions={[{ label: 'Baixar PDF', icon: 'Download', onClick: onViewPreview }]} /> },
   ];
 
   return (

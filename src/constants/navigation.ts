@@ -124,16 +124,23 @@ export function activeModule(model: NavigationModel, pathname: string): NavModul
 export interface Crumb { label: string; href?: string }
 
 /**
- * Breadcrumb derivado do registo, com no máximo 2 níveis: `Secção › Página` (ou `Módulo › Página` sem secção rotulada,
- * ou só a página se o módulo tem uma única). Nunca repete etiquetas iguais. Devolve `null` se o caminho não estiver no registo.
+ * Breadcrumb derivado do registo:
+ * - Página normal: no máximo 2 níveis: `Secção › Página` (ou `Módulo › Página` sem secção rotulada; ou só a página se o módulo tem uma única).
+ * - Sub-página/detalhe: 3 níveis: `Secção › Página Principal (com link) › Detalhe`.
+ * Nunca repete etiquetas iguais. Devolve `null` se o caminho não estiver no registo.
  */
 export function deriveBreadcrumb(modules: readonly NavModule[], pathname: string, detail?: string): Crumb[] | null {
   const hit = findLink(modules, pathname);
   if (!hit) return null;
   const { module: mod, section, link } = hit;
-  // No máximo 2 níveis: «Secção › Página» (ou «Módulo › Página» quando não há secção rotulada); numa sub-página, «Página › Detalhe».
-  if (detail && pathname !== link.url) return dedupeCrumbs([{ label: link.name, href: link.url }, { label: detail }]);
   const group = section.label ?? (mod.pageCount > 1 ? mod.label : undefined);
+  if (detail && pathname !== link.url) {
+    return dedupeCrumbs([
+      ...(group ? [{ label: group }] : []),
+      { label: link.name, href: link.url },
+      { label: detail },
+    ]);
+  }
   return dedupeCrumbs([...(group ? [{ label: group }] : []), { label: link.name }]);
 }
 

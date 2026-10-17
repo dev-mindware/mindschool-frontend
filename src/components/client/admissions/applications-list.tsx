@@ -1,5 +1,5 @@
 "use client";
-import { formatDate } from "@/utils";
+import { formatDate, formatIdDocument, formatPhone } from "@/utils";
 
 import React, { useState } from "react";
 import { AdmissionApplication } from "@/types/admission";
@@ -86,15 +86,22 @@ export function ApplicationsList({ applications }: ApplicationsListProps) {
       header: "Candidato",
       render: (_, item) => (
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-xs shrink-0">
-            {item.candidateName.charAt(0)}
-          </div>
+          {item.passportPhotoUrl ? (
+            <div className="h-9 w-7 rounded overflow-hidden border border-border shrink-0 shadow-2xs">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src={item.passportPhotoUrl} alt="" className="h-full w-full object-cover" />
+            </div>
+          ) : (
+            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-xs shrink-0">
+              {item.candidateName.charAt(0)}
+            </div>
+          )}
           <div className="flex flex-col">
             <span className="font-medium text-foreground text-sm">
               {item.candidateName}
             </span>
             <span className="text-[11px] text-muted-foreground">
-              BI: {item.candidateDocumentNumber}
+              BI: {formatIdDocument(item.candidateDocumentNumber)}
             </span>
           </div>
         </div>
@@ -120,7 +127,7 @@ export function ApplicationsList({ applications }: ApplicationsListProps) {
       render: (_, item) => {
         if (!item.requiresEntranceExam) {
           return (
-            <Badge variant="success" className="text-[11px]">
+            <Badge variant="outline" className="text-[11px] text-muted-foreground border-border">
               Isento de Prova
             </Badge>
           );
@@ -137,20 +144,25 @@ export function ApplicationsList({ applications }: ApplicationsListProps) {
                     : "border-destructive-border bg-destructive-muted text-destructive"
                 }`}
               >
-                {item.examScore.toFixed(1)} val. {isPassed ? "✓" : "✗"}
+                {item.examScore.toFixed(1)} val. {isPassed ? "✓ Aprovado" : "✗ Reprovado"}
               </span>
               <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">
-                {item.entranceExamTitle || "Exame Curricular"}
+                {item.entranceExamTitle || "Prova de Acesso"}
               </span>
             </div>
           );
         }
 
         return (
-          <span className="text-xs text-warning italic flex items-center gap-1">
-            <Icon name="Clock" className="h-3 w-3" />
-            Aguardando Nota
-          </span>
+          <div className="flex flex-col gap-0.5">
+            <span className="text-xs text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
+              <Icon name="Clock" className="h-3 w-3" />
+              Aguardando Realização
+            </span>
+            <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">
+              {item.entranceExamTitle || "Prova de Acesso"}
+            </span>
+          </div>
         );
       },
     },
@@ -158,7 +170,7 @@ export function ApplicationsList({ applications }: ApplicationsListProps) {
       key: "guardianName",
       header: "Encarregado",
       render: (_, item) => {
-        const phoneClean = item.guardianPhone.replace(/[^0-9]/g, "");
+        const phoneClean = item.guardianPhone.replace(/\D/g, "");
         return (
           <div className="flex flex-col">
             <span className="text-sm font-medium text-foreground">
@@ -171,7 +183,7 @@ export function ApplicationsList({ applications }: ApplicationsListProps) {
               className="text-[11px] text-success hover:underline flex items-center gap-1 font-medium"
             >
               <Icon name="MessageSquare" className="h-3 w-3" />
-              {item.guardianPhone}
+              {formatPhone(item.guardianPhone)}
             </a>
           </div>
         );
@@ -233,7 +245,7 @@ export function ApplicationsList({ applications }: ApplicationsListProps) {
 </Can>
             )}
 
-            {item.requiresEntranceExam && item.status !== "ENROLLED" && (
+            {item.requiresEntranceExam && !["ENROLLED", "APPROVED", "WITHDRAWN"].includes(item.status) && (
 <Can permission="admission:write">
               <DropdownMenuItem
                 onClick={() => {

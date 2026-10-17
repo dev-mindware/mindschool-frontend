@@ -16,6 +16,7 @@ import {
   FormSelect,
   Icon,
   Input,
+  PercInput,
   TitleList,
   Badge,
 } from "@/components";
@@ -393,9 +394,10 @@ export function PoliciesPageContent() {
           <div className="space-y-1">
             <label className="text-[11px] font-medium text-muted-foreground">MAC (Contínua):</label>
             <Input
-              type="number"
+              type="quantity"
               min={0}
               max={20}
+              step={0.5}
               value={simMac}
               onChange={(e) => setSimMac(Number(e.target.value))}
               className="h-8 text-xs font-semibold"
@@ -404,9 +406,10 @@ export function PoliciesPageContent() {
           <div className="space-y-1">
             <label className="text-[11px] font-medium text-muted-foreground">MAS (Sumativa):</label>
             <Input
-              type="number"
+              type="quantity"
               min={0}
               max={20}
+              step={0.5}
               value={simMas}
               onChange={(e) => setSimMas(Number(e.target.value))}
               className="h-8 text-xs font-semibold"
@@ -415,9 +418,10 @@ export function PoliciesPageContent() {
           <div className="space-y-1">
             <label className="text-[11px] font-medium text-muted-foreground">PP (Prova Periódica):</label>
             <Input
-              type="number"
+              type="quantity"
               min={0}
               max={20}
+              step={0.5}
               value={simPp}
               onChange={(e) => setSimPp(Number(e.target.value))}
               className="h-8 text-xs font-semibold"
@@ -577,26 +581,35 @@ export function PoliciesPageContent() {
             <div className="grid grid-cols-3 gap-3">
               <Input
                 label="Peso MAC"
-                type="number"
+                type="quantity"
+                min={1}
+                max={10}
+                step={1}
                 value={ev.mt_weights.mac}
                 onChange={(e) =>
-                  setEv({ mt_weights: { ...ev.mt_weights, mac: num(e.target.value) } })
+                  setEv({ mt_weights: { ...ev.mt_weights, mac: Math.max(1, Math.min(10, num(e.target.value))) } })
                 }
               />
               <Input
                 label="Peso MAS"
-                type="number"
+                type="quantity"
+                min={1}
+                max={10}
+                step={1}
                 value={ev.mt_weights.mas}
                 onChange={(e) =>
-                  setEv({ mt_weights: { ...ev.mt_weights, mas: num(e.target.value) } })
+                  setEv({ mt_weights: { ...ev.mt_weights, mas: Math.max(1, Math.min(10, num(e.target.value))) } })
                 }
               />
               <Input
                 label="Peso PP"
-                type="number"
+                type="quantity"
+                min={1}
+                max={10}
+                step={1}
                 value={ev.mt_weights.pp}
                 onChange={(e) =>
-                  setEv({ mt_weights: { ...ev.mt_weights, pp: num(e.target.value) } })
+                  setEv({ mt_weights: { ...ev.mt_weights, pp: Math.max(1, Math.min(10, num(e.target.value))) } })
                 }
               />
             </div>
@@ -620,21 +633,30 @@ export function PoliciesPageContent() {
             />
             <Input
               label="Nota Mínima de Aprovação"
-              type="number"
+              type="quantity"
+              min={0}
+              max={20}
+              step={1}
               value={ev.pass_mark}
-              onChange={(e) => setEv({ pass_mark: num(e.target.value) })}
+              onChange={(e) => setEv({ pass_mark: Math.max(0, Math.min(20, num(e.target.value))) })}
             />
             <Input
               label="Prazo para Pedido de Reapreciação (dias úteis)"
-              type="number"
+              type="quantity"
+              min={1}
+              max={60}
+              step={1}
               value={ev.review_window_days}
-              onChange={(e) => setEv({ review_window_days: num(e.target.value) })}
+              onChange={(e) => setEv({ review_window_days: Math.max(1, Math.min(60, num(e.target.value))) })}
             />
             <Input
               label="Quórum Mínimo para Conselho de Turma"
-              type="number"
+              type="quantity"
+              min={1}
+              max={20}
+              step={1}
               value={ev.council_min_attendees}
-              onChange={(e) => setEv({ council_min_attendees: num(e.target.value) })}
+              onChange={(e) => setEv({ council_min_attendees: Math.max(1, Math.min(20, num(e.target.value))) })}
             />
           </div>
         </FormModal>
@@ -651,7 +673,10 @@ export function PoliciesPageContent() {
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
             <Input
               label="MFD Mínima para Admissão a Exame"
-              type="number"
+              type="quantity"
+              min={0}
+              max={20}
+              step={0.5}
               value={ev.final_exam.admission_min_mfd}
               onChange={(e) =>
                 setEv({
@@ -659,12 +684,11 @@ export function PoliciesPageContent() {
                 })
               }
             />
-            <Input
-              label="Peso da MFD na Classificação Final (%)"
-              type="number"
+            <PercInput
+              label="Peso da MFD na Classificação Final"
               value={ev.final_exam.weight_mfd}
-              onChange={(e) =>
-                setEv({ final_exam: { ...ev.final_exam, weight_mfd: num(e.target.value) } })
+              onChange={(val) =>
+                setEv({ final_exam: { ...ev.final_exam, weight_mfd: val } })
               }
             />
             <Check
@@ -705,8 +729,11 @@ export function PoliciesPageContent() {
               }
             />
             <Input
-              label="Nota Mínima para Aprovação na Prova"
-              type="number"
+              label="Nota Mínima para Aprovação na Prova (0-20)"
+              type="quantity"
+              min={0}
+              max={20}
+              step={0.5}
               value={d.admission.min_pass_score ?? ""}
               onChange={(e) =>
                 setDraft({
@@ -772,12 +799,15 @@ export function PoliciesPageContent() {
             </div>
             <Input
               label="Prazo para Lançamento do Sumário da Aula (dias)"
-              type="number"
+              type="quantity"
+              min={1}
+              max={30}
+              step={1}
               value={d.calendar.summary_deadline_days}
               onChange={(e) =>
                 setDraft({
                   ...d,
-                  calendar: { ...d.calendar, summary_deadline_days: num(e.target.value) },
+                  calendar: { ...d.calendar, summary_deadline_days: Math.max(1, Math.min(30, num(e.target.value))) },
                 })
               }
             />
@@ -804,84 +834,85 @@ export function PoliciesPageContent() {
           {...modalProps}
         >
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
-            <div className="grid grid-cols-3 gap-3">
-              <Input
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <PercInput
                 label="Peso Frequência"
-                type="number"
+                showSlider={false}
                 value={d.risk.weights.frequencia}
-                onChange={(e) =>
+                onChange={(val) =>
                   setDraft({
                     ...d,
                     risk: {
                       ...d.risk,
-                      weights: { ...d.risk.weights, frequencia: num(e.target.value) },
+                      weights: { ...d.risk.weights, frequencia: val },
                     },
                   })
                 }
               />
-              <Input
+              <PercInput
                 label="Peso Desempenho"
-                type="number"
+                showSlider={false}
                 value={d.risk.weights.desempenho}
-                onChange={(e) =>
+                onChange={(val) =>
                   setDraft({
                     ...d,
                     risk: {
                       ...d.risk,
-                      weights: { ...d.risk.weights, desempenho: num(e.target.value) },
+                      weights: { ...d.risk.weights, desempenho: val },
                     },
                   })
                 }
               />
-              <Input
+              <PercInput
                 label="Peso Financeiro"
-                type="number"
+                showSlider={false}
                 value={d.risk.weights.financeiro}
-                onChange={(e) =>
+                onChange={(val) =>
                   setDraft({
                     ...d,
                     risk: {
                       ...d.risk,
-                      weights: { ...d.risk.weights, financeiro: num(e.target.value) },
+                      weights: { ...d.risk.weights, financeiro: val },
                     },
                   })
                 }
               />
             </div>
-            <Input
+            <PercInput
               label="Limiar para Alerta Moderado (0–100)"
-              type="number"
               value={d.risk.thresholds.moderado}
-              onChange={(e) =>
+              onChange={(val) =>
                 setDraft({
                   ...d,
                   risk: {
                     ...d.risk,
-                    thresholds: { ...d.risk.thresholds, moderado: num(e.target.value) },
+                    thresholds: { ...d.risk.thresholds, moderado: val },
                   },
                 })
               }
             />
-            <Input
+            <PercInput
               label="Limiar para Alerta Crítico / Elevado (0–100)"
-              type="number"
               value={d.risk.thresholds.elevado}
-              onChange={(e) =>
+              onChange={(val) =>
                 setDraft({
                   ...d,
                   risk: {
                     ...d.risk,
-                    thresholds: { ...d.risk.thresholds, elevado: num(e.target.value) },
+                    thresholds: { ...d.risk.thresholds, elevado: val },
                   },
                 })
               }
             />
             <Input
               label="Atraso Financeiro Relevante para Risco (dias)"
-              type="number"
+              type="quantity"
+              min={1}
+              max={180}
+              step={1}
               value={d.risk.overdue_days}
               onChange={(e) =>
-                setDraft({ ...d, risk: { ...d.risk, overdue_days: num(e.target.value) } })
+                setDraft({ ...d, risk: { ...d.risk, overdue_days: Math.max(1, Math.min(180, num(e.target.value))) } })
               }
             />
           </div>
@@ -899,18 +930,24 @@ export function PoliciesPageContent() {
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
             <Input
               label="Número de Prestações no Ano Lectivo"
-              type="number"
+              type="quantity"
+              min={1}
+              max={12}
+              step={1}
               value={d.finance.installments}
               onChange={(e) =>
-                setDraft({ ...d, finance: { ...d.finance, installments: num(e.target.value) } })
+                setDraft({ ...d, finance: { ...d.finance, installments: Math.max(1, Math.min(12, num(e.target.value))) } })
               }
             />
             <Input
               label="Dia Limite de Vencimento"
-              type="number"
+              type="quantity"
+              min={1}
+              max={31}
+              step={1}
               value={d.finance.due_day}
               onChange={(e) =>
-                setDraft({ ...d, finance: { ...d.finance, due_day: num(e.target.value) } })
+                setDraft({ ...d, finance: { ...d.finance, due_day: Math.max(1, Math.min(31, num(e.target.value))) } })
               }
             />
             <Input

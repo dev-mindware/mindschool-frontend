@@ -107,11 +107,11 @@ describe("navegação modular", () => {
       expect(deriveBreadcrumb(modules, "/academic/library")!.map((c) => c.label)).toEqual(["Serviços ao aluno", "Biblioteca Escolar"]);
     });
 
-    it.each(ROLES)("%s: nenhuma página tem mais de 2 níveis de breadcrumb", (role) => {
+    it.each(ROLES)("%s: páginas normais têm <= 2 níveis e sub-páginas com detalhe têm 3 níveis", (role) => {
       const mods = forRole(role as Role).modules;
       for (const m of mods) for (const l of m.links) {
         expect({ url: l.url, ok: deriveBreadcrumb(mods, l.url)!.length <= 2 }).toEqual({ url: l.url, ok: true });
-        expect({ url: l.url, ok: deriveBreadcrumb(mods, `${l.url}/detalhe`, "Detalhe")!.length <= 2 }).toEqual({ url: l.url, ok: true });
+        expect({ url: l.url, ok: deriveBreadcrumb(mods, `${l.url}/detalhe`, "Detalhe")!.length <= 3 }).toEqual({ url: l.url, ok: true });
       }
     });
 
@@ -120,15 +120,20 @@ describe("navegação modular", () => {
       expect(deriveBreadcrumb(modules, "/settings")!.map((c) => c.label)).toEqual(["Configurações"]);
     });
 
-    it("o detalhe só conta em sub-páginas e passa a «Página › Detalhe»; nunca repete etiquetas", () => {
+    it("o detalhe em sub-páginas forma 3 ramificações «Secção › Página (link) › Detalhe»; nunca repete etiquetas", () => {
       expect(deriveBreadcrumb(modules, "/tuition/payments", "Propinas")!.map((c) => c.label)).toEqual(["Propinas & Finanças", "Propinas"]);
-      expect(deriveBreadcrumb(modules, "/tuition/invoices/123", "Detalhe")!.map((c) => c.label)).toEqual(["Facturas", "Detalhe"]);
+      expect(deriveBreadcrumb(modules, "/tuition/invoices/123", "Detalhe")!.map((c) => c.label)).toEqual(["Propinas & Finanças", "Facturas", "Detalhe"]);
+      expect(deriveBreadcrumb(modules, "/grades/pautas/turma-1", "Pauta Consolidada")).toEqual([
+        { label: "Avaliações & Pautas" },
+        { label: "Pautas Trimestrais", href: "/grades/pautas" },
+        { label: "Pauta Consolidada" },
+      ]);
     });
 
     it("não duplica «Financeiro › Financeiro» na área da família", () => {
       const family = forRole("GUARDIAN").modules;
       expect(deriveBreadcrumb(family, "/familia/financeiro", "Financeiro")!.map((c) => c.label)).toEqual(["Serviços", "Financeiro"]);
-      expect(deriveBreadcrumb(family, "/familia/provas/abc", "Realizar prova")!.map((c) => c.label)).toEqual(["Provas Online", "Realizar prova"]);
+      expect(deriveBreadcrumb(family, "/familia/provas/abc", "Realizar prova")!.map((c) => c.label)).toEqual(["Acompanhamento", "Provas Online", "Realizar prova"]);
     });
 
     it("caminhos fora do registo devolvem null e dedupeCrumbs limpa repetidos", () => {

@@ -60,8 +60,8 @@ export function CreateExamModal({ assignments, terms, isSaving, onSave }: Create
       <FormSelect label="Período" value={term} onValueChange={setTermId} options={terms.map((t) => ({ label: `${t.sequence}.º Trimestre`, value: t.id }))} />
       <Input label="Abre em" type="datetime-local" value={opens} onChange={(e) => setOpens(e.target.value)} />
       <Input label="Fecha em" type="datetime-local" value={closes} onChange={(e) => setCloses(e.target.value)} />
-      <Input label="Duração (minutos)" type="number" value={duration} onChange={(e) => setDuration(e.target.value)} />
-      <Input label="Tentativas permitidas" type="number" value={attempts} onChange={(e) => setAttempts(e.target.value)} />
+      <Input label="Duração (minutos)" type="quantity" min={1} max={360} step={5} value={duration} onChange={(e) => setDuration(e.target.value)} />
+      <Input label="Tentativas permitidas" type="quantity" min={1} max={10} step={1} value={attempts} onChange={(e) => setAttempts(e.target.value)} />
     </FormModal>
   );
 }

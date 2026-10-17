@@ -1,10 +1,5 @@
-import { PageWrapper } from "@/components";
-import { CertificatesPageContent } from "@/components/client/certificates/certificates-page-content";
+import { redirect } from "next/navigation";
 
 export default function CertificatesDeclarationsPage() {
-  return (
-    <PageWrapper>
-      <CertificatesPageContent />
-    </PageWrapper>
-  );
+  redirect("/certificates/documents?tab=issued");
 }

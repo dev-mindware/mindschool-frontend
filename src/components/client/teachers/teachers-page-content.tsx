@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Can, Badge, Button, ButtonOnlyAction, DataList, EmptyState, FormCombobox, FormModal, Icon, Input, TitleList, type Column } from "@/components";
+import { Can, Badge, Button, ButtonOnlyAction, DataList, EmptyState, FormCombobox, FormModal, Icon, Input, PrintDownloadDropdown, TitleList, type Column } from "@/components";
 import { useTeacherCredentials, useTeachersAdmin } from "@/hooks/school/use-admin-school";
 import type { ApiTeacherFull, TeacherStatus } from "@/services/admin-school-service";
 import { useSchoolSettingsStore } from "@/stores/school/school-settings-store";
@@ -63,8 +63,16 @@ function CredentialsModal({ teacher }: { teacher: ApiTeacherFull | null }) {
           </div>
           {card && teacher && (
             <div className="space-y-2">
-              <CardPreview payload={card} name={teacher.full_name} />
-              <div className="flex justify-center"><Button size="sm" onClick={() => window.print()}>Imprimir cartão</Button></div>
+              <div id="teacher-card-container">
+                <CardPreview payload={card} name={teacher.full_name} />
+              </div>
+              <div className="flex justify-center">
+                <PrintDownloadDropdown
+                  elementId="teacher-card-container"
+                  filename={`Cartao_${teacher.full_name.replace(/\s+/g, "_")}.pdf`}
+                  label="Baixar Cartão (PDF)"
+                />
+              </div>
             </div>
           )}
           {credentials.length === 0 && <p className="text-muted-foreground">Sem credenciais emitidas.</p>}

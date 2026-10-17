@@ -15,9 +15,19 @@ export function RouteManifestPrintModal() {
   const riders = assignments.filter((a) => a.route_id === route?.id);
 
   return (
-    <FormModal id="transport-manifest" title="Lista de passageiros" description="Folha imprimível para o motorista." size="lg" submitLabel="Imprimir" keepOpen onSubmit={() => window.print()}>
+    <FormModal
+      id="transport-manifest"
+      title="Lista de passageiros"
+      description="Folha de passageiros em formato PDF para o motorista."
+      size="lg"
+      submitLabel="Baixar PDF"
+      keepOpen
+      printContentId="transport-manifest-print-content"
+      pdfFilename={`Manifesto_Rota_${route?.name || "transporte"}.pdf`}
+      onSubmit={() => {}}
+    >
       {route && (
-        <div className="sm:col-span-2 space-y-4 rounded-lg border bg-white p-6 text-sm text-slate-900 print:border-0">
+        <div id="transport-manifest-print-content" className="sm:col-span-2 space-y-4 rounded-lg border bg-white p-6 text-sm text-slate-900 print:border-0">
           <div className="border-b pb-3 text-center">
             <div className="text-sm font-black uppercase">{profile.schoolName}</div>
             <div className="text-[11px] text-slate-500">Transporte escolar — {route.name}</div>

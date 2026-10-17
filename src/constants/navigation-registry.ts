@@ -107,9 +107,8 @@ export const PAGES: readonly PageDef[] = [
   { name: "Alunos", url: "/students/list", icon: "Users", module: "secretaria", section: "Alunos & Matrículas", roles: [...PEDAGOGY, "FINANCIAL"] },
   { name: "Matrículas", url: "/students/enrollments", icon: "ClipboardList", module: "secretaria", section: "Alunos & Matrículas", roles: PEDAGOGY },
   { name: "Encarregados", url: "/students/guardians", icon: "Contact", module: "secretaria", section: "Alunos & Matrículas", roles: PEDAGOGY },
-  { name: "Declarações", url: "/certificates/declarations", icon: "FileText", module: "secretaria", section: "Documentos Oficiais", roles: PEDAGOGY },
+  { name: "Emolumentos & Documentos", url: "/certificates/documents", icon: "FileText", module: "secretaria", section: "Documentos Oficiais", roles: PEDAGOGY },
   { name: "Boletins de Notas", url: "/certificates/report-cards", icon: "ScrollText", module: "secretaria", section: "Documentos Oficiais", roles: PEDAGOGY },
-  { name: "Secretaria & Protocolo", url: "/certificates/requests", icon: "Inbox", module: "secretaria", section: "Documentos Oficiais", roles: PEDAGOGY },
 
   { name: "Turmas", url: "/academic/classes", icon: "LayoutGrid", module: "academico", section: "Gestão Académica", roles: PEDAGOGY_T },
   { name: "Disciplinas", url: "/academic/subjects", icon: "BookOpen", module: "academico", section: "Gestão Académica", roles: PEDAGOGY },
@@ -121,7 +120,7 @@ export const PAGES: readonly PageDef[] = [
   { name: "Assiduidade Docente", url: "/teachers-attendance", icon: "QrCode", module: "academico", section: "Gestão Académica", roles: PEDAGOGY_T, minPlan: "Smart" },
 
   { name: "Lançamento de Notas", url: "/grades/entry", icon: "PenLine", module: "avaliacao", section: "Avaliações & Pautas", roles: PEDAGOGY_T },
-  { name: "Pautas Trimestrais", url: "/grades/pautas", icon: "Table", module: "avaliacao", section: "Avaliações & Pautas", roles: [...PEDAGOGY, "MED_AUDITOR"] },
+  { name: "Pautas Trimestrais", url: "/grades/pautas", icon: "Table", module: "avaliacao", section: "Avaliações & Pautas", roles: [...PEDAGOGY_T, "MED_AUDITOR"] },
   { name: "Reapreciação de Notas", url: "/grades/reviews", icon: "FilePen", module: "avaliacao", section: "Avaliações & Pautas", roles: PEDAGOGY_T },
   { name: "Conselhos de Turma", url: "/grades/councils", icon: "UsersRound", module: "avaliacao", section: "Avaliações & Pautas", roles: PEDAGOGY_T },
   { name: "Exames Finais", url: "/grades/final-exams", icon: "GraduationCap", module: "avaliacao", section: "Avaliações & Pautas", roles: PEDAGOGY_T },
@@ -158,6 +157,7 @@ export const PAGES: readonly PageDef[] = [
 export const PAGE_PERMISSION: Readonly<Record<string, readonly string[]>> = {
   "/students/admissions": ["admission:read"], "/admissions/sessions": ["admission:read"], "/students/list": ["student:read"],
   "/students/enrollments": ["enrollment:read"], "/students/guardians": ["guardian:read"],
+  "/certificates/documents": ["document:read", "request:read"],
   "/certificates/declarations": ["document:read"], "/certificates/report-cards": ["document:read"], "/certificates/requests": ["request:read"],
   "/academic/classes": ["section:read"], "/academic/subjects": ["subject:read"], "/academic/assignments": ["teaching:read"],
   "/academic/timetables": ["timetable:read"], "/academic/calendar": ["calendar:read"], "/academic/lessons": ["lesson:read"],

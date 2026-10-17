@@ -77,7 +77,7 @@ function ExamModal({ id }: { id: string | null }) {
                     {s.result && d ? (
                       <div className="flex gap-2">
                         <FormSelect label="" value={d.status} onValueChange={(v) => setDrafts((c) => ({ ...c, [s.enrollment_id]: { ...d, status: v as Draft["status"] } }))} options={RESULT_OPTIONS} disabled={closed} className="flex-1" />
-                        {d.status === "avaliado" && <div className="w-24"><Input label="" type="number" disabled={closed} value={d.value} onChange={(e) => setDrafts((c) => ({ ...c, [s.enrollment_id]: { ...d, value: e.target.value } }))} /></div>}
+                        {d.status === "avaliado" && <div className="w-24"><Input label="" type="quantity" min={0} max={20} step={0.1} disabled={closed} value={d.value} onChange={(e) => setDrafts((c) => ({ ...c, [s.enrollment_id]: { ...d, value: e.target.value } }))} /></div>}
                       </div>
                     ) : <span className="text-muted-foreground">—</span>}
                   </div>
