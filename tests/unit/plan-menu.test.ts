@@ -28,7 +28,7 @@ const all = (urls: string[], state: State) => Object.fromEntries(urls.map((u) =>
 const CORE = ["/students/list", "/tuition/payments", "/academic/timetables", "/academic/calendar", "/academic/library", "/plans"];
 const TEASERS = ["/academic/lessons", "/dropout-risk", "/online-exams"];
 const PRO_ONLY = ["/teachers-attendance", "/academic/health-psychology", "/academic/transport", "/academic/extracurricular"];
-const ENTERPRISE_ONLY = ["/tuition/collections", "/reports/multi-school", "/reports/bi"];
+const ENTERPRISE_ONLY = ["/tuition/collections", "/reports/multi-school", "/reports/bi", "/certificates/archive"];
 
 describe("menu por plano", () => {
   it("Essencial: núcleo aberto, montras com cadeado, o resto oculto", () => {

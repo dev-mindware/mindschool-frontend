@@ -114,6 +114,7 @@ export const PAGES: readonly PageDef[] = [
   { name: "Encarregados", url: "/students/guardians", icon: "Contact", module: "secretaria", section: "Alunos & Matrículas", roles: PEDAGOGY },
   { name: "Emolumentos & Documentos", url: "/certificates/documents", icon: "FileText", module: "secretaria", section: "Documentos Oficiais", roles: PEDAGOGY },
   { name: "Boletins de Notas", url: "/certificates/report-cards", icon: "ScrollText", module: "secretaria", section: "Documentos Oficiais", roles: PEDAGOGY },
+  { name: "Arquivo Documental", url: "/certificates/archive", icon: "Archive", module: "secretaria", section: "Documentos Oficiais", roles: PEDAGOGY, minPlan: "enterprise", feature: "archive_advanced" },
 
   { name: "Turmas", url: "/academic/classes", icon: "LayoutGrid", module: "academico", section: "Gestão Académica", roles: PEDAGOGY_T },
   { name: "Disciplinas", url: "/academic/subjects", icon: "BookOpen", module: "academico", section: "Gestão Académica", roles: PEDAGOGY },
@@ -164,7 +165,7 @@ export const PAGE_PERMISSION: Readonly<Record<string, readonly string[]>> = {
   "/students/admissions": ["admission:read"], "/admissions/sessions": ["admission:read"], "/students/list": ["student:read"],
   "/students/enrollments": ["enrollment:read"], "/students/guardians": ["guardian:read"],
   "/certificates/documents": ["document:read", "request:read"],
-  "/certificates/declarations": ["document:read"], "/certificates/report-cards": ["document:read"], "/certificates/requests": ["request:read"],
+  "/certificates/declarations": ["document:read"], "/certificates/report-cards": ["document:read"], "/certificates/archive": ["document:read"], "/certificates/requests": ["request:read"],
   "/academic/classes": ["section:read"], "/academic/subjects": ["subject:read"], "/academic/assignments": ["teaching:read"],
   "/academic/timetables": ["timetable:read"], "/academic/calendar": ["calendar:read"], "/academic/lessons": ["lesson:read"],
   "/academic/attendance": ["absence:read"], "/teachers-attendance": ["attendance:read", "attendance:self"],
