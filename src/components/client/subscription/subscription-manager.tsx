@@ -4,7 +4,7 @@ import { formatCurrencyCompact, formatDate } from "@/utils";
 import { useState } from "react";
 import Link from "next/link";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, FileUpload, FormModal, Icon, Input, PROOF_ACCEPT_PDF_PNG, Progress, TitleList, type Column } from "@/components";
+import { Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, FileUpload, FormModal, HelpHint, Icon, Input, PROOF_ACCEPT_PDF_PNG, Progress, StatusLegend, TitleList, type Column } from "@/components";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { useSubscription } from "@/hooks/school/use-subscription";
 import type { ApiOrder } from "@/services/subscription-service";
@@ -16,6 +16,17 @@ const ORDER_LABEL: Record<string, string> = {
   approved: "Aprovada", rejected: "Rejeitada", cancelled: "Cancelada",
 };
 const STATUS_LABEL: Record<string, string> = { trial: "Período de teste", active: "Activa", past_due: "Pagamento em atraso", grace: "Em tolerância", suspended: "Suspensa", cancelled: "Cancelada", expired: "Expirada" };
+const QUOTA_NAME: Record<string, string> = {
+  students: "Alunos", users: "Utilizadores internos", teachers: "Professores", sections: "Turmas",
+  exports_month: "Exportações este mês", academic_years_active: "Anos lectivos activos", storage_mb: "Armazenamento",
+};
+const QUOTA_NOTE: Record<string, string> = {
+  users: "Conta só quem tem papel interno (direcção, secretaria, financeiro, professor). Encarregados e alunos não contam.",
+  exports_month: "Cada ficheiro exportado (PDF, Excel…) conta uma. O contador recomeça todos os meses.",
+  storage_mb: "Fotos, documentos de candidaturas e ficheiros guardados. Ao atingir o limite, novos envios são recusados.",
+};
+/** Armazenamento vem em MB; mostra-se em GB quando é grande. */
+const fmtQuotaValue = (key: string, v: number) => (key === "storage_mb" && v >= 1024 ? `${(v / 1024).toFixed(v % 1024 === 0 ? 0 : 1)} GB` : key === "storage_mb" ? `${v} MB` : String(v));
 const OPEN = ["pending_payment", "payment_proof_submitted", "proof_replacement_required"];
 const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
 
@@ -62,6 +73,16 @@ export function SubscriptionManager() {
         </div>
       )}
 
+      <StatusLegend
+        title="O que acontece se o pagamento atrasar"
+        items={[
+          { label: "Pagamento em atraso", description: "Até 3 dias depois do fim do período pago. Tudo continua a funcionar." },
+          { label: "Em tolerância", description: "Do 4.º ao 7.º dia. Pode consultar, editar e exportar, mas não criar registos novos (alunos, matrículas…)." },
+          { label: "Suspensa", description: "Até 30 dias depois do fim do período. Só consulta e exportação; nada se cria nem se edita. Os dados mantêm-se." },
+          { label: "Expirada / Cancelada", description: "Mesmo regime da suspensão. Ao regularizar a subscrição a escola volta a funcionar por inteiro." },
+        ]}
+      />
+
       {quotas.length > 0 && (
         <div className="space-y-3">
           <h3 className="text-lg font-semibold">Consumo das quotas</h3>
@@ -70,8 +91,9 @@ export function SubscriptionManager() {
               const pct = Math.min(100, Math.round((q.used / (q.limit ?? 1)) * 100));
               return (
                 <div key={q.key} className="space-y-2 rounded-xl border p-4">
-                  <div className="flex items-center justify-between text-sm"><span className="font-medium capitalize">{q.unit}</span><span className={q.state !== "OK" ? "text-amber-700" : "text-muted-foreground"}>{q.used} / {q.limit}</span></div>
+                  <div className="flex items-center justify-between text-sm"><span className="flex items-center gap-1 font-medium">{QUOTA_NAME[q.key] ?? q.unit}<HelpHint term="quota" /></span><span className={q.state !== "OK" ? "text-amber-700" : "text-muted-foreground"}>{fmtQuotaValue(q.key, q.used)} / {q.limit === null ? "sem limite" : fmtQuotaValue(q.key, q.limit)}</span></div>
                   <Progress value={pct} />
+                  {QUOTA_NOTE[q.key] && <p className="text-[11px] text-muted-foreground">{QUOTA_NOTE[q.key]}</p>}
                 </div>
               );
             })}

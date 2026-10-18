@@ -23,6 +23,7 @@ export function CommunicationPageContent() {
   const [editing, setEditing] = useState<ApiAnnouncement | null>(null);
   const [viewing, setViewing] = useState<ApiAnnouncement | null>(null);
   const [archiving, setArchiving] = useState<ApiAnnouncement | null>(null);
+  const [publishing, setPublishing] = useState<ApiAnnouncement | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
   const [audience, setAudience] = useState<AnnouncementAudience>("escola");
@@ -51,7 +52,7 @@ export function CommunicationPageContent() {
           { label: "Ver", icon: "Eye", onClick: (r) => { setViewing(r); openModal("announcement-view"); } },
           ...(x.status === "rascunho" ? [
             { permission: "announcement:write", label: "Editar", icon: "Pencil" as const, onClick: openEdit },
-            { permission: "announcement:write", label: "Publicar", icon: "Send" as const, onClick: (r: ApiAnnouncement) => void a.publish.mutateAsync(r.id).then(() => { SucessMessage("Comunicado publicado."); }).catch(fail) },
+            { permission: "announcement:write", label: "Publicar", icon: "Send" as const, onClick: (r: ApiAnnouncement) => { setPublishing(r); openModal("announcement-publish"); } },
           ] : []),
           ...(x.status !== "arquivado" ? [{ permission: "announcement:write", label: "Arquivar", icon: "Archive" as const, variant: "destructive" as const, onClick: (r: ApiAnnouncement) => { setArchiving(r); openModal("announcement-archive"); } }] : []),
         ]} />
@@ -115,7 +116,16 @@ export function CommunicationPageContent() {
         {viewing && <div className="sm:col-span-2 whitespace-pre-wrap text-sm leading-relaxed">{viewing.body}</div>}
       </FormModal>
 
-      <ConfirmModal id="announcement-archive" title="Arquivar comunicado" description={archiving ? `Arquivar "${archiving.title}"? Deixa de aparecer no portal.` : ""} destructive confirmLabel="Arquivar"
+      <ConfirmModal id="announcement-publish" title="Publicar comunicado" description={publishing ? `Publicar "${publishing.title}" para ${AUDIENCE_LABEL[publishing.audience].toLowerCase()}?` : ""} confirmLabel="Publicar"
+        irreversible
+        effects={[
+          "Aparece no portal dos encarregados e os destinatários são notificados (caixa de entrada e, havendo e-mail registado, por e-mail).",
+          "Depois de publicado já não se edita: só o rascunho é editável.",
+          "Arquivar só o retira do portal; os avisos que já seguiram não se retiram.",
+        ]}
+        onConfirm={() => (publishing ? a.publish.mutateAsync(publishing.id).then(() => { SucessMessage("Comunicado publicado."); }).catch(fail) : Promise.resolve())} />
+
+      <ConfirmModal id="announcement-archive" title="Arquivar comunicado" description={archiving ? `Arquivar "${archiving.title}"? Deixa de aparecer no portal; os avisos já enviados não se retiram.` : ""} destructive confirmLabel="Arquivar"
         onConfirm={() => (archiving ? a.archive.mutateAsync(archiving.id).then(() => { SucessMessage("Comunicado arquivado."); }).catch(fail) : Promise.resolve())} />
     </div>
   );

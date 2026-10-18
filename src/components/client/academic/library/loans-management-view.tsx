@@ -29,7 +29,7 @@ export function LoansManagementView() {
       render: (_, l) => l.status === "emprestado" ? (
         <ButtonOnlyAction data={l} actions={[
           { permission: "library:write", label: "Devolver", icon: "Undo2", onClick: (x) => void run(giveBack.mutateAsync(x.id), "Devolução registada.") },
-          { permission: "library:write", label: "Renovar", icon: "RefreshCcw", onClick: (x) => void run(renew.mutateAsync(x.id), "Empréstimo renovado."), className: l.overdue ? "pointer-events-none opacity-40" : "" },
+          { permission: "library:write", label: l.overdue ? "Renovar (indisponível: em atraso)" : "Renovar", icon: "RefreshCcw", onClick: (x) => void run(renew.mutateAsync(x.id), "Empréstimo renovado."), className: l.overdue ? "pointer-events-none opacity-40" : "" },
         ]} />
       ) : null,
     },

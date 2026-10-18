@@ -14,6 +14,13 @@ export interface ReportDefinition {
   columns: ReportColumn[];
   filters: Record<string, string>;
   contains_sensitive_data: boolean;
+  /** Como o relatório é calculado (texto da API). */
+  calculation?: string;
+  /** Linhas mostradas na pré-visualização e máximo por exportação. */
+  sync_preview_limit?: number;
+  export_max_rows?: number;
+  /** Horas durante as quais o ficheiro exportado fica disponível. */
+  retention_hours?: number;
 }
 export interface ReportPreview { columns: ReportColumn[]; data: Array<Record<string, unknown>> }
 

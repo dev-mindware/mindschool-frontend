@@ -53,6 +53,7 @@ export function ApiReportsCatalog({ domains, title, description }: ApiReportsCat
         <div>
           <h2 className="text-base font-semibold text-foreground">{title}</h2>
           <p className="mt-0.5 text-xs text-muted-foreground">{description}</p>
+          <p className="mt-0.5 text-[11px] text-muted-foreground">A pré-visualização mostra só as primeiras linhas; exportar gera o ficheiro completo, conta uma exportação da quota mensal do plano e fica registado na auditoria.</p>
         </div>
         <SearchHandlerWrapper search={search} setSearch={setSearch} placeholder="Pesquisar relatório" className="w-full sm:max-w-xs" />
       </div>
@@ -70,6 +71,16 @@ export function ApiReportsCatalog({ domains, title, description }: ApiReportsCat
               </div>
               {r.contains_sensitive_data && <Badge variant="outline" className="shrink-0 text-[10px]">Dados pessoais</Badge>}
             </div>
+            {(r.calculation || (r.filters && Object.keys(r.filters).length > 0)) && (
+              <details className="text-[11px] text-muted-foreground">
+                <summary className="cursor-pointer font-medium hover:text-foreground">Como se calcula e o que contém</summary>
+                <div className="mt-1 space-y-1">
+                  {r.calculation && <p><strong className="text-foreground">Cálculo:</strong> {r.calculation}</p>}
+                  <p><strong className="text-foreground">Colunas:</strong> {r.columns.map((c) => c.label).join(", ")}.</p>
+                  {r.filters && Object.keys(r.filters).length > 0 && <p><strong className="text-foreground">Filtros possíveis:</strong> {Object.values(r.filters).join(", ")} (a pré-visualização e a exportação usam, por agora, todos os dados).</p>}
+                </div>
+              </details>
+            )}
             <div className="flex flex-wrap items-center gap-2">
               <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs" onClick={() => showPreview(r)} disabled={preview.isPending}>
                 <Icon name="Eye" className="size-3.5" />

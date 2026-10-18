@@ -137,7 +137,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
         <DynamicMetricCard title={formatCurrency(debt)} subtitle="Em dívida" icon="Wallet" colors={debt > 0 ? "destructive" : "default"} description={`${payables.length} factura(s) por pagar`} />
         <DynamicMetricCard title={formatCurrency(overdue)} subtitle="Vencido" icon="TriangleAlert" colors={overdue > 0 ? "destructive" : "default"} description={overdue > 0 ? "Regularize para evitar multa de mora" : "Nada em atraso"} />
-        <DynamicMetricCard title={formatCurrency(inReview)} subtitle="Em análise" icon="Hourglass" description="Comprovativos à espera de validação" />
+        <DynamicMetricCard title={formatCurrency(inReview)} subtitle="Em análise" icon="Hourglass" description="À espera de validação pela escola. Ainda conta como dívida e a multa pode ser criada até ser aprovado" />
         <DynamicMetricCard title={next ? next.due_date : "—"} subtitle="Próximo vencimento" icon="CalendarClock" description={next ? `${next.description} · ${formatCurrency(next.balance)}` : "Sem facturas a vencer"} />
       </div>
 
@@ -231,6 +231,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
 
           <section className="space-y-3">
             <h4 className="flex items-center gap-2 text-sm font-semibold"><span className="flex size-5 items-center justify-center rounded-full bg-primary text-[11px] text-primary-foreground">2</span>Submeta o comprovativo</h4>
+            <p className="text-xs text-muted-foreground">Pode pagar menos do que está em dívida em cada factura: fica como pagamento parcial e o resto continua por pagar. A escola confirma o valor e só então o pagamento fica registado.</p>
             <ul className="divide-y rounded-lg border">
               {chosen.map((p) => (
                 <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 text-sm">

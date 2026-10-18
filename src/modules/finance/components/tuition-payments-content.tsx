@@ -4,7 +4,7 @@ import { useEntitled } from "@/hooks/common/use-entitled";
 import React, { useState } from "react";
 import { TitleList } from "@/components/common/title-list";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
-import { DataList, type Column } from "@/components";
+import { DataList, StatusLegend, type Column } from "@/components";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Icon } from "@/components/common/icon";
@@ -187,7 +187,7 @@ export function TuitionPaymentsContent() {
                 className="h-8 px-3 text-xs gap-1.5"
               >
                 <Icon name="FileText" className="w-3.5 h-3.5 text-muted-foreground" />
-                Ver Recibo
+                Ver comprovativo
               </Button>
             )}
           </div>
@@ -202,7 +202,7 @@ export function TuitionPaymentsContent() {
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <TitleList
           title="Gestão de Propinas & Mensalidades"
-          suTitle="Controlo de liquidações escolares: registo de pagamentos e recibos internos"
+          suTitle="Controlo de liquidações escolares: registo de pagamentos e comprovativos internos (sem valor fiscal)"
         />
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 px-3 py-1 font-semibold text-xs gap-1.5">
@@ -223,7 +223,7 @@ export function TuitionPaymentsContent() {
         <DynamicMetricCard
           title={`${summary.totalExpectedAmount > 0 ? Math.round((summary.totalCollectedAmount / summary.totalExpectedAmount) * 100) : 0}%`}
           subtitle="Taxa de Cobrança"
-          description="Aproveitamento financeiro do ano"
+          description="Cobrado ÷ previsto nas propinas desta lista. Só conta o que está totalmente pago; pagamentos parciais ainda não entram"
           icon="CircleCheck"
         />
         <DynamicMetricCard
@@ -240,13 +240,23 @@ export function TuitionPaymentsContent() {
         />
       </div>
 
+      <StatusLegend
+        title="Estados, multas e liquidação"
+        items={[
+          { label: "Pendente", description: "Dentro do prazo ou com pagamento parcial: ainda há valor por pagar." },
+          { label: "Em Atraso", description: "Passou o vencimento. Depois da tolerância cria-se a multa de mora (e, se a escola o definir, um agravamento por cada mês completo), que aparece na coluna «Multa» e soma ao total." },
+          { label: "Liquidada", description: "Propina e multas totalmente pagas." },
+          { label: "Liquidar", description: "Regista o pagamento do saldo total (propina e multas por pagar) e abre o comprovativo interno, sem valor fiscal." },
+        ]}
+      />
+
       <DataList<StudentTuitionFee>
         prefix="propinas"
         rows={allFees}
         columns={columns}
         isLoading={isLoading}
         pageSize={12}
-        searchPlaceholder="Pesquisar por aluno, n.º de processo, encarregado ou recibo"
+        searchPlaceholder="Pesquisar por aluno, n.º de processo, encarregado ou comprovativo"
         searchText={(f) => `${f.studentName} ${f.studentNumber} ${f.guardianName} ${f.guardianPhone} ${f.receiptNumber ?? ""}`}
         filters={[
           { key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "PAID", label: "Liquidada" }, { value: "PENDING", label: "Pendente" }, { value: "OVERDUE", label: "Em atraso" }, { value: "EXEMPT", label: "Isento (bolsa)" }], match: (f, v) => f.status === v },

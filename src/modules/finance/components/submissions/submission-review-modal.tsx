@@ -114,6 +114,11 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
               {partial && <p className="text-xs text-amber-700">Pagamento parcial: o restante continua em dívida e a família é informada do valor confirmado.</p>}
               <FormTextarea label="Motivo (obrigatório para rejeitar ou pedir novo comprovativo)" value={reason} onChange={setReason} rows={2} />
               <p className="text-xs text-muted-foreground">Confira o valor, a data e a referência no extracto bancário antes de aprovar. Só a aprovação regista o pagamento nas facturas.</p>
+              <ul className="list-disc space-y-1 pl-4 text-[11px] text-muted-foreground">
+                <li><strong>Pedir novo comprovativo:</strong> o pedido continua aberto e a família pode substituir o ficheiro (ex.: foto ilegível).</li>
+                <li><strong>Rejeitar:</strong> encerra o pedido e a família vê «não validado» com o seu motivo; para pagar tem de submeter um pedido novo.</li>
+                <li>Enquanto não aprova, a dívida continua a contar e a multa de mora pode ser criada, porque só os pagamentos registados contam.</li>
+              </ul>
             </div>
           ) : (
             s.review_reason && <p className="rounded-lg bg-muted/40 p-3 text-xs"><span className="font-medium">Decisão: </span>{s.review_reason}</p>

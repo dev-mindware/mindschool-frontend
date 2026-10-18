@@ -27,7 +27,7 @@ function buildRoleCards(o: ReturnType<typeof useSchoolOverview>): Card[] {
     subtitle: "Alunos com risco de faltas",
     icon: "TriangleAlert",
     colors: kpis.absenceRiskCount > 0 ? "destructive" : "default",
-    description: kpis.absenceRiskCount > 0 ? "Com muitas faltas no período" : "Sem alunos em risco de faltas",
+    description: kpis.absenceRiskCount > 0 ? "Com 25% ou mais de faltas (justificadas ou não) no período" : "Nenhum aluno com 25% ou mais de faltas no período",
   };
 
   if (role === "SECRETARY") {

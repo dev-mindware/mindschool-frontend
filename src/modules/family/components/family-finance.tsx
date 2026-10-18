@@ -35,7 +35,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
     { key: "amount", header: "Valor", render: (_, p) => <span className="font-semibold tabular-nums">{formatCurrency(p.amount)}</span> },
     { key: "method", header: "Método", render: (_, p) => <span className="text-xs">{METHOD_LABEL[p.method as keyof typeof METHOD_LABEL] ?? p.method.replaceAll("_", " ")}</span> },
     { key: "reference", header: "Referência", render: (_, p) => <span className="font-mono text-[11px] text-muted-foreground">{p.reference ?? "—"}</span> },
-    { key: "actions", header: "Recibo", render: (_, p) => <ButtonOnlyAction data={p} actions={[{ label: "Descarregar recibo", icon: "FileDown", onClick: (x) => void openPdf(portalService.receiptPdf(studentId, x.id)) }]} /> },
+    { key: "actions", header: "Comprovativo", render: (_, p) => <ButtonOnlyAction data={p} actions={[{ label: "Descarregar comprovativo (sem valor fiscal)", icon: "FileDown", onClick: (x) => void openPdf(portalService.receiptPdf(studentId, x.id)) }]} /> },
   ];
 
   const invoiceColumns: Column<PortalInvoice>[] = [
@@ -57,7 +57,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
     <Tabs defaultValue="pending" className="space-y-4">
       <TabsList className="flex h-auto flex-wrap">
         <TabsTrigger value="pending" className="text-xs">Por pagar</TabsTrigger>
-        <TabsTrigger value="payments" className="text-xs">Pagamentos e recibos</TabsTrigger>
+        <TabsTrigger value="payments" className="text-xs">Pagamentos e comprovativos</TabsTrigger>
         <TabsTrigger value="invoices" className="text-xs">Facturas</TabsTrigger>
         <TabsTrigger value="statement" className="text-xs">Extracto anual</TabsTrigger>
       </TabsList>
@@ -80,7 +80,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
           ]}
           dateFilters={[{ key: "pago", label: "Data de pagamento", getDate: (p) => p.paid_at }]}
           sorts={[{ value: "data", label: "Data", compare: (a, b) => a.paid_at.localeCompare(b.paid_at) }, { value: "valor", label: "Valor", compare: (a, b) => Number(a.amount) - Number(b.amount) }]}
-          emptyTitle="Sem pagamentos" emptyDescription="Os pagamentos confirmados pela escola aparecem aqui, com o recibo." emptyIcon="Receipt"
+          emptyTitle="Sem pagamentos" emptyDescription="Os pagamentos confirmados pela escola aparecem aqui, com o comprovativo interno de pagamento (sem valor fiscal)." emptyIcon="Receipt"
         />
       </TabsContent>
 

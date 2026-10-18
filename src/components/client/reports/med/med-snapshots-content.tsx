@@ -43,7 +43,13 @@ export function MedSnapshotsContent() {
         const blocking = s.issues.filter((i) => i.severity === "blocking").length;
         const warn = s.issues.length - blocking;
         return s.issues.length === 0 ? <span className="text-xs text-emerald-600">Sem pendências</span> : (
-          <span className="text-xs">{blocking > 0 && <span className="text-destructive">{blocking} bloqueante(s) </span>}{warn > 0 && <span className="text-amber-700">{warn} aviso(s)</span>}</span>
+          <details className="text-xs">
+            <summary className="cursor-pointer">{blocking > 0 && <span className="text-destructive">{blocking} bloqueante(s) </span>}{warn > 0 && <span className="text-amber-700">{warn} aviso(s)</span>}</summary>
+            <ul className="mt-1 max-w-xs list-disc space-y-0.5 pl-4 text-muted-foreground">
+              {s.issues.slice(0, 8).map((i, n) => <li key={n} className={i.severity === "blocking" ? "text-destructive" : undefined}>{i.message}</li>)}
+              {s.issues.length > 8 && <li>… e mais {s.issues.length - 8}</li>}
+            </ul>
+          </details>
         );
       },
     },
@@ -75,7 +81,7 @@ export function MedSnapshotsContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Mapas Estatísticos Oficiais (MED)" suTitle="Instantâneo → validação → aprovação pela Direcção → exportação → registo de submissão.">
+      <TitleList title="Mapas Estatísticos Oficiais (MED)" suTitle="Instantâneo (corte imutável dos dados, com código de verificação) → validação → aprovação pela Direcção → exportação → registo de submissão. O sistema prepara os mapas; a entrega ao Ministério faz-se fora daqui.">
         <Can permission="report:med_snapshot"><Button size="sm" className="gap-2" onClick={() => openModal("med-generate")}>
           <Icon name="FilePlus" className="size-4" />
           Gerar instantâneo
@@ -105,7 +111,7 @@ export function MedSnapshotsContent() {
         emptyIcon="Map"
       />
 
-      <FormModal id="med-generate" title="Gerar instantâneo" description="Cria um corte imutável dos dados para o mapa escolhido." submitLabel="Gerar" isLoading={create.isPending} onSubmit={generate}>
+      <FormModal id="med-generate" title="Gerar instantâneo" description="Cria um corte imutável dos dados da escola para o mapa escolhido. O «Aproveitamento» exige a pauta do período fechada; antes de aprovar, veja nas «Verificações» o que falta corrigir (ex.: pautas por fechar, escola sem código MED, alunos sem sexo). Para actualizar os dados gera-se um instantâneo novo (nova versão)." submitLabel="Gerar" isLoading={create.isPending} onSubmit={generate}>
         <div className="sm:col-span-2"><FormSelect label="Mapa" value={mapType} onValueChange={(v) => setMapType(v as MedMapType)} options={[{ value: "matriculas", label: "Matrículas" }, { value: "aproveitamento", label: "Aproveitamento" }]} /></div>
         {mapType === "aproveitamento" && (
           <div className="sm:col-span-2"><FormSelect label="Período do corte" value={termId} onValueChange={setTermId} placeholder="Último período" options={terms.map((t) => ({ value: t.id, label: `${t.sequence}.º Trimestre` }))} /></div>
@@ -115,7 +121,7 @@ export function MedSnapshotsContent() {
       <FormModal
         id="med-submit"
         title="Registar submissão ao MED"
-        description="Indique o número de protocolo / referência da submissão."
+        description="Só guarda o protocolo que o Ministério lhe deu depois de entregar o mapa: o sistema não envia nada ao MED."
         submitLabel="Registar"
         isLoading={submit.isPending}
         disabled={reference.trim().length < 3}

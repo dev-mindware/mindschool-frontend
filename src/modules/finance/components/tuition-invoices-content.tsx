@@ -2,7 +2,7 @@
 import { financeKeys } from "@/modules/finance/query-keys";
 
 import { useQuery } from "@tanstack/react-query";
-import { Badge, StatusBadge, DataList, DynamicMetricCard, Icon, TitleList, type Column } from "@/components";
+import { Badge, StatusBadge, StatusLegend, DataList, DynamicMetricCard, Icon, TitleList, type Column } from "@/components";
 import { tuitionService, type ApiInvoice } from "@/modules/finance/services/tuition-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { formatCurrency } from "@/utils/format-currency";
@@ -48,11 +48,24 @@ export function TuitionInvoicesContent() {
         <p>A facturação da escola é tratada no <strong>MindGest</strong>. Quando a ligação estiver activa, as facturas passam a ser certificadas automaticamente e o estado fiscal aparece aqui.</p>
       </div>
 
+      <StatusLegend
+        title="O que significam os estados e as colunas"
+        items={[
+          { label: "Por pagar", description: "Emitida e dentro do prazo." },
+          { label: "Parcialmente paga", description: "Já recebeu pagamentos, mas ainda falta valor. «Total» é o valor da factura (menos desconto, mais multa na própria factura); «Em dívida» é o que falta pagar." },
+          { label: "Vencida", description: "Passou o vencimento com valor em dívida. Passado o prazo de tolerância, o sistema cria a multa de mora como uma factura à parte (tipo «Multa de mora»), ligada a esta." },
+          { label: "Paga", description: "Totalmente liquidada. O comprovativo de pagamento é um documento interno, sem valor fiscal." },
+          { label: "Anulada", description: "Anulada (por exemplo, ao anular a matrícula). Nunca se apaga: fica no histórico. Não se anula a partir desta lista." },
+          { label: "Ref. MS…", description: "Referência de pagamento da factura: é o código que o encarregado indica ao pagar." },
+          { label: "Fiscal", description: "«Certificada»: aceite pela certificação fiscal e com n.º fiscal. «A aguardar MindGest»: enviada, à espera da certificação. «Erro fiscal»: a certificação falhou e pode ser reprocessada. «Sem submissão»: ainda não foi enviada." },
+        ]}
+      />
+
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
         <DynamicMetricCard title={live.length} subtitle="Facturas" icon="Receipt" description="Sem as anuladas" />
         <DynamicMetricCard title={live.filter((i) => i.status === "paga").length} subtitle="Liquidadas" icon="CircleCheck" description="Totalmente pagas" />
         <DynamicMetricCard title={live.filter((i) => i.is_overdue && i.status !== "paga").length} subtitle="Vencidas" icon="TriangleAlert" colors="destructive" description="Por cobrar" />
-        <DynamicMetricCard title={pendingFiscal} subtitle="Sem certificação fiscal" icon="ShieldAlert" description="A aguardar o MindGest" />
+        <DynamicMetricCard title={pendingFiscal} subtitle="Sem certificação fiscal" icon="ShieldAlert" description="Em espera, com erro ou ainda não enviadas" />
       </div>
 
       <DataList<ApiInvoice>

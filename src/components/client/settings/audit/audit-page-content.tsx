@@ -179,7 +179,7 @@ export function AuditPageContent() {
     <div className="space-y-6">
       <TitleList
         title="Livro de Auditoria e Rastreabilidade"
-        suTitle="Registo imutável de todas as acções e actualizações institucionais da escola; em conformidade com a norma ortográfica AO1945."
+        suTitle="Quem fez o quê e quando. Cada registo fica encadeado ao anterior e não se altera nem se apaga. Mostra os registos mais recentes; use os filtros para chegar aos mais antigos."
       />
 
       <div className="inline-flex rounded-md border bg-sidebar p-1" role="tablist" aria-label="Tipo de registo">
