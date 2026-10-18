@@ -29,6 +29,15 @@ describe("subscricao", () => {
   it("mapeia estado e plano", () => {
     const sub = mapApiSubscription({ subscription: { id: "x", status: "trial", plan: { code: "profissional", name: "Profissional" }, trial_ends_at: "2026-10-19", period_start: null, period_end: null } });
     expect(sub.status).toBe("TRIALING");
-    expect(sub.plan.name).toBe("Smart");
+    expect(sub.plan.name).toBe("profissional");
+  });
+
+  it("guarda so as features contratadas e usa essencial para um codigo desconhecido", () => {
+    const sub = mapApiSubscription({
+      subscription: { id: "x", status: "active", plan: { code: "legado", name: "Legado" }, trial_ends_at: null, period_start: null, period_end: null },
+      features: [{ key: "portal", entitled: true }, { key: "rooms", entitled: false }],
+    });
+    expect(sub.plan.name).toBe("essencial");
+    expect(sub.entitledFeatures).toEqual(["portal"]);
   });
 });

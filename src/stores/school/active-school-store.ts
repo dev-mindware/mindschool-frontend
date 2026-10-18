@@ -5,6 +5,8 @@ export interface SchoolMembership {
   schoolId: string;
   schoolName: string;
   roles: string[];
+  /** Acede a esta escola só pelo grupo (multi-escola): não tem papel próprio nela. */
+  viaGroup?: boolean;
   /** Permissões efectivas devolvidas pela API (`/auth/me`); servem só para adaptar a interface. */
   permissions?: string[];
 }

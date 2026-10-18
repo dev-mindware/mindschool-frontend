@@ -7,7 +7,6 @@ Onde um componente usava um store, o hook novo devolve **a mesma forma** (listas
 ## Ambiente
 `.env`: `NEXT_PUBLIC_API_URL=http://localhost:3011/api/v1`, `NEXT_PUBLIC_APP_URL=http://localhost:3001`, `NEXT_PUBLIC_BYPASS_AUTH=false`.
 A API tem de ter `CORS_ORIGINS=http://localhost:3001`. Dados de demonstração: `node scripts/dev-demo-data.mjs` (repositório da API); logins `titular@demo.ao`, `secretaria@demo.ao`, `professor@demo.ao` (password `Demo-Escola-Segura-2026`).
-Flag opcional: `NEXT_PUBLIC_SHOW_UNLINKED_MODULES` (já sem efeito: todos os módulos do menu têm API).
 
 ## Como funciona
 - **Sessão:** a API é usada em modo `x-auth-mode: bearer`. O login (server action `actions/login.ts`) guarda `access_token`/`refresh_token` em cookies httpOnly; o refresh passa pela rota `/api/auth/refresh` (valida a origem). O papel fica num cookie assinado pelo servidor. Se a conta tem segundo factor, o login devolve `requiresMfa` e o formulário pede o código (TOTP ou de recuperação); passkeys ainda não têm ecrã.

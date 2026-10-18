@@ -7,7 +7,7 @@ import { useSchoolSettingsStore } from "@/stores/school";
 import { DashboardOverview, OverviewPeriodSelect } from "./overview";
 
 const SUBTITLE: Record<string, string> = {
-  DIRECTOR_GENERAL: "Visão executiva da escola: alunos, assiduidade, propinas e risco de abandono",
+  DIRECTOR_GENERAL: "Visão executiva da escola: alunos, assiduidade e propinas",
   OWNER: "Desempenho institucional consolidado",
   ADMIN: "Visão executiva da escola",
   MANAGER: "Visão executiva da escola",

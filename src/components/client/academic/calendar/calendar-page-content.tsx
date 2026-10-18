@@ -11,6 +11,8 @@ import {
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { useListFilters } from "@/hooks/common/use-list-filters";
 import { useCalendar } from "@/hooks/school/use-calendar";
+import { useEntitled } from "@/hooks/common/use-entitled";
+import { SchoolDaysView } from "./school-days-view";
 import { useGoogleReturn } from "@/hooks/school/use-google-return";
 import { EVENT_TYPE_LABEL, type ApiEvent, type ApiHolidayRow } from "@/services/calendar-service";
 import { useModal } from "@/stores/modal/use-modal-store";
@@ -40,9 +42,12 @@ const EVENT_SORTS: ListSortDef<ApiEvent>[] = [
 const EVENT_DATES = [{ key: "data", label: "Evento", getDate: (e: ApiEvent) => e.start_date }];
 const eventText = (e: ApiEvent) => `${e.title} ${EVENT_TYPE_LABEL[e.type] ?? e.type} ${e.location ?? ""}`;
 
+import { usePlanUpgradeModal, isPlanRestrictedError } from "@/stores/plan/use-plan-upgrade-modal-store";
+
 function NewEventModal() {
   const { createEvent } = useCalendar();
   const { open, modalData } = useModal();
+  const planModal = usePlanUpgradeModal();
   const preset = (modalData["calendar-new-event"] as { date?: string } | undefined)?.date ?? "";
   const [f, setF] = useState({ type: "actividade_escolar", title: "", start: "", end: "", startTime: "", endTime: "", visibility: "interna" as ApiEvent["visibility"], location: "", justification: "" });
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }));
@@ -53,7 +58,17 @@ function NewEventModal() {
     createEvent
       .mutateAsync({ type: f.type, title: f.title.trim(), startDate: start, endDate: f.end || undefined, startTime: f.startTime || undefined, endTime: f.endTime || undefined, visibility: f.visibility, location: f.location.trim() || undefined, justification: f.justification.trim() || undefined, affectsLessons: false })
       .then(() => { SucessMessage("Evento criado (rascunho)."); setF((p) => ({ ...p, title: "", start: "", end: "" })); })
-      .catch(fail);
+      .catch((e) => {
+        if (isPlanRestrictedError(e)) {
+          planModal.open({
+            featureName: "Calendário Escolar",
+            requiredPlan: "profissional",
+            description: "O registo de datas e eventos no calendário escolar exige o plano Profissional. Faça upgrade da sua subscrição para desbloquear esta funcionalidade.",
+          });
+          return;
+        }
+        fail(e);
+      });
 
   return (
     <FormModal id="calendar-new-event" title="Novo evento do calendário" description="O evento nasce em rascunho; aprove e publique-o depois." submitLabel="Criar evento" isLoading={createEvent.isPending} onSubmit={submit} disabled={f.title.trim().length < 3 || !start}>
@@ -106,6 +121,12 @@ function GooglePanel() {
 
 /** Calendário escolar: vista de calendário (mês) e lista, filtros completos, feriados/pontes e ligação ao Google Calendar. */
 export function CalendarPageContent() {
+  // Sem o calendário geral (Essencial): só dias lectivos, feriados e marcas da Direcção.
+  const full = useEntitled({ feature: "calendar_general", minPlan: "profissional" });
+  return full ? <FullCalendarContent /> : <SchoolDaysView />;
+}
+
+function FullCalendarContent() {
   useGoogleReturn();
   const c = useCalendar();
   const { openModal } = useModal();

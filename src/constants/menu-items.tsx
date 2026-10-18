@@ -11,6 +11,10 @@ export type SubMenuItem = {
   /** Permissões da API que dão acesso de leitura (qualquer uma): ver `PAGE_PERMISSION`. */
   permissions?: readonly string[];
   minPlan?: PlanType;
+  feature?: string;
+  teaser?: boolean;
+  /** Visível mas acima do plano contratado (montra de upgrade). */
+  showUpgrade?: boolean;
 };
 
 export type MenuItem = {
@@ -21,6 +25,8 @@ export type MenuItem = {
   permissions?: readonly string[];
   roles?: Role[];
   minPlan?: PlanType;
+  feature?: string;
+  teaser?: boolean;
   showMoreIcon?: boolean;
   showUpgrade?: boolean;
   items?: SubMenuItem[];
@@ -30,7 +36,7 @@ export type MenuStructure = {
   items: MenuItem[];
 };
 
-const asSub = (p: PageDef): SubMenuItem => ({ name: p.name, url: p.url, iconName: p.icon, roles: [...p.roles], ...(PAGE_PERMISSION[p.url] ? { permissions: PAGE_PERMISSION[p.url] } : {}), ...(p.minPlan ? { minPlan: p.minPlan } : {}) });
+const asSub = (p: PageDef): SubMenuItem => ({ name: p.name, url: p.url, iconName: p.icon, roles: [...p.roles], ...(PAGE_PERMISSION[p.url] ? { permissions: PAGE_PERMISSION[p.url] } : {}), ...(p.minPlan ? { minPlan: p.minPlan } : {}), ...(p.feature ? { feature: p.feature } : {}), ...(p.teaser ? { teaser: true } : {}) });
 const asLeaf = (p: PageDef): MenuItem => ({ ...asSub(p), icon: <Icon name={p.icon} className="w-5 h-5" /> });
 
 /**

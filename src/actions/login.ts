@@ -53,14 +53,14 @@ export async function loginAction({
     const authHeader = { headers: { Authorization: `Bearer ${accessToken}` } };
     const activeSchoolId = me.memberships[0]?.school_id;
     const sub = activeSchoolId
-      ? await api.get<ApiSubscription>(`/schools/${activeSchoolId}/subscription`, authHeader).then((r) => mapApiSubscription(r.data)).catch(() => undefined)
+      ? await api.get<ApiSubscription>(`/schools/${activeSchoolId}/subscription/entitlements`, authHeader).then((r) => mapApiSubscription(r.data)).catch(() => undefined)
       : undefined;
 
     return {
       user: mapApiUser(me, activeSchoolId, sub),
       redirectPath: getRouteByRole(role),
       token: accessToken,
-      memberships: me.memberships.map((m) => ({ schoolId: m.school_id, schoolName: m.school_name, roles: m.roles })),
+      memberships: me.memberships.map((m) => ({ schoolId: m.school_id, schoolName: m.school_name, roles: m.roles, viaGroup: m.via_group === true })),
     };
   } catch (error: any) {
     let messageError = "Ocorreu um erro desconhecido!";
@@ -110,7 +110,7 @@ export async function resetPasswordAndLoginAction({
     const authHeader = { headers: { Authorization: `Bearer ${accessToken}` } };
     const activeSchoolId = me.memberships[0]?.school_id;
     const sub = activeSchoolId
-      ? await api.get<ApiSubscription>(`/schools/${activeSchoolId}/subscription`, authHeader)
+      ? await api.get<ApiSubscription>(`/schools/${activeSchoolId}/subscription/entitlements`, authHeader)
           .then((r) => mapApiSubscription(r.data))
           .catch(() => undefined)
       : undefined;
@@ -119,7 +119,7 @@ export async function resetPasswordAndLoginAction({
       user: mapApiUser(me, activeSchoolId, sub),
       redirectPath: getRouteByRole(role),
       token: accessToken,
-      memberships: me.memberships.map((m) => ({ schoolId: m.school_id, schoolName: m.school_name, roles: m.roles })),
+      memberships: me.memberships.map((m) => ({ schoolId: m.school_id, schoolName: m.school_name, roles: m.roles, viaGroup: m.via_group === true })),
     };
   } catch (error: any) {
     let messageError = "Não foi possível definir a palavra-passe.";

@@ -208,17 +208,19 @@ export function EventsCard({ events }: { events: Overview["upcoming"] }) {
   );
 }
 
-export function DebtorsCard({ debtors }: { debtors: Overview["topDebtors"] }) {
+/** `collections`: o plano inclui a cobrança por e-mail; sem ela, as ligações vão para as facturas. */
+export function DebtorsCard({ debtors, collections }: { debtors: Overview["topDebtors"]; collections: boolean }) {
+  const href = collections ? "/tuition/collections" : "/tuition/invoices";
   return (
-    <OverviewSectionCard title="Maiores dívidas em atraso" icon="Wallet" href="/tuition/collections">
+    <OverviewSectionCard title="Maiores dívidas em atraso" icon="Wallet" href={href}>
       {debtors.length === 0 ? (
         <BlockEmptyState
           icon="BadgePercent"
           tone="success"
           title="Cobranças em dia"
           description="Não foram detectadas propinas em atraso ou alunos inadimplentes."
-          actionLabel="Consultar cobranças"
-          actionHref="/tuition/collections"
+          actionLabel={collections ? "Consultar cobranças" : "Consultar facturas"}
+          actionHref={href}
         />
       ) : (
         <ul>{debtors.map((d) => (

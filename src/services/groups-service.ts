@@ -5,7 +5,8 @@ export const GROUP_ROLE_LABEL: Record<GroupRole, string> = {
   group_viewer: "Indicadores pedagógicos", group_finance: "Indicadores financeiros", group_admin: "Administrador do grupo", direccao_grupo: "Direcção do grupo",
 };
 
-export interface ApiGroup { id: string; name: string; role: GroupRole; permissions: string[]; schools: Array<{ id: string; name: string }> }
+/** `entitled`: alguma escola do grupo tem o multi-escola contratado (Enterprise); sem isso a vista consolidada está bloqueada. */
+export interface ApiGroup { id: string; name: string; role: GroupRole; permissions: string[]; schools: Array<{ id: string; name: string }>; entitled: boolean }
 
 export interface ApiGroupSchoolRow {
   school: { id: string; name: string };

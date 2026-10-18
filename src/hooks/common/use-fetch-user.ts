@@ -54,8 +54,8 @@ export function useFetchUser({ enabled = true }: UseFetchUserOptions = {}) {
             id: "sub-1",
             status: "ACTIVE",
             plan: {
-              id: "plan-pro",
-              name: "Pro",
+              id: "enterprise",
+              name: "enterprise",
               price: 25000,
               billingCycle: "MONTHLY",
             } as any,

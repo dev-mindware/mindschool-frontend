@@ -24,6 +24,15 @@ export interface ApiEvent {
   row_version: number;
 }
 
+/** Um dia do motor de dias lectivos. `source`: `regra` (ano, trimestres, feriados nacionais) ou `calendario` (evento/marca da Direcção). */
+export interface ApiSchoolDay {
+  date: string;
+  lectivo: boolean;
+  reason: string;
+  source: "regra" | "calendario";
+  event_id: string | null;
+}
+
 export interface ApiHolidayRow {
   date: string;
   kind: "feriado" | "ponte";
@@ -82,6 +91,12 @@ export const calendarService = {
   publish: async (id: string, confirmConflicts = false) => (await api.post<ApiEvent>(`/s/calendar/events/${id}/publish`, { confirm_conflicts: confirmConflicts })).data,
   cancel: async (id: string, reason: string) => (await api.post<ApiEvent>(`/s/calendar/events/${id}/cancel`, { reason })).data,
   impact: async (id: string) => (await api.get<unknown>(`/s/calendar/events/${id}/impact`)).data,
+
+  // ---- Dias lectivos (todos os planos) ----
+  schoolDays: async (from: string, to: string): Promise<ApiSchoolDay[]> => (await api.get<{ data: ApiSchoolDay[] }>("/s/school-days", { params: { from, to } })).data.data,
+  markNonLective: async (v: { startDate: string; endDate?: string; title: string; justification: string }) =>
+    (await api.post("/s/school-days/marks", { start_date: v.startDate, title: v.title, justification: v.justification, ...(v.endDate ? { end_date: v.endDate } : {}) })).data,
+  unmarkNonLective: async (eventId: string) => (await api.delete(`/s/school-days/marks/${eventId}`)).data,
 
   holidays: async (academicYearId: string): Promise<{ data: ApiHolidayRow[]; sources: { google: boolean } }> =>
     (await api.get<{ data: ApiHolidayRow[]; sources: { google: boolean } }>("/s/calendar/holidays", { params: { academic_year_id: academicYearId } })).data,

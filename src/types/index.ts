@@ -20,7 +20,6 @@ export type {
 } from "./online-exam";
 export { type ExamStatus } from "./online-exam";
 export type { ExamStatus as AdmissionExamStatus } from "./admission";
-export * from "./multi-school";
 export * from "./certificate";
 
 // Platform & Financial (AGT Certified) Core Types

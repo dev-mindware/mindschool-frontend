@@ -2,7 +2,8 @@
 
 import { useMemo } from "react";
 import { usePathname } from "next/navigation";
-import { Role, PlanType, PLAN_HIERARCHY, AppModule, PermissionAction } from "@/types";
+import { Role, PlanType, AppModule, PermissionAction } from "@/types";
+import { isEntitled } from "@/lib/plan-access";
 import { useAuth } from "@/hooks/auth";
 import { useCan } from "@/hooks/auth/use-can";
 import { ROLE_MODULE_PERMISSIONS } from "@/constants/roles";
@@ -23,10 +24,7 @@ export function useAccessControl(allowed: Role[], checkPlan = true): AccessResul
 
   const matchingItem = useMemo(() => findMatchingMenuItem(pathname, user?.role), [pathname, user?.role]);
 
-  const currentPlanLevel = useMemo(() => {
-    const plan = (user?.company?.subscription?.plan.name as PlanType) || "Base";
-    return PLAN_HIERARCHY[plan] ?? 0;
-  }, [user]);
+  const subscription = user?.company?.subscription;
 
   return useMemo<AccessResult>(() => {
     if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
@@ -44,14 +42,11 @@ export function useAccessControl(allowed: Role[], checkPlan = true): AccessResul
     const PLAN_BYPASS_ROLES: Role[] = [];
     const shouldCheckPlan = checkPlan && !PLAN_BYPASS_ROLES.includes(user.role);
 
-    if (shouldCheckPlan && matchingItem?.minPlan) {
-      const required = PLAN_HIERARCHY[matchingItem.minPlan] ?? 0;
-      if (currentPlanLevel < required) {
-        const fallbackRoute = getRouteByRole(user.role);
-        const redirectTo =
-          pathname !== fallbackRoute ? fallbackRoute : "/unauthorized";
-        return { status: "plan_insufficient", redirectTo };
-      }
+    // As páginas «montra» (teaser) não redirecionam: mostram o convite ao upgrade (ver `usePlanAccess`).
+    if (shouldCheckPlan && matchingItem && !matchingItem.teaser && !isEntitled(matchingItem, subscription)) {
+      const fallbackRoute = getRouteByRole(user.role);
+      const redirectTo = pathname !== fallbackRoute ? fallbackRoute : "/unauthorized";
+      return { status: "plan_insufficient", redirectTo };
     }
 
     return { status: "allowed" };
@@ -61,7 +56,7 @@ export function useAccessControl(allowed: Role[], checkPlan = true): AccessResul
     allowed,
     matchingItem,
     permissions,
-    currentPlanLevel,
+    subscription,
     pathname,
     checkPlan,
   ]);
@@ -81,10 +76,7 @@ export function usePlanAccess(): PlanAccessResult {
 
   const matchingItem = useMemo(() => findMatchingMenuItem(pathname, user?.role), [pathname, user?.role]);
 
-  const currentPlanLevel = useMemo(() => {
-    const plan = (user?.company?.subscription?.plan.name as PlanType) || "Base";
-    return PLAN_HIERARCHY[plan] ?? 0;
-  }, [user]);
+  const subscription = user?.company?.subscription;
 
   if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") {
     return { hasAccess: true, isLoading: false };
@@ -98,16 +90,13 @@ export function usePlanAccess(): PlanAccessResult {
     return { hasAccess: true, isLoading: false };
   }
 
-  if (matchingItem?.minPlan) {
-    const required = PLAN_HIERARCHY[matchingItem.minPlan] ?? 0;
-    if (currentPlanLevel < required) {
-      return {
-        hasAccess: false,
-        requiredPlan: matchingItem.minPlan,
-        featureName: matchingItem.name,
-        isLoading: false,
-      };
-    }
+  if (matchingItem && !isEntitled(matchingItem, subscription)) {
+    return {
+      hasAccess: false,
+      requiredPlan: matchingItem.minPlan,
+      featureName: matchingItem.name,
+      isLoading: false,
+    };
   }
 
   return { hasAccess: true, isLoading: false };

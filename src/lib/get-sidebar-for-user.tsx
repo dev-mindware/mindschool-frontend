@@ -1,83 +1,30 @@
-import { Icon } from "@/components";
-import { MenuItem } from "@/constants/menu-items";
-import { Role, PlanType, Subscription, SubscriptionStatus, PLAN_HIERARCHY } from "@/types";
+import { MenuItem, SubMenuItem } from "@/constants/menu-items";
+import { isEntitled } from "@/lib/plan-access";
+import { Role, Subscription, SubscriptionStatus } from "@/types";
 
 /**
- * Modulos que ainda NAO tem API (biblioteca, saude, transporte, extracurriculares, pedidos da secretaria): ficam escondidos
- * do menu para nao mostrar dados de demonstracao como se fossem reais.  mostra-os.
+ * Menu do utilizador: filtra por papel e por plano. Uma página acima do plano some, excepto as marcadas `teaser`, que
+ * ficam com cadeado (`showUpgrade`) como montra de upgrade. Sem subscrição (encarregado/aluno) o plano não filtra: a API
+ * continua a ser a barreira final.
  */
-const UNLINKED_URLS: string[] = [];
+export function getSidebarForUser(items: MenuItem[], role: Role, subscription: Subscription | undefined): MenuItem[] {
+  // Subscrição por pagar: conta só o plano escolhido (as features contratadas ainda não existem).
+  const sub = subscription?.status === SubscriptionStatus.PENDING ? { ...subscription, entitledFeatures: undefined } : subscription;
 
-function pruneUnlinked(items: MenuItem[]): MenuItem[] {
-  if (process.env.NEXT_PUBLIC_SHOW_UNLINKED_MODULES === "true") return items;
-  return items.map((i) => ({ ...i, items: i.items?.filter((sub) => !UNLINKED_URLS.includes(sub.url)) })).filter((i) => !UNLINKED_URLS.includes(i.url));
-}
-
-export function getSidebarForUser(
-  items: MenuItem[],
-  role: Role,
-  subscription: Subscription | undefined,
-  plan?: PlanType,
-): MenuItem[] {
-
-  if (subscription?.status === SubscriptionStatus.PENDING) {
-    // Filter by the pending plan so Base/Smart pending users don't see Pro menus
-    const pendingPlanLevel = plan ? PLAN_HIERARCHY[plan] : 0;
-
-    return items
-      .filter((item) => !item.roles || item.roles.includes(role))
-      .map((item) => {
-        const isPlans = item.url === "/plans";
-        const isSettings = item.url === "/settings";
-
-        if (isPlans || isSettings) return item;
-
-        const itemPlanLevel = item.minPlan ? PLAN_HIERARCHY[item.minPlan] : 0;
-        const planOk = itemPlanLevel <= pendingPlanLevel;
-
-        if (!planOk) return null;
-
-        return {
-          ...item,
-          showUpgrade: true,
-          items: item.items?.filter((sub) => {
-            const subPlanLevel = sub.minPlan ? PLAN_HIERARCHY[sub.minPlan] : 0;
-            return subPlanLevel <= pendingPlanLevel;
-          }),
-        };
-      })
-      .filter(Boolean) as typeof items;
-  }
-
-  // Fallback to Base level conceptually if no plan is provided
-  // Sem acesso a subscricao (ex.: encarregado/aluno) o plano nao filtra o menu: a API continua a ser a barreira.
-  const currentPlanLevel = !subscription ? Number.POSITIVE_INFINITY : plan ? PLAN_HIERARCHY[plan] : 0;
+  const resolve = <T extends MenuItem | SubMenuItem>(item: T): T | null => {
+    if (item.roles && !item.roles.includes(role)) return null;
+    if (isEntitled(item, sub)) return item;
+    return item.teaser ? { ...item, showUpgrade: true } : null;
+  };
 
   return items
-    .filter((item) => {
-      const roleOk = !item.roles || item.roles.includes(role);
-      const itemPlanLevel = item.minPlan ? PLAN_HIERARCHY[item.minPlan] : 0;
-      const planOk = !item.minPlan || currentPlanLevel >= itemPlanLevel;
-
-      if (!planOk && item.showUpgrade) return roleOk;
-
-      return roleOk && planOk;
+    .map((item): MenuItem | null => {
+      const self = resolve(item);
+      if (!self) return null;
+      return { ...self, items: item.items?.map(resolve).filter((s): s is SubMenuItem => s !== null) };
     })
-    .map((item) => ({
-      ...item,
-      items: item.items?.filter((sub) => {
-        const roleOk = !sub.roles || sub.roles.includes(role);
-        const subPlanLevel = sub.minPlan ? PLAN_HIERARCHY[sub.minPlan] : 0;
-        const planOk = !sub.minPlan || currentPlanLevel >= subPlanLevel;
-        return roleOk && planOk;
-      }),
-    }))
-    .filter((item) => {
-      if (item.url === "#" && Array.isArray(item.items) && item.items.length === 0) {
-        return false;
-      }
-      return true;
-    });
+    .filter((item): item is MenuItem => item !== null)
+    .filter((item) => !(item.url === "#" && Array.isArray(item.items) && item.items.length === 0));
 }
 
 /**

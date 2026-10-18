@@ -1,8 +1,8 @@
-import { AppSidebar, BreadcrumbProvider, SidebarInset, PlanGate, StepUpDialog, ImpersonationBanner } from "@/components";
+import { AppSidebar, BreadcrumbProvider, SidebarInset, PlanGate, StepUpDialog, ImpersonationBanner, PlanUpgradeModal } from "@/components";
 import { TrialBanner } from "@/components/shared";
 import { NotificationDetail } from "@/components/shared/notifications";
 import { RouteProtector } from "@/contexts";
-import { FeatureGateProvider, StoreProvider } from "@/providers";
+import { FeatureGateProvider, SchoolProvider } from "@/providers";
 import { STAFF_ROLES } from "@/constants/roles";
 import { Role } from "@/types";
 
@@ -13,7 +13,7 @@ type Props = {
 export default function ClientLayout({ children }: Props) {
   return (
     <RouteProtector allowed={[...STAFF_ROLES, "GUARDIAN", "STUDENT"] as Role[]} checkPlan={false}>
-      <StoreProvider>
+      <SchoolProvider>
         <FeatureGateProvider>
           <AppSidebar />
           <SidebarInset>
@@ -25,8 +25,9 @@ export default function ClientLayout({ children }: Props) {
           </SidebarInset>
           <NotificationDetail />
           <StepUpDialog />
+          <PlanUpgradeModal />
         </FeatureGateProvider>
-      </StoreProvider>
+      </SchoolProvider>
     </RouteProtector>
   );
 }

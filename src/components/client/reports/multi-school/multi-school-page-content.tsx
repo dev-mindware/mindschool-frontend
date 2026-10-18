@@ -6,6 +6,8 @@ import { SucessMessage, ErrorMessage } from '@/utils/messages';
 import { Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, DynamicMetricCard, EmptyState, FormModal, FormSelect, Icon, Input, TitleList, type Column } from '@/components';
 import { useGroups } from '@/hooks/school/use-groups';
 import { GROUP_ROLE_LABEL, type ApiGroupMember, type GroupRole } from '@/services/groups-service';
+import { useSchool } from '@/providers/school-provider';
+import { usePlanUpgradeModal } from '@/stores/plan/use-plan-upgrade-modal-store';
 import { useModal } from '@/stores/modal/use-modal-store';
 import { getApiErrorMessage } from '@/utils/api-error';
 
@@ -23,6 +25,8 @@ export function MultiSchoolPageContent() {
   const active = groupId || first.groups[0]?.id || '';
   const g = useGroups(active || undefined);
   const { openModal } = useModal();
+  const { schools: mySchools, current, switchSchool } = useSchool();
+  const planModal = usePlanUpgradeModal();
   const [email, setEmail] = useState('');
   const [role, setRole] = useState<GroupRole>('group_viewer');
   const [editing, setEditing] = useState<MemberRow | null>(null);
@@ -32,6 +36,18 @@ export function MultiSchoolPageContent() {
   if (first.isLoading) return <div className="text-sm text-muted-foreground">A carregar…</div>;
   if (first.groups.length === 0) {
     return <EmptyState icon="Building2" title="Sem grupo educativo" description="Não pertence a nenhum grupo educativo. O grupo e os seus membros são criados pela equipa da plataforma." />;
+  }
+
+  if (first.groups.find((x) => x.id === active)?.entitled === false) {
+    return (
+      <EmptyState
+        icon="Lock"
+        title="Multi-Escola indisponível no plano actual"
+        description="O painel consolidado do grupo faz parte do plano Enterprise. Nenhuma escola do grupo o tem contratado de momento."
+      >
+        <Button size="sm" onClick={() => planModal.open({ requiredPlan: 'enterprise', featureName: 'Multi-Escola', description: 'O painel consolidado do grupo faz parte do plano Enterprise.' })}>Ver o plano Enterprise</Button>
+      </EmptyState>
+    );
   }
 
   const d = g.dashboard;
@@ -53,6 +69,15 @@ export function MultiSchoolPageContent() {
       { key: 'collection_rate', header: 'Cobrança', render: (_: unknown, s: (typeof schools)[number]) => <span className="font-mono">{pct(s.collection_rate)}</span> },
       { key: 'delinquency_rate', header: 'Inadimplência', render: (_: unknown, s: (typeof schools)[number]) => <span className="font-mono">{pct(s.delinquency_rate)}</span> },
     ] : []),
+    {
+      key: 'enter', header: 'Acção',
+      // Entrar numa escola é trocar de escola activa (o mesmo que o switcher da sidebar); só nas escolas onde o utilizador tem conta.
+      render: (_: unknown, s: (typeof schools)[number]) => s.school.id === current?.schoolId
+        ? <Badge variant="outline">Escola activa</Badge>
+        : mySchools.some((m) => m.schoolId === s.school.id)
+          ? <Button size="sm" variant="outline" onClick={() => switchSchool(s.school.id)}>Entrar</Button>
+          : <span className="text-xs text-muted-foreground">Sem acesso</span>,
+    },
   ];
 
   const members: MemberRow[] = g.members.map((m) => ({ ...m, id: m.user_id }));

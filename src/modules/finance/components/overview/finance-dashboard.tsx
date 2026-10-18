@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Bar, BarChart, CartesianGrid, Cell, Label, Pie, PieChart, XAxis, YAxis } from "recharts";
 import { Button, ChartContainer, ChartTooltip, ChartTooltipContent, DashboardSkeleton, DynamicMetricCard, EmptyState, Icon, type ChartConfig } from "@/components";
 import { ChartCard, ChartEmpty, LegendRow, RateBar } from "@/components/shared/chart-card";
+import { useEntitled } from "@/hooks/common/use-entitled";
 import { useFinanceOverview } from "@/modules/finance/hooks/use-tuition-payments";
 import type { FinanceOverview } from "@/modules/finance/services/tuition-payments-service";
 import { formatAxisCurrency, formatCurrency } from "@/utils/format-currency";
@@ -65,10 +66,11 @@ export function FinanceDashboard({ variant = "operations" }: FinanceDashboardPro
 }
 
 function QuickActions({ open }: { open: number }) {
+  const collections = useEntitled({ feature: "email_collections", minPlan: "enterprise" });
   const items = [
     { href: "/tuition/submissions", icon: "FileCheck" as const, label: open > 0 ? `Validar comprovativos (${open})` : "Comprovativos", primary: open > 0 },
     { href: "/tuition/payments", icon: "Wallet" as const, label: "Registar pagamento", primary: false },
-    { href: "/tuition/collections", icon: "Send" as const, label: "Cobranças e lembretes", primary: false },
+    ...(collections ? [{ href: "/tuition/collections", icon: "Send" as const, label: "Cobranças e lembretes", primary: false }] : []),
     { href: "/settings?tab=bank-accounts", icon: "Landmark" as const, label: "Dados bancários", primary: false },
   ];
   return (

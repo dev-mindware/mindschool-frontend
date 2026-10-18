@@ -465,7 +465,7 @@ export function canUserAccessOnboardingTour(
   if (user.role === "ADMIN") return true;
   if (!tour.roles.includes(user.role)) return false;
 
-  const currentPlan = user.company?.subscription?.plan?.name ?? "Base";
+  const currentPlan = user.company?.subscription?.plan?.name ?? "essencial";
   const currentPlanLevel = PLAN_HIERARCHY[currentPlan] ?? 0;
   const requiredPlanLevel = PLAN_HIERARCHY[tour.minPlan] ?? 0;
 

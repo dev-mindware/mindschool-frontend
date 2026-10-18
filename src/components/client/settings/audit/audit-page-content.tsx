@@ -4,10 +4,12 @@ import { formatDateTime } from "@/utils";
 import { useState } from "react";
 import {
   Badge,
+  Button,
   ButtonOnlyAction,
   DataList,
   EmptyState,
   FormModal,
+  Icon,
   TitleList,
   type Column,
 } from "@/components";
@@ -55,6 +57,7 @@ const ENTITIES: Record<string, string> = {
   pauta: "Pauta Trimestral",
   bank_account: "Coordenada Bancária",
   school_settings: "Políticas da Escola",
+  group_access: "Acesso do grupo",
 };
 
 const formatModule = (m: string) => MODULES[m] ?? (m.charAt(0).toUpperCase() + m.slice(1));
@@ -65,7 +68,9 @@ type Detail = { before?: unknown; after?: unknown; reason?: string | null };
 
 /** Registo imutável de auditoria da escola em português de Angola (AO1945). */
 export function AuditPageContent() {
-  const { events, hasMore, isLoading, forbidden } = useAudit({});
+  // «Acessos do grupo»: quem entrou nesta escola a partir de outra do grupo (titular/direcção pedagógica).
+  const [groupOnly, setGroupOnly] = useState(false);
+  const { events, hasMore, isLoading, forbidden } = useAudit(groupOnly ? { entity_type: "group_access" } : {});
   const { openModal } = useModal();
   const [current, setCurrent] = useState<ApiAuditEvent | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
@@ -176,6 +181,20 @@ export function AuditPageContent() {
         title="Livro de Auditoria e Rastreabilidade"
         suTitle="Registo imutável de todas as acções e actualizações institucionais da escola; em conformidade com a norma ortográfica AO1945."
       />
+
+      <div className="inline-flex rounded-md border bg-sidebar p-1" role="tablist" aria-label="Tipo de registo">
+        <Button size="sm" variant={groupOnly ? "ghost" : "default"} className="h-8 gap-1.5" onClick={() => setGroupOnly(false)}>
+          <Icon name="ScrollText" className="size-4" />Todos os registos
+        </Button>
+        <Button size="sm" variant={groupOnly ? "default" : "ghost"} className="h-8 gap-1.5" onClick={() => setGroupOnly(true)}>
+          <Icon name="Building2" className="size-4" />Acessos do grupo
+        </Button>
+      </div>
+      {groupOnly && (
+        <p className="text-xs text-muted-foreground">
+          Entradas nesta escola feitas por titulares e direcções pedagógicas de outras escolas do mesmo grupo (um registo por pessoa em cada 30 minutos).
+        </p>
+      )}
 
       <DataList<ApiAuditEvent>
         prefix="auditoria"

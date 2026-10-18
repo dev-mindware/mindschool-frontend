@@ -58,7 +58,7 @@ function collectLinks(items: MenuItem[]): Map<string, NavLink> {
   for (const item of items) {
     if (item.items?.length) {
       for (const sub of item.items) {
-        links.set(linkKey(sub.name, sub.url), { key: linkKey(sub.name, sub.url), name: sub.name, url: sub.url, icon: sub.iconName ?? item.iconName ?? "Circle" });
+        links.set(linkKey(sub.name, sub.url), { key: linkKey(sub.name, sub.url), name: sub.name, url: sub.url, icon: sub.iconName ?? item.iconName ?? "Circle", ...(sub.showUpgrade ? { showUpgrade: true } : {}) });
       }
     } else if (item.url !== "#") {
       links.set(linkKey(item.name, item.url), { key: linkKey(item.name, item.url), name: item.name, url: item.url, icon: item.iconName ?? "Circle", ...(item.showUpgrade ? { showUpgrade: true } : {}) });

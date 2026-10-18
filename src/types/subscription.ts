@@ -13,27 +13,24 @@ export interface Subscription {
   providerSubscriptionId: string;
   billingPeriodInMonths: string | null;
   plan: Plan;
+  /** Chaves das features contratadas (plano + add-ons), como a API as resolve. `undefined` = ainda não carregadas. */
+  entitledFeatures?: readonly string[];
 }
 
-export type PlanType = "Base" | "Smart" | "Pro";
+/** Código do plano, tal como na API (`plan.code`). */
+export type PlanType = "essencial" | "profissional" | "enterprise";
 
 export const PLAN_HIERARCHY: Record<PlanType, number> = {
-  Base: 0,
-  Smart: 1,
-  Pro: 2,
+  essencial: 0,
+  profissional: 1,
+  enterprise: 2,
 };
 
-export type MethodName = "Kwik" | "Express";
-
-export interface Method {
-  name: string;
-  icon: string;
-  description: string;
-  info: string;
-  processingTime: string;
-  reference: string;
-  owner: string;
-}
+export const PLAN_LABEL: Record<PlanType, string> = {
+  essencial: "Essencial",
+  profissional: "Profissional",
+  enterprise: "Enterprise",
+};
 
 export enum SubscriptionStatus {
   TRIALING = "TRIALING",
@@ -44,27 +41,8 @@ export enum SubscriptionStatus {
   PENDING = "PENDING",
 }
 
+/** O plano da subscrição activa: `name` é o código da API (`essencial`, `profissional`, `enterprise`). O catálogo completo vem de `subscription-service`. */
 export interface Plan {
   id: string;
   name: PlanType;
-  priceMonthly: string;
-  isPublic: boolean;
-  createdAt: string;
-  updatedAt: string;
-  order: number;
-  maxUsers: number;
-  maxStores: number;
-  trialPeriodInDays?: number;
-  features: Features;
-}
-
-export interface Features {
-  hasPos: boolean;
-  canExportSaft: boolean;
-  hasStock: boolean;
-  hasInvoices: boolean;
-  hasReporting: boolean;
-  hasSuppliers: boolean;
-  hasAppearance?: boolean;
-  hasPrintFormats?: boolean;
 }

@@ -8,7 +8,7 @@ import type { Role } from "@/types";
 jest.mock("@/components", () => ({ Icon: () => null }));
 
 const ROLES = ["DIRECTOR_GENERAL", "OWNER", "MANAGER", "PEDAGOGIC_DIRECTOR", "SECRETARY", "FINANCIAL", "TEACHER", "MED_AUDITOR", "GUARDIAN", "STUDENT", "SYSTEM_ADMIN", "ADMIN"] as const;
-const visible = (role: Role) => getSidebarForUser(menuItems.items, role, undefined, undefined);
+const visible = (role: Role) => getSidebarForUser(menuItems.items, role, undefined);
 const forRole = (role: Role) => buildNavigation(visible(role));
 
 describe("navegação modular", () => {

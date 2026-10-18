@@ -115,6 +115,7 @@ export function NavMenu({ items }: { items: MenuItem[] }) {
                                     <span className="w-1.5 h-1.5 rounded-full bg-muted-foreground/30 shrink-0" />
                                   )}
                                   <span className="truncate">{sub.name}</span>
+                                  {sub.showUpgrade && <Icon name="Lock" className="ml-auto size-3.5 shrink-0 text-muted-foreground" />}
                                 </Link>
                               </SidebarMenuSubButton>
                             </SidebarMenuSubItem>
@@ -139,6 +140,7 @@ export function NavMenu({ items }: { items: MenuItem[] }) {
                       <Link href={item.url}>
                         {item.icon}
                         <span className="truncate">{item.name}</span>
+                        {item.showUpgrade && <Icon name="Lock" className="ml-auto size-3.5 shrink-0 text-muted-foreground" />}
                       </Link>
                     </SidebarMenuButton>
                     {item.showMoreIcon && (

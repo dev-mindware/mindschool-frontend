@@ -1,9 +1,10 @@
 "use client";
 
 import { ReactNode } from "react";
+import { isEntitled } from "@/lib/plan-access";
 import {
   PlanType,
-  PLAN_HIERARCHY,
+  PLAN_LABEL,
   Role,
   AppModule,
   PermissionAction,
@@ -52,12 +53,7 @@ export function FeatureGate({
 
   // 1. Verificação de Nível de Plano (se especificado)
   if (minPlan) {
-    const currentPlan =
-      (user?.company?.subscription?.plan?.name as PlanType) || "Base";
-    const currentLevel = PLAN_HIERARCHY[currentPlan] || 0;
-    const requiredLevel = PLAN_HIERARCHY[minPlan] || 0;
-
-    if (currentLevel < requiredLevel) {
+    if (!isEntitled({ minPlan }, user?.company?.subscription)) {
       if (fallback === "hidden") return null;
 
       return (
@@ -78,7 +74,7 @@ export function FeatureGate({
             <TooltipContent>
               <p>
                 {tooltipMessage ||
-                  `Recurso disponível a partir do plano ${minPlan}. Clique para atualizar.`}
+                  `Recurso disponível a partir do plano ${PLAN_LABEL[minPlan]}. Clique para atualizar.`}
               </p>
             </TooltipContent>
           </Tooltip>

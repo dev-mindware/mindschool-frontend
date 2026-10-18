@@ -1,6 +1,7 @@
 "use client";
 
-import { PlanType } from "@/types";
+import { PlanType, PLAN_LABEL } from "@/types";
+import { PLAN_BENEFITS } from "@/constants/plan-benefits";
 import { Icon } from "@/components/common/icon";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
@@ -16,32 +17,8 @@ export function PlanUpgradeGate({
 }: PlanUpgradeGateProps) {
   const router = useRouter();
 
-  const getPlanBenefits = (plan: PlanType) => {
-    switch (plan) {
-      case "Pro":
-        return [
-          "Provas e exames online com correcção automática",
-          "Gestão de transporte escolar e rotas em tempo real",
-          "Saúde escolar e acompanhamento psicopedagógico",
-          "Auditoria avançada e exportação ministerial (MED)",
-        ];
-      case "Smart":
-        return [
-          "Assiduidade docente e controlo de ponto via QR/biometria",
-          "Sistema preditivo de alerta de abandono escolar",
-          "Relatórios pedagógicos consolidados de aproveitamento",
-          "Notificações automáticas para encarregados de educação",
-        ];
-      default:
-        return [
-          "Gestão académica de turmas, matrículas e horários",
-          "Pautas trimestrais e lançamento de notas",
-          "Cobrança de propinas e emissão de recibos",
-        ];
-    }
-  };
-
-  const benefits = getPlanBenefits(requiredPlan);
+  const benefits = PLAN_BENEFITS[requiredPlan];
+  const planLabel = PLAN_LABEL[requiredPlan];
 
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center animate-in fade-in duration-500">
@@ -54,7 +31,7 @@ export function PlanUpgradeGate({
 
       <div className="max-w-md space-y-3">
         <h2 className="text-2xl font-bold tracking-tight text-foreground">
-          Recurso Exclusivo do Plano {requiredPlan}
+          Recurso Exclusivo do Plano {planLabel}
         </h2>
 
         <p className="text-sm text-muted-foreground leading-relaxed">
@@ -76,7 +53,7 @@ export function PlanUpgradeGate({
       {benefits.length > 0 && (
         <div className="w-full max-w-sm mt-8 p-5 bg-muted/40 rounded-xl border text-left space-y-3">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            O que está incluído no plano {requiredPlan}:
+            O que está incluído no plano {planLabel}:
           </h4>
           <ul className="space-y-2.5">
             {benefits.map((benefit) => (

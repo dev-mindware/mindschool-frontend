@@ -21,6 +21,14 @@ type Card = Parameters<typeof DynamicMetricCard>[0] & { extra?: { name: string; 
 function buildRoleCards(o: ReturnType<typeof useSchoolOverview>): Card[] {
   const { kpis, scope, role, period } = o;
   const cards: Card[] = [];
+  // Sem o alerta de risco no plano, o cartão passa a mostrar o risco de faltas (relatório base, incluído em todos os planos).
+  const absenceRiskCard: Card = {
+    title: kpis.absenceRiskCount,
+    subtitle: "Alunos com risco de faltas",
+    icon: "TriangleAlert",
+    colors: kpis.absenceRiskCount > 0 ? "destructive" : "default",
+    description: kpis.absenceRiskCount > 0 ? "Com muitas faltas no período" : "Sem alunos em risco de faltas",
+  };
 
   if (role === "SECRETARY") {
     cards.push({
@@ -105,14 +113,14 @@ function buildRoleCards(o: ReturnType<typeof useSchoolOverview>): Card[] {
       icon: "CalendarCheck",
       description: kpis.absenceRiskCount > 0 ? `${kpis.absenceRiskCount} com risco de faltas` : `Registos ${COMPARE[period]}`,
     });
-    cards.push({
+    cards.push(scope.risk ? {
       title: kpis.highRisk,
       subtitle: "Risco de abandono",
       icon: "ShieldAlert",
       colors: kpis.highRisk > 0 ? "destructive" : "default",
       description: kpis.highRisk > 0 ? `${kpis.highRisk} alerta(s) elevados` : "Sem alertas críticos",
       extra: { name: "Risco de abandono", value: kpis.highRisk },
-    });
+    } : absenceRiskCard);
     return cards;
   }
 
@@ -137,14 +145,14 @@ function buildRoleCards(o: ReturnType<typeof useSchoolOverview>): Card[] {
     description: kpis.collectedPeriod > 0 ? `Receitas ${COMPARE[period]}` : `Sem receitas ${COMPARE[period]}`,
     extra: { name: "Cobrado", value: kpis.collectedPeriod, money: true },
   });
-  cards.push({
+  cards.push(scope.risk ? {
     title: kpis.highRisk,
     subtitle: "Risco de abandono",
     icon: "ShieldAlert",
     colors: kpis.highRisk > 0 ? "destructive" : "default",
     description: kpis.highRisk > 0 ? `${kpis.highRisk} alerta(s) a exigir atenção` : "Sem alertas críticos em aberto",
     extra: { name: "Risco de abandono", value: kpis.highRisk },
-  });
+  } : absenceRiskCard);
 
   return cards;
 }
@@ -250,10 +258,10 @@ export function DashboardOverview() {
       {/* Secções de Acompanhamento com Empty States Positivos e Humanizados */}
       <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
         {scope.teacher && <LessonsCard lessons={o.todaysLessons} />}
-        {scope.academic && <RiskCard alerts={o.highRiskAlerts} />}
+        {scope.academic && scope.risk && <RiskCard alerts={o.highRiskAlerts} />}
         {(o.role === "SECRETARY" || scope.academic) && <RequestsCard requests={o.openRequests} />}
-        {scope.debts && <DebtorsCard debtors={o.topDebtors} />}
-        <EventsCard events={o.upcoming} />
+        {scope.debts && <DebtorsCard debtors={o.topDebtors} collections={scope.collections} />}
+        {scope.calendar && <EventsCard events={o.upcoming} />}
         <QuickLinks items={links} />
       </div>
     </div>

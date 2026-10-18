@@ -90,7 +90,7 @@ export const onboardingTours: Record<OnboardingTourId, TourDefinition> = {
     type: "setup",
     priority: 1,
     roles: TOUR_ROLES.ownerManager,
-    minPlan: "Base",
+    minPlan: "essencial",
     steps: [
       tourStep(
         "setup-layout",
@@ -173,7 +173,7 @@ export const onboardingTours: Record<OnboardingTourId, TourDefinition> = {
     type: "core",
     priority: 2,
     roles: TOUR_ROLES.ownerManager,
-    minPlan: "Base",
+    minPlan: "essencial",
     steps: [
       tourStep(
         "dashboard-header",
@@ -214,7 +214,7 @@ export const onboardingTours: Record<OnboardingTourId, TourDefinition> = {
     type: "setup",
     priority: 16,
     roles: TOUR_ROLES.owner,
-    minPlan: "Base",
+    minPlan: "essencial",
     steps: [
       tourStep(
         "plans-header",

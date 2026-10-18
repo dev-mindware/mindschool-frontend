@@ -9,7 +9,8 @@ export interface ApiMe {
   mfa_enabled: boolean;
   /** A política exige o segundo factor a este utilizador e ele ainda não o activou. */
   mfa_enrollment_required?: boolean;
-  memberships: Array<{ school_id: string; school_name: string; roles: string[]; permissions?: string[] }>;
+  /** `via_group`: só acede a esta escola pelo grupo (titular/direcção pedagógica de outra escola do grupo). */
+  memberships: Array<{ school_id: string; school_name: string; roles: string[]; permissions?: string[]; via_group?: boolean }>;
   /** Presente numa sessão de personificação (suporte): quem assumiu a identidade, porquê, até quando e se pode escrever. */
   impersonation?: { id: string; admin_user_id: string; reason: string; expires_at: string; write_enabled: boolean };
 }
@@ -17,6 +18,8 @@ export interface ApiMe {
 /** Resposta de `GET /schools/:id/subscription` (parte usada pelo frontend). */
 export interface ApiSubscription {
   subscription: { id: string; status: string; plan: { code: string; name: string }; trial_ends_at: string | null; period_start: string | null; period_end: string | null };
+  /** Features resolvidas pela API (plano + add-ons + overrides). */
+  features?: Array<{ key: string; entitled: boolean }>;
 }
 
 const STATUS_MAP: Record<string, SubscriptionStatus> = {
@@ -28,18 +31,19 @@ const STATUS_MAP: Record<string, SubscriptionStatus> = {
   expired: SubscriptionStatus.EXPIRED,
 };
 
-/** Planos MindEscola -> niveis do frontend herdado (Base < Smart < Pro). */
-const PLAN_MAP: Record<string, PlanType> = { essencial: "Base", profissional: "Smart", enterprise: "Pro" };
+const PLAN_CODES: readonly PlanType[] = ["essencial", "profissional", "enterprise"];
 
 export function mapApiSubscription(res: ApiSubscription): Subscription {
   const s = res.subscription;
+  const code = PLAN_CODES.find((c) => c === s.plan.code) ?? "essencial";
   return {
     id: s.id,
     status: STATUS_MAP[s.status] ?? SubscriptionStatus.ACTIVE,
     trialEndsAt: s.trial_ends_at ?? "",
     periodStartsAt: s.period_start ?? "",
     periodEndsAt: s.period_end ?? "",
-    plan: { id: s.plan.code, name: PLAN_MAP[s.plan.code] ?? "Base" },
+    plan: { id: s.plan.code, name: code },
+    ...(res.features ? { entitledFeatures: res.features.filter((f) => f.entitled).map((f) => f.key) } : {}),
   } as unknown as Subscription;
 }
 

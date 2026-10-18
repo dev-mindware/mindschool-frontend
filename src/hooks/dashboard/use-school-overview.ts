@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { useEntitled } from "@/hooks/common/use-entitled";
 import { useDashboardPeriod } from "@/hooks/reports/use-dashboard-overview";
 import { useDropoutRisk } from "@/hooks/school/use-dropout-risk";
 import { useSecretaryRequests } from "@/hooks/school/use-secretary-requests";
@@ -67,11 +68,16 @@ export function useSchoolOverview() {
   const receipts = useReport<ReceiptRow>("receipts", "financeiro.recebimentos.periodo", { from: yearStart, to: range.to }, finance);
   const debts = useReport<DebtRow>("debts", "financeiro.dividas.aluno", { only_overdue: true }, finance);
 
+  // O que o plano não inclui nem se pede à API (daria 402) nem se mostra.
+  const hasRisk = useEntitled({ feature: "risk_alerts", minPlan: "profissional" });
+  const hasCalendar = useEntitled({ feature: "calendar_general", minPlan: "profissional" });
+  const hasCollections = useEntitled({ feature: "email_collections", minPlan: "enterprise" });
+
   // Só os papéis com visão da escola carregam alertas e pedidos (família e outros recebem 403).
-  const risk = useDropoutRisk(staff || teacher);
+  const risk = useDropoutRisk((staff || teacher) && hasRisk);
   const requests = useSecretaryRequests(false, staff || teacher);
   const year = useQuery({ queryKey: ["active-year", schoolId], queryFn: academicService.activeYear, enabled: Boolean(schoolId) && onlyOnce, staleTime: 5 * 60 * 1000 });
-  const events = useQuery({ queryKey: ["dash-events", schoolId, year.data?.id], queryFn: () => calendarService.events(year.data!.id).catch(() => []), enabled: Boolean(year.data?.id), staleTime: 60 * 1000, retry: false });
+  const events = useQuery({ queryKey: ["dash-events", schoolId, year.data?.id], queryFn: () => calendarService.events(year.data!.id).catch(() => []), enabled: Boolean(year.data?.id) && hasCalendar, staleTime: 60 * 1000, retry: false });
   const myTimetable = useQuery({ queryKey: ["dash-my-timetable", schoolId], queryFn: () => dashboardService.myTimetable().catch(() => []), enabled: Boolean(schoolId) && teacher, staleTime: 60 * 1000, retry: false });
 
   const studentsTotal = (students.data ?? []).reduce((a, r) => a + r.total, 0);
@@ -111,7 +117,7 @@ export function useSchoolOverview() {
 
   return {
     role, period, setPeriod, range, isLoading,
-    scope: { academic, finance, teacher, staff, attendance: attendance.data !== null && attendance.data !== undefined, receipts: receipts.data !== null && receipts.data !== undefined, debts: debts.data !== null && debts.data !== undefined, students: students.data !== null && students.data !== undefined },
+    scope: { risk: hasRisk, calendar: hasCalendar, collections: hasCollections, academic, finance, teacher, staff, attendance: attendance.data !== null && attendance.data !== undefined, receipts: receipts.data !== null && receipts.data !== undefined, debts: debts.data !== null && debts.data !== undefined, students: students.data !== null && students.data !== undefined },
     kpis: { studentsTotal, studentsActive, enrolled, attendanceRate, absenceRiskCount: absenceRisk.data?.length ?? 0, noSectionCount: noSection.data?.length ?? 0, collectedPeriod, overdueTotal, debtors: debts.data?.length ?? 0, openRequests: openRequests.length, highRisk: highRisk.length },
     monthly, byLevel, attendanceBySection: att, topDebtors: (debts.data ?? []).slice(0, 5),
     highRiskAlerts: highRisk.slice(0, 5), openRequests: openRequests.slice(0, 5), upcoming, todaysLessons,

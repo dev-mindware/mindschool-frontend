@@ -137,6 +137,7 @@ function PanelLink({ link, pathname, onNavigate }: { link: NavLink; pathname: st
         <Link href={link.url} aria-current={current ? "page" : undefined}>
           <Icon name={link.icon} className={cn("size-[18px]", current && "text-primary")} />
           <span className="truncate">{link.name}</span>
+          {link.showUpgrade && <Icon name="Lock" className="ml-auto size-3.5 shrink-0 text-muted-foreground" />}
         </Link>
       </SidebarMenuButton>
     </SidebarMenuItem>
