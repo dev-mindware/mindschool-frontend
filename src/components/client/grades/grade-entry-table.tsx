@@ -5,9 +5,11 @@ import { formatDate } from "@/utils";
 import React, { useState } from "react";
 import { ClassSubjectGradeSheet, StudentGradeEntry } from "@/types/grade";
 import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Icon } from "@/components";
-import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { HelpHint, Icon } from "@/components";
+import { useQuery } from "@tanstack/react-query";
+import { readRawSettings } from "@/services/school-settings-service";
+import { useActiveSchoolStore } from "@/stores/school/active-school-store";
+import { ErrorMessage } from "@/utils/messages";
 
 interface GradeEntryTableProps {
   sheet: ClassSubjectGradeSheet;
@@ -27,6 +29,9 @@ export function GradeEntryTable({
   onSetStatus,
 }: GradeEntryTableProps) {
   const isReadOnly = sheet.isLocked || isPautaClosed;
+  const schoolId = useActiveSchoolStore((s) => s.schoolId);
+  const settings = useQuery({ queryKey: ["settings-raw", schoolId], queryFn: readRawSettings, enabled: Boolean(schoolId), staleTime: 60 * 1000 });
+  const passMark = Number((settings.data?.["evaluation"] as { pass_mark?: number } | undefined)?.pass_mark ?? 10);
 
   const handleInputChange = (
     studentId: string,
@@ -57,23 +62,17 @@ export function GradeEntryTable({
         <span className="text-xs text-muted-foreground italic">Pendente</span>
       );
     }
-    if (score >= 10) {
+    // positiva a partir da nota mínima da escola (Políticas); o regime de excepção só se aplica na transição, não aqui
+    if (score >= passMark) {
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-success-border bg-success-muted text-success">
-          {score.toFixed(1)} ✓
-        </span>
-      );
-    }
-    if (score >= 7.0) {
-      return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-warning-border bg-warning-muted text-warning">
-          {score.toFixed(1)} (Rec.)
+          {score.toFixed(1)} ✓ positiva
         </span>
       );
     }
     return (
       <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-destructive-border bg-destructive-muted text-destructive">
-        {score.toFixed(1)} ✗
+        {score.toFixed(1)} ✗ negativa
       </span>
     );
   };
@@ -149,36 +148,36 @@ export function GradeEntryTable({
               <th className="py-3 px-3 w-10 text-center">N.º</th>
               <th className="py-3 px-3 min-w-[200px]">Nome do Estudante</th>
               <th className="py-3 px-3 text-center w-28 bg-info-muted/30">
-                <div className="font-medium text-foreground">MAC</div>
+                <div className="flex items-center justify-center gap-1 font-medium text-foreground">MAC <HelpHint term="mac" /></div>
                 <span className="text-[9px] font-normal text-muted-foreground">
-                  Avaliação Contínua
+                  Avaliação contínua
                 </span>
               </th>
               <th className="py-3 px-3 text-center w-28 bg-info-muted/30">
-                <div className="font-medium text-foreground">NPP</div>
+                <div className="flex items-center justify-center gap-1 font-medium text-foreground">NPP <HelpHint term="npp" /></div>
                 <span className="text-[9px] font-normal text-muted-foreground">
-                  Prova do Professor
+                  Avaliação sistemática
                 </span>
               </th>
               <th className="py-3 px-3 text-center w-24 bg-muted/60">
-                <div className="font-medium text-primary">MAS</div>
+                <div className="flex items-center justify-center gap-1 font-medium text-primary">MAS <HelpHint term="mas" /></div>
                 <span className="text-[9px] font-normal text-muted-foreground">
-                  (MAC + NPP)/2
+                  Média das sistemáticas
                 </span>
               </th>
               <th className="py-3 px-3 text-center w-28 bg-primary/5">
-                <div className="font-medium text-foreground">NPT</div>
+                <div className="flex items-center justify-center gap-1 font-medium text-foreground">NPT <HelpHint term="npt" /></div>
                 <span className="text-[9px] font-normal text-muted-foreground">
-                  Prova Trimestral
+                  Prova trimestral
                 </span>
               </th>
               <th className="py-3 px-3 text-center w-24 bg-muted/60">
-                <div className="font-medium text-primary">MT</div>
+                <div className="flex items-center justify-center gap-1 font-medium text-primary">MT <HelpHint term="mt" /></div>
                 <span className="text-[9px] font-normal text-muted-foreground">
-                  (2·MAS + NPT)/3
+                  Média ponderada
                 </span>
               </th>
-              <th className="py-3 px-3 text-center w-28">Estado MED</th>
+              <th className="py-3 px-3 text-center w-28">Resultado</th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
@@ -259,7 +258,7 @@ export function GradeEntryTable({
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground px-1">
         <Icon name="Info" className="h-3.5 w-3.5 text-info shrink-0" />
         <span>
-          <strong>Fórmulas do Decreto Executivo n.º 424/25:</strong> MAS = (MAC + NPP) / 2 • MT = (2 × MAS + NPT) / 3. Aprovação requer MT ≥ 10.0 valores.
+          <strong>Como se calcula:</strong> a MT é a média ponderada de MAC, MAS e prova trimestral, pelos pesos e arredondamento definidos em Definições › Políticas da Escola, e só existe quando a prova trimestral está lançada. As médias recalculam-se a cada nota. «Ausente» conta 0 ou sai da média, conforme a política; «Dispensado/Não avaliado» sai sempre da média.
         </span>
       </div>
     </div>

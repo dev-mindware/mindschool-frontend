@@ -3,7 +3,7 @@ import { formatDateTime } from "@/utils";
 
 import { useEffect, useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Can, Badge, Button, ButtonOnlyAction, Checkbox, DataList, EmptyState, FormModal, FormSelect, FormTextarea, Icon, Input, TitleList, type Column } from "@/components";
+import { Can, Badge, Button, ButtonOnlyAction, Checkbox, ConfirmModal, DataList, EmptyState, FormModal, FormSelect, FormTextarea, Icon, Input, TitleList, type Column } from "@/components";
 import { useCouncil, useCouncils } from "@/hooks/school/use-phase6";
 import { phase6Service, OUTCOME_LABEL, type ApiCouncilAttendee, type Outcome } from "@/services/phase6-service";
 import { useModal } from "@/stores/modal/use-modal-store";
@@ -34,6 +34,7 @@ function NewCouncilModal() {
 
 function CouncilModal({ id }: { id: string | null }) {
   const { council, members, setAttendees, putDecisions, close } = useCouncil(id ?? undefined);
+  const { openModal } = useModal();
   const [attendees, setLocalAttendees] = useState<ApiCouncilAttendee[]>([]);
   const [drafts, setDrafts] = useState<Record<string, { outcome?: Outcome; justification: string; observation: string }>>({});
   const [minutes, setMinutes] = useState("");
@@ -70,6 +71,11 @@ function CouncilModal({ id }: { id: string | null }) {
         <div className="sm:col-span-2 space-y-6 text-sm">
           <section className="space-y-3">
             <h4 className="font-semibold">Participantes</h4>
+            {!closed && (
+              <p className="text-xs text-muted-foreground">
+                O primeiro que marcar fica como presidente (pode mudar o papel abaixo). Para encerrar são precisos o presidente e o mínimo de presentes das Políticas. «Gravar participantes» e «Gravar decisões» são botões separados: grave os dois antes de encerrar.
+              </p>
+            )}
             <div className="grid gap-2 sm:grid-cols-2">
               {staff.map((m) => (
                 <label key={m.id} className="flex items-center gap-2 rounded-md border p-2"><Checkbox disabled={closed} checked={attendees.some((a) => a.user_id === m.user.id)} onCheckedChange={() => toggle(m.user.id, m.user.full_name)} />{m.user.full_name}<span className="text-xs text-muted-foreground">({m.role})</span></label>
@@ -123,7 +129,26 @@ function CouncilModal({ id }: { id: string | null }) {
               <>
                 <h4 className="font-semibold">Acta e encerramento</h4>
                 <FormTextarea label="Texto da acta (mín. 30 caracteres)" value={minutes} onChange={setMinutes} rows={4} placeholder="Encerrar exige presidente, quórum e, no conselho final, aplica as decisões." />
-                <Can permission="council:close"><Button size="sm" disabled={minutes.trim().length < 30 || close.isPending} onClick={() => close.mutateAsync(minutes.trim()).then(() => SucessMessage("Conselho encerrado.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Encerrar conselho</Button></Can>
+                <Can permission="council:close"><Button size="sm" disabled={minutes.trim().length < 30 || close.isPending} onClick={() => openModal("council-close-confirm")}>Encerrar conselho</Button></Can>
+                <ConfirmModal
+                  id="council-close-confirm"
+                  title={isFinal ? "Encerrar o conselho final" : "Encerrar o conselho"}
+                  description="Encerra o conselho com a acta escrita."
+                  confirmLabel="Encerrar conselho"
+                  irreversible
+                  isLoading={close.isPending}
+                  effects={isFinal
+                    ? [
+                        "Exige o presidente e o mínimo de presentes definido nas Políticas (quórum), e uma decisão para todos os alunos.",
+                        "As decisões de transição são APLICADAS: confirmam a progressão de cada aluno.",
+                        "A acta fica fechada e disponível em PDF. Depois não se altera.",
+                      ]
+                    : [
+                        "Exige o presidente e o mínimo de presentes definido nas Políticas (quórum).",
+                        "As observações por aluno ficam registadas e a acta fica fechada, em PDF.",
+                      ]}
+                  onConfirm={() => close.mutateAsync(minutes.trim()).then(() => SucessMessage("Conselho encerrado.")).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; })}
+                />
               </>
             )}
           </section>

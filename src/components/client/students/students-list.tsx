@@ -65,7 +65,7 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent }: 
           { label: "Cartão de Estudante", icon: "CreditCard", onClick: (x) => { setCardStudent(x); setCardOpen(true); } },
           { permission: "student:write", label: "Convidar (Acesso)", icon: "Mail", onClick: (x) => setInvitingStudent(x) },
           { permission: "student:write", label: "Editar", icon: "Pencil", onClick: (x) => { setEditing(x); setEditOpen(true); } },
-          ...(onDeleteStudent ? [{ permission: "student:write", label: "Remover", icon: "Trash2" as const, variant: "destructive" as const, onClick: (x: Student) => onDeleteStudent(x.id) }] : []),
+          ...(onDeleteStudent ? [{ permission: "student:write", label: "Desactivar aluno", icon: "UserX" as const, variant: "destructive" as const, onClick: (x: Student) => onDeleteStudent(x.id) }] : []),
         ]} />
       ),
     },

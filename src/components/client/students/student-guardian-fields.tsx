@@ -183,10 +183,13 @@ export function StudentGuardianFields({
               {...register("guardianDocument")}
               error={errors.guardianDocument?.message}
             />
+            <p className="mt-1 text-[11px] text-muted-foreground">
+              Identifica o encarregado na escola e não pode repetir-se. Se ele já está registado (por exemplo, tem outro filho aqui), escolha «Selecionar Existente» em vez de o criar de novo.
+            </p>
           </div>
 
           <Input
-            label="Telefone Principal *"
+            label="Telefone Principal * (9 dígitos, sem +244)"
             startIcon="Phone"
             placeholder="9xxxxxxxx"
             maxLength={9}

@@ -23,7 +23,9 @@ interface EnrollmentDetailsModalProps {
   enrollment: Enrollment | null;
 }
 
-const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const SHIFT_LABEL: Record<string, string> = { MORNING: "Manhã", AFTERNOON: "Tarde", EVENING: "Noite", DIURNO: "Diurno" };
+
+const STATUS_LABELS: Record<string,{ label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   ACTIVE: { label: "Matrícula Efectiva (Activa)", variant: "default" },
   TRANSFERRED: { label: "Transferido", variant: "secondary" },
   CANCELLED: { label: "Cancelada / Anulada", variant: "destructive" },
@@ -75,15 +77,16 @@ export function EnrollmentDetailsModal({
               Identificação do Estudante
             </h4>
             <DetailRow label="Nome do Aluno" value={enrollment.studentName} />
-            <DetailRow label="Número de Processo" value={enrollment.enrollmentNumber} />
+            <DetailRow label="N.º de Processo (aluno)" value={enrollment.studentNumber} />
+            <DetailRow label="N.º de Matrícula (esta matrícula)" value={enrollment.enrollmentNumber} />
           </div>
           <div className="space-y-2">
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Alocação de Turma
             </h4>
             <DetailRow label="Turma Alocada" value={enrollment.sectionName} />
-            <DetailRow label="Turno" value={enrollment.shift === "MORNING" ? "Manhã" : "Tarde"} />
-            <DetailRow label="Ano de Escolaridade" value={enrollment.classLevelId} />
+            <DetailRow label="Turno" value={SHIFT_LABEL[enrollment.shift] ?? enrollment.shift} />
+            <DetailRow label="Classe" value={enrollment.classLevelName} />
           </div>
         </div>
 

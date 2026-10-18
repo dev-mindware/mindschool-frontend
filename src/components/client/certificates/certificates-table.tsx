@@ -145,8 +145,14 @@ export function CertificatesTable({ documents, isLoading, onViewPreview, onDelet
           <AlertDialogHeader>
             <AlertDialogTitle>Eliminar Documento Emitido</AlertDialogTitle>
             <AlertDialogDescription>
-              Tem a certeza que deseja eliminar o documento <strong>{docToDelete?.documentNumber}</strong> emitido para <strong>{docToDelete?.studentName}</strong>? Esta acção não poderá ser desfeita.
+              Eliminar o documento <strong>{docToDelete?.documentNumber}</strong> emitido para <strong>{docToDelete?.studentName}</strong>?
             </AlertDialogDescription>
+            <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
+              <li>O número do documento fica «queimado»: não se reutiliza e deixa um buraco na numeração.</li>
+              <li>O código QR e o endereço de verificação deixam de validar: as cópias já entregues deixam de ser verificáveis.</li>
+              <li>A eliminação fica registada na auditoria. Para corrigir um documento, emita um novo.</li>
+              <li>Esta acção não se pode desfazer.</li>
+            </ul>
           </AlertDialogHeader>
           <AlertDialogFooter>
             <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>

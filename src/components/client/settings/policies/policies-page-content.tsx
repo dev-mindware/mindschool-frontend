@@ -14,6 +14,7 @@ import {
   EmptyState,
   FormModal,
   FormSelect,
+  HelpHint,
   Icon,
   Input,
   PercInput,
@@ -41,6 +42,7 @@ const DEFAULTS = {
       recurso_enabled: true,
       melhoria_enabled: true,
     },
+    exception: { enabled: true, class_level_min: 7, class_level_max: 8, max_subjects: 2, min_mark: 7, max_mark: 9 },
   },
   admission: {
     entrance_exam_required_level_numbers: [] as number[],
@@ -78,6 +80,7 @@ type Settings = {
       recurso_enabled: boolean;
       melhoria_enabled: boolean;
     };
+    exception: { enabled: boolean; class_level_min: number; class_level_max: number; max_subjects: number; min_mark: number; max_mark: number };
   };
   admission: {
     entrance_exam_required_level_numbers: number[];
@@ -132,6 +135,7 @@ function PolicyCard({
   icon,
   title,
   hint,
+  impact,
   badge,
   rows,
   onEdit,
@@ -139,6 +143,8 @@ function PolicyCard({
   icon: keyof typeof icons;
   title: string;
   hint: string;
+  /** Quando e onde a alteração produz efeito (e o que não altera). */
+  impact?: string;
   badge?: string;
   rows: Array<[string, ReactNode]>;
   onEdit: () => void;
@@ -159,6 +165,12 @@ function PolicyCard({
             )}
           </div>
           <p className="text-xs text-muted-foreground">{hint}</p>
+          {impact && (
+            <p className="flex items-start gap-1 text-[11px] text-muted-foreground/90">
+              <Icon name="Info" className="mt-0.5 size-3 shrink-0" />
+              {impact}
+            </p>
+          )}
         </div>
         <Can permission="school:update">
           <Button size="sm" variant="outline" className="gap-1.5 shrink-0 h-8 text-xs" onClick={onEdit}>
@@ -221,6 +233,11 @@ export function PoliciesPageContent() {
     if (blocks.includes("evaluation") && w.mac + w.mas + w.pp <= 0) {
       ErrorMessage("Os pesos MAC, MAS e PP não podem ser todos 0: a média trimestral nunca se calcularia.");
       throw new Error("invalid_weights");
+    }
+    const x = draft.evaluation.exception;
+    if (blocks.includes("evaluation") && (x.class_level_min > x.class_level_max || x.min_mark > x.max_mark)) {
+      ErrorMessage("Na excepção, o início tem de ser menor ou igual ao fim (classes e notas).");
+      throw new Error("invalid_exception");
     }
     if (blocks.includes("risk") && draft.risk.thresholds.moderado >= draft.risk.thresholds.elevado) {
       ErrorMessage("O limiar «Moderado» tem de ser menor que o «Elevado».");
@@ -412,7 +429,7 @@ export function PoliciesPageContent() {
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1 items-end">
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-muted-foreground">MAC (Contínua):</label>
+            <label className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">MAC (Contínua) <HelpHint term="mac" /></label>
             <Input
               type="quantity"
               min={0}
@@ -424,7 +441,7 @@ export function PoliciesPageContent() {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-muted-foreground">MAS (Sumativa):</label>
+            <label className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">MAS (Sistemática) <HelpHint term="mas" /></label>
             <Input
               type="quantity"
               min={0}
@@ -436,7 +453,7 @@ export function PoliciesPageContent() {
             />
           </div>
           <div className="space-y-1">
-            <label className="text-[11px] font-medium text-muted-foreground">PP (Prova Periódica):</label>
+            <label className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">PP (Prova Periódica) <HelpHint term="pp" /></label>
             <Input
               type="quantity"
               min={0}
@@ -448,7 +465,7 @@ export function PoliciesPageContent() {
             />
           </div>
           <div className="rounded-lg bg-card border p-2 text-center space-y-0.5">
-            <p className="text-[10px] text-muted-foreground uppercase font-bold">Resultado MT</p>
+            <p className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground uppercase font-bold">Resultado MT <HelpHint term="mt" /></p>
             <p className="text-sm font-bold text-foreground">
               {simResult.roundedMt} valores{" "}
               <span className="text-[10px] font-normal text-muted-foreground">
@@ -475,6 +492,7 @@ export function PoliciesPageContent() {
           icon="ClipboardCheck"
           title="Avaliação Pedagógica"
           hint="Pesos de cálculo da MT (MAC, MAS, PP), regra de faltas e arredondamento."
+          impact="Aplica-se às mini-pautas em curso, que se recalculam. As pautas já fechadas mantêm o resultado guardado."
           badge="Normativo MED"
           onEdit={() => edit("policy-evaluation")}
           rows={[
@@ -493,8 +511,23 @@ export function PoliciesPageContent() {
                 : "Excluída do cálculo da média",
             ],
             ["Nota Mínima de Transição", `${s.evaluation.pass_mark} valores`],
-            ["Prazo de Reapreciação de Notas", `${s.evaluation.review_window_days} dias úteis`],
+            ["Prazo de Reapreciação de Notas", `${s.evaluation.review_window_days} dias após o fecho da pauta`],
             ["Quórum Mínimo do Conselho", `${s.evaluation.council_min_attendees} docentes`],
+          ]}
+        />
+
+        <PolicyCard
+          icon="Scale"
+          title="Excepção «Transita com apoio»"
+          hint="Quando um aluno com disciplinas negativas pode, mesmo assim, transitar com apoio pedagógico."
+          impact="Aplica-se às propostas de transição geradas a partir de agora (ao fechar o último período). Decisões já confirmadas pelo Conselho não mudam."
+          badge="Regime especial"
+          onEdit={() => edit("policy-exception")}
+          rows={[
+            ["Regime activo", yn(s.evaluation.exception.enabled)],
+            ["Classes abrangidas", `${s.evaluation.exception.class_level_min}.ª a ${s.evaluation.exception.class_level_max}.ª`],
+            ["Máx. de disciplinas negativas", `${s.evaluation.exception.max_subjects}`],
+            ["Intervalo de notas admitido", `${s.evaluation.exception.min_mark} a ${s.evaluation.exception.max_mark} valores`],
           ]}
         />
 
@@ -502,11 +535,13 @@ export function PoliciesPageContent() {
           icon="GraduationCap"
           title="Exames Finais & Recursos"
           hint="Regras de admissão a exame, pesos da MFD e épocas de melhoria."
+          impact="Aplica-se às chamadas de exame abertas a partir de agora. Notas de exame já lançadas não mudam."
           badge="Exames Escolares"
           onEdit={() => edit("policy-final-exam")}
           rows={[
             ["MFD Mínima para Admissão", `${s.evaluation.final_exam.admission_min_mfd} valores`],
             ["Peso da MFD na Nota Final", `${s.evaluation.final_exam.weight_mfd}%`],
+            ["Peso do Exame na Nota Final", `${100 - s.evaluation.final_exam.weight_mfd}%`],
             ["Exame de Recurso Habilitado", yn(s.evaluation.final_exam.recurso_enabled)],
             ["Exame de Melhoria de Nota", yn(s.evaluation.final_exam.melhoria_enabled)],
           ]}
@@ -516,6 +551,7 @@ export function PoliciesPageContent() {
           icon="UserPlus"
           title="Admissões & Acesso"
           hint="Classes sujeitas a exame de acesso e critério de desempate."
+          impact="Aplica-se às candidaturas novas e às que ainda não foram decididas."
           onEdit={() => edit("policy-admission")}
           rows={[
             [
@@ -539,6 +575,7 @@ export function PoliciesPageContent() {
           icon="CalendarDays"
           title="Calendário & Assiduidade"
           hint="Dias lectivos de funcionamento e prazos para lançamento de sumários."
+          impact="Os dias lectivos regeneram o calendário do ano. Faltas já lançadas não são apagadas."
           onEdit={() => edit("policy-calendar")}
           rows={[
             [
@@ -547,7 +584,7 @@ export function PoliciesPageContent() {
             ],
             ["Prazo para Registo de Sumário", `${s.calendar.summary_deadline_days} dia(s)`],
             [
-              "Bloquear Presenças ao Fim-de-Semana",
+              "Bloquear presenças em dias não lectivos",
               s.calendar.enforce_lective_attendance ? "Sim (Estrito)" : "Não (Apenas aviso)",
             ],
           ]}
@@ -557,6 +594,7 @@ export function PoliciesPageContent() {
           icon="TriangleAlert"
           title="Risco de Abandono Escolar"
           hint="Ponderação tripla para alerta precoce de desistência de estudantes."
+          impact="Aplica-se aos cálculos de risco seguintes (funcionalidade do plano Profissional). Os alertas já criados não mudam."
           badge="Alerta Precoce"
           onEdit={() => edit("policy-risk")}
           rows={[
@@ -573,7 +611,8 @@ export function PoliciesPageContent() {
         <PolicyCard
           icon="Wallet"
           title="Regime Financeiro & Propinas"
-          hint="Prestações do ano lectivo e agendamento de cobrança."
+          hint="Prestações do ano lectivo e agendamento de cobrança. Valores, tolerância e multas definem-se em Propinas › Planos."
+          impact="Aplica-se às propinas geradas em novas matrículas. Facturas já emitidas não mudam."
           onEdit={() => edit("policy-finance")}
           rows={[
             ["Número de Prestações", `${s.finance.installments} mensalidades`],
@@ -670,7 +709,7 @@ export function PoliciesPageContent() {
               onChange={(e) => setEv({ pass_mark: Math.max(0, Math.min(20, num(e.target.value))) })}
             />
             <Input
-              label="Prazo para Pedido de Reapreciação (dias úteis)"
+              label="Prazo para pedir reapreciação (dias após o fecho da pauta)"
               type="quantity"
               min={1}
               max={60}
@@ -687,6 +726,78 @@ export function PoliciesPageContent() {
               value={ev.council_min_attendees}
               onChange={(e) => setEv({ council_min_attendees: Math.max(1, Math.min(20, num(e.target.value))) })}
             />
+          </div>
+        </FormModal>
+      )}
+
+      {isOpen("policy-exception") && (
+        <FormModal
+          id="policy-exception"
+          title="Excepção «Transita com apoio»"
+          description="Regra aplicada ao propor a transição de classe, depois de fechado o último período."
+          onSubmit={save(["evaluation"])}
+          {...modalProps}
+        >
+          <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
+            <Check
+              label="Regime activo"
+              checked={ev.exception.enabled}
+              onChange={(v) => setEv({ exception: { ...ev.exception, enabled: v } })}
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Da classe (n.º)"
+                type="quantity"
+                min={0}
+                max={13}
+                step={1}
+                value={ev.exception.class_level_min}
+                onChange={(e) => setEv({ exception: { ...ev.exception, class_level_min: Math.max(0, Math.min(13, num(e.target.value))) } })}
+              />
+              <Input
+                label="Até à classe (n.º)"
+                type="quantity"
+                min={0}
+                max={13}
+                step={1}
+                value={ev.exception.class_level_max}
+                onChange={(e) => setEv({ exception: { ...ev.exception, class_level_max: Math.max(0, Math.min(13, num(e.target.value))) } })}
+              />
+            </div>
+            <Input
+              label="Máximo de disciplinas negativas"
+              type="quantity"
+              min={0}
+              max={10}
+              step={1}
+              value={ev.exception.max_subjects}
+              onChange={(e) => setEv({ exception: { ...ev.exception, max_subjects: Math.max(0, Math.min(10, num(e.target.value))) } })}
+            />
+            <div className="grid grid-cols-2 gap-3">
+              <Input
+                label="Nota mínima admitida"
+                type="quantity"
+                min={0}
+                max={20}
+                step={0.5}
+                value={ev.exception.min_mark}
+                onChange={(e) => setEv({ exception: { ...ev.exception, min_mark: Math.max(0, Math.min(20, num(e.target.value))) } })}
+              />
+              <Input
+                label="Nota máxima admitida"
+                type="quantity"
+                min={0}
+                max={20}
+                step={0.5}
+                value={ev.exception.max_mark}
+                onChange={(e) => setEv({ exception: { ...ev.exception, max_mark: Math.max(0, Math.min(20, num(e.target.value))) } })}
+              />
+            </div>
+            <p className="text-[11px] text-muted-foreground">
+              {ev.exception.enabled
+                ? `Um aluno da ${ev.exception.class_level_min}.ª à ${ev.exception.class_level_max}.ª classe com até ${ev.exception.max_subjects} disciplina(s) negativa(s), todas entre ${ev.exception.min_mark} e ${ev.exception.max_mark} valores e nenhuma delas Língua Portuguesa ou Matemática, passa a «transita com apoio». Fora disto, quem tiver alguma disciplina abaixo de ${ev.pass_mark} não transita. É sempre uma proposta: a decisão final é do Conselho de Turma.`
+                : `Sem o regime, qualquer disciplina abaixo de ${ev.pass_mark} valores faz a proposta ser «não transita».`}
+            </p>
           </div>
         </FormModal>
       )}
@@ -720,6 +831,10 @@ export function PoliciesPageContent() {
                 setEv({ final_exam: { ...ev.final_exam, weight_mfd: val } })
               }
             />
+            <p className="text-[11px] text-muted-foreground">
+              A classificação final = MFD × {ev.final_exam.weight_mfd}% + exame × {100 - ev.final_exam.weight_mfd}%. Os dois pesos somam sempre 100.
+              A MFD mínima é a nota abaixo da qual o aluno não é admitido ao exame na 1.ª chamada. A melhoria só vale se a nota nova for maior.
+            </p>
             <Check
               label="Permitir Exame de Recurso aos alunos não aprovados"
               checked={ev.final_exam.recurso_enabled}

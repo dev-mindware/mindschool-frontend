@@ -12,11 +12,15 @@ interface ConfirmModalProps {
   confirmLabel?: string;
   destructive?: boolean;
   isLoading?: boolean;
+  /** O que a acção provoca (uma linha por efeito): mostra-se antes de confirmar. */
+  effects?: string[];
+  /** Acção que não se desfaz (ou só por um processo próprio): avisa-se em destaque. */
+  irreversible?: boolean;
   onConfirm: () => void | Promise<unknown>;
 }
 
 /** Confirmação padrão (substitui `window.confirm`): modal de aviso com Cancelar / Confirmar, aberto por id. */
-export function ConfirmModal({ id, title, description, confirmLabel = "Confirmar", destructive, isLoading, onConfirm }: ConfirmModalProps) {
+export function ConfirmModal({ id, title, description, confirmLabel = "Confirmar", destructive, isLoading, effects, irreversible, onConfirm }: ConfirmModalProps) {
   const { open, closeModal } = useModal();
   if (!open[id]) return null;
 
@@ -52,6 +56,18 @@ export function ConfirmModal({ id, title, description, confirmLabel = "Confirmar
       }
     >
       <span className="sr-only">{title}</span>
+      {effects && effects.length > 0 && (
+        <div className="space-y-1.5 rounded-md border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
+          <p className="font-semibold text-foreground">O que acontece</p>
+          <ul className="list-disc space-y-1 pl-4">{effects.map((e) => <li key={e}>{e}</li>)}</ul>
+        </div>
+      )}
+      {irreversible && (
+        <p className="mt-2 flex items-start gap-1.5 text-xs font-medium text-destructive">
+          <Icon name="TriangleAlert" className="mt-0.5 size-3.5 shrink-0" />
+          Esta acção não se pode desfazer.
+        </p>
+      )}
     </GlobalModal>
   );
 }

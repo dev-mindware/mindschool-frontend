@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Can, Badge, Button, ButtonOnlyAction, Checkbox, DataList, EmptyState, FormModal, FormSelect, Icon, Input, TitleList, type Column } from "@/components";
+import { Can, Badge, Button, ButtonOnlyAction, Checkbox, ConfirmModal, DataList, EmptyState, FormModal, FormSelect, Icon, Input, StatusLegend, TitleList, type Column } from "@/components";
 import { useFinalExam, useFinalExams } from "@/hooks/school/use-phase6";
 import { CALL_LABEL, type ExamCall, type ExamResultInput } from "@/services/phase6-service";
 import { useModal } from "@/stores/modal/use-modal-store";
@@ -34,6 +34,9 @@ type Draft = { status: ExamResultInput["status"]; value: string };
 
 function ExamModal({ id }: { id: string | null }) {
   const { exam, enroll, putResults, close } = useFinalExam(id ?? undefined);
+  const { openModal } = useModal();
+  // Motivo comum das ausências justificadas e anulações desta gravação (a API guarda-o como prova).
+  const [justification, setJustification] = useState("");
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
 
   useEffect(() => {
@@ -49,7 +52,7 @@ function ExamModal({ id }: { id: string | null }) {
       const d = drafts[s.enrollment_id];
       if (!d) return [];
       if (d.status === "avaliado") return d.value === "" ? [] : [{ enrollment_id: s.enrollment_id, status: "avaliado" as const, numeric_value: Number(d.value) }];
-      return [{ enrollment_id: s.enrollment_id, status: d.status, justification: d.status === "ausente_justificado" || d.status === "anulado" ? "Registado na secretaria" : undefined }];
+      return [{ enrollment_id: s.enrollment_id, status: d.status, justification: d.status === "ausente_justificado" || d.status === "anulado" ? (justification.trim() || "Registado na secretaria") : undefined }];
     });
     if (results.length === 0) return ErrorMessage("Nada para gravar.");
     void putResults.mutateAsync(results).then(() => SucessMessage("Resultados gravados.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
@@ -60,10 +63,32 @@ function ExamModal({ id }: { id: string | null }) {
       {exam && (
         <div className="sm:col-span-2 space-y-4 text-sm">
           {!closed && (
+            <p className="text-xs text-muted-foreground">
+              «Inscrever todos os elegíveis» inscreve só quem cumpre as regras desta chamada (ver a legenda na página) e pode repetir-se. Os resultados gravam-se antes de encerrar.
+            </p>
+          )}
+          {!closed && (
+            <Input label="Motivo das ausências justificadas e anulações (fica registado como prova)" value={justification} onChange={(e) => setJustification(e.target.value)} placeholder="Ex.: atestado médico entregue a 12/11" />
+          )}
+          {!closed && (
             <div className="flex flex-wrap gap-2">
               <Can permission="final_exam:write"><Button size="sm" variant="outline" disabled={enroll.isPending} onClick={() => enroll.mutateAsync(undefined).then((r) => SucessMessage(`${r.enrolled} aluno(s) inscrito(s).`)).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Inscrever todos os elegíveis</Button></Can>
               <Can permission="final_exam:results"><Button size="sm" onClick={save} disabled={putResults.isPending || enrolled.length === 0}>Gravar resultados</Button></Can>
-              <Can permission="final_exam:write"><Button size="sm" variant="secondary" disabled={close.isPending} onClick={() => close.mutateAsync().then(() => SucessMessage("Chamada encerrada.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Encerrar chamada</Button></Can>
+              <Can permission="final_exam:write"><Button size="sm" variant="secondary" disabled={close.isPending} onClick={() => openModal("final-exam-close-confirm")}>Encerrar chamada</Button></Can>
+              <ConfirmModal
+                id="final-exam-close-confirm"
+                title="Encerrar a chamada"
+                description="Fecha esta chamada de exame."
+                confirmLabel="Encerrar chamada"
+                irreversible
+                isLoading={close.isPending}
+                effects={[
+                  "Os resultados lançados ficam definitivos: já não se inscrevem alunos nem se alteram notas desta chamada.",
+                  "A classificação final (MFD e exame, pelos pesos das Políticas) passa a contar na proposta de transição dos alunos.",
+                  "Quem faltou sem justificação fica sem classificação nesta chamada.",
+                ]}
+                onConfirm={() => close.mutateAsync().then(() => SucessMessage("Chamada encerrada.")).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; })}
+              />
             </div>
           )}
           <div className="space-y-2">
@@ -116,6 +141,16 @@ export function FinalExamsPageContent() {
       <TitleList title="Exames Finais" suTitle="Chamadas por disciplina e turma; a classificação final substitui a MFD na proposta de transição.">
         <Can permission="final_exam:write"><Button size="sm" className="gap-1.5" onClick={() => openModal("final-exam-new")}><Icon name="Plus" className="size-4" />Nova chamada</Button></Can>
       </TitleList>
+
+      <StatusLegend
+        title="Quem pode fazer cada chamada"
+        items={[
+          { label: "1.ª chamada", description: "Alunos com MFD igual ou acima do mínimo de admissão da escola (Políticas › Exames Finais)." },
+          { label: "2.ª chamada", description: "Só quem faltou à 1.ª com justificação e ainda não foi avaliado." },
+          { label: "Recurso", description: "Alunos que ficaram negativos e ainda têm MFD de admissão; só se a escola o tiver activado nas Políticas." },
+          { label: "Melhoria", description: "Alunos já aprovados que querem subir a nota; só vale se a nota nova for maior. Só se a escola a tiver activado." },
+        ]}
+      />
 
       <DataList<ExamRow>
         prefix="exames"

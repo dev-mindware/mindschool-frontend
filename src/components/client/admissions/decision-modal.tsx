@@ -3,6 +3,7 @@
 import React, { useState } from "react";
 import { AdmissionApplication } from "@/types/admission";
 import { useAdmissions } from "@/hooks/school/use-admissions";
+import { useAuthStore } from "@/stores";
 import {
   GlobalModal,
   SelectField,
@@ -31,7 +32,8 @@ export function DecisionModal({
       : "WAITLIST"
   );
   const [notes, setNotes] = useState("");
-  const [decidedBy, setDecidedBy] = useState("Direção Pedagógica");
+  // Quem decide fica registado pela API com o utilizador autenticado (não é um texto livre).
+  const decidedBy = useAuthStore((s) => s.user?.name) ?? "o utilizador actual";
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!application || !isOpen) return null;
@@ -126,11 +128,11 @@ export function DecisionModal({
             options={[
               {
                 value: "APPROVED",
-                label: "Aprovado / Admissão Concedida (Pronto para Matrícula)",
+                label: "Aprovado (admissão concedida)",
               },
               {
                 value: "WAITLIST",
-                label: "Lista de Espera (Aprovado em Prova, Excedente de Vagas)",
+                label: "Lista de espera (sem vaga por agora)",
               },
               {
                 value: "REJECTED",
@@ -153,17 +155,13 @@ export function DecisionModal({
             />
           </div>
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Responsável pelo Despacho
-            </label>
-            <input
-              type="text"
-              value={decidedBy}
-              onChange={(e) => setDecidedBy(e.target.value)}
-              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              required
-            />
+          <p className="text-xs text-muted-foreground">
+            O despacho fica registado em nome de <strong className="text-foreground">{decidedBy}</strong>, com data e hora.
+          </p>
+          <div className="space-y-1 rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground">
+            <p><strong className="text-foreground">Aprovado:</strong> admite o candidato. Se a classe já não tiver vagas, o sistema coloca-o automaticamente em lista de espera. Se a candidatura tem prova de acesso e a nota ficou abaixo do mínimo da escola, a aprovação é recusada.</p>
+            <p><strong className="text-foreground">Lista de espera:</strong> o candidato aguarda vaga; é promovido quando uma matrícula é anulada ou quando se promove a lista.</p>
+            <p><strong className="text-foreground">Não admitido:</strong> encerra a candidatura.</p>
           </div>
         </div>
 

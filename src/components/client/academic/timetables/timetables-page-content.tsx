@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import {
-  Alert, AlertTitle, AlertDescription, Badge, Button, ButtonOnlyAction, DataList, EmptyState, FilterPopover, FormModal, FormSelect, Icon, Input, Tabs, TabsContent, TabsList, TabsTrigger, TitleList, WeekTimetable,
+  Alert, AlertTitle, AlertDescription, Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, EmptyState, FilterPopover, FormModal, FormSelect, Icon, Input, Tabs, TabsContent, TabsList, TabsTrigger, TitleList, WeekTimetable,
   type Column, type TimetableBlock, type TimetableSlot,
   Can,
 } from "@/components";
@@ -299,7 +299,20 @@ export function TimetablesPageContent() {
             <>
               <Can permission="timetable:write"><TimetableGenerator timetableId={timetableId} sections={sections.map((s) => ({ id: s.id, name: s.name }))} /></Can>
               <Button size="sm" variant="outline" className="h-10" disabled={tt.validate.isPending} onClick={() => tt.validate.mutateAsync().then(setReport).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível validar.")))}>Validar</Button>
-              <Can permission="timetable:publish"><Button size="sm" className="h-10" disabled={tt.publish.isPending} onClick={() => tt.publish.mutateAsync().then(() => SucessMessage("Horário publicado.")).catch(fail)}>Publicar</Button></Can>
+              <Can permission="timetable:publish"><Button size="sm" className="h-10" disabled={tt.publish.isPending} onClick={() => openModal("tt-publish-confirm")}>Publicar</Button></Can>
+              <ConfirmModal
+                id="tt-publish-confirm"
+                title="Publicar horário"
+                description="Torna esta versão o horário oficial da escola."
+                confirmLabel="Publicar"
+                isLoading={tt.publish.isPending}
+                effects={[
+                  "Só se publica sem violações obrigatórias (choques de professor, turma e sala, disponibilidades, grelha). Use «Validar» antes para as ver.",
+                  "A versão publicada anterior passa a arquivada e esta torna-se a que professores, alunos e encarregados veem.",
+                  "Depois de publicado já não se editam as aulas: as alterações fazem-se por pedidos de mudança com data de efeito (separador «Mudanças»).",
+                ]}
+                onConfirm={() => tt.publish.mutateAsync().then(() => SucessMessage("Horário publicado.")).catch(fail)}
+              />
             </>
           )}
         </div>
@@ -307,7 +320,8 @@ export function TimetablesPageContent() {
 
       {report && (
         <Alert className={report.hard.length ? "border-destructive/40" : "border-emerald-500/40"}>
-          <p className="font-semibold">{report.hard.length ? `${report.hard.length} violação(ões) obrigatória(s)` : "Sem violações obrigatórias"} • {report.soft.length} aviso(s) • pontuação {report.score}</p>
+          <p className="font-semibold">{report.hard.length ? `${report.hard.length} violação(ões) obrigatória(s)` : "Sem violações obrigatórias"} • {report.soft.length} aviso(s) • pontuação {report.score}/100</p>
+          <p className="text-xs text-muted-foreground">Violações obrigatórias impedem a publicação e têm de ser corrigidas. Os avisos não impedem: cada um tira pontos à pontuação (100 = sem avisos), que serve só para comparar versões.</p>
           {[...report.hard, ...report.soft].slice(0, 12).map((v, i) => <p key={i} className={v.severity === "hard" ? "text-destructive text-sm" : "text-amber-700 text-sm"}>• {v.message}</p>)}
         </Alert>
       )}

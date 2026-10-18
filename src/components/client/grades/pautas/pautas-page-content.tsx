@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { TitleList, Button, Icon, EmptyState } from '@/components';
+import { TitleList, Button, Icon, EmptyState, StatusLegend } from '@/components';
 import { FilterPopover } from '@/components/shared/filters/filter-popover';
 import { useTeachingScope } from '@/hooks/school/use-teaching-scope';
 import { usePautas } from '@/hooks/school/use-pautas';
@@ -74,6 +74,15 @@ export function PautasPageContent() {
         closed={stats.closed}
         pending={stats.pending}
         auditCount={stats.auditCount}
+      />
+
+      <StatusLegend
+        title="Estados e acções da pauta"
+        items={[
+          { label: "Em aberto", description: "As notas ainda se lançam e a pauta pode não estar completa. O botão «Fechar pauta» recusa se faltar alguma nota (ou a turma não tiver disciplinas ou alunos).", next: "a Direcção fecha a pauta quando estiver completa." },
+          { label: "Fechada", description: "Guarda-se uma versão imutável (snapshot) e as notas ficam bloqueadas. Se for o último período, gera-se a proposta de transição de cada aluno.", next: "correcções só por reapreciação de nota, ou reabrindo a pauta." },
+          { label: "Reaberta", description: "A Direcção reabriu-a com justificação (fica na auditoria). A versão guardada não se apaga; ao fechar de novo cria-se uma nova. Não se pode reabrir se já houver decisões de transição confirmadas." },
+        ]}
       />
 
       <PautasTable

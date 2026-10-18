@@ -71,6 +71,16 @@ export function IssueDocumentModal({ students, onIssue }: IssueDocumentModalProp
         <StudentSelect label="Aluno *" students={students} value={studentId} onChange={setStudentId} />
       </div>
       <FormSelect label="Tipo de documento" value={documentType} onValueChange={(v) => setDocumentType(v as OfficialDocumentType)} options={TYPES} />
+      {documentType === 'DECLARATION_WITH_GRADES' && (
+        <p className="sm:col-span-2 text-xs text-muted-foreground">
+          Usa as notas do último período do ano lectivo e só se emite se a pauta desse período estiver fechada pela Direcção; caso contrário o sistema recusa e diz porquê.
+        </p>
+      )}
+      {isCert && (
+        <p className="sm:col-span-2 text-xs text-muted-foreground">
+          O certificado de habilitações exige o nome de quem conferiu os dados. O livro e a folha de registo aparecem no rodapé.
+        </p>
+      )}
 
       {isCert && (
         <>

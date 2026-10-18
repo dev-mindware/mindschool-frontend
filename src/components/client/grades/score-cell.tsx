@@ -48,7 +48,7 @@ export function ScoreCell({ value, status, readOnly, tone, onValueChange, onStat
           value={current}
           onChange={(e) => onStatusChange(e.target.value as ScoreStatus)}
           className="mt-1 block mx-auto w-20 rounded border border-input bg-background text-[10px] py-0.5"
-          title="Estado da nota"
+          title="Ausente: faltou (conta 0 ou sai da média, conforme a política da escola). Dispensado / Não avaliado: não conta para este aluno e sai da média."
         >
           <option value="avaliado">Avaliado</option>
           <option value="ausente">Ausente</option>

@@ -17,6 +17,7 @@ import {
   FormSelect,
   Icon,
   Input,
+  StatusLegend,
   Tabs,
   TabsContent,
   TabsList,
@@ -149,6 +150,17 @@ export function StudentAttendanceContent() {
           <span>Baixar Folha (PDF)</span>
         </Button>
       </TitleList>
+
+      <StatusLegend
+        title="Legenda da chamada e regras"
+        items={[
+          { label: "P", description: "Presente." },
+          { label: "A", description: "Atraso: conta como presença com atraso (pesa pouco no risco de faltas)." },
+          { label: "FI", description: "Falta injustificada. É a única que se pode justificar depois, com comprovativo (separador de justificações)." },
+          { label: "FJ", description: "Falta justificada (atestado ou comprovação oficial)." },
+          { label: "Regras", description: "Não se registam presenças em datas futuras. Em dias não lectivos o sistema avisa (ou recusa, se a escola tiver activado o bloqueio nas Políticas)." },
+        ]}
+      />
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
         <DynamicMetricCard title={`${classRate}%`} subtitle="Assiduidade no tempo" description="Presentes e atrasos nesta aula" icon="CalendarCheck" />

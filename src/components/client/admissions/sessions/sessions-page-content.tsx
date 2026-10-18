@@ -19,6 +19,9 @@ import {
   TitleList,
   type Column,
 } from "@/components";
+import { useQuery } from "@tanstack/react-query";
+import { readRawSettings } from "@/services/school-settings-service";
+import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { useAdmissionSession, useAdmissionSessions } from "@/hooks/school/use-phase6";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -158,7 +161,11 @@ type Row = { status: "presente" | "ausente"; score: string };
 function SessionModal({ id }: { id: string | null }) {
   const { session, register, putResults, accessToken } = useAdmissionSession(id ?? undefined);
   const { applications } = useAdmissionSessions();
-  const { closeModal } = useModal();
+  const { closeModal, openModal } = useModal();
+  // Nota mínima da prova: a da política da escola (Definições › Políticas); sem ela, 10.
+  const schoolId = useActiveSchoolStore((s) => s.schoolId);
+  const settings = useQuery({ queryKey: ["settings-raw", schoolId], queryFn: readRawSettings, enabled: Boolean(schoolId), staleTime: 60 * 1000 });
+  const minScore = Number((settings.data?.["admission"] as { min_pass_score?: number | null } | undefined)?.min_pass_score ?? 10);
   const [rows, setRows] = useState<Record<string, Row>>({});
   const [pick, setPick] = useState("");
   const [token, setToken] = useState<string | null>(null);
@@ -203,7 +210,7 @@ function SessionModal({ id }: { id: string | null }) {
           presentCount++;
           if (d.score !== "") {
             const num = Number(d.score);
-            if (num >= 10) approvedCount++;
+            if (num >= minScore) approvedCount++;
             else rejectedCount++;
           }
         } else if (d.status === "ausente") {
@@ -220,7 +227,7 @@ function SessionModal({ id }: { id: string | null }) {
       approvedCount,
       rejectedCount,
     };
-  }, [session, rows]);
+  }, [session, rows, minScore]);
 
   const handleSaveAndProcess = async () => {
     const results = (session?.registrations ?? []).flatMap<{
@@ -246,50 +253,42 @@ function SessionModal({ id }: { id: string | null }) {
 
       // 2. Processar admissão automática de aprovados e notificação de reprovados
       let approvedTotal = 0;
+      let waitlistedTotal = 0;
       let rejectedTotal = 0;
+      const failures: string[] = [];
+      const nameOf = (id: string) => session?.registrations.find((r) => r.application_id === id)?.candidate ?? "Candidato";
+
+      const decide = async (applicationId: string, decision: "aprovada" | "reprovada", notes: string) => {
+        try {
+          const done = await admissionsService.decide(applicationId, decision, notes);
+          // sem vagas, a API converte «aprovada» em lista de espera
+          if (decision === "aprovada" && done.status === "lista_espera") waitlistedTotal++;
+          else if (decision === "aprovada") approvedTotal++;
+          else rejectedTotal++;
+        } catch (err) {
+          failures.push(`${nameOf(applicationId)}: ${getApiErrorMessage(err, "não foi possível decidir")}`);
+        }
+      };
 
       for (const res of results) {
         if (res.status === "presente" && res.score !== undefined) {
-          if (res.score >= 10) {
-            try {
-              await admissionsService.decide(
-                res.application_id,
-                "aprovada",
-                `Aprovado na Prova de Acesso com classificação de ${res.score} valores.`
-              );
-              approvedTotal++;
-            } catch (err) {
-              console.warn("Erro ao registar aprovação:", err);
-            }
+          if (res.score >= minScore) {
+            await decide(res.application_id, "aprovada", `Aprovado na Prova de Acesso com classificação de ${res.score} valores.`);
           } else {
-            try {
-              await admissionsService.decide(
-                res.application_id,
-                "reprovada",
-                `Não admitido na Prova de Acesso com classificação de ${res.score} valores (mínimo exigido: 10 valores).`
-              );
-              rejectedTotal++;
-            } catch (err) {
-              console.warn("Erro ao registar reprovação:", err);
-            }
+            await decide(res.application_id, "reprovada", `Não admitido na Prova de Acesso com classificação de ${res.score} valores (mínimo exigido: ${minScore} valores).`);
           }
         } else if (res.status === "ausente") {
-          try {
-            await admissionsService.decide(
-              res.application_id,
-              "reprovada",
-              "Não admitido por ausência à Prova de Acesso agendada."
-            );
-            rejectedTotal++;
-          } catch (err) {
-            console.warn("Erro ao registar reprovação por ausência:", err);
-          }
+          await decide(res.application_id, "reprovada", "Não admitido por ausência à Prova de Acesso agendada.");
         }
       }
 
       SucessMessage(
-        `Resultados da prova gravados com sucesso! ${approvedTotal} candidato(s) aprovado(s) e prontos para matrícula, ${rejectedTotal} reprovado(s).`
+        `Notas gravadas. Decisões: ${approvedTotal} aprovado(s), ${waitlistedTotal} em lista de espera (sem vagas), ${rejectedTotal} não admitido(s).`
       );
+      if (failures.length > 0) {
+        // Ex.: documentos por validar, candidatura já decidida: o candidato fica como estava e decide-se à mão.
+        ErrorMessage(`${failures.length} candidato(s) ficaram por decidir: ${failures.join(" · ")}`);
+      }
       closeModal("session-detail");
     } catch (e) {
       ErrorMessage(getApiErrorMessage(e, "Ocorreu um erro ao processar os resultados."));
@@ -326,7 +325,7 @@ function SessionModal({ id }: { id: string | null }) {
               <p className="text-lg font-bold text-emerald-600">{stats.presentCount}</p>
             </div>
             <div className="rounded-lg border bg-card p-3 space-y-1">
-              <span className="text-xs text-muted-foreground">Aprovados (≥ 10)</span>
+              <span className="text-xs text-muted-foreground">Aprovados (≥ {minScore})</span>
               <p className="text-lg font-bold text-primary">{stats.approvedCount}</p>
             </div>
             <div className="rounded-lg border bg-card p-3 space-y-1">
@@ -376,7 +375,7 @@ function SessionModal({ id }: { id: string | null }) {
                 Candidatos Convocados ({session.registrations.length})
               </h4>
               <span className="text-xs text-muted-foreground">
-                Escala de avaliação: 0 a 20 valores (Aprovação: ≥ 10)
+                Escala de avaliação: 0 a 20 valores (Aprovação: ≥ {minScore}, a nota mínima da escola em Políticas › Admissões)
               </span>
             </div>
 
@@ -403,8 +402,8 @@ function SessionModal({ id }: { id: string | null }) {
                     {session.registrations.map((r) => {
                       const d = rows[r.application_id];
                       const numScore = d?.score !== "" ? Number(d?.score) : null;
-                      const isApproved = numScore !== null && numScore >= 10;
-                      const isRejected = (numScore !== null && numScore < 10) || d?.status === "ausente";
+                      const isApproved = numScore !== null && numScore >= minScore;
+                      const isRejected = (numScore !== null && numScore < minScore) || d?.status === "ausente";
 
                       return (
                         <tr key={r.application_id} className="hover:bg-muted/20 transition-colors">
@@ -471,11 +470,11 @@ function SessionModal({ id }: { id: string | null }) {
                             ) : numScore !== null ? (
                               isApproved ? (
                                 <Badge className="bg-emerald-600 text-white hover:bg-emerald-700 text-xs">
-                                  Aprovado (≥10)
+                                  Aprovado (≥{minScore})
                                 </Badge>
                               ) : (
                                 <Badge variant="destructive" className="text-xs">
-                                  Reprovado (&lt;10)
+                                  Reprovado (&lt;{minScore})
                                 </Badge>
                               )
                             ) : (
@@ -529,19 +528,33 @@ function SessionModal({ id }: { id: string | null }) {
             {!cancelled && session.registrations.length > 0 && (
               <Button
                 type="button"
-                onClick={handleSaveAndProcess}
+                onClick={() => openModal("session-process-confirm")}
                 disabled={isProcessing || putResults.isPending}
                 className="gap-2"
               >
                 <Icon name="CheckCircle2" className="size-4" />
                 {isProcessing
-                  ? "A gravar e processar decisões..."
-                  : "Gravar Resultados & Processar Admissões"}
+                  ? "A gravar e decidir..."
+                  : "Gravar notas e decidir candidaturas"}
               </Button>
             )}
           </div>
         </div>
       )}
+      <ConfirmModal
+        id="session-process-confirm"
+        title="Gravar notas e decidir candidaturas"
+        description={`Grava as notas e decide, em lote, todos os candidatos com nota ou ausência.`}
+        confirmLabel="Gravar e decidir"
+        irreversible
+        effects={[
+          `Nota igual ou acima de ${minScore}: «aprovada». Abaixo, ou ausente: «não admitido».`,
+          "Sem vagas na classe, a aprovação passa automaticamente a lista de espera.",
+          "Só se decide quem tem os documentos validados; os restantes ficam por decidir e aparecem listados no fim.",
+          "Cada decisão fica registada em seu nome e só se reverte pelo processo próprio (lista de espera, desistência).",
+        ]}
+        onConfirm={handleSaveAndProcess}
+      />
     </FormModal>
   );
 }

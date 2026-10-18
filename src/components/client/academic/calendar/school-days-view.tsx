@@ -36,11 +36,11 @@ function MarkDayModal() {
       .then(() => { SucessMessage("Dia(s) marcado(s) como não lectivo(s)."); setF({ start: "", end: "", title: "", justification: "" }); })
       .catch((e) => { fail(e); throw e; });
   return (
-    <FormModal id="school-days-mark" title="Marcar dia não lectivo" description="Use para decretos, calamidades ou encerramentos. A assiduidade e as avaliações deixam de contar estes dias." submitLabel="Marcar" isLoading={mark.isPending} onSubmit={submit} disabled={!f.start || f.title.trim().length < 3 || f.justification.trim().length < 5}>
+    <FormModal id="school-days-mark" title="Marcar dia não lectivo" description="Use para decretos, calamidades ou encerramentos. Estes dias deixam de ser lectivos: o contador de dias lectivos desce e a assiduidade já não é exigida (as faltas já lançadas não se apagam). Só se marcam dias dentro do ano lectivo; a marca remove-se depois, com «Remover marca»." submitLabel="Marcar" isLoading={mark.isPending} onSubmit={submit} disabled={!f.start || f.title.trim().length < 3 || f.justification.trim().length < 5}>
       <Input label="Início *" type="date" value={f.start} onChange={(e) => set("start", e.target.value)} />
       <Input label="Fim (opcional)" type="date" value={f.end} onChange={(e) => set("end", e.target.value)} />
       <div className="sm:col-span-2"><Input label="Título *" startIcon="CalendarX" value={f.title} onChange={(e) => set("title", e.target.value)} /></div>
-      <div className="sm:col-span-2"><Input label="Motivo * (ex.: decreto, calamidade)" value={f.justification} onChange={(e) => set("justification", e.target.value)} /></div>
+      <div className="sm:col-span-2"><Input label="Motivo * (mín. 5 caracteres; ex.: decreto, calamidade)" value={f.justification} onChange={(e) => set("justification", e.target.value)} /></div>
     </FormModal>
   );
 }

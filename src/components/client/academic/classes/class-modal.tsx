@@ -83,28 +83,13 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
   const { save } = useAcademicSections();
   const { years } = useAcademicYears();
 
-  // Opções dinâmicas de anos lectivos com 2026/2027 como prioridade
-  const academicYearOptions = useMemo(() => {
-    if (!years || years.length === 0) {
-      return [{ value: "2026/2027", label: "2026/2027 (Ano Lectivo Corrente)" }];
-    }
-    const opts = years.map((y) => ({
-      value: y.name,
-      label: y.status === "activo" ? `${y.name} (Activo)` : y.name,
-    }));
-    if (!opts.some((o) => o.value.includes("2026/2027") || o.value.includes("26/27"))) {
-      opts.unshift({ value: "2026/2027", label: "2026/2027 (Ano Lectivo Corrente)" });
-    }
-    return opts;
-  }, [years]);
+  // Só anos lectivos que existem na escola (não se inventa um ano que a API não conhece).
+  const academicYearOptions = useMemo(
+    () => (years ?? []).map((y) => ({ value: y.name, label: y.status === "activo" ? `${y.name} (Activo)` : y.name })),
+    [years],
+  );
 
-  const activeOrCurrentYear = useMemo(() => {
-    const active = years.find((y) => y.status === "activo");
-    if (active) return active.name;
-    const y2627 = years.find((y) => y.name.includes("2026/2027") || y.name.includes("26/27"));
-    if (y2627) return y2627.name;
-    return "2026/2027";
-  }, [years]);
+  const activeOrCurrentYear = useMemo(() => years.find((y) => y.status === "activo")?.name ?? years[0]?.name ?? "", [years]);
 
   const {
     register,
@@ -305,7 +290,7 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
             min={1}
             max={100}
             step={1}
-            label="Capacidade de Alunos *"
+            label="Capacidade de Alunos * (limite de matrículas na turma)"
             startIcon="Users"
             placeholder="40"
             value={watch("capacity")}
@@ -316,6 +301,9 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
             }
             error={errors.capacity?.message}
           />
+          <p className="text-[11px] text-muted-foreground sm:col-span-2">
+            Cheia a capacidade, o sistema não deixa matricular mais alunos (e põe os aprovados em lista de espera). Não se pode baixar a capacidade abaixo do número de alunos já matriculados.
+          </p>
         </div>
 
         {/* Bloco de Horário do Turno Dinâmico (Configurável pela Escola ou Flexível no Diurno) */}

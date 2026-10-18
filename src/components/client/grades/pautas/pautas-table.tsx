@@ -13,6 +13,7 @@ interface PautasTableProps {
   onReopenPauta: (pauta: ConsolidatedPauta) => void;
 }
 
+const SHIFT_PT: Record<string, string> = { MORNING: 'Manhã', AFTERNOON: 'Tarde', EVENING: 'Noite', DIURNO: 'Diurno' };
 const uniq = (v: string[]) => [...new Set(v.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
 
 export function PautasTable({ pautas, toolbar, onViewPauta, onLockPauta, onReopenPauta }: PautasTableProps) {
@@ -26,7 +27,7 @@ export function PautasTable({ pautas, toolbar, onViewPauta, onLockPauta, onReope
             {item.sectionName}
           </span>
           <span className="text-[11px] text-muted-foreground">
-            {item.classLevel} • Turno: {item.shift}
+            {item.classLevel} • Turno: {SHIFT_PT[item.shift] ?? item.shift}
           </span>
         </div>
       ),
@@ -189,7 +190,7 @@ export function PautasTable({ pautas, toolbar, onViewPauta, onLockPauta, onReope
       filters={[
         { key: 'estado', label: 'Estado', icon: 'ListFilter', options: [{ value: 'fechada', label: 'Fechada' }, { value: 'aberta', label: 'Em aberto' }], match: (p, v) => (v === 'fechada' ? p.isClosed : !p.isClosed) },
         { key: 'classe', label: 'Classe', icon: 'GraduationCap', options: uniq(pautas.map((p) => p.classLevel)).map((v) => ({ value: v, label: v })), match: (p, v) => p.classLevel === v },
-        { key: 'turno', label: 'Turno', icon: 'Sun', options: uniq(pautas.map((p) => p.shift)).map((v) => ({ value: v, label: v })), match: (p, v) => p.shift === v },
+        { key: 'turno', label: 'Turno', icon: 'Sun', options: uniq(pautas.map((p) => p.shift)).map((v) => ({ value: v, label: SHIFT_PT[v] ?? v })), match: (p, v) => p.shift === v },
         { key: 'conformidade', label: 'Conformidade MED', icon: 'ShieldCheck', options: [{ value: 'completa', label: '100% lançada' }, { value: 'pendente', label: 'Com notas pendentes' }], match: (p, v) => (v === 'completa' ? p.missingGradesCount === 0 : p.missingGradesCount > 0) },
         { key: 'aproveitamento', label: 'Aproveitamento', icon: 'Gauge', options: [{ value: 'alto', label: '80% ou mais' }, { value: 'medio', label: '60 a 79%' }, { value: 'baixo', label: 'Abaixo de 60%' }], match: (p, v) => (v === 'alto' ? p.approvalRate >= 80 : v === 'medio' ? p.approvalRate >= 60 && p.approvalRate < 80 : p.approvalRate < 60) },
       ]}

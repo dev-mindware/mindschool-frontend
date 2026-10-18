@@ -23,13 +23,6 @@ interface GuardiansListProps {
   isError?: boolean;
 }
 
-const CHANNELS = [
-  { value: "WHATSAPP", label: "WhatsApp" },
-  { value: "SMS", label: "SMS" },
-  { value: "EMAIL", label: "E-mail" },
-  { value: "PHONE_CALL", label: "Chamada telefónica" },
-];
-
 export function GuardiansList({ guardians, isLoading, isError }: GuardiansListProps) {
   const { inviteGuardian } = useGuardians();
   const [selectedGuardian, setSelectedGuardian] = useState<Guardian | null>(
@@ -71,34 +64,8 @@ export function GuardiansList({ guardians, isLoading, isError }: GuardiansListPr
           <span className="font-mono text-xs text-foreground font-medium">
             {item.phonePrimary}
           </span>
-          {item.preferredContactChannel === "WHATSAPP" && (
-            <span
-              title="Contacto preferencial com WhatsApp activo"
-              className="inline-flex items-center text-[10px] bg-emerald-100 text-emerald-800 dark:bg-emerald-950 dark:text-emerald-300 px-1.5 py-0.5 rounded font-semibold"
-            >
-              WA
-            </span>
-          )}
         </div>
       ),
-    },
-    {
-      key: "preferredContactChannel",
-      header: "Canal Preferencial",
-      render: (_, item) => {
-        const channelMap = {
-          WHATSAPP: { label: "WhatsApp", variant: "success" as const },
-          SMS: { label: "SMS", variant: "info" as const },
-          EMAIL: { label: "E-mail", variant: "default" as const },
-          PHONE_CALL: { label: "Chamada", variant: "secondary" as const },
-        };
-        const conf = channelMap[item.preferredContactChannel] || channelMap.SMS;
-        return (
-          <Badge variant={conf.variant} className="text-xs font-medium">
-            {conf.label}
-          </Badge>
-        );
-      },
     },
     {
       key: "wards",
@@ -196,7 +163,6 @@ export function GuardiansList({ guardians, isLoading, isError }: GuardiansListPr
         searchPlaceholder="Pesquisar por nome, telefone, BI, e-mail ou educando"
         searchText={(g) => `${g.fullName} ${g.phonePrimary} ${g.phoneSecondary ?? ""} ${g.idDocumentNumber ?? ""} ${g.email ?? ""} ${g.profession ?? ""} ${g.wards.map((w) => w.studentName).join(" ")}`}
         filters={[
-          { key: "canal", label: "Canal", icon: "ListFilter", options: CHANNELS, match: (g, v) => g.preferredContactChannel === v },
           { key: "educandos", label: "Educandos", icon: "GraduationCap", options: [{ value: "com", label: "Com educandos" }, { value: "sem", label: "Sem educandos" }, { value: "varios", label: "2 ou mais" }], match: (g, v) => (v === "com" ? g.wards.length > 0 : v === "sem" ? g.wards.length === 0 : g.wards.length >= 2) },
           { key: "email", label: "E-mail", icon: "Mail", options: [{ value: "sim", label: "Com e-mail" }, { value: "nao", label: "Sem e-mail" }], match: (g, v) => (v === "sim" ? Boolean(g.email) : !g.email) },
           { key: "bi", label: "Documento", icon: "IdCard", options: [{ value: "sim", label: "Com BI" }, { value: "nao", label: "Sem BI" }], match: (g, v) => (v === "sim" ? Boolean(g.idDocumentNumber) : !g.idDocumentNumber) },

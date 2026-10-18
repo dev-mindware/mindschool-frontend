@@ -377,8 +377,9 @@ export const admissionsService = {
     }
   },
   gradeExam: async (id: string, score: number) => void (await api.post(`/s/admission-applications/${id}/exam-score`, { exam_score: score })),
-  decide: async (id: string, decision: "aprovada" | "lista_espera" | "reprovada", notes: string) =>
-    void (await api.post(`/s/admission-applications/${id}/decision`, { decision, ...(notes ? { notes } : {}) })),
+  /** Devolve o estado final: «aprovada» pode vir como «lista_espera» quando a classe já não tem vagas. */
+  decide: async (id: string, decision: "aprovada" | "lista_espera" | "reprovada", notes: string): Promise<{ status?: string }> =>
+    (await api.post<{ status?: string }>(`/s/admission-applications/${id}/decision`, { decision, ...(notes ? { notes } : {}) })).data,
   promoteWaitlist: async (academicYearId: string, classLevelId: string) =>
     void (await api.post(`/s/admission-applications/waitlist/promote`, {}, { params: { academic_year_id: academicYearId, class_level_id: classLevelId } })),
   convert: async (id: string, sectionId: string): Promise<{ studentId: string; enrollmentId: string }> => {

@@ -13,6 +13,9 @@ import {
 import { useTeachingScope } from "@/hooks/school/use-teaching-scope";
 import { useGradeSheet } from "@/hooks/school/use-grades";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { useQuery } from "@tanstack/react-query";
+import { readRawSettings } from "@/services/school-settings-service";
+import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { ErrorMessage } from "@/utils/messages";
 import { AssessmentTerm } from "@/types/grade";
 import { GradeEntryTable } from "./grade-entry-table";
@@ -105,6 +108,10 @@ export function GradesPageContent() {
   const isPautaClosed = pautaStatus === "fechada";
 
   // Métricas da Mini-Pauta
+  const schoolId = useActiveSchoolStore((s) => s.schoolId);
+  const policy = useQuery({ queryKey: ["settings-raw", schoolId], queryFn: readRawSettings, enabled: Boolean(schoolId), staleTime: 60 * 1000 });
+  const passMark = Number((policy.data?.["evaluation"] as { pass_mark?: number } | undefined)?.pass_mark ?? 10);
+
   const stats = useMemo(() => {
     if (!activeSheet || activeSheet.entries.length === 0) {
       return {
@@ -119,12 +126,12 @@ export function GradesPageContent() {
     const graded = activeSheet.entries.filter((e) => e.termAverage !== undefined);
     const sum = graded.reduce((acc, e) => acc + (e.termAverage || 0), 0);
     const average = graded.length > 0 ? Number((sum / graded.length).toFixed(1)) : 0;
-    const approved = graded.filter((e) => (e.termAverage || 0) >= 10);
+    const approved = graded.filter((e) => (e.termAverage || 0) >= passMark);
     const passingRate = graded.length > 0 ? Number(((approved.length / graded.length) * 100).toFixed(1)) : 0;
     const pendingCount = totalStudents - graded.length;
 
     return { totalStudents, average, passingRate, pendingCount };
-  }, [activeSheet]);
+  }, [activeSheet, passMark]);
 
   const selectedSection = sections.find((s) => s.id === selectedSectionId);
   if (!isScopeLoading && isTeacher && sections.length === 0) {
@@ -164,7 +171,7 @@ export function GradesPageContent() {
         <DynamicMetricCard
           title={`${stats.passingRate.toFixed(1)}%`}
           subtitle="Taxa de Positivas"
-          description="Alunos com MT ≥ 10.0 valores"
+          description="Alunos com MT igual ou acima da nota mínima da escola (Políticas), entre os que já têm MT"
           icon="Award"
         />
         <DynamicMetricCard
@@ -173,7 +180,7 @@ export function GradesPageContent() {
           description={
             stats.pendingCount === 0
               ? "100% dos alunos avaliados"
-              : "Alunos sem nota final calculada"
+              : "Alunos ainda sem MT: falta alguma nota ou a prova trimestral"
           }
           icon="Clock"
         />
@@ -259,10 +266,10 @@ export function GradesPageContent() {
             : availableSubjects.length === 0
               ? isTeacher
                 ? "Não lecciona nenhuma disciplina nesta turma."
-                : "Esta turma não possui disciplinas atribuídas (Académico → Atribuições)."
+                : "Esta turma não tem disciplinas atribuídas. Para lançar notas tem de existir: ano lectivo activo com os seus períodos, a disciplina atribuída a um professor na turma (Académico › Atribuições) e alunos matriculados."
               : isMissingAssignment
-                ? "Esta disciplina não está atribuída a esta turma (Académico → Atribuições)."
-                : "Selecione uma turma e disciplina para carregar a mini-pauta."}
+                ? "Esta disciplina não está atribuída a esta turma. Atribua-a a um professor em Académico › Atribuições."
+                : "Escolha a turma e a disciplina para carregar a mini-pauta. Os períodos vêm do ano lectivo activo."}
         </div>
       )}
     </div>

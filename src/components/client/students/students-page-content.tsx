@@ -1,13 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Can, Button, DynamicMetricCard, Icon, TitleList } from "@/components";
+import { Can, Button, ConfirmModal, DynamicMetricCard, Icon, TitleList } from "@/components";
+import { useModal } from "@/stores/modal/use-modal-store";
+import type { Student } from "@/types";
 import { useStudents } from "@/hooks/school/use-students";
 import { StudentModal } from "./student-modal";
 import { StudentsList } from "./students-list";
 
 export function StudentsPageContent() {
   const [addOpen, setAddOpen] = useState(false);
+  const [toDeactivate, setToDeactivate] = useState<Student | null>(null);
+  const { openModal } = useModal();
   const { allStudents, counts, isLoading, isError, updateStudent } = useStudents();
 
   return (
@@ -23,8 +27,27 @@ export function StudentsPageContent() {
         <DynamicMetricCard title={counts.cancelled} subtitle="Anulações" description="Processos cancelados" icon="UserX" />
       </div>
 
-      <StudentsList students={allStudents} isLoading={isLoading} isError={isError} onDeleteStudent={(id) => updateStudent.mutate({ id, input: { status: "inactivo" } })} />
+      <StudentsList
+        students={allStudents}
+        isLoading={isLoading}
+        isError={isError}
+        onDeleteStudent={(id) => { setToDeactivate(allStudents.find((s) => s.id === id) ?? null); openModal("student-deactivate"); }}
+      />
       <StudentModal isOpen={addOpen} onClose={() => setAddOpen(false)} />
+      <ConfirmModal
+        id="student-deactivate"
+        title="Desactivar aluno"
+        description={toDeactivate ? `Desactivar ${toDeactivate.fullName} (processo ${toDeactivate.studentNumber})?` : ""}
+        destructive
+        confirmLabel="Desactivar"
+        effects={[
+          "O aluno passa a «inactivo» e deixa de aparecer nas listas de alunos activos.",
+          "Não apaga a ficha, as notas, as facturas nem os documentos: tudo se mantém.",
+          "Não anula a matrícula nem liberta a vaga: para isso use «Cancelar matrícula» em Matrículas.",
+          "O estado «inactivo» não é definitivo: o aluno pode voltar a «activo».",
+        ]}
+        onConfirm={() => (toDeactivate ? updateStudent.mutateAsync({ id: toDeactivate.id, input: { status: "inactivo" } }) : Promise.resolve())}
+      />
     </div>
   );
 }

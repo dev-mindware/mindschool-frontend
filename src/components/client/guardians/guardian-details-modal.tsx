@@ -25,13 +25,6 @@ interface GuardianDetailsModalProps {
 }
 
 
-const CHANNEL_LABELS: Record<string, string> = {
-  WHATSAPP: "WhatsApp",
-  SMS: "SMS",
-  EMAIL: "E-mail",
-  PHONE_CALL: "Chamada Telefónica",
-};
-
 export function GuardianDetailsModal({
   isOpen,
   onClose,
@@ -54,9 +47,6 @@ export function GuardianDetailsModal({
               <SheetDescription asChild>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-muted-foreground">BI: {guardian.idDocumentNumber || "Não informado"}</span>
-                  <Badge variant="outline">
-                    {CHANNEL_LABELS[guardian.preferredContactChannel] || guardian.preferredContactChannel}
-                  </Badge>
                 </div>
               </SheetDescription>
             </div>
@@ -69,22 +59,10 @@ export function GuardianDetailsModal({
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-card border">
           <div className="space-y-2">
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Identificação & Residência
+              Identificação
             </h4>
             <DetailRow label="Nome Completo" value={guardian.fullName} />
-            <DetailRow label="Documento (BI)" value={guardian.idDocumentNumber} />
-            <DetailRow label="Morada / Residência" value={guardian.address} />
-          </div>
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Profissão & Trabalho
-            </h4>
-            <DetailRow label="Profissão / Função" value={guardian.profession} />
-            <DetailRow label="Local de Trabalho" value={guardian.workplace} />
-            <DetailRow
-              label="Canal Notificação"
-              value={CHANNEL_LABELS[guardian.preferredContactChannel]}
-            />
+            <DetailRow label="N.º do documento (identifica o encarregado na escola)" value={guardian.idDocumentNumber} />
           </div>
         </div>
 

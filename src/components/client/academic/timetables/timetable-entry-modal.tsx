@@ -666,20 +666,20 @@ export function TimetableEntryModal({
         )}
 
         {teacherConflict && !sectionConflict && (
-          <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2">
-            <Icon name="CircleAlert" className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/5 text-destructive text-xs flex items-start gap-2">
+            <Icon name="CircleAlert" className="w-4 h-4 shrink-0 mt-0.5" />
             <div>
-              <strong>Atenção:</strong> O professor selecionado já tem uma aula na turma{" "}
-              <strong>{teacherConflict.section.name}</strong> neste mesmo horário.
+              <strong>Choque de professor:</strong> O professor selecionado já tem uma aula na turma{" "}
+              <strong>{teacherConflict.section.name}</strong> neste mesmo horário. O sistema não deixa gravar: escolha outro tempo ou outro professor.
             </div>
           </div>
         )}
 
         {roomConflict && (
-          <div className="p-3 rounded-xl border border-amber-500/30 bg-amber-500/10 text-amber-900 dark:text-amber-200 text-xs flex items-start gap-2">
-            <Icon name="CircleAlert" className="w-4 h-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
+          <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/5 text-destructive text-xs flex items-start gap-2">
+            <Icon name="CircleAlert" className="w-4 h-4 shrink-0 mt-0.5" />
             <div>
-              <strong>Atenção:</strong> A sala selecionada já está ocupada por outra turma neste horário.
+              <strong>Choque de sala:</strong> A sala selecionada já está ocupada por outra turma neste horário. O sistema não deixa gravar: escolha outra sala ou outro tempo.
             </div>
           </div>
         )}
@@ -691,7 +691,7 @@ export function TimetableEntryModal({
           </Button>
           <ButtonSubmit
             isLoading={addLesson.isPending || updateLesson.isPending}
-            disabled={!sectionId || !subjectId || !teacherId || Boolean(sectionConflict)}
+            disabled={!sectionId || !subjectId || !teacherId || Boolean(sectionConflict) || Boolean(teacherConflict) || Boolean(roomConflict)}
             className="w-max"
           >
             {entryToEdit ? "Guardar Alterações" : "Adicionar ao Horário"}
