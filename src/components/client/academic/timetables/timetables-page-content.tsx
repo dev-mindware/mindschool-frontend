@@ -13,6 +13,7 @@ import { useListFilters } from "@/hooks/common/use-list-filters";
 import { useGoogleReturn } from "@/hooks/school/use-google-return";
 import { useTimetables } from "@/hooks/school/use-timetables";
 import { TeacherGoogleCard } from "./teacher-google-card";
+import { TimetableGenerator } from "./timetable-generator";
 import { academicService } from "@/services/academic-service";
 import { SHIFT_LABEL, WEEKDAY, type ApiChange, type ApiEntry, type ApiRoom, type ApiValidation, type Shift } from "@/services/timetables-service";
 import { useModal } from "@/stores/modal/use-modal-store";
@@ -294,6 +295,7 @@ export function TimetablesPageContent() {
           <div className="w-64"><FormSelect label="Versão do horário" value={timetableId} onValueChange={setTimetableId} options={timetables.map((t) => ({ value: t.id, label: `v${t.version_number} — ${STATUS_LABEL[t.status]} (${t.entries} aulas)` }))} /></div>
           {editable && (
             <>
+              <Can permission="timetable:write"><TimetableGenerator timetableId={timetableId} sections={sections.map((s) => ({ id: s.id, name: s.name }))} /></Can>
               <Button size="sm" variant="outline" className="h-10" disabled={tt.validate.isPending} onClick={() => tt.validate.mutateAsync().then(setReport).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível validar.")))}>Validar</Button>
               <Can permission="timetable:publish"><Button size="sm" className="h-10" disabled={tt.publish.isPending} onClick={() => tt.publish.mutateAsync().then(() => SucessMessage("Horário publicado.")).catch(fail)}>Publicar</Button></Can>
             </>

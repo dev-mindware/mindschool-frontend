@@ -21,6 +21,7 @@ export const PLAN_BENEFITS: Record<PlanType, readonly string[]> = {
     "Gestão multi-escola",
     "BI & Analytics: tendências por ano lectivo e por mês",
     "Arquivo documental: pesquisa, retenção e pacotes de descarga",
+    "Gerador automático de horários sem conflitos",
     "Alunos, turmas e professores sem limite",
   ],
 };

@@ -75,6 +75,7 @@ const PLAN_STRUCTURE_META: Record<string, PlanStructureMeta> = {
       "Cobrança Automatizada por E-mail",
       "BI & Analytics com tendências por ano lectivo",
       "Arquivo documental com pesquisa, retenção e pacotes",
+      "Gerador automático de horários",
       "Suporte Dedicado com SLA Prioritário",
     ],
   },

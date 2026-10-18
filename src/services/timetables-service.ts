@@ -3,6 +3,23 @@ import { fetchAllPages } from "./api-pagination";
 
 export type Shift = "manha" | "tarde" | "noite" | "diurno";
 
+export interface GenerateRequest { mode: "preview" | "apply"; replace: boolean; seed: number; sectionIds?: string[] }
+
+export interface ApiGeneration {
+  mode: "preview" | "apply";
+  seed: number;
+  replace: boolean;
+  placed_periods: number;
+  unplaced_periods: number;
+  score: number;
+  attempts: number;
+  placements: Array<{ section: { id: string; name: string }; subject: string; teacher: string; weekday: number; weekday_label: string; first_slot: number; span: number; start: string; end: string }>;
+  unplaced: Array<{ section: { id: string; name: string }; subject: string; teacher: string; remaining: number; reason: string; message: string }>;
+  hard_violations: number;
+  soft: Array<{ code: string; count: number }>;
+  applied: { created: number; replaced: number } | null;
+}
+
 export interface ApiTimetable {
   id: string;
   academic_year_id: string;
@@ -78,6 +95,9 @@ export const timetablesService = {
   removeEntry: async (id: string, entryId: string) => (await api.delete(`/s/timetables/${id}/entries/${entryId}`)).data,
   validate: async (id: string): Promise<ApiValidation> => (await api.post<ApiValidation>(`/s/timetables/${id}/validate`, {})).data,
   publish: async (id: string) => (await api.post<ApiTimetable>(`/s/timetables/${id}/publish`, {})).data,
+  /** Gerador automático (Enterprise): `preview` propõe sem gravar; `apply` grava de forma atómica. */
+  generate: async (id: string, v: GenerateRequest): Promise<ApiGeneration> =>
+    (await api.post<ApiGeneration>(`/s/timetables/${id}/generate`, { mode: v.mode, replace: v.replace, seed: v.seed, ...(v.sectionIds?.length ? { section_ids: v.sectionIds } : {}) })).data,
 
   bells: async (): Promise<ApiBellSchedule[]> => (await api.get<{ data: ApiBellSchedule[] }>("/s/bell-schedules")).data.data,
   createBell: async (v: { shift: Shift; name: string; validFrom: string; start: string; periodMinutes: number; periods: number; breakAfter?: number; breakMinutes?: number }) =>
