@@ -69,7 +69,7 @@ export function TuitionPaymentModal({ isOpen, onClose, fee }: TuitionPaymentModa
         <SheetHeader className="p-6 border-b shrink-0">
           <SheetTitle className="text-lg font-bold">Liquidação de Mensalidade Escolar</SheetTitle>
           <SheetDescription className="text-xs">
-            {`Registo de pagamento e emissão de Factura-Recibo para ${fee.studentName}.`}
+            {`Regista o pagamento do saldo total de ${fee.studentName} (propina e multas por pagar) e abre o comprovativo interno, sem valor fiscal. O documento fiscal é emitido pela certificação da factura.`}
           </SheetDescription>
         </SheetHeader>
 

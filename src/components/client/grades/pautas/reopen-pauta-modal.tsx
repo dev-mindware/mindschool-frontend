@@ -27,9 +27,6 @@ export function ReopenPautaModal({
 }: ReopenPautaModalProps) {
   const { reopen } = usePautas(pauta.term, []);
   const [reason, setReason] = useState("");
-  const [directorName, setDirectorName] = useState(
-    "Prof. António Silva (Dir. Pedagógico)"
-  );
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
@@ -107,17 +104,13 @@ export function ReopenPautaModal({
           </span>
         </div>
 
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Responsável pela Autorização
-          </label>
-          <input
-            type="text"
-            value={directorName}
-            onChange={(e) => setDirectorName(e.target.value)}
-            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            required
-          />
+        <div className="space-y-1.5 rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground">
+          <p className="font-semibold text-foreground">Antes de reabrir</p>
+          <ul className="list-disc space-y-1 pl-4">
+            <li>Só a Direcção pode reabrir, e só enquanto o ano lectivo não estiver encerrado.</li>
+            <li>Não é possível se já existirem decisões de transição confirmadas: é preciso anulá-las primeiro.</li>
+            <li>A versão guardada ao fechar não se apaga; ao fechar de novo cria-se uma versão nova. Fica tudo na auditoria, com o seu nome.</li>
+          </ul>
         </div>
 
         <div className="flex items-center justify-end gap-3 pt-4 border-t">

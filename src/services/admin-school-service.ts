@@ -44,9 +44,21 @@ export interface ApiImportJob {
   status: string;
   policy: string;
   summary: Record<string, number>;
-  result: { created: number; updated: number; ignored: number; failed: number } | null;
+  /** A API devolve campos diferentes por tipo: alunos (updated, ignored), matrículas (existing), notas (unchanged). */
+  result: { created: number; failed: number; updated?: number; ignored?: number; existing?: number; unchanged?: number } | null;
   created_at: string;
   preview?: Array<{ line: number; status: string; errors?: Array<{ field: string; message: string }>; values?: Record<string, string> }>;
+}
+
+/** Texto do resultado de uma importação, só com os contadores que a API devolve para esse tipo. */
+export function describeImportResult(r: NonNullable<ApiImportJob["result"]>): string {
+  const parts = [`${r.created} criados`];
+  if (r.updated !== undefined) parts.push(`${r.updated} actualizados`);
+  if (r.ignored !== undefined) parts.push(`${r.ignored} ignorados (já existiam)`);
+  if (r.existing !== undefined) parts.push(`${r.existing} já existiam (não alterados)`);
+  if (r.unchanged !== undefined) parts.push(`${r.unchanged} sem alteração`);
+  parts.push(`${r.failed} com falha`);
+  return parts.join(" • ");
 }
 
 const base = (k: ImportKind) => (k === "students" ? "/s/imports" : `/s/imports/${k}`);

@@ -209,8 +209,7 @@ export function ConsolidatedPautaPageContent() {
                   {student.transitionStatus === "APPROVED_WITH_CONDITIONS" && (
                     <Badge variant="info" title={student.exceptionApplied}>Excepção 7ª/8ª</Badge>
                   )}
-                  {student.transitionStatus === "RECOVERY_EXAM" && <Badge variant="warning">Recurso</Badge>}
-                  {student.transitionStatus === "FAILED" && <Badge variant="destructive">Retido</Badge>}
+                  {student.transitionStatus === "FAILED" && <Badge variant="destructive">Não transita</Badge>}
                 </td>
               </tr>
             ))}

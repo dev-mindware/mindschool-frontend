@@ -18,7 +18,6 @@ interface GradeEntryTableProps {
     value: number | undefined
   ) => void;
   onSetStatus?: (studentId: string, field: "continuousAssessment" | "teacherTest" | "termExam", status: "avaliado" | "ausente" | "dispensado" | "nao_avaliado") => void;
-  onLockSheet: () => void;
 }
 
 export function GradeEntryTable({
@@ -26,7 +25,6 @@ export function GradeEntryTable({
   isPautaClosed,
   onUpdateGrade,
   onSetStatus,
-  onLockSheet,
 }: GradeEntryTableProps) {
   const isReadOnly = sheet.isLocked || isPautaClosed;
 
@@ -127,26 +125,10 @@ export function GradeEntryTable({
         </div>
 
         <div className="flex items-center gap-2">
-          {!sheet.isLocked && !isPautaClosed && (
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => {
-                onLockSheet();
-                SucessMessage("Mini-pauta trancada pelo docente com sucesso!");
-              }}
-              className="gap-1.5 text-xs text-amber-700 border-amber-300 hover:bg-amber-50 dark:border-amber-700 dark:hover:bg-amber-950/20"
-            >
-              <Icon name="Lock" className="h-3.5 w-3.5" />
-              Trancar Lançamento (Finalizar)
-            </Button>
-          )}
-
-          {sheet.isLocked && !isPautaClosed && (
-            <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
-              <Icon name="CircleCheck" className="h-3.5 w-3.5" />
-              Entregue à Direcção Pedagógica
+          {!isPautaClosed && (
+            <span className="text-[11px] text-muted-foreground flex items-center gap-1">
+              <Icon name="Info" className="h-3.5 w-3.5" />
+              As notas ficam guardadas ao lançar. Quem fecha a pauta da turma é a Direcção.
             </span>
           )}
 

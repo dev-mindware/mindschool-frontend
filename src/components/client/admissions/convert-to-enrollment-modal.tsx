@@ -39,7 +39,6 @@ export function ConvertToEnrollmentModal({
   const [selectedSectionId, setSelectedSectionId] = useState<string>(
     sections[0]?.id || ""
   );
-  const [academicYear, setAcademicYear] = useState("2025/2026");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Paginated Section Search
@@ -108,11 +107,7 @@ export function ConvertToEnrollmentModal({
 
     setIsSubmitting(true);
     try {
-      const result = await convertCandidateToEnrollment(
-        application.id,
-        selectedSectionId,
-        academicYear
-      );
+      const result = await convertCandidateToEnrollment(application.id, selectedSectionId);
 
       SucessMessage(
         `Matrícula efectivada com sucesso! Aluno cadastrado no sistema.`
@@ -136,10 +131,10 @@ export function ConvertToEnrollmentModal({
             </div>
             <div className="space-y-1 text-left">
               <SheetTitle className="text-lg font-bold">
-                Efetivar Matrícula em 1 Clique (UC-01)
+                Matricular candidato aprovado
               </SheetTitle>
               <SheetDescription className="text-xs">
-                Conversão automática de candidato aprovado em estudante matriculado
+                Cria o aluno e a matrícula a partir da candidatura. Só candidaturas aprovadas se podem converter e não se desfaz: para reverter, anula-se a matrícula.
               </SheetDescription>
             </div>
           </div>
@@ -195,7 +190,7 @@ export function ConvertToEnrollmentModal({
         <div className="space-y-4">
           <div className="space-y-1.5">
             <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Turma de Destino Oficial (Pesquisa Paginada MindGest)
+              Turma de destino
             </label>
             <PaginatedSelect
               options={sectionOptions}
@@ -250,12 +245,16 @@ export function ConvertToEnrollmentModal({
             </div>
           )}
 
-          <Input
-            label="Ano Lectivo"
-            value={academicYear}
-            onChange={(e) => setAcademicYear(e.target.value)}
-            required
-          />
+          <Input label="Ano Lectivo (o da turma)" value={currentSection?.academicYear ?? "Escolha a turma"} disabled />
+
+          <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground space-y-1">
+            <p className="font-semibold text-foreground">O que é criado</p>
+            <ul className="list-disc space-y-0.5 pl-4">
+              <li>A ficha do aluno (com o n.º de processo) e a matrícula na turma escolhida.</li>
+              <li>As propinas do ano, segundo o plano da escola.</li>
+              <li>A conversão não cria o encarregado (a candidatura só guarda o nome e o telefone dele): ligue-o depois na ficha do aluno.</li>
+            </ul>
+          </div>
         </div>
       </form>
 

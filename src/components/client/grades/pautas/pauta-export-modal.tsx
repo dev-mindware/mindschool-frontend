@@ -32,18 +32,11 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
 
   // Estatísticas oficiais
   const totalStudents = pauta.students.length;
-  const approvedCount = pauta.students.filter(
-    (s) => s.transitionStatus === "APPROVED" || s.termAverageTotal >= 10 && s.failedSubjectsCount === 0
-  ).length;
-  const conditionalCount = pauta.students.filter(
-    (s) => s.transitionStatus === "APPROVED_WITH_CONDITIONS" || Boolean(s.exceptionApplied)
-  ).length;
-  const recoveryCount = pauta.students.filter(
-    (s) => s.transitionStatus === "RECOVERY_EXAM" || (s.failedSubjectsCount > 0 && s.failedSubjectsCount <= 3)
-  ).length;
-  const failedCount = pauta.students.filter(
-    (s) => s.transitionStatus === "FAILED" || s.failedSubjectsCount > 3
-  ).length;
+  // Só contam as propostas do sistema (regra da API): nunca se deduz um resultado a partir do número de negativas.
+  const approvedCount = pauta.students.filter((s) => s.transitionStatus === "APPROVED").length;
+  const conditionalCount = pauta.students.filter((s) => s.transitionStatus === "APPROVED_WITH_CONDITIONS").length;
+  const failedCount = pauta.students.filter((s) => s.transitionStatus === "FAILED").length;
+  const pendingCount = totalStudents - approvedCount - conditionalCount - failedCount;
 
   const approvalPercentage = totalStudents > 0 ? ((approvedCount + conditionalCount) / totalStudents) * 100 : 0;
 
@@ -269,20 +262,11 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
                           {student.transitionStatus === "APPROVED_WITH_CONDITIONS" && (
                             <span className="text-black">Transita (Art. 24.º)</span>
                           )}
-                          {student.transitionStatus === "RECOVERY_EXAM" && (
-                            <span className="text-black underline font-black">Recurso</span>
-                          )}
                           {student.transitionStatus === "FAILED" && (
                             <span className="text-black font-black">Não Transita</span>
                           )}
                           {(!student.transitionStatus || student.transitionStatus === "PENDING") && (
-                            <span className="text-black">
-                              {student.termAverageTotal >= 10 && student.failedSubjectsCount === 0
-                                ? "Aprovado"
-                                : student.failedSubjectsCount <= 3
-                                ? "Recurso"
-                                : "Não Transita"}
-                            </span>
+                            <span className="text-black">Sem proposta</span>
                           )}
                         </td>
                       </tr>
@@ -315,9 +299,9 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
                   </span>
                 </div>
                 <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Exames de Recurso</span>
+                  <span className="block text-[9px] text-black/70 uppercase">Sem proposta</span>
                   <span className="font-black text-sm">
-                    {recoveryCount} ({totalStudents > 0 ? ((recoveryCount / totalStudents) * 100).toFixed(1) : 0}%)
+                    {pendingCount} ({totalStudents > 0 ? ((pendingCount / totalStudents) * 100).toFixed(1) : 0}%)
                   </span>
                 </div>
                 <div>

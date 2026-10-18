@@ -18,7 +18,6 @@ interface TransitionsExportModalProps {
   stats: {
     directApproval: number;
     conditionalApproval: number;
-    recoveryCount: number;
     failedCount: number;
   };
 }
@@ -186,20 +185,12 @@ export function TransitionsExportModal({
                           {student.transitionStatus === "APPROVED_WITH_CONDITIONS" && (
                             <span className="text-black">Transita (Art. 24.º)</span>
                           )}
-                          {student.transitionStatus === "RECOVERY_EXAM" && (
-                            <span className="text-black underline font-black">Recurso</span>
-                          )}
                           {student.transitionStatus === "FAILED" && (
                             <span className="text-black font-black">Não Transita</span>
                           )}
                           {(!student.transitionStatus || student.transitionStatus === "PENDING") && (
-                            <span className="text-black">
-                              {student.termAverageTotal >= 10 && student.failedSubjectsCount === 0
-                                ? "Transita"
-                                : student.failedSubjectsCount <= 3
-                                ? "Recurso"
-                                : "Não Transita"}
-                            </span>
+                            // sem proposta do sistema (pautas por fechar): nunca se inventa um resultado numa acta
+                            <span className="text-black">Sem proposta</span>
                           )}
                         </td>
                       </tr>
@@ -225,12 +216,6 @@ export function TransitionsExportModal({
                   <span className="block text-[9px] text-black/70 uppercase">Excepções Legais (Art. 24.º)</span>
                   <span className="font-black text-sm">
                     {stats.conditionalApproval} ({totalStudents > 0 ? ((stats.conditionalApproval / totalStudents) * 100).toFixed(1) : 0}%)
-                  </span>
-                </div>
-                <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Exames de Recurso</span>
-                  <span className="font-black text-sm">
-                    {stats.recoveryCount} ({totalStudents > 0 ? ((stats.recoveryCount / totalStudents) * 100).toFixed(1) : 0}%)
                   </span>
                 </div>
                 <div>

@@ -6,7 +6,6 @@ import { useEnrollments } from "@/hooks/school/use-enrollments";
 import { getApiErrorMessage } from "@/utils/api-error";
 import {
   GlobalModal,
-  Input,
   SelectField,
   Button,
   ButtonSubmit,
@@ -37,9 +36,7 @@ export function CancelEnrollmentModal({
   const { cancel } = useEnrollments();
   const [selectedPreset, setSelectedPreset] = useState(COMMON_REASONS[0].value);
   const [customReason, setCustomReason] = useState("");
-  const [cancellationDate, setCancellationDate] = useState(
-    new Date().toISOString().split("T")[0]
-  );
+  const [justified, setJustified] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!enrollment) return null;
@@ -58,7 +55,7 @@ export function CancelEnrollmentModal({
 
     setIsSubmitting(true);
     try {
-      await cancel.mutateAsync({ id: enrollment.id, reason: finalReason });
+      await cancel.mutateAsync({ id: enrollment.id, reason: finalReason, justified });
       SucessMessage("Matrícula anulada e vaga libertada no sistema!");
       onClose();
     } catch (err: unknown) {
@@ -85,9 +82,15 @@ export function CancelEnrollmentModal({
             Está a anular a matrícula do estudante{" "}
             <strong>{enrollment.studentName}</strong> (Nº{" "}
             {enrollment.enrollmentNumber}) na turma{" "}
-            <strong>{enrollment.sectionName}</strong>. Esta ação libertará a
-            vaga da sala de aulas.
+            <strong>{enrollment.sectionName}</strong>. A anulação é feita com
+            a data de hoje e fica registada na auditoria.
           </p>
+          <ul className="mt-2 list-disc space-y-0.5 pl-4">
+            <li>As facturas ainda por pagar são anuladas (as já certificadas ficam a precisar de nota de crédito).</li>
+            <li>A vaga é libertada e o primeiro da lista de espera da classe é promovido.</li>
+            <li>Se for a única matrícula do aluno, o aluno passa a «inactivo».</li>
+            <li>Depois do fim do 2.º trimestre só a Direcção, com justificação documentada, pode anular.</li>
+          </ul>
         </div>
 
         <SelectField
@@ -111,13 +114,12 @@ export function CancelEnrollmentModal({
           />
         </div>
 
-        <Input
-          type="date"
-          label="Data Efectiva de Cancelamento *"
-          startIcon="Calendar"
-          value={cancellationDate}
-          onChange={(e) => setCancellationDate(e.target.value)}
-        />
+        <label className="flex items-start gap-2 text-xs cursor-pointer">
+          <input type="checkbox" className="mt-0.5" checked={justified} onChange={(e) => setJustified(e.target.checked)} />
+          <span>
+            <strong>Motivo justificado</strong> (doença comprovada, mudança de localidade). Marque só se houver comprovativo: dá direito a exame especial.
+          </span>
+        </label>
 
         <div className="flex justify-end gap-3 pt-3 border-t">
           <Button type="button" variant="outline" onClick={onClose}>

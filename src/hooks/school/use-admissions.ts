@@ -73,7 +73,7 @@ export function useAdmissions() {
       if (app) await admissionsService.promoteWaitlist(app.academicYearId, app.desiredClassLevelId);
       await refresh();
     },
-    convertCandidateToEnrollment: async (id: string, sectionId: string, _academicYear?: string) => {
+    convertCandidateToEnrollment: async (id: string, sectionId: string) => {
       const r = await admissionsService.convert(id, sectionId);
       await refresh();
       return r;

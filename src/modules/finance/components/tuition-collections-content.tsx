@@ -25,12 +25,10 @@ import { SucessMessage } from "@/utils/messages";
 
 export function TuitionCollectionsContent() {
   const { allFees, isLoading } = useTuition();
-  const { sendEmailReminder } = useTuitionBilling();
+  const { sendReminders } = useTuitionBilling();
 
   const [selectedFee, setSelectedFee] = useState<StudentTuitionFee | null>(null);
   const [isSending, setIsSending] = useState(false);
-  const [customEmail, setCustomEmail] = useState("");
-  const [customSubject, setCustomSubject] = useState("");
 
   const overdueFees = useMemo(
     () => allFees.filter((f) => f.status === "OVERDUE" || f.status === "PENDING"),
@@ -44,33 +42,22 @@ export function TuitionCollectionsContent() {
   const withEmailCount = overdueFees.filter((f) => Boolean(f.guardianEmail)).length;
   const withEmailRate = overdueFees.length ? Math.round((withEmailCount / overdueFees.length) * 100) : 0;
 
-  function handleOpenEmailModal(fee: StudentTuitionFee) {
-    setSelectedFee(fee);
-    setCustomEmail(fee.guardianEmail || "");
-    setCustomSubject(
-      `Aviso de Mensalidade Escolar: ${fee.studentName} — ${fee.monthLabel}/${fee.year}`
-    );
-  }
-
-  async function handleConfirmSend() {
-    if (!selectedFee) return;
+  async function send(fees: StudentTuitionFee[]) {
     setIsSending(true);
     try {
-      await sendEmailReminder({
-        ...selectedFee,
-        guardianEmail: customEmail || selectedFee.guardianEmail,
-      });
+      await sendReminders(fees);
       setSelectedFee(null);
+    } catch {
+      // a mensagem de erro já foi mostrada
     } finally {
       setIsSending(false);
     }
   }
 
-  function handleBatchReminder() {
-    SucessMessage(
-      `Disparo em lote agendado com sucesso para ${overdueFees.length} encarregados de educação via Correio Electrónico!`
-    );
-  }
+  // Em lote só as já vencidas: avisar quem ainda está dentro do prazo seria cobrar antes do tempo.
+  const confirmBatch = () => {
+    if (window.confirm(`Enviar agora um lembrete por e-mail a ${lateFees.length} encarregado(s) com propinas vencidas? Cada envio fica registado e não pode ser desfeito.`)) void send(lateFees);
+  };
 
   const columns: Column<StudentTuitionFee>[] = [
     {
@@ -159,7 +146,7 @@ export function TuitionCollectionsContent() {
       render: (_, item) => (
         <Button
           size="sm"
-          onClick={() => handleOpenEmailModal(item)}
+          onClick={() => setSelectedFee(item)}
           className="h-8 px-3 text-xs gap-1.5"
         >
           <Icon name="Mail" className="w-3.5 h-3.5" />
@@ -178,12 +165,12 @@ export function TuitionCollectionsContent() {
           suTitle="Envio automatizado de lembretes e avisos de propinas por correio electrónico para encarregados de educação"
         />
         <Button
-          onClick={handleBatchReminder}
-          disabled={overdueFees.length === 0}
+          onClick={confirmBatch}
+          disabled={lateFees.length === 0 || isSending}
           className="h-10 px-4 text-xs font-semibold gap-2"
         >
           <Icon name="Send" className="w-4 h-4" />
-          Disparar E-mails em Lote ({overdueFees.length})
+          {isSending ? "A enviar…" : `Enviar às vencidas (${lateFees.length})`}
         </Button>
       </div>
 
@@ -326,34 +313,13 @@ export function TuitionCollectionsContent() {
 
           {selectedFee && (
             <div className="space-y-4">
-              {/* Form Grid alinhado */}
-              <div className="grid grid-cols-1 gap-3.5">
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">Destinatário (Encarregado)</Label>
-                  <Input
-                    type="email"
-                    placeholder="ex: encarregado@email.com"
-                    value={customEmail}
-                    onChange={(e) => setCustomEmail(e.target.value)}
-                    className="h-9 text-xs"
-                  />
-                  {!customEmail && (
-                    <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">
-                      Aviso: Insira o correio electrónico para o qual a nota de cobrança deve ser enviada.
-                    </p>
-                  )}
-                </div>
-
-                <div className="space-y-1.5">
-                  <Label className="text-xs font-medium">Assunto da Mensagem</Label>
-                  <Input
-                    value={customSubject}
-                    onChange={(e) => setCustomSubject(e.target.value)}
-                    className="h-9 text-xs font-medium"
-                  />
-                </div>
+              <div className="space-y-1 rounded-lg border border-border/50 p-3 text-xs">
+                <p className="font-medium">Destinatário: {selectedFee.guardianName || "Encarregado principal"}</p>
+                <p className={selectedFee.guardianEmail ? "text-muted-foreground" : "font-medium text-amber-600 dark:text-amber-400"}>
+                  {selectedFee.guardianEmail ?? "Sem e-mail registado: o envio falha. Acrescente o e-mail na ficha do encarregado."}
+                </p>
+                <p className="text-muted-foreground">O texto é o modelo oficial da escola. O assunto e o valor em dívida são preenchidos pelo sistema.</p>
               </div>
-
               {/* Pré-visualização do E-mail */}
               <div className="rounded-lg bg-muted/40 p-4 space-y-3 text-xs border border-border/40">
                 <div className="flex items-center justify-between pb-2 border-b border-border/30">
@@ -387,8 +353,7 @@ export function TuitionCollectionsContent() {
                 </div>
 
                 <div className="pt-2 border-t border-border/30 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
-                  <span>Vencimento base: {selectedFee.dueDate}</span>
-                  <span className="text-primary font-semibold">Tolerância: 2 dias úteis</span>
+                  <span>Vencimento: {selectedFee.dueDate}</span>
                 </div>
               </div>
             </div>
@@ -400,8 +365,8 @@ export function TuitionCollectionsContent() {
             </Button>
             <Button
               size="sm"
-              onClick={handleConfirmSend}
-              disabled={isSending || !customEmail}
+              onClick={() => selectedFee && void send([selectedFee])}
+              disabled={isSending || !selectedFee?.guardianEmail}
               className="h-9 text-xs gap-1.5"
             >
               <Icon name="Send" className="w-3.5 h-3.5" />

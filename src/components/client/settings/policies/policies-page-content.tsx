@@ -217,6 +217,15 @@ export function PoliciesPageContent() {
 
   const save = (blocks: Block[]) => async () => {
     if (!draft) return;
+    const w = draft.evaluation.mt_weights;
+    if (blocks.includes("evaluation") && w.mac + w.mas + w.pp <= 0) {
+      ErrorMessage("Os pesos MAC, MAS e PP não podem ser todos 0: a média trimestral nunca se calcularia.");
+      throw new Error("invalid_weights");
+    }
+    if (blocks.includes("risk") && draft.risk.thresholds.moderado >= draft.risk.thresholds.elevado) {
+      ErrorMessage("O limiar «Moderado» tem de ser menor que o «Elevado».");
+      throw new Error("invalid_thresholds");
+    }
     setSaving(true);
     try {
       await patchSettings(
@@ -289,8 +298,9 @@ export function PoliciesPageContent() {
   const simResult = useMemo(() => {
     if (!s) return { rawMt: 0, roundedMt: 0, passed: false };
     const w = s.evaluation.mt_weights;
-    const totalW = (w.mac || 1) + (w.mas || 1) + (w.pp || 1);
-    const raw = (simMac * (w.mac || 1) + simMas * (w.mas || 1) + simPp * (w.pp || 1)) / totalW;
+    const totalW = w.mac + w.mas + w.pp;
+    if (totalW <= 0) return { rawMt: 0, roundedMt: 0, passed: false };
+    const raw = (simMac * w.mac + simMas * w.mas + simPp * w.pp) / totalW;
     const rounded = s.evaluation.mt_rounding === "integer" ? Math.round(raw) : Number(raw.toFixed(2));
     return {
       rawMt: Number(raw.toFixed(2)),
@@ -389,6 +399,16 @@ export function PoliciesPageContent() {
             {s.evaluation.mt_weights.mac + s.evaluation.mt_weights.mas + s.evaluation.mt_weights.pp}
           </Badge>
         </div>
+        <p className="text-[11px] text-muted-foreground">
+          Os pesos são relativos, não notas: cada componente vale a sua parte do total.{" "}
+          {(() => {
+            const w = s.evaluation.mt_weights;
+            const t = w.mac + w.mas + w.pp;
+            if (t <= 0) return "Com todos os pesos a 0 a MT nunca se calcula: ponha pelo menos um acima de 0.";
+            const p = (x: number) => `${Math.round((x / t) * 100)}%`;
+            return `Agora: MAC ${p(w.mac)}, MAS ${p(w.mas)}, PP ${p(w.pp)}. Um peso 0 tira esse componente da média. Esta MT só é positiva a partir de ${s.evaluation.pass_mark} valores.`;
+          })()}
+        </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1 items-end">
           <div className="space-y-1">
@@ -443,7 +463,7 @@ export function PoliciesPageContent() {
                   : "border-destructive/30 bg-destructive/10 text-destructive text-[9px] py-0 h-4"
               }
             >
-              {simResult.passed ? "Transição Aprovada" : "Classificação Não Satisfatória"}
+              {simResult.passed ? "MT positiva" : "MT negativa"}
             </Badge>
           </div>
         </div>
@@ -580,39 +600,48 @@ export function PoliciesPageContent() {
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
             <div className="grid grid-cols-3 gap-3">
               <Input
-                label="Peso MAC"
+                label="Peso MAC (0–10)"
                 type="quantity"
-                min={1}
+                min={0}
                 max={10}
                 step={1}
                 value={ev.mt_weights.mac}
                 onChange={(e) =>
-                  setEv({ mt_weights: { ...ev.mt_weights, mac: Math.max(1, Math.min(10, num(e.target.value))) } })
+                  setEv({ mt_weights: { ...ev.mt_weights, mac: Math.max(0, Math.min(10, num(e.target.value))) } })
                 }
               />
               <Input
-                label="Peso MAS"
+                label="Peso MAS (0–10)"
                 type="quantity"
-                min={1}
+                min={0}
                 max={10}
                 step={1}
                 value={ev.mt_weights.mas}
                 onChange={(e) =>
-                  setEv({ mt_weights: { ...ev.mt_weights, mas: Math.max(1, Math.min(10, num(e.target.value))) } })
+                  setEv({ mt_weights: { ...ev.mt_weights, mas: Math.max(0, Math.min(10, num(e.target.value))) } })
                 }
               />
               <Input
-                label="Peso PP"
+                label="Peso PP (0–10)"
                 type="quantity"
-                min={1}
+                min={0}
                 max={10}
                 step={1}
                 value={ev.mt_weights.pp}
                 onChange={(e) =>
-                  setEv({ mt_weights: { ...ev.mt_weights, pp: Math.max(1, Math.min(10, num(e.target.value))) } })
+                  setEv({ mt_weights: { ...ev.mt_weights, pp: Math.max(0, Math.min(10, num(e.target.value))) } })
                 }
               />
             </div>
+            <p className="text-[11px] text-muted-foreground">
+              {(() => {
+                const w = ev.mt_weights;
+                const t = w.mac + w.mas + w.pp;
+                if (t <= 0) return "Ponha pelo menos um peso acima de 0: com todos a 0 a MT nunca se calcula.";
+                const p = (x: number) => `${Math.round((x / t) * 100)}%`;
+                return `São pesos relativos. Com estes valores: MAC ${p(w.mac)}, MAS ${p(w.mas)}, PP ${p(w.pp)}. Um peso 0 tira o componente da média. Aplica-se às mini-pautas em curso; as pautas já fechadas mantêm o resultado guardado.`;
+              })()}
+            </p>
             <FormSelect
               label="Arredondamento da Média Trimestral"
               value={ev.mt_rounding}
@@ -835,49 +864,49 @@ export function PoliciesPageContent() {
         >
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              <PercInput
-                label="Peso Frequência"
-                showSlider={false}
+              <Input
+                label="Peso Frequência (0–10)"
+                type="quantity"
+                min={0}
+                max={10}
+                step={1}
                 value={d.risk.weights.frequencia}
-                onChange={(val) =>
-                  setDraft({
-                    ...d,
-                    risk: {
-                      ...d.risk,
-                      weights: { ...d.risk.weights, frequencia: val },
-                    },
-                  })
+                onChange={(e) =>
+                  setDraft({ ...d, risk: { ...d.risk, weights: { ...d.risk.weights, frequencia: Math.max(0, Math.min(10, num(e.target.value))) } } })
                 }
               />
-              <PercInput
-                label="Peso Desempenho"
-                showSlider={false}
+              <Input
+                label="Peso Desempenho (0–10)"
+                type="quantity"
+                min={0}
+                max={10}
+                step={1}
                 value={d.risk.weights.desempenho}
-                onChange={(val) =>
-                  setDraft({
-                    ...d,
-                    risk: {
-                      ...d.risk,
-                      weights: { ...d.risk.weights, desempenho: val },
-                    },
-                  })
+                onChange={(e) =>
+                  setDraft({ ...d, risk: { ...d.risk, weights: { ...d.risk.weights, desempenho: Math.max(0, Math.min(10, num(e.target.value))) } } })
                 }
               />
-              <PercInput
-                label="Peso Financeiro"
-                showSlider={false}
+              <Input
+                label="Peso Financeiro (0–10)"
+                type="quantity"
+                min={0}
+                max={10}
+                step={1}
                 value={d.risk.weights.financeiro}
-                onChange={(val) =>
-                  setDraft({
-                    ...d,
-                    risk: {
-                      ...d.risk,
-                      weights: { ...d.risk.weights, financeiro: val },
-                    },
-                  })
+                onChange={(e) =>
+                  setDraft({ ...d, risk: { ...d.risk, weights: { ...d.risk.weights, financeiro: Math.max(0, Math.min(10, num(e.target.value))) } } })
                 }
               />
             </div>
+            <p className="text-[11px] text-muted-foreground">
+              {(() => {
+                const w = d.risk.weights;
+                const t = w.frequencia + w.desempenho + w.financeiro;
+                if (t <= 0) return "Com todos os pesos a 0 o risco fica sempre em 0 e nenhum aluno é sinalizado.";
+                const p = (x: number) => `${Math.round((x / t) * 100)}%`;
+                return `São pesos relativos. Com estes valores: assiduidade ${p(w.frequencia)}, notas ${p(w.desempenho)}, propinas ${p(w.financeiro)}. Se faltarem dados de um sinal (ex.: sem notas ainda), os outros são reescalados. Um peso 0 desliga esse sinal.`;
+              })()}
+            </p>
             <PercInput
               label="Limiar para Alerta Moderado (0–100)"
               value={d.risk.thresholds.moderado}

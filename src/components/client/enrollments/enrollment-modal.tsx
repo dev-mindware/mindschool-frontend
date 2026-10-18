@@ -35,8 +35,6 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
   const [studentMode, setStudentMode] = useState<"existing" | "new">("existing");
   const [selectedStudentId, setSelectedStudentId] = useState("");
   const [selectedSectionId, setSelectedSectionId] = useState("");
-  const [academicYear, setAcademicYear] = useState("2025/2026");
-  const [notes, setNotes] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Paginated search for student
@@ -47,11 +45,8 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
   // New student fields
   const [newFullName, setNewFullName] = useState("");
   const [newGender, setNewGender] = useState<"MALE" | "FEMALE">("MALE");
-  const [newBirthDate, setNewBirthDate] = useState("2010-01-01");
+  const [newBirthDate, setNewBirthDate] = useState("");
   const [newIdNumber, setNewIdNumber] = useState("");
-  const [newGuardianName, setNewGuardianName] = useState("");
-  const [newGuardianPhone, setNewGuardianPhone] = useState("");
-  const [newGuardianRel, setNewGuardianRel] = useState("Pai");
 
   const selectedSection = sections.find((s) => s.id === selectedSectionId);
 
@@ -165,13 +160,6 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
     { value: "FEMALE", label: "Feminino" },
   ];
 
-  const relationshipOptions = [
-    { value: "Pai", label: "Pai" },
-    { value: "Mãe", label: "Mãe" },
-    { value: "Tio/Tia", label: "Tio(a)" },
-    { value: "Tutor Legal", label: "Tutor Legal" },
-  ];
-
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
@@ -260,29 +248,10 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                 onChange={(e) => setNewIdNumber(e.target.value)}
               />
 
-              <Input
-                label="Nome do Encarregado"
-                startIcon="User"
-                placeholder="Ex: Manuel de Carvalho"
-                value={newGuardianName}
-                onChange={(e) => setNewGuardianName(e.target.value)}
-              />
-
-              <Input
-                label="Telefone do Encarregado"
-                startIcon="Phone"
-                placeholder="9xxxxxxxx"
-                maxLength={9}
-                value={newGuardianPhone}
-                onChange={(e) => setNewGuardianPhone(e.target.value)}
-              />
-
-              <SelectField
-                label="Grau de Parentesco"
-                value={newGuardianRel}
-                options={relationshipOptions}
-                onValueChange={setNewGuardianRel}
-              />
+              <p className="sm:col-span-2 text-xs text-muted-foreground">
+                O encarregado não se regista aqui: depois de matricular, ligue-o na ficha do aluno ou em Secretaria › Encarregados.
+                Sem encarregado, o aluno não tem quem receba avisos nem veja as propinas no portal.
+              </p>
             </div>
           </div>
         )}
@@ -304,19 +273,14 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
             </div>
 
             <Input
-              label="Ano Lectivo"
+              label="Ano Lectivo (o da turma)"
               startIcon="Calendar"
-              value={academicYear}
+              value={selectedSection?.academicYear ?? "Escolha a turma"}
               disabled
             />
-
-            <Input
-              label="Observações / Descontos Especiais"
-              startIcon="FileText"
-              placeholder="Ex: Transferência de outra província"
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-            />
+            <p className="text-xs text-muted-foreground sm:self-end">
+              Ao matricular, o sistema gera a matrícula e as propinas do ano segundo o plano da escola.
+            </p>
           </div>
         </div>
 

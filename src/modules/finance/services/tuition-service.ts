@@ -3,9 +3,17 @@ import { patchSettings } from "@/services/school-settings-service";
 import { fetchAllPages } from "@/services/api-pagination";
 import { enrollmentsService } from "@/services/enrollments-service";
 import { studentsService } from "@/services/students-service";
+import { guardiansService } from "@/services/guardians-service";
 import type { StudentTuitionFee, TuitionFinancialSummary, TuitionPlan, TuitionStatus } from "@/modules/finance/types";
 
 // ---- API ----------------------------------------------------------------------------------------------------------
+
+export interface ReminderBatchResult {
+  sent: number;
+  failed: number;
+  cancelled: number;
+  results: Array<{ invoice_id: string; status: string; recipient: string | null; error: string | null }>;
+}
 
 export interface ApiInvoice {
   id: string;
@@ -21,6 +29,7 @@ export interface ApiInvoice {
   due_date: string;
   payment_reference: string;
   is_overdue: boolean;
+  related_invoice_id?: string | null;
   fiscal: { status: string; certificate_number: string | null };
 }
 
@@ -89,15 +98,32 @@ export const tuitionService = {
 
   /** Facturas de propina/matricula da escola activa, enriquecidas com turma e encarregado (juncao com alunos e matriculas). */
   fees: async (): Promise<StudentTuitionFee[]> => {
-    const [invoices, students, enrollments] = await Promise.all([fetchAllPages<ApiInvoice>("/s/invoices"), studentsService.list(), enrollmentsService.list()]);
+    const [invoices, students, enrollments, guardians] = await Promise.all([
+      fetchAllPages<ApiInvoice>("/s/invoices"), studentsService.list(), enrollmentsService.list(),
+      // sem permissao de ler encarregados (ou falha): as facturas continuam a listar-se, so sem o e-mail
+      guardiansService.list().catch(() => []),
+    ]);
     const studentBy = new Map(students.map((s) => [s.id, s]));
+    const emailByGuardian = new Map(guardians.map((g) => [g.id, g.email]));
     const sectionBy = new Map(enrollments.filter((e) => e.status === "ACTIVE").map((e) => [e.studentId, e.sectionName]));
+    // A multa (e cada agravamento mensal) e uma factura propria ligada a de origem: soma-se aqui a quem a originou.
+    const finesBy = new Map<string, ApiInvoice[]>();
+    for (const f of invoices) {
+      if (f.type !== "multa" || f.status === "anulada" || !f.related_invoice_id) continue;
+      finesBy.set(f.related_invoice_id, [...(finesBy.get(f.related_invoice_id) ?? []), f]);
+    }
     return invoices
       .filter((i) => i.status !== "anulada" && (i.type === "propina_mensal" || i.type === "matricula"))
       .map((i) => {
         const due = new Date(`${i.due_date}T00:00:00Z`);
         const st = studentBy.get(i.student.id);
-        const overdue = i.is_overdue && i.status !== "paga";
+        const fines = finesBy.get(i.id) ?? [];
+        const openFines = fines.filter((f) => money(f.balance) > 0).map((f) => ({ id: f.id, balance: money(f.balance) }));
+        const finesOwed = openFines.reduce((a, f) => a + f.balance, 0);
+        const baseBalance = money(i.balance);
+        const owed = baseBalance + finesOwed;
+        // factura paga mas com multa por pagar: continua em divida
+        const overdue = (i.is_overdue && i.status !== "paga") || (i.status === "paga" && finesOwed > 0);
         return {
           id: i.id,
           studentId: i.student.id,
@@ -109,13 +135,16 @@ export const tuitionService = {
           monthLabel: i.type === "matricula" ? "Matrícula" : MONTHS[due.getUTCMonth()]!,
           baseAmount: money(i.amount),
           discountAmount: money(i.discount_amount),
-          penaltyAmount: money(i.late_fee_amount),
-          totalAmount: money(i.balance) > 0 ? money(i.balance) : money(i.total_due),
+          penaltyAmount: money(i.late_fee_amount) + fines.reduce((a, f) => a + money(f.amount), 0),
+          totalAmount: owed > 0 ? owed : money(i.total_due) + fines.reduce((a, f) => a + money(f.amount), 0),
+          baseBalance,
+          penalties: openFines,
           dueDate: i.due_date,
           status: overdue ? "OVERDUE" : STATUS[i.status],
           receiptNumber: i.fiscal.certificate_number ?? undefined,
           guardianName: st?.guardianName ?? "",
           guardianPhone: st?.guardianPhone ?? "",
+          guardianEmail: st?.guardianId ? emailByGuardian.get(st.guardianId) : undefined,
         } satisfies StudentTuitionFee;
       })
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
@@ -130,6 +159,16 @@ export const tuitionService = {
       { headers: { "Idempotency-Key": key } },
     );
     return { paymentId: data.payment.id };
+  },
+
+  /** Envia agora o lembrete de cobranca (e-mail) a cada factura; devolve o resultado real, factura a factura. */
+  sendReminders: async (invoiceIds: string[]): Promise<ReminderBatchResult> => {
+    const total: ReminderBatchResult = { sent: 0, failed: 0, cancelled: 0, results: [] };
+    for (let i = 0; i < invoiceIds.length; i += 200) { // a API aceita ate 200 facturas por pedido
+      const { data } = await api.post<ReminderBatchResult>("/s/finance/reminders/send", { invoice_ids: invoiceIds.slice(i, i + 200), channel: "email" });
+      total.sent += data.sent; total.failed += data.failed; total.cancelled += data.cancelled; total.results.push(...data.results);
+    }
+    return total;
   },
 
   /** Comprovativo interno (PDF) de um pagamento. */

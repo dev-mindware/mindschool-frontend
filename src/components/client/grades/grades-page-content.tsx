@@ -178,20 +178,12 @@ export function GradesPageContent() {
           icon="Clock"
         />
         <DynamicMetricCard
-          title={
-            isPautaClosed
-              ? "Pauta Homologada"
-              : activeSheet?.isLocked
-              ? "Mini-Pauta Trancada"
-              : "Em Aberto"
-          }
-          subtitle="Estado de Submissão"
+          title={isPautaClosed ? "Pauta fechada" : "Em lançamento"}
+          subtitle="Estado da pauta"
           description={
             isPautaClosed
-              ? "Pauta Geral fechada pela Direcção"
-              : activeSheet?.isLocked
-              ? "Submetida pelo docente à Direcção"
-              : "Edição permitida ao docente"
+              ? "Fechada pela Direcção: as notas já não se alteram (só por reapreciação)"
+              : "As notas lançadas ficam guardadas; a Direcção fecha a pauta da turma"
           }
           icon={isPautaClosed ? "ShieldCheck" : activeSheet?.isLocked ? "Lock" : "FileSpreadsheet"}
         />
@@ -258,9 +250,6 @@ export function GradesPageContent() {
               return;
             }
             saveGrade.mutate({ enrollmentId, field, value }, { onError: (e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a nota.")) });
-          }}
-          onLockSheet={() => {
-            ErrorMessage("O fecho é feito pela Direcção na pauta geral da turma (Pautas Trimestrais).");
           }}
         />
       ) : (

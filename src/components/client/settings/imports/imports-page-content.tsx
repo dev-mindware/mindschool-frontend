@@ -22,6 +22,7 @@ import { useImports } from "@/hooks/school/use-admin-school";
 import { useExamTargets } from "@/hooks/school/use-online-exams";
 import {
   adminSchoolService,
+  describeImportResult,
   type ApiImportJob,
   type ImportKind,
 } from "@/services/admin-school-service";
@@ -30,6 +31,24 @@ import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { readExcelAsCsv, downloadCsvAsExcel } from "@/utils/excel-import";
+
+const SUMMARY_LABEL: Record<string, string> = {
+  total: "Linhas",
+  new: "Novas",
+  existing: "Já existentes",
+  duplicates_in_file: "Duplicadas no ficheiro",
+  conflicts: "Em conflito",
+  invalid: "Inválidas",
+  warnings: "Com avisos",
+};
+
+const ROW_STATUS_LABEL: Record<string, string> = {
+  new: "Nova",
+  existing: "Já existe",
+  duplicate_in_file: "Duplicada no ficheiro",
+  conflict: "Em conflito",
+  invalid: "Inválida",
+};
 
 const KIND_LABEL: Record<ImportKind, string> = {
   students: "Alunos e Encarregados de Educação",
@@ -211,17 +230,22 @@ function ImportWizardModal() {
         {job && (
           <div className="space-y-3 text-xs rounded-lg border p-3 bg-card">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge variant="outline">{job.status}</Badge>
+              <Badge variant="outline">{STATUS_LABEL[job.status] ?? job.status}</Badge>
               {Object.entries(job.summary ?? {}).map(([k, v]) => (
                 <Badge key={k} variant="secondary">
-                  {k}: {String(v)}
+                  {SUMMARY_LABEL[k] ?? k}: {String(v)}
                 </Badge>
               ))}
             </div>
+            {job.status !== "committed" && (
+              <p className="text-muted-foreground">
+                Nada foi gravado ainda: isto é só a validação. Linhas «novas» serão criadas; as «já existentes» e os duplicados no ficheiro não são gravados nem actualizados.
+              </p>
+            )}
 
             {job.result && (
               <p className="font-semibold text-emerald-700 dark:text-emerald-400">
-                Criados {job.result.created} • Actualizados {job.result.updated} • Ignorados {job.result.ignored} • Falhados {job.result.failed}
+                {describeImportResult(job.result)}
               </p>
             )}
 
@@ -230,7 +254,7 @@ function ImportWizardModal() {
                 {job.preview.map((r) => (
                   <div key={r.line} className="flex gap-3 border-b border-border/30 py-1 last:border-0">
                     <span className="font-bold">Linha {r.line}</span>
-                    <span>{r.status}</span>
+                    <span>{ROW_STATUS_LABEL[r.status] ?? r.status}</span>
                     <span className="text-destructive font-medium">
                       {(r.errors ?? []).map((e) => `${e.field}: ${e.message}`).join("; ")}
                     </span>
@@ -248,7 +272,7 @@ function ImportWizardModal() {
                   onClick={() => void doCommit("all_or_nothing")}
                   className="h-8 text-xs"
                 >
-                  Confirmar Importação (Tudo ou Nada)
+                  Confirmar tudo ou nada
                 </Button>
                 <Button
                   type="button"
@@ -258,9 +282,14 @@ function ImportWizardModal() {
                   onClick={() => void doCommit("valid_rows_only")}
                   className="h-8 text-xs"
                 >
-                  Confirmar Apenas Linhas Válidas
+                  Gravar só as linhas válidas
                 </Button>
               </div>
+            )}
+            {job.status !== "committed" && (
+              <p className="text-[11px] text-muted-foreground">
+                <strong>Tudo ou nada:</strong> só grava se todas as linhas estiverem correctas (há um limite de linhas por tipo; acima dele use «só as válidas»). <strong>Só as válidas:</strong> grava as correctas e deixa as com erro, que pode descarregar para corrigir e reenviar.
+              </p>
             )}
 
             <Button
@@ -350,7 +379,7 @@ export function ImportsPageContent() {
       render: (_, j) =>
         j.result ? (
           <span className="text-xs font-medium">
-            {j.result.created} criados · {j.result.updated} actualizados · {j.result.failed} falhados
+            {describeImportResult(j.result)}
           </span>
         ) : (
           "—"

@@ -1,5 +1,6 @@
 "use client";
 
+import { useEntitled } from "@/hooks/common/use-entitled";
 import React, { useState } from "react";
 import { TitleList } from "@/components/common/title-list";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
@@ -36,7 +37,9 @@ export function TuitionPaymentsContent() {
   const [selectedFeeForPayment, setSelectedFeeForPayment] = useState<StudentTuitionFee | null>(null);
   const { allFees, summary, isLoading, counts } = useTuition();
 
-  const { sendEmailReminder } = useTuitionBilling();
+  const { sendReminders } = useTuitionBilling();
+  // Cobrança por e-mail é do Enterprise (ou add-on): no Essencial o botão nem aparece (a API responderia 402).
+  const canRemind = useEntitled({ feature: "email_collections" });
 
   function handleOpenReceipt(fee: StudentTuitionFee) {
     tuitionService.openReceipt(fee.id).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível abrir o recibo.")));
@@ -158,21 +161,23 @@ export function TuitionPaymentsContent() {
                     Liquidar
                   </Button>
                 </FeatureGate>
-                <FeatureGate
-                  permission="invoice:write"
-                  fallback="disabled"
-                  tooltipMessage="Apenas operadores de tesouraria podem enviar lembretes de cobrança."
-                >
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => sendEmailReminder(item)}
-                    title="Enviar lembrete por E-mail"
-                    className="h-8 w-8 p-0 text-primary hover:text-primary/90"
+                {canRemind && (
+                  <FeatureGate
+                    permission="invoice:write"
+                    fallback="disabled"
+                    tooltipMessage="Apenas operadores de tesouraria podem enviar lembretes de cobrança."
                   >
-                    <Icon name="Mail" className="w-3.5 h-3.5" />
-                  </Button>
-                </FeatureGate>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => void sendReminders([item]).catch(() => undefined)}
+                      title="Enviar lembrete por e-mail ao encarregado"
+                      className="h-8 w-8 p-0 text-primary hover:text-primary/90"
+                    >
+                      <Icon name="Mail" className="w-3.5 h-3.5" />
+                    </Button>
+                  </FeatureGate>
+                )}
               </>
             ) : (
               <Button

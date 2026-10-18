@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { StudentSelect } from "@/components/shared/filters/student-select";
-import { FormModal, FormSelect, FormTextarea, Input } from '@/components';
+import { FormModal, FormSelect, Input } from '@/components';
 import { OfficialDocumentType } from '@/types/certificate';
 import { Student } from '@/types';
 
@@ -34,8 +34,6 @@ export function IssueDocumentModal({ students, onIssue }: IssueDocumentModalProp
   const [studentId, setStudentId] = useState('');
   const [documentType, setDocumentType] = useState<OfficialDocumentType>('DECLARATION_ENROLLMENT');
   const [purpose, setPurpose] = useState('');
-  const [notes, setNotes] = useState('');
-  const [issuerRole, setIssuerRole] = useState('Secretaria Geral');
   const [checkedByName, setCheckedByName] = useState('');
   const [registryBook, setRegistryBook] = useState('');
   const [registrySheet, setRegistrySheet] = useState('');
@@ -50,14 +48,12 @@ export function IssueDocumentModal({ students, onIssue }: IssueDocumentModalProp
       documentType,
       student,
       purpose: purpose.trim(),
-      notes: notes.trim() || undefined,
-      issuerRole,
+      issuerRole: 'Secretaria Geral', // a API regista o utilizador que emite; este texto não é enviado
       checkedByName: isCert ? checkedByName.trim() : undefined,
       registryBook: isCert && registryBook.trim() ? registryBook.trim() : undefined,
       registrySheet: isCert && registrySheet.trim() ? registrySheet.trim() : undefined,
     });
     setPurpose('');
-    setNotes('');
     setCheckedByName('');
   };
 
@@ -65,7 +61,7 @@ export function IssueDocumentModal({ students, onIssue }: IssueDocumentModalProp
     <FormModal
       id={ISSUE_DOCUMENT_MODAL_ID}
       title="Emitir certificado ou declaração oficial"
-      description="O documento é numerado, recebe código de verificação (QR) e abre em PDF."
+      description="Ao gerar, o documento recebe o próximo número da série (não se reutiliza nem se edita), fica registado em seu nome e abre em PDF com um código QR que qualquer pessoa pode verificar."
       submitLabel="Gerar documento"
       size="lg"
       disabled={!studentId || !purpose.trim() || (isCert && !checkedByName.trim())}
@@ -75,7 +71,6 @@ export function IssueDocumentModal({ students, onIssue }: IssueDocumentModalProp
         <StudentSelect label="Aluno *" students={students} value={studentId} onChange={setStudentId} />
       </div>
       <FormSelect label="Tipo de documento" value={documentType} onValueChange={(v) => setDocumentType(v as OfficialDocumentType)} options={TYPES} />
-      <Input label="Serviço emissor" value={issuerRole} onChange={(e) => setIssuerRole(e.target.value)} />
 
       {isCert && (
         <>
@@ -89,15 +84,15 @@ export function IssueDocumentModal({ students, onIssue }: IssueDocumentModalProp
           </div>
           <div>
             <Input
-              label="Livro de registo n.º"
+              label="Livro de registo n.º (opcional, vai no rodapé)"
               value={registryBook}
               onChange={(e) => setRegistryBook(e.target.value)}
-              placeholder="Ex: 30809"
+              placeholder="Ex: 12"
             />
           </div>
           <div>
             <Input
-              label="Folha n.º"
+              label="Folha n.º (opcional)"
               value={registrySheet}
               onChange={(e) => setRegistrySheet(e.target.value)}
               placeholder="Ex: 0324"
@@ -108,9 +103,6 @@ export function IssueDocumentModal({ students, onIssue }: IssueDocumentModalProp
 
       <div className="sm:col-span-2">
         <Input label="Finalidade / efeito do documento *" value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="Ex: Abono de família, passaporte, matrícula no ensino superior" />
-      </div>
-      <div className="sm:col-span-2">
-        <FormTextarea label="Observações (opcional)" value={notes} onChange={setNotes} rows={2} />
       </div>
     </FormModal>
   );

@@ -4,6 +4,7 @@ import React, { useState } from "react";
 import { ConsolidatedPauta } from "@/types/grade";
 import { usePautas } from "@/hooks/school/use-pautas";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { useAuthStore } from "@/stores";
 import {
   GlobalModal,
   Button,
@@ -26,9 +27,8 @@ export function LockPautaModal({
   onSuccess,
 }: LockPautaModalProps) {
   const { close } = usePautas(pauta.term, []);
-  const [directorName, setDirectorName] = useState(
-    "Prof. António Silva (Dir. Pedagógico)"
-  );
+  // Quem fecha fica registado pela API com o utilizador autenticado (não é um texto livre).
+  const directorName = useAuthStore((s) => s.user?.name) ?? "o utilizador actual";
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
@@ -132,27 +132,19 @@ export function LockPautaModal({
           </div>
         </div>
 
-        {/* Nome do Responsável Pedagógico */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Responsável pelo Fecho (Direcção Pedagógica)
-          </label>
-          <input
-            type="text"
-            value={directorName}
-            onChange={(e) => setDirectorName(e.target.value)}
-            disabled={hasMissingGrades || isSubmitting}
-            className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:bg-muted"
-            required
-          />
-        </div>
+        <p className="text-xs text-muted-foreground">
+          O fecho fica registado em nome de <strong className="text-foreground">{directorName}</strong>, com data e hora.
+        </p>
 
-        {/* Aviso de Imutabilidade */}
-        <div className="text-[11px] text-muted-foreground flex items-center gap-1.5">
-          <Icon name="Info" className="h-3.5 w-3.5 text-info shrink-0" />
-          <span>
-            Após o fecho, os professores titulares não poderão alterar notas. Qualquer rectificação futura exigirá justificativa auditada pelo Conselho de Notas.
-          </span>
+        {/* O que o fecho provoca */}
+        <div className="space-y-1.5 rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground">
+          <p className="font-semibold text-foreground">O que acontece ao fechar</p>
+          <ul className="list-disc space-y-1 pl-4">
+            <li>Guarda-se uma versão imutável desta pauta (snapshot); é a que sai nos PDF e nos boletins.</li>
+            <li>As notas deste período ficam bloqueadas: os professores já não as alteram.</li>
+            <li>Se for o último período, o sistema gera a proposta de transição de cada aluno.</li>
+            <li>Corrigir depois só é possível por reapreciação de nota (com justificação) ou reabrindo a pauta, o que exige a Direcção e não é possível se já houver decisões de transição confirmadas.</li>
+          </ul>
         </div>
 
         {/* Botões */}

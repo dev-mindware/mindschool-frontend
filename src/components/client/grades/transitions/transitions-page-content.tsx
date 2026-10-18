@@ -79,9 +79,8 @@ export function TransitionsPageContent() {
   const stats = useMemo(() => {
     const directApproval = studentsList.filter((s) => s.transitionStatus === "APPROVED").length;
     const conditionalApproval = studentsList.filter((s) => s.transitionStatus === "APPROVED_WITH_CONDITIONS").length;
-    const recoveryCount = studentsList.filter((s) => s.transitionStatus === "RECOVERY_EXAM").length;
     const failedCount = studentsList.filter((s) => s.transitionStatus === "FAILED").length;
-    return { directApproval, conditionalApproval, recoveryCount, failedCount };
+    return { directApproval, conditionalApproval, failedCount };
   }, [studentsList]);
 
   const columns: Column<ConsolidatedStudentRow>[] = [
@@ -163,21 +162,11 @@ export function TransitionsPageContent() {
                 Excepção Legal 7ª/8ª
               </Badge>
             );
-          case "RECOVERY_EXAM":
-            return (
-              <Badge
-                variant="outline"
-                className="text-xs border-amber-400 text-amber-700 bg-amber-50 dark:bg-amber-950/30"
-              >
-                <Icon name="Clock" className="h-3 w-3 mr-1" />
-                Prova de Recurso
-              </Badge>
-            );
           case "FAILED":
             return (
               <Badge variant="destructive" className="text-xs">
                 <Icon name="CircleX" className="h-3 w-3 mr-1" />
-                Não Transita (Retido)
+                Não transita (proposta)
               </Badge>
             );
           default:
@@ -228,7 +217,7 @@ export function TransitionsPageContent() {
       </TitleList>
 
       {/* Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <DynamicMetricCard
           title={stats.directApproval.toString()}
           subtitle="Aprovados Directos"
@@ -242,15 +231,9 @@ export function TransitionsPageContent() {
           icon="Scale"
         />
         <DynamicMetricCard
-          title={stats.recoveryCount.toString()}
-          subtitle="Prova de Recurso"
-          description="Até 2 disciplinas para 2ª época"
-          icon="CircleHelp"
-        />
-        <DynamicMetricCard
           title={stats.failedCount.toString()}
           subtitle="Não Transitam"
-          description="Retidos por deficiências críticas"
+          description="Proposta: alguma disciplina abaixo da nota mínima"
           icon="CircleX"
         />
       </div>
@@ -265,7 +248,10 @@ export function TransitionsPageContent() {
           <strong>Regra Geral:</strong> Transição para o ano seguinte requer nota final de disciplina (MFD) ≥ 10.0 valores em todas as disciplinas curriculares.
         </p>
         <p>
-          <strong>Regime Especial 7.ª e 8.ª classe (Art.º 24.º):</strong> Podem transitar estudantes com até 2 (duas) disciplinas entre 7.0 e 9.4 valores, desde que estas <strong>não sejam simultaneamente Língua Portuguesa e Matemática</strong>.
+          <strong>Regime de excepção (7.ª e 8.ª classe), se estiver activo:</strong> pode transitar com apoio quem tiver, no máximo, o número de disciplinas negativas definido pela escola, com notas dentro do intervalo definido, e <strong>nenhuma delas nuclear (Língua Portuguesa ou Matemática)</strong>. Os valores estão em Definições › Políticas da Escola.
+        </p>
+        <p>
+          <strong>Isto é uma proposta do sistema.</strong> A decisão final é tomada e registada no Conselho de Turma final (Avaliação › Conselhos de Turma); se divergir da proposta, exige justificação.
         </p>
       </div>
 
@@ -295,7 +281,7 @@ export function TransitionsPageContent() {
         searchPlaceholder="Pesquisar estudante por nome ou número"
         searchText={(r) => `${r.studentName} ${r.studentNumber}`}
         filters={[
-          { key: "situacao", label: "Situação", icon: "ListFilter", options: [{ value: "APPROVED", label: "Aprovado" }, { value: "APPROVED_WITH_CONDITIONS", label: "Excepção legal" }, { value: "RECOVERY_EXAM", label: "Prova de recurso" }, { value: "FAILED", label: "Não transita" }], match: (r, v) => r.transitionStatus === v },
+          { key: "situacao", label: "Situação", icon: "ListFilter", options: [{ value: "APPROVED", label: "Aprovado" }, { value: "APPROVED_WITH_CONDITIONS", label: "Excepção legal" }, { value: "FAILED", label: "Não transita" }], match: (r, v) => r.transitionStatus === v },
           { key: "deficiencias", label: "Disciplinas negativas", icon: "TriangleAlert", options: [{ value: "0", label: "Nenhuma" }, { value: "1", label: "1" }, { value: "2", label: "2" }, { value: "3", label: "3 ou mais" }], match: (r, v) => (v === "3" ? r.failedSubjectsCount >= 3 : r.failedSubjectsCount === Number(v)) },
           { key: "media", label: "Média global", icon: "Gauge", options: [{ value: "alta", label: "14 ou mais" }, { value: "media", label: "10 a 13,9" }, { value: "baixa", label: "Abaixo de 10" }], match: (r, v) => (v === "alta" ? r.termAverageTotal >= 14 : v === "media" ? r.termAverageTotal >= 10 && r.termAverageTotal < 14 : r.termAverageTotal < 10) },
         ]}
