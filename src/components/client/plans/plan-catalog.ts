@@ -7,7 +7,7 @@ export const FEATURE_LABEL: Record<string, string> = {
   exams_full: "Provas online e exames completos",
   email_collections: "Cobrança e avisos por e-mail", portal: "Portal do aluno e do encarregado",
   reports_advanced: "Relatórios avançados", multi_school: "Multi-escola com painel do grupo",
-  sla_support: "Suporte dedicado e SLA", calendar_general: "Calendário geral da escola",
+  sla_support: "Suporte dedicado e SLA", bi_analytics: "BI & Analytics: tendências por ano lectivo", calendar_general: "Calendário geral da escola",
   google_calendar: "Integração com o Google Calendar", rooms: "Gestão de salas", lessons_summaries: "Aulas, substituições e sumários",
   risk_alerts: "Alerta de risco de abandono", teacher_attendance: "Assiduidade docente com QR Code", school_services: "Saúde, transporte e extracurriculares",
 };

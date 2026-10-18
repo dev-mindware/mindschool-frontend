@@ -73,6 +73,7 @@ const PLAN_STRUCTURE_META: Record<string, PlanStructureMeta> = {
       "50 GB de armazenamento em nuvem",
       "Multi-Escola com painel do grupo",
       "Cobrança Automatizada por E-mail",
+      "BI & Analytics com tendências por ano lectivo",
       "Suporte Dedicado com SLA Prioritário",
     ],
   },

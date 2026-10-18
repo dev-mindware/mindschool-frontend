@@ -19,6 +19,7 @@ export const PLAN_BENEFITS: Record<PlanType, readonly string[]> = {
     "Tudo o que o Profissional inclui",
     "Cobrança automática por e-mail aos encarregados",
     "Gestão multi-escola",
+    "BI & Analytics: tendências por ano lectivo e por mês",
     "Alunos, turmas e professores sem limite",
   ],
 };

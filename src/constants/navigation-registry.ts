@@ -150,6 +150,7 @@ export const PAGES: readonly PageDef[] = [
   { name: "Mapas do MED", url: "/reports/med", icon: "Map", module: "relatorios", section: "Relatórios & MED", roles: ["DIRECTOR_GENERAL", "OWNER", "ADMIN", "PEDAGOGIC_DIRECTOR", "MED_AUDITOR"] },
   { name: "Rendimento", url: "/reports/academic", icon: "ChartLine", module: "relatorios", section: "Relatórios & MED", roles: [...PEDAGOGY, "MED_AUDITOR"] },
   { name: "Relatório Financeiro", url: "/reports/finance", icon: "CircleDollarSign", module: "relatorios", section: "Relatórios & MED", roles: ["DIRECTOR_GENERAL", "OWNER", "ADMIN", "FINANCIAL"] },
+  { name: "BI & Analytics", url: "/reports/bi", icon: "ChartNoAxesCombined", module: "relatorios", section: "Relatórios & MED", roles: [...MGMT, "PEDAGOGIC_DIRECTOR"], minPlan: "enterprise", feature: "bi_analytics" },
   { name: "Multi-Escola", url: "/reports/multi-school", icon: "Building2", module: "relatorios", section: "Relatórios & MED", roles: ["DIRECTOR_GENERAL", "OWNER", "ADMIN"], minPlan: "enterprise", feature: "multi_school" },
 
   { name: "Configurações", url: "/settings", icon: "Settings", module: "configuracoes", roles: SCHOOL_ROLES },
@@ -173,5 +174,5 @@ export const PAGE_PERMISSION: Readonly<Record<string, readonly string[]>> = {
   "/academic/extracurricular": ["activity:read"], "/communication/circulars": ["announcement:read"],
   "/tuition": ["invoice:read"], "/tuition/submissions": ["tuition_submission:read"], "/tuition/payments": ["payment:read"], "/tuition/invoices": ["invoice:read"],
   "/tuition/collections": ["invoice:read"], "/tuition/plans": ["bank_account:read"], "/plans": ["subscription:read"],
-  "/reports/med": ["report:med_read"], "/reports/academic": ["report:read"], "/reports/finance": ["report:read"],
+  "/reports/med": ["report:med_read"], "/reports/academic": ["report:read"], "/reports/finance": ["report:read"], "/reports/bi": ["report:read"],
 };
