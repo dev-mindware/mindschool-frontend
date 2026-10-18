@@ -38,11 +38,21 @@ export function DocumentsEmolumentsContent() {
   const initialTab = searchParams.get("tab") || "requests";
   const [activeTab, setActiveTab] = useState(initialTab);
 
-  const { documents, issue, isLoading: isLoadingDocs } = useCertificates();
+  const { documents, issue, deleteDocument, isLoading: isLoadingDocs } = useCertificates();
   const { counts } = useSecretaryRequests();
   const { allStudents: students } = useStudents();
   const { data: terms = [] } = useGradeTerms();
   const { openModal } = useModal();
+
+  const handleDeleteDocument = async (doc: OfficialDocumentItem) => {
+    try {
+      await deleteDocument.mutateAsync(doc.id);
+      SucessMessage(`Documento ${doc.documentNumber} eliminado com sucesso.`);
+    } catch (err: unknown) {
+      ErrorMessage(getApiErrorMessage(err, "Não foi possível eliminar o documento."));
+      throw err;
+    }
+  };
 
   const handleIssueSave = async (docData: {
     documentType: OfficialDocumentType;
@@ -173,6 +183,7 @@ export function DocumentsEmolumentsContent() {
             documents={documents}
             isLoading={isLoadingDocs}
             onViewPreview={handleViewPreview}
+            onDelete={handleDeleteDocument}
           />
         </TabsContent>
 

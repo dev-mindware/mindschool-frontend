@@ -141,9 +141,9 @@ function RoomModal() {
 }
 
 function ChangeModal({ entry, timetableId }: { entry: ApiEntry | null; timetableId: string }) {
-  const { requestChange, rooms } = useTimetables(timetableId);
+  const { requestChange, rooms, roomsEnabled } = useTimetables(timetableId);
   const { data: teachers = [] } = useQuery({ queryKey: ["teachers", "change-form"], queryFn: academicService.teachers, staleTime: 60 * 1000 });
-  const [type, setType] = useState<"troca_tempo" | "troca_professor" | "troca_sala" | "anulacao">("troca_sala");
+  const [type, setType] = useState<"troca_tempo" | "troca_professor" | "troca_sala" | "anulacao">(roomsEnabled ? "troca_sala" : "troca_tempo");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [reason, setReason] = useState("");
   const [weekday, setWeekday] = useState("1");
@@ -153,7 +153,7 @@ function ChangeModal({ entry, timetableId }: { entry: ApiEntry | null; timetable
 
   return (
     <FormModal id="tt-request-change" title="Pedir mudança ao horário" description="O horário está publicado: a mudança fica registada com efeito na data indicada." submitLabel="Registar mudança" isLoading={requestChange.isPending} disabled={reason.trim().length < 5 || (type === "troca_professor" && !teacherId)} onSubmit={() => (entry ? requestChange.mutateAsync({ type, entryId: entry.id, effectiveDate: date, reason: reason.trim(), weekday: type === "troca_tempo" ? Number(weekday) : undefined, firstSlot: type === "troca_tempo" ? Number(slot) : undefined, teacherId: type === "troca_professor" ? teacherId : undefined, roomId: type === "troca_sala" ? (roomId === "none" ? null : roomId) : undefined }).then(() => SucessMessage("Mudança registada.")).catch(fail) : undefined)}>
-      <FormSelect label="Tipo de mudança" value={type} onValueChange={(v) => setType(v as typeof type)} options={Object.entries(CHANGE_LABEL).map(([value, label]) => ({ value, label }))} />
+      <FormSelect label="Tipo de mudança" value={type} onValueChange={(v) => setType(v as typeof type)} options={Object.entries(CHANGE_LABEL).filter(([value]) => roomsEnabled || value !== "troca_sala").map(([value, label]) => ({ value, label }))} />
       <Input label="Em vigor desde" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
       {type === "troca_tempo" && (<><FormSelect label="Novo dia" value={weekday} onValueChange={setWeekday} options={DAYS.map((d) => ({ value: String(d), label: WEEKDAY[d] ?? "" }))} /><Input label="Novo tempo" type="quantity" min={1} max={12} step={1} value={slot} onChange={(e) => setSlot(e.target.value)} /></>)}
       {type === "troca_professor" && <div className="sm:col-span-2"><FormSelect label="Novo professor *" value={teacherId} onValueChange={setTeacherId} options={teachers.map((t) => ({ value: t.id, label: t.full_name }))} /></div>}
@@ -166,14 +166,16 @@ function ChangeModal({ entry, timetableId }: { entry: ApiEntry | null; timetable
 /** Horários: vista semanal em calendário (por turma e por professor), versões, grelhas de tempos, salas e mudanças. */
 
 /** Estado vazio guiado: explica o fluxo (grelha de tempos → salas → horário → aulas → validar e publicar). */
-function TimetableGuide({ hasBells, hasRooms, hasYear, creating, onCreate, onBells, onRooms }: { hasBells: boolean; hasRooms: boolean; hasYear: boolean; creating: boolean; onCreate: () => void; onBells: () => void; onRooms: () => void }) {
-  const steps = [
+function TimetableGuide({ hasBells, hasRooms, roomsEnabled, hasYear, creating, onCreate, onBells, onRooms }: { hasBells: boolean; hasRooms: boolean; roomsEnabled: boolean; hasYear: boolean; creating: boolean; onCreate: () => void; onBells: () => void; onRooms: () => void }) {
+  const allSteps = [
     { done: hasBells, title: "1. Defina os tempos de aula", text: "Duração, número de tempos e intervalo de cada turno escolar.", action: "Criar grelha de tempos", run: onBells },
     { done: hasRooms, title: "2. Registe as salas escolares", text: "Opcional, mas evita conflitos de ocupação física de turmas.", action: "Adicionar sala", run: onRooms },
     { done: false, title: "3. Crie a versão do horário", text: "Começa como rascunho; as turmas só veem o horário quando publicado.", action: "Criar horário", run: onCreate, primary: true },
     { done: false, title: "4. Preencha as aulas na grelha", text: "Clique num tempo livre da turma para atribuir disciplina, professor e sala." },
     { done: false, title: "5. Valide e publique oficialmente", text: "A API impede automaticamente choques de professor, turma e sala. Valide e publique para todos os utilizadores.", isFinal: true },
   ];
+  // Sem o recurso «salas» (Essencial) o passo das salas não existe; a numeração vem da posição.
+  const steps = allSteps.filter((s) => roomsEnabled || !s.title.includes("salas escolares"));
   return (
     <EmptyState icon="CalendarRange" title="Ainda não há horário escolar" description={hasYear ? "Siga os passos abaixo para configurar os turnos, salas e montar a grade semanal das turmas." : "Não há ano lectivo activo. Crie o ano lectivo em Configurações antes de montar o horário."}>
       <ol className="mt-2 grid w-full max-w-3xl gap-3 text-left sm:grid-cols-2">
@@ -184,7 +186,7 @@ function TimetableGuide({ hasBells, hasRooms, hasYear, creating, onCreate, onBel
             </span>
             <div className="min-w-0 flex-1 space-y-1">
               <div className="flex flex-wrap items-center justify-between gap-1">
-                <p className="text-sm font-medium">{st.title}</p>
+                <p className="text-sm font-medium">{`${i + 1}. ${st.title.replace(/^\d+\.\s*/, "")}`}</p>
                 {st.done && <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Configurado</span>}
               </div>
               <p className="text-xs text-muted-foreground">{st.text}</p>
@@ -315,7 +317,7 @@ export function TimetablesPageContent() {
           <TabsTrigger value="section">Por turma</TabsTrigger>
           <TabsTrigger value="teacher">Por professor</TabsTrigger>
           <TabsTrigger value="bells">Tempos</TabsTrigger>
-          <TabsTrigger value="rooms">Salas</TabsTrigger>
+          {tt.roomsEnabled && <TabsTrigger value="rooms">Salas</TabsTrigger>}
           <TabsTrigger value="changes">Mudanças</TabsTrigger>
         </TabsList>
 
@@ -324,6 +326,7 @@ export function TimetablesPageContent() {
             <TimetableGuide
               hasBells={bells.length > 0}
               hasRooms={tt.rooms.length > 0}
+              roomsEnabled={tt.roomsEnabled}
               hasYear={hasYear}
               creating={tt.create.isPending}
               onCreate={() => tt.create.mutateAsync(undefined).then(() => SucessMessage("Horário criado.")).catch(fail)}
@@ -451,7 +454,7 @@ export function TimetablesPageContent() {
           </div>
         </TabsContent>
 
-        <TabsContent value="rooms">
+        {tt.roomsEnabled && <TabsContent value="rooms">
           <div className="mt-6 flex justify-end"><Can permission="timetable:write"><Button size="sm" className="gap-1.5" onClick={() => openModal("tt-new-room")}><Icon name="Plus" className="size-4" />Nova sala</Button></Can></div>
           <DataList<ApiRoom>
             prefix="salas"
@@ -464,7 +467,7 @@ export function TimetablesPageContent() {
             emptyTitle="Sem salas registadas"
             emptyIcon="DoorOpen"
           />
-        </TabsContent>
+        </TabsContent>}
 
         <TabsContent value="changes">
           <DataList<ApiChange>

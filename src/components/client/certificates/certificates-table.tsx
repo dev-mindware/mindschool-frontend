@@ -1,6 +1,17 @@
 'use client';
 
+import { useState } from 'react';
 import { Badge, ButtonOnlyAction, DataList, type Column } from '@/components';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
 import { OfficialDocumentItem, OfficialDocumentType } from '@/types/certificate';
 
 const TYPE_LABEL: Record<OfficialDocumentType, string> = {
@@ -25,10 +36,25 @@ interface CertificatesTableProps {
   documents: OfficialDocumentItem[];
   isLoading?: boolean;
   onViewPreview: (doc: OfficialDocumentItem) => void;
+  onDelete?: (doc: OfficialDocumentItem) => Promise<void> | void;
 }
 
 /** Documentos oficiais emitidos, com filtros na URL (tipo, turma, ano, emissor, data). */
-export function CertificatesTable({ documents, isLoading, onViewPreview }: CertificatesTableProps) {
+export function CertificatesTable({ documents, isLoading, onViewPreview, onDelete }: CertificatesTableProps) {
+  const [docToDelete, setDocToDelete] = useState<OfficialDocumentItem | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const confirmDelete = async () => {
+    if (!docToDelete || !onDelete) return;
+    try {
+      setIsDeleting(true);
+      await onDelete(docToDelete);
+      setDocToDelete(null);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
   const columns: Column<OfficialDocumentItem>[] = [
     {
       key: 'docNumber',
@@ -61,34 +87,82 @@ export function CertificatesTable({ documents, isLoading, onViewPreview }: Certi
         </div>
       ),
     },
-    { key: 'actions', header: 'Acção', render: (_, d) => <ButtonOnlyAction data={d} actions={[{ label: 'Baixar PDF', icon: 'Download', onClick: onViewPreview }]} /> },
+    {
+      key: 'actions',
+      header: 'Acção',
+      render: (_, d) => (
+        <ButtonOnlyAction
+          data={d}
+          actions={[
+            { label: 'Baixar PDF', icon: 'Download', onClick: onViewPreview },
+            ...(onDelete
+              ? [
+                  {
+                    label: 'Eliminar',
+                    icon: 'Trash2' as const,
+                    variant: 'destructive' as const,
+                    permission: 'document:issue',
+                    onClick: (item: OfficialDocumentItem) => setDocToDelete(item),
+                  },
+                ]
+              : []),
+          ]}
+        />
+      ),
+    },
   ];
 
   return (
-    <DataList<OfficialDocumentItem>
-      prefix="documentos"
-      rows={documents}
-      columns={columns}
-      isLoading={isLoading}
-      pageSize={10}
-      searchPlaceholder="Pesquisar por número, aluno, código ou finalidade"
-      searchText={(d) => `${d.documentNumber} ${d.studentName} ${d.studentNumber} ${d.verificationCode} ${d.purpose}`}
-      filters={[
-        { key: 'tipo', label: 'Tipo', icon: 'ListFilter', options: Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label })), match: (d, v) => d.documentType === v },
-        { key: 'turma', label: 'Turma', icon: 'Users', options: uniq(documents.map((d) => d.className)).map((v) => ({ value: v, label: v })), match: (d, v) => d.className === v },
-        { key: 'ano', label: 'Ano lectivo', icon: 'CalendarRange', options: uniq(documents.map((d) => d.academicYear)).map((v) => ({ value: v, label: v })), match: (d, v) => d.academicYear === v },
-        { key: 'emissor', label: 'Emitido por', icon: 'UserCheck', options: uniq(documents.map((d) => d.issuedBy)).map((v) => ({ value: v, label: v })), match: (d, v) => d.issuedBy === v },
-        { key: 'estado', label: 'Estado', icon: 'Flag', options: uniq(documents.map((d) => d.status)).map((v) => ({ value: v, label: v })), match: (d, v) => d.status === v },
-      ]}
-      dateFilters={[{ key: 'emissao', label: 'Emissão', getDate: (d) => d.issueDate }]}
-      sorts={[
-        { value: 'data', label: 'Data de emissão', compare: (a, b) => a.issueDate.localeCompare(b.issueDate) },
-        { value: 'aluno', label: 'Aluno', compare: (a, b) => a.studentName.localeCompare(b.studentName, 'pt') },
-        { value: 'numero', label: 'Número', compare: (a, b) => a.documentNumber.localeCompare(b.documentNumber) },
-      ]}
-      emptyTitle="Nenhum documento emitido"
-      emptyDescription="Emita um certificado ou declaração para o ver aqui."
-      emptyIcon="FileText"
-    />
+    <>
+      <DataList<OfficialDocumentItem>
+        prefix="documentos"
+        rows={documents}
+        columns={columns}
+        isLoading={isLoading}
+        pageSize={10}
+        searchPlaceholder="Pesquisar por número, aluno, código ou finalidade"
+        searchText={(d) => `${d.documentNumber} ${d.studentName} ${d.studentNumber} ${d.verificationCode} ${d.purpose}`}
+        filters={[
+          { key: 'tipo', label: 'Tipo', icon: 'ListFilter', options: Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label })), match: (d, v) => d.documentType === v },
+          { key: 'turma', label: 'Turma', icon: 'Users', options: uniq(documents.map((d) => d.className)).map((v) => ({ value: v, label: v })), match: (d, v) => d.className === v },
+          { key: 'ano', label: 'Ano lectivo', icon: 'CalendarRange', options: uniq(documents.map((d) => d.academicYear)).map((v) => ({ value: v, label: v })), match: (d, v) => d.academicYear === v },
+          { key: 'emissor', label: 'Emitido por', icon: 'UserCheck', options: uniq(documents.map((d) => d.issuedBy)).map((v) => ({ value: v, label: v })), match: (d, v) => d.issuedBy === v },
+          { key: 'estado', label: 'Estado', icon: 'Flag', options: uniq(documents.map((d) => d.status)).map((v) => ({ value: v, label: v })), match: (d, v) => d.status === v },
+        ]}
+        dateFilters={[{ key: 'emissao', label: 'Emissão', getDate: (d) => d.issueDate }]}
+        sorts={[
+          { value: 'data', label: 'Data de emissão', compare: (a, b) => a.issueDate.localeCompare(b.issueDate) },
+          { value: 'aluno', label: 'Aluno', compare: (a, b) => a.studentName.localeCompare(b.studentName, 'pt') },
+          { value: 'numero', label: 'Número', compare: (a, b) => a.documentNumber.localeCompare(b.documentNumber) },
+        ]}
+        emptyTitle="Nenhum documento emitido"
+        emptyDescription="Emita um certificado ou declaração para o ver aqui."
+        emptyIcon="FileText"
+      />
+
+      <AlertDialog open={Boolean(docToDelete)} onOpenChange={(open) => !open && setDocToDelete(null)}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Eliminar Documento Emitido</AlertDialogTitle>
+            <AlertDialogDescription>
+              Tem a certeza que deseja eliminar o documento <strong>{docToDelete?.documentNumber}</strong> emitido para <strong>{docToDelete?.studentName}</strong>? Esta acção não poderá ser desfeita.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={(e) => {
+                e.preventDefault();
+                confirmDelete();
+              }}
+              disabled={isDeleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {isDeleting ? 'A eliminar...' : 'Eliminar documento'}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+    </>
   );
 }

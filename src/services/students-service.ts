@@ -14,6 +14,7 @@ interface ApiStudent {
   document_number: string;
   status: "pre_inscrito" | "activo" | "transferido" | "concluido" | "inactivo";
   photo_url: string | null;
+  email?: string | null;
   primary_guardian?: { id: string; full_name: string; phone: string; relationship_type: string } | null;
 }
 
@@ -82,6 +83,7 @@ function toStudent(s: ApiStudent, enrollment?: ApiEnrollment): Student {
     currentClassLevel: enrollment?.class_level.name ?? "",
     academicYear: "",
     photoUrl: s.photo_url ?? undefined,
+    email: s.email ?? undefined,
     createdAt: "",
     updatedAt: "",
   };
@@ -182,6 +184,11 @@ export const studentsService = {
     a.click();
     a.remove();
     window.URL.revokeObjectURL(url);
+  },
+
+  invite: async (studentId: string, email?: string): Promise<{ success: boolean; email: string; message: string }> => {
+    const { data } = await api.post<{ success: boolean; email: string; message: string }>(`/s/students/${studentId}/invite`, { email });
+    return data;
   },
 };
 

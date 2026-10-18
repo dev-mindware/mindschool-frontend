@@ -2,7 +2,7 @@
 import { formatDate, formatIdDocument, formatPhone } from "@/utils";
 
 import React, { useState } from "react";
-import { AdmissionApplication } from "@/types/admission";
+import { AdmissionApplication, EntranceExam } from "@/types/admission";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Can, DataList, Icon, type Column } from "@/components";
@@ -22,6 +22,7 @@ import { SucessMessage } from "@/utils/messages";
 
 interface ApplicationsListProps {
   applications: AdmissionApplication[];
+  entranceExams?: EntranceExam[];
 }
 
 const uniq = (v: string[]) => [...new Set(v.filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt"));
@@ -40,8 +41,28 @@ const STATUS_CONFIG: Record<
   WITHDRAWN: { label: "Desistente", variant: "secondary" },
 };
 
-export function ApplicationsList({ applications }: ApplicationsListProps) {
+export function ApplicationsList({ applications, entranceExams = [] }: ApplicationsListProps) {
   const { validateDocuments, promoteFromWaitlist, candidates } = useAdmissions();
+
+  const examOptions = React.useMemo(() => {
+    const map = new Map<string, string>();
+    for (const ex of entranceExams) {
+      if (ex.id && ex.title) {
+        map.set(ex.id, ex.title);
+      }
+    }
+    for (const a of applications) {
+      if (a.entranceExamId && a.entranceExamTitle) {
+        map.set(a.entranceExamId, a.entranceExamTitle);
+      }
+    }
+    const opts = Array.from(map.entries()).map(([value, label]) => ({ value, label }));
+    opts.sort((a, b) => a.label.localeCompare(b.label, "pt"));
+    return [
+      { value: "sem_prova", label: "Sem prova / Isento" },
+      ...opts,
+    ];
+  }, [entranceExams, applications]);
 
   // Modals state
   const [viewingApp, setViewingApp] = useState<AdmissionApplication | null>(null);
@@ -331,7 +352,8 @@ export function ApplicationsList({ applications }: ApplicationsListProps) {
           { key: "classe", label: "Classe pretendida", icon: "GraduationCap", options: uniq(applications.map((a) => a.desiredClassLevelName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.desiredClassLevelName === v },
           { key: "ano", label: "Ano lectivo", icon: "CalendarRange", options: uniq(applications.map((a) => a.academicYear)).map((v) => ({ value: v, label: v })), match: (a, v) => a.academicYear === v },
           { key: "genero", label: "Género", icon: "User", options: [{ value: "MALE", label: "Masculino" }, { value: "FEMALE", label: "Feminino" }], match: (a, v) => a.candidateGender === v },
-          { key: "exame", label: "Exame de acesso", icon: "PenTool", options: [{ value: "isento", label: "Isento" }, { value: "pendente", label: "Aguarda nota" }, { value: "aprovado", label: "Aprovado na prova" }, { value: "reprovado", label: "Reprovado na prova" }], match: (a, v) => (v === "isento" ? !a.requiresEntranceExam : v === "pendente" ? a.requiresEntranceExam && a.examScore === undefined : a.examScore !== undefined && (v === "aprovado" ? a.examScore >= a.minPassingScore : a.examScore < a.minPassingScore)) },
+          { key: "prova", label: "Prova de acesso", icon: "FileText", options: examOptions, match: (a, v) => (v === "sem_prova" ? (!a.requiresEntranceExam || !a.entranceExamId) : a.entranceExamId === v || a.entranceExamTitle === v) },
+          { key: "exame", label: "Resultado da prova", icon: "PenTool", options: [{ value: "isento", label: "Isento" }, { value: "pendente", label: "Aguarda nota" }, { value: "aprovado", label: "Aprovado na prova" }, { value: "reprovado", label: "Reprovado na prova" }], match: (a, v) => (v === "isento" ? !a.requiresEntranceExam : v === "pendente" ? a.requiresEntranceExam && a.examScore === undefined : a.examScore !== undefined && (v === "aprovado" ? a.examScore >= a.minPassingScore : a.examScore < a.minPassingScore)) },
           { key: "docs", label: "Documentos", icon: "FileCheck", options: [{ value: "validados", label: "Validados" }, { value: "pendentes", label: "Por validar" }], match: (a, v) => (v === "validados" ? Boolean(a.documentsVerifiedAt) : !a.documentsVerifiedAt) },
         ]}
         dateFilters={[{ key: "submissao", label: "Submissão", getDate: (a) => a.submissionDate }]}

@@ -58,6 +58,10 @@ export function useGuardians(searchQuery = "", channelFilter: PreferredContactCh
     mutationFn: ({ id, input, previousWardIds }: { id: string; input: GuardianInput; previousWardIds: string[] }) => guardiansService.update(id, input, previousWardIds),
     onSuccess: invalidate,
   });
+  const inviteGuardian = useMutation({
+    mutationFn: ({ id, email }: { id: string; email?: string }) => guardiansService.invite(id, email),
+    onSuccess: invalidate,
+  });
 
   return {
     guardians: paginated,
@@ -73,5 +77,6 @@ export function useGuardians(searchQuery = "", channelFilter: PreferredContactCh
     counts,
     createGuardian,
     updateGuardian,
+    inviteGuardian,
   };
 }

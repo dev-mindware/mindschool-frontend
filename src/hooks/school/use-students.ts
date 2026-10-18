@@ -60,6 +60,10 @@ export function useStudents(searchQuery = "", statusFilter: StudentStatus | "ALL
     mutationFn: ({ id, input }: { id: string; input: Parameters<typeof studentsService.update>[1] }) => studentsService.update(id, input),
     onSuccess: invalidate,
   });
+  const inviteStudent = useMutation({
+    mutationFn: ({ id, email }: { id: string; email?: string }) => studentsService.invite(id, email),
+    onSuccess: invalidate,
+  });
 
   return {
     students: paginated as Student[],
@@ -76,5 +80,6 @@ export function useStudents(searchQuery = "", statusFilter: StudentStatus | "ALL
     counts,
     createStudent,
     updateStudent,
+    inviteStudent,
   };
 }

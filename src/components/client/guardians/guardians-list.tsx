@@ -14,6 +14,8 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { GuardianModal } from "./guardian-modal";
 import { GuardianDetailsModal } from "./guardian-details-modal";
+import { InviteCredentialsModal } from "@/components/client/shared/invite-credentials-modal";
+import { useGuardians } from "@/hooks/school/use-guardians";
 
 interface GuardiansListProps {
   guardians: Guardian[];
@@ -29,12 +31,14 @@ const CHANNELS = [
 ];
 
 export function GuardiansList({ guardians, isLoading, isError }: GuardiansListProps) {
+  const { inviteGuardian } = useGuardians();
   const [selectedGuardian, setSelectedGuardian] = useState<Guardian | null>(
     null
   );
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [viewingGuardian, setViewingGuardian] = useState<Guardian | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [invitingGuardian, setInvitingGuardian] = useState<Guardian | null>(null);
 
   const handleEdit = (guardian: Guardian) => {
     setSelectedGuardian(guardian);
@@ -151,6 +155,13 @@ export function GuardiansList({ guardians, isLoading, isError }: GuardiansListPr
 <Can permission="guardian:write">
             <DropdownMenuItem
               className="gap-2 cursor-pointer"
+              onClick={() => setInvitingGuardian(item)}
+            >
+              <Icon name="Mail" className="h-4 w-4" />
+              Convidar (Acesso)
+            </DropdownMenuItem>
+            <DropdownMenuItem
+              className="gap-2 cursor-pointer"
               onClick={() => handleEdit(item)}
             >
               <Icon name="Pencil" className="h-4 w-4" />
@@ -218,6 +229,19 @@ export function GuardiansList({ guardians, isLoading, isError }: GuardiansListPr
         }}
         guardian={viewingGuardian}
       />
+
+      {invitingGuardian && (
+        <InviteCredentialsModal
+          isOpen={Boolean(invitingGuardian)}
+          onClose={() => setInvitingGuardian(null)}
+          targetName={invitingGuardian.fullName}
+          targetRole="Encarregado de Educação"
+          currentEmail={invitingGuardian.email}
+          onSend={async (email) => {
+            await inviteGuardian.mutateAsync({ id: invitingGuardian.id, email });
+          }}
+        />
+      )}
     </>
   );
 }

@@ -86,4 +86,9 @@ export const guardiansService = {
       can_view_finance: primary,
     });
   },
+
+  invite: async (guardianId: string, email?: string): Promise<{ success: boolean; email: string; message: string }> => {
+    const { data } = await api.post<{ success: boolean; email: string; message: string }>(`/s/guardians/${guardianId}/invite`, { email });
+    return data;
+  },
 };

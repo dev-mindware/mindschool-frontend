@@ -16,7 +16,7 @@ interface ApiSchool {
   email: string | null;
   address: string | null;
   med_code: string | null;
-  settings: { branding?: { director_name?: string | null; director_title?: string } };
+  settings: { branding?: { director_name?: string | null; director_title?: string; logo_url?: string | null; primary_color?: string | null; document_identity?: "estado" | "escola" } };
 }
 
 /**

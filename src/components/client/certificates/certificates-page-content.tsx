@@ -14,11 +14,21 @@ import { CertificatesTable } from './certificates-table';
 import { IssueDocumentModal, ISSUE_DOCUMENT_MODAL_ID } from './issue-document-modal';
 
 export function CertificatesPageContent() {
-  const { documents, issue, getMetrics } = useCertificates();
+  const { documents, issue, deleteDocument, getMetrics } = useCertificates();
   const { allStudents: students } = useStudents();
   const { data: terms = [] } = useGradeTerms();
   const { openModal } = useModal();
   const metrics = getMetrics();
+
+  const handleDeleteDocument = async (doc: OfficialDocumentItem) => {
+    try {
+      await deleteDocument.mutateAsync(doc.id);
+      SucessMessage(`Documento ${doc.documentNumber} eliminado com sucesso.`);
+    } catch (err: unknown) {
+      ErrorMessage(getApiErrorMessage(err, 'Não foi possível eliminar o documento.'));
+      throw err;
+    }
+  };
 
   const handleIssueSave = async (docData: {
     documentType: OfficialDocumentType;
@@ -69,7 +79,7 @@ export function CertificatesPageContent() {
 
       <CertificatesMetrics metrics={metrics} />
 
-      <CertificatesTable documents={documents} onViewPreview={handleViewPreview} />
+      <CertificatesTable documents={documents} onViewPreview={handleViewPreview} onDelete={handleDeleteDocument} />
 
       <IssueDocumentModal students={students} onIssue={handleIssueSave} />
     </div>

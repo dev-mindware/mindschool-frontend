@@ -37,6 +37,7 @@ export const PUBLIC_ROUTES = [
   "/auth/impersonar",
   "/unauthorized",
   "/not-found",
+  "/verificar",
 ] as const;
 
 // Páginas de autenticação — se logado, redireciona para dashboard

@@ -27,6 +27,7 @@ export interface Student {
   currentClassLevel: string;
   academicYear: string;
   photoUrl?: string;
+  email?: string;
   createdAt: string;
   updatedAt: string;
 }

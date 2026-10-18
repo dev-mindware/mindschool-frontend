@@ -6,6 +6,7 @@ import { academicService } from "@/services/academic-service";
 import { sectionsService } from "@/services/sections-service";
 import { timetablesService, type NewChange, type Shift } from "@/services/timetables-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
+import { useEntitled } from "@/hooks/common/use-entitled";
 
 const SHIFT: Record<string, Shift> = { MORNING: "manha", AFTERNOON: "tarde", EVENING: "noite", DIURNO: "diurno" };
 
@@ -17,7 +18,9 @@ export function useTimetables(timetableId?: string) {
 
   const list = useQuery({ queryKey: ["timetables", schoolId], queryFn: timetablesService.list, enabled: on, staleTime: 20 * 1000 });
   const bells = useQuery({ queryKey: ["bell-schedules", schoolId], queryFn: timetablesService.bells, enabled: on, staleTime: 60 * 1000 });
-  const rooms = useQuery({ queryKey: ["rooms", schoolId], queryFn: timetablesService.rooms, enabled: on, staleTime: 60 * 1000 });
+  // Salas são do Profissional: no Essencial nem se pedem (a API responderia 402) nem se mostram.
+  const roomsEnabled = useEntitled({ feature: "rooms" });
+  const rooms = useQuery({ queryKey: ["rooms", schoolId], queryFn: timetablesService.rooms, enabled: on && roomsEnabled, staleTime: 60 * 1000 });
   const sections = useQuery({ queryKey: ["sections", schoolId], queryFn: () => sectionsService.list(), enabled: on, staleTime: 60 * 1000 });
   const assignments = useQuery({ queryKey: ["assignments", schoolId], queryFn: academicService.assignments, enabled: on, staleTime: 60 * 1000 });
   const year = useQuery({ queryKey: ["active-year", schoolId], queryFn: academicService.activeYear, enabled: on, staleTime: 5 * 60 * 1000 });
@@ -213,7 +216,7 @@ const DEFAULT_SLOTS: Record<Shift, Array<{ position: number; start: string; end:
   );
 
   return {
-    timetables: list.data ?? [], bells: bells.data ?? [], rooms: rooms.data ?? [], sections: sections.data ?? [], assignments: assignments.data ?? [],
+    timetables: list.data ?? [], bells: bells.data ?? [], rooms: rooms.data ?? [], roomsEnabled, sections: sections.data ?? [], assignments: assignments.data ?? [],
     subjects: subjects.data ?? [], teachers: teachers.data ?? [],
     entries: entries.data ?? [], isLoading: list.isLoading, hasYear: Boolean(year.data), slotsFor, create, addEntry, addLesson, updateLesson, removeEntry, validate, publish, createBell, createRoom, setRoomActive, requestChange, changes: changes.data ?? [],
   };

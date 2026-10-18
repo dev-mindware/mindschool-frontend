@@ -300,21 +300,21 @@ export function StudentAttendanceContent() {
               })}
             </div>
           ) : (
-            <div className="rounded-lg border border-amber-200 bg-amber-50/70 p-4 text-amber-900">
+            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 dark:bg-amber-500/10 p-4 text-amber-950 dark:text-amber-200">
               <div className="flex items-start gap-3">
-                <Icon name="CalendarX2" className="size-5 text-amber-600 mt-0.5 shrink-0" />
+                <Icon name="CalendarX2" className="size-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                 <div className="space-y-1">
-                  <p className="font-semibold text-sm">
+                  <p className="font-semibold text-sm text-foreground">
                     Sem tempos lectivos no horário da turma para {selectedWeekdayName}
                   </p>
-                  <p className="text-xs text-amber-800/80">
-                    A turma <strong>{className}</strong> não tem aulas agendadas no horário semanal para {selectedWeekdayName}.
+                  <p className="text-xs text-muted-foreground">
+                    A turma <strong className="text-foreground">{className}</strong> não tem aulas agendadas no horário semanal para {selectedWeekdayName}.
                   </p>
                   <div className="pt-2 flex items-center gap-2">
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 text-xs bg-white text-amber-900 border-amber-300 hover:bg-amber-100"
+                      className="h-8 text-xs bg-background/80 hover:bg-accent border-border text-foreground hover:text-foreground shadow-xs"
                       onClick={() => setIsManualMode(true)}
                     >
                       <Icon name="PlusCircle" className="size-3.5 mr-1.5" />

@@ -11,7 +11,7 @@ import { ApplicationsList } from "./applications-list";
 import { CandidateApplicationDrawer } from "./candidate-application-drawer";
 
 export function AdmissionsPageContent() {
-  const { applications } = useAdmissions();
+  const { applications, entranceExams } = useAdmissions();
 
   const [isNewModalOpen, setIsNewModalOpen] = useState(false);
 
@@ -81,7 +81,7 @@ export function AdmissionsPageContent() {
         />
       </div>
 
-      <ApplicationsList applications={applications} />
+      <ApplicationsList applications={applications} entranceExams={entranceExams} />
 
       {/* Drawer de Nova Candidatura (MindGest UX Standard: formulário com scroll reside em Drawer) */}
       <CandidateApplicationDrawer

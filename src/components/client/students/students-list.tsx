@@ -7,6 +7,8 @@ import { Student } from "@/types";
 import { StudentDetailsSheet } from "./student-details-sheet";
 import { StudentModal } from "./student-modal";
 import { StudentIdCardModal } from "./student-id-card-modal";
+import { InviteCredentialsModal } from "@/components/client/shared/invite-credentials-modal";
+import { useStudents } from "@/hooks/school/use-students";
 
 const STATUS_OPTIONS = [
   { value: "ENROLLED", label: "Matriculados" },
@@ -26,12 +28,14 @@ interface StudentsListProps {
 
 /** Lista de alunos (padrão MindGest): filtros na URL, pesquisa, datas, ordenação e paginação. */
 export function StudentsList({ students, isLoading, isError, onDeleteStudent }: StudentsListProps) {
+  const { inviteStudent } = useStudents();
   const [selected, setSelected] = useState<Student | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [editing, setEditing] = useState<Student | null>(null);
   const [editOpen, setEditOpen] = useState(false);
   const [cardStudent, setCardStudent] = useState<Student | null>(null);
   const [cardOpen, setCardOpen] = useState(false);
+  const [invitingStudent, setInvitingStudent] = useState<Student | null>(null);
 
   const levels = useMemo(() => uniq(students.map((s) => s.currentClassLevel)), [students]);
   const sections = useMemo(() => uniq(students.map((s) => s.currentSectionName)), [students]);
@@ -59,6 +63,7 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent }: 
         <ButtonOnlyAction data={s} actions={[
           { label: "Ver ficha", icon: "Eye", onClick: (x) => { setSelected(x); setDetailsOpen(true); } },
           { label: "Cartão de Estudante", icon: "CreditCard", onClick: (x) => { setCardStudent(x); setCardOpen(true); } },
+          { permission: "student:write", label: "Convidar (Acesso)", icon: "Mail", onClick: (x) => setInvitingStudent(x) },
           { permission: "student:write", label: "Editar", icon: "Pencil", onClick: (x) => { setEditing(x); setEditOpen(true); } },
           ...(onDeleteStudent ? [{ permission: "student:write", label: "Remover", icon: "Trash2" as const, variant: "destructive" as const, onClick: (x: Student) => onDeleteStudent(x.id) }] : []),
         ]} />
@@ -109,6 +114,18 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent }: 
         studentId={cardStudent?.id ?? ""}
         studentName={cardStudent?.fullName ?? ""}
       />
+      {invitingStudent && (
+        <InviteCredentialsModal
+          isOpen={Boolean(invitingStudent)}
+          onClose={() => setInvitingStudent(null)}
+          targetName={invitingStudent.fullName}
+          targetRole="Aluno"
+          currentEmail={invitingStudent.email}
+          onSend={async (email) => {
+            await inviteStudent.mutateAsync({ id: invitingStudent.id, email });
+          }}
+        />
+      )}
     </>
   );
 }

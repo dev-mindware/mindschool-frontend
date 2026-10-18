@@ -109,6 +109,13 @@ export function useCertificates() {
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["documents", schoolId] }),
   });
 
+  const deleteDocument = useMutation({
+    mutationFn: async (id: string) => {
+      await api.delete(`/s/documents/${id}`);
+    },
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["documents", schoolId] }),
+  });
+
   const metrics: DocumentMetrics = useMemo(
     () => ({
       totalIssued: documents.length,
@@ -119,5 +126,5 @@ export function useCertificates() {
     [documents],
   );
 
-  return { documents, isLoading, searchQuery, filterType, setSearchQuery, setFilterType, issue, getMetrics: () => metrics };
+  return { documents, isLoading, searchQuery, filterType, setSearchQuery, setFilterType, issue, deleteDocument, getMetrics: () => metrics };
 }

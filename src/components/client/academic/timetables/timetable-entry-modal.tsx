@@ -21,6 +21,7 @@ import {
 import type { AcademicSection, Subject, TeacherAssignment } from "@/types";
 import type { ApiTeacher } from "@/services/academic-service";
 import { cn } from "@/lib/utils";
+import { useEntitled } from "@/hooks/common/use-entitled";
 
 interface TimetableEntryModalProps {
   isOpen: boolean;
@@ -101,6 +102,7 @@ export function TimetableEntryModal({
   const [subjectId, setSubjectId] = useState<string>("");
   const [teacherId, setTeacherId] = useState<string>("");
   const [roomId, setRoomId] = useState<string>("");
+  const roomsEnabled = useEntitled({ feature: "rooms" });
 
   // Sincronizar defaults ou dados de edição ao abrir
   useEffect(() => {
@@ -641,14 +643,16 @@ export function TimetableEntryModal({
         )}
 
         {/* 4. Sala de Aulas (Opcional) */}
-        <div>
-          <SelectField
-            label="Sala de Aulas (Opcional)"
-            value={roomId}
-            options={roomOptions}
-            onValueChange={setRoomId}
-          />
-        </div>
+        {roomsEnabled && (
+          <div>
+            <SelectField
+              label="Sala de Aulas (Opcional)"
+              value={roomId}
+              options={roomOptions}
+              onValueChange={setRoomId}
+            />
+          </div>
+        )}
 
         {/* Alertas de Conflito em tempo real */}
         {sectionConflict && (

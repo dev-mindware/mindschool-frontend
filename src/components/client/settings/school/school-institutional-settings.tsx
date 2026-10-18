@@ -8,6 +8,7 @@ import { useSchoolSettingsStore } from "@/stores/school";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { useSchoolProfile } from "@/hooks/school/use-school-profile";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { DocumentBrandingSettings } from "./document-branding-settings";
 
 type Profile = ReturnType<typeof useSchoolSettingsStore.getState>["profile"];
 
@@ -78,6 +79,8 @@ export function SchoolInstitutionalSettings() {
         <Input label="Director(a) Geral" startIcon="User" value={f.directorGeneralName} onChange={(e) => set("directorGeneralName", e.target.value)} />
         <Input label="Director(a) Pedagógico(a)" startIcon="User" value={f.pedagogicDirectorName} onChange={(e) => set("pedagogicDirectorName", e.target.value)} />
       </FormModal>
+
+      <DocumentBrandingSettings />
     </div>
   );
 }
