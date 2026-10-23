@@ -25,7 +25,9 @@ export function parseConsentParams(search: URLSearchParams | { get(name: string)
   }
   if (out.code_challenge_method !== "S256") return null;
   try {
-    if (new URL(out.redirect_uri!).protocol !== "https:" && new URL(out.redirect_uri!).hostname !== "localhost") return null;
+    const target = new URL(out.redirect_uri!);
+    const loopback = ["localhost", "127.0.0.1", "[::1]"].includes(target.hostname);
+    if (target.protocol !== "https:" && !loopback) return null;
   } catch {
     return null;
   }

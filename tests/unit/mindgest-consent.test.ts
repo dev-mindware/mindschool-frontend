@@ -30,6 +30,12 @@ describe("consentimento MindGest: pedido de autorização", () => {
     expect(parseConsentParams(q({ redirect_uri: "http://app.mindgest.example/cb" }))).toBeNull();
   });
 
+  it("aceita http só em endereços de loopback (desenvolvimento)", () => {
+    expect(parseConsentParams(q({ redirect_uri: "http://localhost:3000/plugins/callback" }))).not.toBeNull();
+    expect(parseConsentParams(q({ redirect_uri: "http://127.0.0.1:3000/plugins/callback" }))).not.toBeNull();
+    expect(parseConsentParams(q({ redirect_uri: "http://127.0.0.2:3000/cb" }))).toBeNull();
+  });
+
   it("a recusa volta ao MindGest com access_denied e o mesmo state", () => {
     const u = new URL(declineUrl(valid));
     expect(`${u.origin}${u.pathname}`).toBe("https://app.mindgest.example/plugins/callback");
