@@ -35,7 +35,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
     { key: "amount", header: "Valor", render: (_, p) => <span className="font-semibold tabular-nums">{formatCurrency(p.amount)}</span> },
     { key: "method", header: "Método", render: (_, p) => <span className="text-xs">{METHOD_LABEL[p.method as keyof typeof METHOD_LABEL] ?? p.method.replaceAll("_", " ")}</span> },
     { key: "reference", header: "Referência", render: (_, p) => <span className="font-mono text-[11px] text-muted-foreground">{p.reference ?? "—"}</span> },
-    { key: "actions", header: "Comprovativo", render: (_, p) => <ButtonOnlyAction data={p} actions={[{ label: "Descarregar comprovativo (sem valor fiscal)", icon: "FileDown", onClick: (x) => void openPdf(portalService.receiptPdf(studentId, x.id)) }]} /> },
+    { key: "actions", header: "Comprovativo", render: (_, p) => <ButtonOnlyAction data={p} actions={[{ label: "Descarregar comprovativo interno (sem valor fiscal)", icon: "FileDown", onClick: (x) => void openPdf(portalService.receiptPdf(studentId, x.id)) }]} /> },
   ];
 
   const invoiceColumns: Column<PortalInvoice>[] = [
@@ -80,7 +80,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
           ]}
           dateFilters={[{ key: "pago", label: "Data de pagamento", getDate: (p) => p.paid_at }]}
           sorts={[{ value: "data", label: "Data", compare: (a, b) => a.paid_at.localeCompare(b.paid_at) }, { value: "valor", label: "Valor", compare: (a, b) => Number(a.amount) - Number(b.amount) }]}
-          emptyTitle="Sem pagamentos" emptyDescription="Os pagamentos confirmados pela escola aparecem aqui, com o comprovativo interno de pagamento (sem valor fiscal)." emptyIcon="Receipt"
+          emptyTitle="Sem pagamentos" emptyDescription="Os pagamentos confirmados pela escola aparecem aqui, com o comprovativo interno de pagamento. Esse comprovativo não tem valor fiscal: a factura-recibo (documento fiscal) é emitida pela escola; se precisar dela, peça à secretaria." emptyIcon="Receipt"
         />
       </TabsContent>
 

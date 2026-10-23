@@ -1,3 +1,4 @@
+import { normalizeNif } from "@/lib/nif";
 import api from "./api";
 import { fetchAllPages } from "./api-pagination";
 import type { IdDocumentType, Student, StudentGender, StudentStatus } from "@/types";
@@ -10,6 +11,7 @@ interface ApiStudent {
   full_name: string;
   birth_date: string;
   gender: "masculino" | "feminino" | null;
+  nif?: string | null;
   document_type: "cedula_pessoal" | "bilhete_identidade" | "certidao_nascimento" | "passaporte";
   document_number: string;
   status: "pre_inscrito" | "activo" | "transferido" | "concluido" | "inactivo";
@@ -69,6 +71,7 @@ function toStudent(s: ApiStudent, enrollment?: ApiEnrollment): Student {
     birthDate: s.birth_date,
     idDocumentType: DOC_FROM_API[s.document_type],
     idDocumentNumber: s.document_number,
+    ...(s.nif ? { nif: s.nif } : {}),
     nationality: "",
     address: "",
     city: "",
@@ -95,6 +98,8 @@ export interface CreateStudentInput {
   birthDate: string;
   idDocumentType: IdDocumentType;
   idDocumentNumber: string;
+  /** NIF opcional (cifrado na API). */
+  nif?: string;
   sectionId?: string;
   guardianId?: string;
   guardianRelationship?: string;
@@ -121,6 +126,7 @@ export const studentsService = {
       gender: GENDER_TO_API[input.gender],
       document_type: DOC_TO_API[input.idDocumentType],
       document_number: input.idDocumentNumber,
+      ...(input.nif ? { nif: normalizeNif(input.nif) } : {}),
     });
     if (input.guardianId) {
       await api.post(`/s/students/${created.id}/guardians`, {
@@ -152,13 +158,14 @@ export const studentsService = {
     return toStudent(created, enrollment);
   },
 
-  update: async (id: string, input: Partial<Pick<CreateStudentInput, "fullName" | "gender" | "birthDate" | "idDocumentType" | "idDocumentNumber">> & { status?: "activo" | "inactivo" }): Promise<void> => {
+  update: async (id: string, input: Partial<Pick<CreateStudentInput, "fullName" | "gender" | "birthDate" | "idDocumentType" | "idDocumentNumber" | "nif">> & { status?: "activo" | "inactivo" }): Promise<void> => {
     await api.patch(`/s/students/${id}`, {
       ...(input.fullName ? { full_name: input.fullName } : {}),
       ...(input.birthDate ? { birth_date: input.birthDate } : {}),
       ...(input.gender ? { gender: GENDER_TO_API[input.gender] } : {}),
       ...(input.idDocumentType ? { document_type: DOC_TO_API[input.idDocumentType] } : {}),
       ...(input.idDocumentNumber ? { document_number: input.idDocumentNumber } : {}),
+      ...(input.nif !== undefined ? { nif: input.nif ? normalizeNif(input.nif) : null } : {}),
       ...(input.status ? { status: input.status } : {}),
     });
   },

@@ -30,7 +30,7 @@ export interface ApiInvoice {
   payment_reference: string;
   is_overdue: boolean;
   related_invoice_id?: string | null;
-  fiscal: { status: string; certificate_number: string | null };
+  fiscal: { status: string; document_id?: string | null; certificate_number: string | null };
 }
 
 interface ApiFinanceSettings {
@@ -79,8 +79,7 @@ const STATUS: Record<ApiInvoice["status"], TuitionStatus> = {
   anulada: "EXEMPT",
 };
 
-export const METHOD_TO_API = { MULTICAIXA: "multicaixa_express", CASH: "numerario", TRANSFER: "transferencia_bancaria", EXPRESS: "emis_gpo" } as const;
-export type UiPaymentMethod = keyof typeof METHOD_TO_API;
+export { METHOD_TO_API, type UiPaymentMethod } from "@/modules/finance/settlement-model";
 
 const money = (v: string) => Number(v);
 
@@ -148,17 +147,6 @@ export const tuitionService = {
         } satisfies StudentTuitionFee;
       })
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
-  },
-
-  /** Regista o pagamento (a certificacao fiscal e da API/Mindgest). Idempotente pela chave. */
-  pay: async (v: { invoiceId: string; amount: number; method: UiPaymentMethod; reference?: string }): Promise<{ paymentId: string }> => {
-    const key = typeof crypto !== "undefined" && crypto.randomUUID ? crypto.randomUUID() : `pay-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-    const { data } = await api.post<{ payment: { id: string } }>(
-      `/s/invoices/${v.invoiceId}/payments`,
-      { amount: v.amount.toFixed(2), method: METHOD_TO_API[v.method], ...(v.reference ? { reference_code: v.reference.slice(0, 50) } : {}) },
-      { headers: { "Idempotency-Key": key } },
-    );
-    return { paymentId: data.payment.id };
   },
 
   /** Envia agora o lembrete de cobranca (e-mail) a cada factura; devolve o resultado real, factura a factura. */

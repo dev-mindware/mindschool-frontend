@@ -24,6 +24,7 @@ import {
 import { StudentAcademicFields } from "./student-academic-fields";
 import { StudentGuardianFields } from "./student-guardian-fields";
 import { validateIdDocumentByType } from "@/schemas/helps";
+import { nifError } from "@/lib/nif";
 
 const studentFormSchema = z
   .object({
@@ -32,6 +33,7 @@ const studentFormSchema = z
     birthDate: z.string().min(1, "Data de nascimento é obrigatória"),
     idDocumentType: z.enum(["IDENTITY_CARD", "BIRTH_CERTIFICATE", "PASSPORT"]),
     idDocumentNumber: z.string().trim().min(3, "Número de documento é obrigatório"),
+    nif: z.string().trim().optional().or(z.literal("")).refine((v) => !nifError(v), { message: nifError("x") }),
     address: z.string().trim().min(2, "Endereço é obrigatório"),
     city: z.string().trim().min(1, "Cidade é obrigatória"),
     province: z.string().trim().min(1, "Província é obrigatória"),
@@ -130,6 +132,7 @@ export function StudentModal({
       birthDate: "2010-01-01",
       idDocumentType: "IDENTITY_CARD",
       idDocumentNumber: "",
+      nif: "",
       address: "Luanda, Angola",
       city: "Luanda",
       province: "Luanda",
@@ -156,6 +159,7 @@ export function StudentModal({
         birthDate: studentToEdit.birthDate,
         idDocumentType: studentToEdit.idDocumentType,
         idDocumentNumber: studentToEdit.idDocumentNumber,
+        nif: studentToEdit.nif ?? "",
         address: studentToEdit.address,
         city: studentToEdit.city,
         province: studentToEdit.province,
@@ -173,6 +177,7 @@ export function StudentModal({
         birthDate: "2010-01-01",
         idDocumentType: "IDENTITY_CARD",
         idDocumentNumber: "",
+        nif: "",
         address: "Luanda, Angola",
         city: "Luanda",
         province: "Luanda",
@@ -197,6 +202,7 @@ export function StudentModal({
             birthDate: data.birthDate,
             idDocumentType: data.idDocumentType,
             idDocumentNumber: data.idDocumentNumber,
+            nif: data.nif ?? "",
           },
         });
         SucessMessage("Dados do estudante atualizados com sucesso!");
@@ -207,6 +213,7 @@ export function StudentModal({
           birthDate: data.birthDate,
           idDocumentType: data.idDocumentType,
           idDocumentNumber: data.idDocumentNumber,
+          ...(data.nif ? { nif: data.nif } : {}),
           guardianRelationship: data.guardianRelationship,
         };
 
@@ -250,6 +257,7 @@ export function StudentModal({
             selectedGender={selectedGender}
             selectedDocType={selectedDocType}
             setValue={setValue}
+            watch={watch}
           />
 
           <StudentAcademicFields

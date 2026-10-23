@@ -1,17 +1,22 @@
 'use client';
 
 import React from 'react';
-import { UseFormRegister, FieldErrors } from 'react-hook-form';
+import { UseFormRegister, FieldErrors, UseFormWatch } from 'react-hook-form';
 import { Input } from '@/components';
+import { NifVerifyField } from '@/components/client/finance/nif-verify-field';
 
 interface GuardianPersonalInfoFieldsProps {
   register: UseFormRegister<any>;
   errors: FieldErrors<any>;
+  watch: UseFormWatch<any>;
+  onResolvedName?: (name: string) => void;
 }
 
 export function GuardianPersonalInfoFields({
   register,
   errors,
+  watch,
+  onResolvedName,
 }: GuardianPersonalInfoFieldsProps) {
   return (
     <div className="space-y-3">
@@ -36,6 +41,10 @@ export function GuardianPersonalInfoFields({
           {...register('idDocumentNumber')}
           error={errors.idDocumentNumber?.message as string | undefined}
         />
+        <div className="sm:col-span-2">
+          <NifVerifyField register={register} errors={errors} watch={watch} {...(onResolvedName ? { onResolvedName } : {})} />
+        </div>
+
 
         <Input
           label="Profissão / Ocupação"

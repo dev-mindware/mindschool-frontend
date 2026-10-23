@@ -16,7 +16,7 @@ import { useTuition } from "@/modules/finance/hooks/use-tuition";
 import { useTuitionBilling } from "@/modules/finance/hooks/use-tuition-billing";
 import { StudentTuitionFee } from "@/modules/finance/types";
 import { formatCurrency } from "@/utils/format-currency";
-import { TuitionPaymentModal } from "./tuition-payment-modal";
+import { SettlementSheet } from "./settlement-sheet";
 
 const MONTHS = [
   { value: "1", label: "Janeiro" },
@@ -34,7 +34,9 @@ const MONTHS = [
 ];
 
 export function TuitionPaymentsContent() {
-  const [selectedFeeForPayment, setSelectedFeeForPayment] = useState<StudentTuitionFee | null>(null);
+  // Propinas escolhidas para «Marcar como pago» (uma liquidação, uma factura-recibo; têm de ser do mesmo aluno).
+  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [settling, setSettling] = useState<StudentTuitionFee[]>([]);
   const { allFees, summary, isLoading, counts } = useTuition();
 
   const { sendReminders } = useTuitionBilling();
@@ -45,7 +47,25 @@ export function TuitionPaymentsContent() {
     tuitionService.openReceipt(fee.id).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível abrir o recibo.")));
   }
 
+  const toggle = (id: string) => setSelected((prev) => { const next = new Set(prev); if (next.has(id)) next.delete(id); else next.add(id); return next; });
+  const chosen = allFees.filter((f) => selected.has(f.id) && f.status !== "PAID" && f.status !== "EXEMPT");
+  const chosenStudents = new Set(chosen.map((f) => f.studentId)).size;
+
   const columns: Column<StudentTuitionFee>[] = [
+    {
+      key: "select",
+      header: "",
+      render: (_, item) =>
+        item.status === "PAID" || item.status === "EXEMPT" ? null : (
+          <input
+            type="checkbox"
+            aria-label={`Seleccionar ${item.studentName} ${item.monthLabel}`}
+            checked={selected.has(item.id)}
+            onChange={() => toggle(item.id)}
+            className="size-4 cursor-pointer accent-primary"
+          />
+        ),
+    },
     {
       key: "studentNumber",
       header: "N.º Processo",
@@ -150,15 +170,15 @@ export function TuitionPaymentsContent() {
                 <FeatureGate
                   permission="payment:write"
                   fallback="disabled"
-                  tooltipMessage="Apenas operadores de tesouraria e direção podem liquidar propinas."
+                  tooltipMessage="Apenas a secretaria, a tesouraria e a direcção podem marcar propinas como pagas."
                 >
                   <Button
                     size="sm"
-                    onClick={() => setSelectedFeeForPayment(item)}
+                    onClick={() => setSettling([item])}
                     className="h-8 px-3 text-xs gap-1.5 font-semibold"
                   >
                     <Icon name="CreditCard" className="w-3.5 h-3.5" />
-                    Liquidar
+                    Marcar como pago
                   </Button>
                 </FeatureGate>
                 {canRemind && (
@@ -202,7 +222,7 @@ export function TuitionPaymentsContent() {
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <TitleList
           title="Gestão de Propinas & Mensalidades"
-          suTitle="Controlo de liquidações escolares: registo de pagamentos e comprovativos internos (sem valor fiscal)"
+          suTitle="Marque as propinas como pagas: regista o pagamento e pede ao MindGest a factura-recibo (o documento fiscal). O comprovativo interno não tem valor fiscal."
         />
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 px-3 py-1 font-semibold text-xs gap-1.5">
@@ -246,9 +266,27 @@ export function TuitionPaymentsContent() {
           { label: "Pendente", description: "Dentro do prazo ou com pagamento parcial: ainda há valor por pagar." },
           { label: "Em Atraso", description: "Passou o vencimento. Depois da tolerância cria-se a multa de mora (e, se a escola o definir, um agravamento por cada mês completo), que aparece na coluna «Multa» e soma ao total." },
           { label: "Liquidada", description: "Propina e multas totalmente pagas." },
-          { label: "Liquidar", description: "Regista o pagamento do saldo total (propina e multas por pagar) e abre o comprovativo interno, sem valor fiscal." },
+          { label: "Marcar como pago", description: "Regista o pagamento do saldo total (propina e multas por pagar; não há pagamento parcial) e pede ao MindGest a factura-recibo, que é o documento fiscal. Seleccione várias propinas do mesmo aluno para as pagar num só acto, com uma só factura. Se a escola não estiver ligada ao MindGest, o pagamento fica registado e a factura segue quando for ligada." },
+          { label: "Ver comprovativo", description: "Comprovativo interno do pagamento, sem valor fiscal. A factura-recibo está em Facturas." },
         ]}
       />
+
+      {chosen.length > 0 && (
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs">
+          <span>
+            <strong>{chosen.length}</strong> {chosen.length === 1 ? "propina seleccionada" : "propinas seleccionadas"} · {formatCurrency(chosen.reduce((a, f) => a + f.totalAmount, 0))}
+            {chosenStudents > 1 && <span className="ml-2 text-destructive">De alunos diferentes: deixe só um aluno.</span>}
+          </span>
+          <div className="flex items-center gap-2">
+            <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Limpar</Button>
+            <FeatureGate permission="payment:write" fallback="disabled" tooltipMessage="Apenas a secretaria, a tesouraria e a direcção podem marcar propinas como pagas.">
+              <Button size="sm" disabled={chosenStudents !== 1} onClick={() => setSettling(chosen)} className="gap-1.5 font-semibold">
+                <Icon name="CreditCard" className="size-3.5" /> Marcar como pago
+              </Button>
+            </FeatureGate>
+          </div>
+        </div>
+      )}
 
       <DataList<StudentTuitionFee>
         prefix="propinas"
@@ -277,12 +315,9 @@ export function TuitionPaymentsContent() {
         emptyIcon="Wallet"
       />
 
-      {/* Modal de Pagamento Integrado */}
-      <TuitionPaymentModal
-        isOpen={!!selectedFeeForPayment}
-        onClose={() => setSelectedFeeForPayment(null)}
-        fee={selectedFeeForPayment}
-      />
+      {settling.length > 0 && (
+        <SettlementSheet isOpen onClose={() => { setSettling([]); setSelected(new Set()); }} fees={settling} />
+      )}
     </div>
   );
 }

@@ -142,8 +142,8 @@ export const PAGES: readonly PageDef[] = [
 
   { name: "Visão geral", url: "/tuition", icon: "ChartNoAxesCombined", module: "financeiro", section: "Propinas & Finanças", roles: [...MGMT, "FINANCIAL"] },
   { name: "Comprovativos", url: "/tuition/submissions", icon: "FileCheck", module: "financeiro", section: "Propinas & Finanças", roles: [...MGMT, "FINANCIAL"] },
-  { name: "Propinas", url: "/tuition/payments", icon: "Wallet", module: "financeiro", section: "Propinas & Finanças", roles: [...MGMT, "FINANCIAL"] },
-  { name: "Facturas", url: "/tuition/invoices", icon: "Receipt", module: "financeiro", section: "Propinas & Finanças", roles: [...MGMT, "FINANCIAL"] },
+  { name: "Propinas", url: "/tuition/payments", icon: "Wallet", module: "financeiro", section: "Propinas & Finanças", roles: [...MGMT, "FINANCIAL", "SECRETARY"] },
+  { name: "Facturas", url: "/tuition/invoices", icon: "Receipt", module: "financeiro", section: "Propinas & Finanças", roles: [...MGMT, "FINANCIAL", "SECRETARY"] },
   { name: "Cobrança por E-mail", url: "/tuition/collections", icon: "Mail", module: "financeiro", section: "Propinas & Finanças", roles: [...MGMT, "FINANCIAL"], minPlan: "enterprise", feature: "email_collections" },
   { name: "Tabelas de Preço", url: "/tuition/plans", icon: "Tag", module: "financeiro", section: "Propinas & Finanças", roles: ["DIRECTOR_GENERAL", "OWNER", "ADMIN", "FINANCIAL"] },
   { name: "Planos", url: "/plans", icon: "Wallet", module: "financeiro", section: "Subscrição", roles: ["DIRECTOR_GENERAL", "OWNER", "ADMIN"] },

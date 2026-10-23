@@ -13,6 +13,7 @@ export interface Student {
   birthDate: string;
   idDocumentType: IdDocumentType;
   idDocumentNumber: string;
+  nif?: string;
   nationality: string;
   address: string;
   city: string;

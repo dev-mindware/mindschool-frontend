@@ -10,6 +10,7 @@ export const financeKeys = {
   feesAll: () => ["tuition-fees"] as const,
   plans: (school: School) => ["tuition-plans", school] as const,
   invoices: (school: School) => ["school-invoices", school] as const,
+  documents: (school: School) => ["fiscal-documents", school] as const,
   documentFees: (school: School) => ["document-fees", school] as const,
   overview: (school: School, academicYearId?: string) => ["finance-overview", school, academicYearId] as const,
   overviewAll: (school: School) => ["finance-overview", school] as const,

@@ -1,4 +1,5 @@
-export * from "./tuition-payment-modal";
+export * from "./settlement-sheet";
+export * from "./fiscal-documents-content";
 export * from "./tuition-payments-content";
 export * from "./tuition-invoices-content";
 export * from "./tuition-collections-content";

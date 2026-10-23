@@ -1,7 +1,8 @@
 "use client";
 
 import React from "react";
-import { UseFormRegister, FieldErrors, UseFormSetValue } from "react-hook-form";
+import { UseFormRegister, FieldErrors, UseFormSetValue, UseFormWatch } from "react-hook-form";
+import { NifVerifyField } from "@/components/client/finance/nif-verify-field";
 import { Input, SelectField } from "@/components";
 import { StudentGender, IdDocumentType } from "@/types";
 
@@ -11,6 +12,8 @@ export interface StudentFormValues {
   birthDate: string;
   idDocumentType: "IDENTITY_CARD" | "BIRTH_CERTIFICATE" | "PASSPORT";
   idDocumentNumber: string;
+  /** NIF opcional (factura-recibo em nome do aluno quando o encarregado não tem NIF). */
+  nif?: string;
   address: string;
   city: string;
   province: string;
@@ -30,6 +33,7 @@ interface StudentIdentificationFieldsProps {
   selectedGender: StudentGender;
   selectedDocType: IdDocumentType;
   setValue: UseFormSetValue<StudentFormValues>;
+  watch: UseFormWatch<StudentFormValues>;
 }
 
 export function StudentIdentificationFields({
@@ -38,6 +42,7 @@ export function StudentIdentificationFields({
   selectedGender,
   selectedDocType,
   setValue,
+  watch,
 }: StudentIdentificationFieldsProps) {
   const genderOptions = [
     { value: "MALE", label: "Masculino" },
@@ -95,6 +100,9 @@ export function StudentIdentificationFields({
           {...register("idDocumentNumber")}
           error={errors.idDocumentNumber?.message}
         />
+        <div className="sm:col-span-2">
+          <NifVerifyField register={register as never} errors={errors as never} watch={watch as never} />
+        </div>
       </div>
     </div>
   );

@@ -28,10 +28,12 @@ import { GuardianPersonalInfoFields } from './guardian-personal-info-fields';
 import { GuardianContactsFields } from './guardian-contacts-fields';
 import { GuardianWardsSection } from './guardian-wards-section';
 import { phoneNumberSchema, optionalPhoneNumberSchema } from '@/schemas/helps';
+import { nifError } from '@/lib/nif';
 
 const guardianFormSchema = z.object({
   fullName: z.string().trim().min(3, 'Nome completo deve ter pelo menos 3 caracteres'),
   idDocumentNumber: z.string().trim().optional().or(z.literal('')),
+  nif: z.string().trim().optional().or(z.literal('')).refine((v) => !nifError(v), { message: nifError('x') }),
   phonePrimary: phoneNumberSchema.refine((v) => !!v && v.trim().length > 0, 'Contacto principal é obrigatório'),
   phoneSecondary: optionalPhoneNumberSchema,
   email: z.string().trim().email('Email inválido').or(z.literal('')).optional(),
@@ -96,6 +98,7 @@ export function GuardianModal({
     defaultValues: {
       fullName: '',
       idDocumentNumber: '',
+      nif: '',
       phonePrimary: '',
       phoneSecondary: '',
       email: '',
@@ -108,11 +111,13 @@ export function GuardianModal({
 
   const selectedChannel = watch('preferredContactChannel');
 
+
   useEffect(() => {
     if (guardianToEdit) {
       reset({
         fullName: guardianToEdit.fullName,
         idDocumentNumber: guardianToEdit.idDocumentNumber || '',
+        nif: guardianToEdit.nif || '',
         phonePrimary: guardianToEdit.phonePrimary,
         phoneSecondary: guardianToEdit.phoneSecondary || '',
         email: guardianToEdit.email || '',
@@ -126,6 +131,7 @@ export function GuardianModal({
       reset({
         fullName: '',
         idDocumentNumber: '',
+        nif: '',
         phonePrimary: '',
         phoneSecondary: '',
         email: '',
@@ -223,6 +229,7 @@ export function GuardianModal({
       const input = {
         fullName: data.fullName,
         documentNumber: data.idDocumentNumber,
+        nif: data.nif || undefined,
         phone: data.phonePrimary,
         email: data.email || undefined,
         wards: wards.map((w) => ({ studentId: w.studentId, relationship: w.relationship, isPrimaryContact: w.isPrimaryContact })),
@@ -253,7 +260,7 @@ export function GuardianModal({
         </SheetHeader>
 
       <form id="guardian-form" onSubmit={handleSubmit(onSubmit)} className="flex-1 overflow-y-auto p-6 space-y-6">
-        <GuardianPersonalInfoFields register={register} errors={errors} />
+        <GuardianPersonalInfoFields register={register} errors={errors} watch={watch} onResolvedName={(n) => setValue('fullName', n, { shouldValidate: true })} />
 
         <GuardianContactsFields
           register={register}

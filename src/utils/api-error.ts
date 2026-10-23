@@ -13,6 +13,8 @@ const CODE_HINTS: Record<string, string> = {
   SECTION_FULL: "A turma já está cheia. Escolha outra turma ou aumente a capacidade da turma.",
   PAYMENT_EXCEEDS_INVOICE: "O valor é superior ao que falta pagar nesta factura.",
   INVOICE_NOT_PAYABLE: "Esta factura já não aceita pagamentos (está paga ou anulada).",
+  PARTIAL_PAYMENT_NOT_ALLOWED: "Esta escola factura no MindGest: marque como pago o valor total em dívida da cobrança (não há pagamento parcial).",
+  DEPENDENCY_UNAVAILABLE: "O MindGest não respondeu. O pagamento fica registado e a factura segue quando o serviço voltar; tente de novo dentro de instantes.",
   QUOTA_EXCEEDED: "Atingiu o limite do plano contratado. Veja as quotas em Definições › Subscrição ou passe a um plano superior.",
   ENTITLEMENT_REQUIRED: "Esta funcionalidade não está incluída no plano da escola.",
   REVIEW_WINDOW_CLOSED: "Já passou o prazo para pedir a reapreciação desta nota.",

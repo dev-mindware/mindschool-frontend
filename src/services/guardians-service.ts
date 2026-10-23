@@ -1,6 +1,7 @@
 import api from "./api";
 import { fetchAllPages } from "./api-pagination";
 import type { Guardian, GuardianRelationship } from "@/types";
+import { normalizeNif } from "@/lib/nif";
 
 interface ApiGuardian {
   id: string;
@@ -9,6 +10,7 @@ interface ApiGuardian {
   phone: string;
   email: string | null;
   document_number: string;
+  nif?: string | null;
   wards: Array<{ student_id: string; student_name: string; relationship_type: string; is_primary_contact: boolean }>;
 }
 
@@ -28,6 +30,7 @@ const toGuardian = (g: ApiGuardian): Guardian => ({
   schoolId: g.school_id,
   fullName: g.full_name,
   idDocumentNumber: g.document_number,
+  nif: g.nif ?? undefined,
   phonePrimary: g.phone,
   email: g.email ?? undefined,
   // O canal preferido por tipo de evento vive em `notification-preferences`; aqui mostra-se o canal por omissao.
@@ -49,6 +52,8 @@ export interface GuardianInput {
   documentNumber: string;
   phone: string;
   email?: string;
+  /** NIF opcional; vazio apaga o que estava guardado. */
+  nif?: string;
   wards: Array<{ studentId: string; relationship: string; isPrimaryContact?: boolean }>;
 }
 
@@ -61,6 +66,7 @@ export const guardiansService = {
       document_number: input.documentNumber,
       phone: phone(input.phone),
       ...(input.email ? { email: input.email } : {}),
+      ...(input.nif ? { nif: normalizeNif(input.nif) } : {}),
     });
     for (const w of input.wards) await guardiansService.link(w.studentId, data.id, w.relationship, w.isPrimaryContact);
   },
@@ -71,6 +77,7 @@ export const guardiansService = {
       document_number: input.documentNumber,
       phone: phone(input.phone),
       email: input.email || null,
+      nif: input.nif ? normalizeNif(input.nif) : null,
     });
     const keep = new Set(input.wards.map((w) => w.studentId));
     for (const sid of previousWardIds) if (!keep.has(sid)) await api.delete(`/s/students/${sid}/guardians/${id}`);
