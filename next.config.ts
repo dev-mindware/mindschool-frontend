@@ -1,7 +1,12 @@
 import type { NextConfig } from "next";
 
+import { CONSENT_HEADERS, CONSENT_PATH } from "./src/lib/mindgest-consent";
+
 const nextConfig: NextConfig = {
   reactStrictMode: true,
+  async headers() {
+    return [{ source: CONSENT_PATH, headers: CONSENT_HEADERS }];
+  },
   async redirects() {
     return [
       {

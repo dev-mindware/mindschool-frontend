@@ -12,6 +12,7 @@ import {
   IMPERSONATION_RETURN_KEY,
 } from "@/constants/routes";
 import { getRouteByRole, isValidRole } from "@/utils/role-redirects";
+import { CONSENT_PATH } from "@/lib/mindgest-consent";
 import { verifyRole } from "@/lib/session";
 
 function isPublicRoute(pathname: string): boolean {
@@ -86,7 +87,8 @@ export async function proxy(req: NextRequest) {
   if (privateRoute && !isAuthenticated) {
     const loginUrl = new URL(DEFAULT_LOGIN_REDIRECT, req.url);
     // Opcional: guardar para onde queria ir
-    loginUrl.searchParams.set("from", pathname);
+    // A página de consentimento do MindGest só funciona com a sua query (state, desafio PKCE): guarda-a para retomar depois do login.
+    loginUrl.searchParams.set("from", pathname === CONSENT_PATH ? `${pathname}${req.nextUrl.search}` : pathname);
     return NextResponse.redirect(loginUrl);
   }
 

@@ -19,6 +19,7 @@ import { ImportsPageContent } from "@/components/client/settings/imports/imports
 import { AuditPageContent } from "@/components/client/settings/audit/audit-page-content";
 import { BankAccountsPageContent } from "@/components/client/settings/bank-accounts/bank-accounts-page-content";
 import { SchoolEmailsContent } from "@/components/client/settings/emails/school-emails-content";
+import { MindgestSettings } from "@/components/client/settings/integrations/mindgest-settings";
 import { TeachersPageContent } from "@/components/client/teachers/teachers-page-content";
 import { useAuth } from "@/hooks/auth";
 import { useCan } from "@/hooks/auth/use-can";
@@ -113,6 +114,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
     { id: "policies", label: "Políticas da Escola", icon: "SlidersHorizontal", component: <PoliciesPageContent />, category: "workplace", isVisible: isManager },
     { id: "users", label: "Utilizadores e Papéis", icon: "Users", component: <UsersPageContent />, category: "workplace", isVisible: isManager && can("membership:read") },
     { id: "teachers", label: "Corpo Docente", icon: "GraduationCap", component: <TeachersPageContent />, category: "workplace", isVisible: (isManager || role === "SECRETARY") && can("teacher:read") },
+    { id: "integrations", label: "Integrações", icon: "Plug", component: <MindgestSettings />, category: "workplace", isVisible: isManager && can("integration:mindgest_manage") },
     { id: "imports", label: "Importação de Dados", icon: "Upload", component: <ImportsPageContent />, category: "workplace", isVisible: isStaff && can("import:read") },
     { id: "audit", label: "Auditoria", icon: "ScrollText", component: <AuditPageContent />, category: "workplace", isVisible: (isManager || role === "FINANCIAL") && can("audit:read") },
   ];

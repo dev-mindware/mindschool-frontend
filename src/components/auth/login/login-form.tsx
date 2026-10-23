@@ -14,6 +14,7 @@ import { loginAction } from "@/actions/login";
 import { useAuthStore } from "@/stores";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { queryClient } from "@/lib";
+import { safeResumePath } from "@/lib/mindgest-consent";
 import { getApiErrorMessage } from "@/utils";
 
 export function LoginForm() {
@@ -53,7 +54,9 @@ export function LoginForm() {
       queryClient.setQueryData(["user"], res.user);
 
       setUser(res.user);
-      router.replace(res.redirectPath || "/");
+      // Retoma a página de consentimento do MindGest (único destino aceite em `from`); o resto vai para a página do papel.
+      const resume = safeResumePath(new URLSearchParams(window.location.search).get("from"));
+      router.replace(resume ?? (res.redirectPath || "/"));
     } catch (error) {
       setIsAuthenticating(false);
       ErrorMessage(getApiErrorMessage(error, "Ocorreu um erro inesperado. Tente novamente."));

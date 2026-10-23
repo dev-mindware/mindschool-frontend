@@ -71,6 +71,7 @@ export const PRIVATE_ROUTE_PREFIXES = [
   "/plans",
   "/settings",
   "/admin",
+  "/integrations",
 ] as const;
 
 // Rota de login padrão
