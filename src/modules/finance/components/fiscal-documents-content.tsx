@@ -94,7 +94,8 @@ export function FiscalDocumentsContent() {
           <div className="max-w-64 space-y-1">
             <Badge variant={st.variant} className="font-normal" title={st.hint}>{st.label}</Badge>
             {d.error && <p className="text-[11px] text-destructive">{d.error.message}</p>}
-            {(d.status === "sem_ligacao" || d.status === "sem_catalogo") && <p className="text-[11px] text-muted-foreground">{st.hint}</p>}
+            {(d.status === "sem_ligacao" || d.status === "sem_catalogo" || d.status === "pausada") && <p className="text-[11px] text-muted-foreground">{st.hint}</p>}
+            {d.corrected && <p className="text-[11px] font-medium text-amber-700">{d.correction_notice ?? "Factura corrigida/anulada no MindGest"}: a cobrança não mudou, reveja-a se for preciso.</p>}
             {d.status === "pendente_fiscal" && d.attempts > 1 && <p className="text-[11px] text-muted-foreground">{d.attempts} tentativas; a repetir sozinha.</p>}
             {d.legal_deadline && d.status !== "certificada" && (
               <p className={`flex items-center gap-1 text-[11px] ${d.deadline_passed ? "font-medium text-destructive" : "text-muted-foreground"}`}>
@@ -123,7 +124,7 @@ export function FiscalDocumentsContent() {
               <Icon name={busy === d.id ? "Loader2" : "FileText"} className={busy === d.id ? "size-3.5 animate-spin" : "size-3.5"} /> PDF
             </Button>
           )}
-          {(d.status === "erro" || d.status === "sem_ligacao" || d.status === "sem_catalogo") && (
+          {(d.status === "erro" || d.status === "sem_ligacao" || d.status === "sem_catalogo" || d.status === "pausada") && (
             <FeatureGate permission="fiscal:reprocess" fallback="hidden">
               <Button size="sm" variant="outline" className="h-8 gap-1.5 text-xs" disabled={reprocess.isPending}
                 onClick={() => { setBusy(d.id); reprocess.mutate(d.id); }}>
@@ -153,6 +154,7 @@ export function FiscalDocumentsContent() {
           { label: FISCAL_STATUS.pendente_fiscal.label, description: FISCAL_STATUS.pendente_fiscal.hint },
           { label: FISCAL_STATUS.sem_ligacao.label, description: FISCAL_STATUS.sem_ligacao.hint, next: "o titular liga a escola em Definições › Integrações › MindGest; a factura segue sozinha." },
           { label: FISCAL_STATUS.sem_catalogo.label, description: FISCAL_STATUS.sem_catalogo.hint, next: "defina o imposto dos serviços no MindGest (Plugins › MindSchool › Serviços)." },
+          { label: FISCAL_STATUS.pausada.label, description: FISCAL_STATUS.pausada.hint, next: "o titular reactiva em Definições › Integrações › MindGest; a factura segue sozinha." },
           { label: FISCAL_STATUS.rejeitada.label, description: FISCAL_STATUS.rejeitada.hint },
           { label: FISCAL_STATUS.erro.label, description: FISCAL_STATUS.erro.hint, next: "«Reprocessar» (titular ou financeiro)." },
           { label: "Prazo legal", description: "A factura-recibo deve ser emitida até ao 5.º dia útil seguinte ao pagamento (Decreto Presidencial 71/25, art. 8.º); a emissão tardia pode ter multa de 0,2% do valor. O titular e o financeiro são avisados ao 3.º dia útil. O prazo conta só sábados e domingos como não úteis (feriados não são descontados, por prudência)." },
@@ -162,7 +164,7 @@ export function FiscalDocumentsContent() {
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
         <DynamicMetricCard title={data.length} subtitle="Facturas-recibo" icon="Receipt" description="Uma por acto de pagamento" />
         <DynamicMetricCard title={count(["certificada"])} subtitle="Certificadas" icon="ShieldCheck" description="Com número fiscal" />
-        <DynamicMetricCard title={count(["pendente_fiscal", "sem_ligacao", "sem_catalogo"])} subtitle="Em curso ou em espera" icon="Clock" description="Seguem sozinhas" />
+        <DynamicMetricCard title={count(["pendente_fiscal", "sem_ligacao", "sem_catalogo", "pausada"])} subtitle="Em curso ou em espera" icon="Clock" description="Seguem sozinhas" />
         <DynamicMetricCard title={count(["erro", "rejeitada"])} subtitle="Precisam de atenção" icon="ShieldAlert" colors="destructive" description="Erro ou rejeitadas" />
       </div>
 

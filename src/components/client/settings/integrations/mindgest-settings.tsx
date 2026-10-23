@@ -7,6 +7,8 @@ import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { ErrorMessage, SucessMessage } from "@/utils/messages";
+import { MindgestBackfill } from "./mindgest-backfill";
+import { MindgestOperations } from "./mindgest-operations";
 
 const DISCONNECT = "mindgest-disconnect";
 const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString("pt-PT", { dateStyle: "short", timeStyle: "short" }) : "ainda não");
@@ -41,7 +43,7 @@ export function MindgestSettings() {
 
   const s = status.data;
   const connected = s.status === "active";
-  const badge = !connected ? { label: "Não ligado", variant: "secondary" as const } : s.setup === "ready" ? { label: "Ligado", variant: "success" as const } : { label: "Configuração incompleta", variant: "warning" as const };
+  const badge = !connected ? { label: "Não ligado", variant: "secondary" as const } : s.paused ? { label: "Emissões em pausa", variant: "warning" as const } : s.setup === "ready" ? { label: "Ligado", variant: "success" as const } : { label: "Configuração incompleta", variant: "warning" as const };
 
   return (
     <div className="space-y-4">
@@ -115,6 +117,9 @@ export function MindgestSettings() {
           </CardContent>
         </Card>
       )}
+
+      {connected && <MindgestOperations s={s} onChange={() => void refresh()} />}
+      {connected && <MindgestBackfill />}
 
       <ConfirmModal
         id={DISCONNECT}

@@ -204,7 +204,9 @@ function IntegrationNotice({ state, loading }: { state: ApiCustomerOptions["inte
       </p>
     ) : null;
   }
-  const text = state === "sem_ligacao"
+  const text = state === "pausada"
+    ? "As emissões pelo MindGest estão em pausa. O pagamento fica registado e a factura-recibo segue quando o titular reactivar as emissões (Definições › Integrações › MindGest)."
+    : state === "sem_ligacao"
     ? "A escola não está ligada ao MindGest. O pagamento fica registado, mas a factura-recibo só é emitida depois de o titular ligar a escola (Definições › Integrações › MindGest)."
     : "O catálogo do MindGest está incompleto: há serviços sem imposto definido. O pagamento fica registado e a factura-recibo segue quando o imposto for definido no MindGest.";
   return (

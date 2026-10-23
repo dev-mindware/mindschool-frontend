@@ -30,7 +30,11 @@ export interface ApiInvoice {
   payment_reference: string;
   is_overdue: boolean;
   related_invoice_id?: string | null;
-  fiscal: { status: string; document_id?: string | null; certificate_number: string | null };
+  fiscal: {
+    status: string; document_id?: string | null; certificate_number: string | null;
+    /** Nota(s) de crédito emitida(s) no MindGest sobre a factura-recibo desta cobrança. */
+    corrected?: boolean; correction_notice?: string | null; credit_notes?: Array<{ id: string; number: string | null; issued_at: string | null }>;
+  };
 }
 
 interface ApiFinanceSettings {

@@ -32,7 +32,7 @@ function ChargesList() {
     { key: "total_due", header: "Total", render: (_, i) => <span className="tabular-nums">{formatCurrency(Number(i.total_due))}</span> },
     { key: "balance", header: "Em dívida", render: (_, i) => <span className={`font-semibold tabular-nums ${i.is_overdue ? "text-destructive" : ""}`}>{formatCurrency(Number(i.balance))}</span> },
     { key: "status", header: "Estado", render: (_, i) => <StatusBadge status={i.status} map={STATUS} /> },
-    { key: "fiscal", header: "Fiscal", render: (_, i) => (<div><Badge variant={(FISCAL_STATUS[i.fiscal.status as keyof typeof FISCAL_STATUS] ?? FISCAL_STATUS.sem_submissao).variant} className="font-normal">{(FISCAL_STATUS[i.fiscal.status as keyof typeof FISCAL_STATUS] ?? FISCAL_STATUS.sem_submissao).label}</Badge>{i.fiscal.certificate_number && <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">{i.fiscal.certificate_number}</div>}</div>) },
+    { key: "fiscal", header: "Fiscal", render: (_, i) => (<div><Badge variant={(FISCAL_STATUS[i.fiscal.status as keyof typeof FISCAL_STATUS] ?? FISCAL_STATUS.sem_submissao).variant} className="font-normal">{(FISCAL_STATUS[i.fiscal.status as keyof typeof FISCAL_STATUS] ?? FISCAL_STATUS.sem_submissao).label}</Badge>{i.fiscal.certificate_number && <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">{i.fiscal.certificate_number}</div>}{i.fiscal.corrected && (<div className="mt-1 max-w-52 text-[11px] text-amber-700" title="A cobrança não muda sozinha: reveja-a se for preciso.">{i.fiscal.correction_notice ?? "Factura corrigida/anulada no MindGest"}{i.fiscal.credit_notes?.[0]?.number ? ` (NC ${i.fiscal.credit_notes[0].number})` : ""}</div>)}</div>) },
   ];
 
   return (

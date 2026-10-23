@@ -7,7 +7,7 @@ export type UiPaymentMethod = keyof typeof METHOD_TO_API;
 // ---- Tipos (API) ----------------------------------------------------------------------------------------------------
 
 /** Estado do documento fiscal (factura-recibo) emitido no MindGest. */
-export type FiscalDocumentStatus = "sem_ligacao" | "sem_catalogo" | "pendente_fiscal" | "certificada" | "rejeitada" | "erro";
+export type FiscalDocumentStatus = "sem_ligacao" | "sem_catalogo" | "pausada" | "pendente_fiscal" | "certificada" | "rejeitada" | "erro";
 
 export interface ApiFiscalDocument {
   id: string;
@@ -39,6 +39,9 @@ export interface ApiFiscalDocumentRow extends ApiFiscalDocument {
   paid_at: string | null;
   invoices: Array<{ id: string; type: string; due_date: string; description: string | null; amount: string }>;
   credit_notes: ApiFiscalDocument[];
+  /** Há nota(s) de crédito emitida(s) no MindGest sobre esta factura-recibo (a cobrança não muda sozinha). */
+  corrected: boolean;
+  correction_notice: string | null;
 }
 
 export type CustomerKind = "encarregado" | "aluno" | "consumidor_final";
@@ -48,7 +51,7 @@ export interface ApiCustomerOptions {
   guardians: Array<{ guardian_id: string; full_name: string; nif: string | null; is_primary_contact: boolean }>;
   student: { student_id: string; full_name: string; nif: string | null };
   /** `ready`: a factura-recibo segue logo; `sem_ligacao`/`sem_catalogo`: fica em espera (o pagamento regista-se na mesma). */
-  integration: "ready" | "sem_ligacao" | "sem_catalogo";
+  integration: "ready" | "sem_ligacao" | "sem_catalogo" | "pausada";
 }
 
 export interface ApiSettlement {
@@ -84,6 +87,7 @@ export const FISCAL_STATUS: Record<FiscalDocumentStatus | "sem_submissao", { lab
   pendente_fiscal: { label: "A aguardar MindGest", variant: "warning", hint: "Enviada ao MindGest, à espera da certificação. Não precisa de fazer nada." },
   sem_ligacao: { label: "Escola não ligada", variant: "secondary", hint: "A escola não está ligada ao MindGest. O pagamento ficou registado; a factura-recibo é emitida quando o titular ligar a escola." },
   sem_catalogo: { label: "Falta o imposto", variant: "secondary", hint: "Há serviços sem imposto definido no MindGest. O pagamento ficou registado; a factura-recibo segue quando o imposto for definido." },
+  pausada: { label: "Emissão em pausa", variant: "secondary", hint: "O titular suspendeu as emissões pelo MindGest. O pagamento ficou registado; a factura-recibo segue quando as emissões forem reactivadas." },
   rejeitada: { label: "Rejeitada", variant: "destructive", hint: "A certificação fiscal rejeitou o documento. Veja o motivo e corrija no MindGest." },
   erro: { label: "Erro", variant: "destructive", hint: "Não foi possível emitir. Veja o motivo e use «Reprocessar»." },
   sem_submissao: { label: "Sem factura", variant: "secondary", hint: "Ainda não foi paga, por isso não tem factura-recibo." },
