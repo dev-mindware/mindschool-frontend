@@ -1,6 +1,6 @@
 "use client";
 
-import { type ReactNode } from "react";
+import { type ReactNode, useEffect, useRef } from "react";
 import {
   Dialog,
   DialogContent,
@@ -55,8 +55,9 @@ const MODAL_SIZE_CLASSES: Record<ModalSize, string> = {
 };
 
 /**
- * Modal global: cabeçalho fixo, **só o conteúdo tem scroll** e o rodapé (`footer`) fica sempre visível no fundo,
- * com os botões alinhados à direita (em ecrãs pequenos ocupam a largura toda).
+ * Modal global: cabeçalho fixo e o rodapé (`footer`) sempre visível no fundo, com os botões alinhados à direita
+ * (em ecrãs pequenos ocupam a largura toda). **Nenhum modal pode ter scroll**: o conteúdo tem de caber; em desenvolvimento
+ * a consola avisa quando um modal ultrapassa a altura.
  */
 export function GlobalModal({
   id,
@@ -86,6 +87,32 @@ export function GlobalModal({
   };
 
   const hasHeader = !hideHeader && (title || description || icon || headerExtra || sucess || warning);
+
+  // Regra do produto: nenhum modal tem scroll. O `overflow-y-auto` abaixo é só rede de segurança (ecrãs muito baixos);
+  // em desenvolvimento avisa na consola qual modal ultrapassa a altura para o compactar (colunas, passos, menos texto).
+  const bodyRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (process.env.NODE_ENV === "production" || !isModalOpen) return;
+    let observer: ResizeObserver | undefined;
+    const label = typeof title === "string" ? title : (id ?? "sem título");
+    const check = () => {
+      const el = bodyRef.current;
+      if (el && el.scrollHeight > el.clientHeight + 1) {
+        console.warn(`[modal] «${label}» tem scroll (${el.scrollHeight}px > ${el.clientHeight}px). Os modais não podem ter scroll: compacte o conteúdo.`);
+      }
+    };
+    const timer = setTimeout(() => {
+      check();
+      if (bodyRef.current && typeof ResizeObserver !== "undefined") {
+        observer = new ResizeObserver(check);
+        observer.observe(bodyRef.current);
+      }
+    }, 400);
+    return () => {
+      clearTimeout(timer);
+      observer?.disconnect();
+    };
+  }, [isModalOpen, title, id]);
 
   return (
     <Dialog open={isModalOpen} onOpenChange={(next) => { if (!next && canClose) handleClose(); }}>
@@ -120,7 +147,7 @@ export function GlobalModal({
         )}
 
         {/* O scroll fica só aqui; o rodapé nunca desaparece para baixo. */}
-        <div className="min-h-0 flex-1 overflow-y-auto py-3">{children}</div>
+        <div ref={bodyRef} className="min-h-0 flex-1 overflow-y-auto py-3">{children}</div>
 
         {footer && (
           <DialogFooter className="mt-auto flex shrink-0 flex-row flex-wrap items-center justify-end gap-2 pt-2 [&>button]:w-max">

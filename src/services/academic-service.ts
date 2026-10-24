@@ -1,6 +1,7 @@
 import api from "./api";
 import { fetchAllPages } from "./api-pagination";
 import { sectionsService } from "./sections-service";
+import type { AcademicYearDraft } from "@/lib/academic-year";
 import type { AcademicSection, EducationCycle, Shift, Subject, TeacherAssignment } from "@/types";
 
 // ---- API ----------------------------------------------------------------------------------------------------------
@@ -46,6 +47,19 @@ const toSubject = (s: ApiSubject): Subject => ({
 
 export const academicService = {
   years: () => fetchAllPages<ApiAcademicYear>("/s/academic-years"),
+  /**
+   * Cria um ano lectivo e, por omissão, activa-o (a escola ainda não tinha nenhum). Se a activação falhar o ano fica
+   * criado como «planeado», que já serve para criar turmas: não se repete a criação.
+   */
+  createYear: async (v: AcademicYearDraft, activate = true): Promise<ApiAcademicYear> => {
+    const created = (await api.post<ApiAcademicYear>("/s/academic-years", v)).data;
+    if (!activate) return created;
+    try {
+      return (await api.post<ApiAcademicYear>(`/s/academic-years/${created.id}/activate`)).data;
+    } catch {
+      return created;
+    }
+  },
   activeYear: async (): Promise<ApiAcademicYear | undefined> => (await academicService.years()).find((y) => y.status === "activo"),
   classLevels: () => fetchAllPages<ApiClassLevel>("/s/class-levels"),
   teachers: () => fetchAllPages<ApiTeacher>("/s/teachers"),

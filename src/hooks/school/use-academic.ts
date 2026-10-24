@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { academicService } from "@/services/academic-service";
+import type { AcademicYearDraft } from "@/lib/academic-year";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { EducationCycle, Shift } from "@/types";
 
@@ -158,7 +159,12 @@ export function useAcademic() {
 }
 
 export function useAcademicYears() {
-  const { data: years = [], isLoading } = useAcademicQuery("academic-years", academicService.years);
-  return { years, isLoading };
+  const { data: years = [], isLoading, isError, refetch, schoolId } = useAcademicQuery("academic-years", academicService.years);
+  const queryClient = useQueryClient();
+  const createYear = useMutation({
+    mutationFn: (v: AcademicYearDraft) => academicService.createYear(v),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["academic-years", schoolId] }),
+  });
+  return { years, isLoading, isError, refetch, createYear };
 }
 

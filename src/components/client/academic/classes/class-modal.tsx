@@ -17,6 +17,7 @@ import {
   Icon,
 } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { YearSetup } from "./year-setup";
 
 import { quantitySchema } from "@/schemas/helps";
 
@@ -81,7 +82,7 @@ const SHIFT_PRESETS: Record<Shift, Array<{ label: string; start: string; end: st
 
 export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) {
   const { save } = useAcademicSections();
-  const { years } = useAcademicYears();
+  const { years, isLoading: yearsLoading, isError: yearsFailed, refetch: refetchYears } = useAcademicYears();
 
   // Só anos lectivos que existem na escola (não se inventa um ano que a API não conhece).
   const academicYearOptions = useMemo(
@@ -98,7 +99,7 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
     watch,
     reset,
     formState: { errors, isSubmitting },
-  } = useForm<ClassSectionFormValues>({
+  } = useForm<z.input<typeof classSectionFormSchema>, unknown, ClassSectionFormValues>({
     resolver: zodResolver(classSectionFormSchema),
     mode: "onChange",
     defaultValues: {
@@ -236,9 +237,14 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
       canClose
       title={sectionToEdit ? "Editar Turma" : "Criar Nova Turma"}
       description="Configuração de classe, turno lectivo dinâmico, sala física e ano lectivo"
-      className="w-full sm:max-w-2xl"
+      className="w-full sm:max-w-3xl"
     >
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-1">
+      {yearsLoading ? (
+        <p className="py-6 text-center text-sm text-muted-foreground">A carregar os anos lectivos…</p>
+      ) : years.length === 0 ? (
+        <YearSetup loadFailed={yearsFailed} onRetry={() => void refetchYears()} onClose={onClose} />
+      ) : (
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
         <Input
           label="Nome Descritivo da Turma *"
           startIcon="DoorOpen"
@@ -247,7 +253,7 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
           error={errors.name?.message}
         />
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
           <SelectField
             label="Ciclo Pedagógico *"
             value={selectedCycle}
@@ -290,10 +296,10 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
             min={1}
             max={100}
             step={1}
-            label="Capacidade de Alunos * (limite de matrículas na turma)"
+            label="Capacidade de Alunos *"
             startIcon="Users"
             placeholder="40"
-            value={watch("capacity")}
+            value={Number(watch("capacity")) || 1}
             onChange={(e) =>
               setValue("capacity", Math.max(1, Number(e.target.value) || 1), {
                 shouldValidate: true,
@@ -301,8 +307,8 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
             }
             error={errors.capacity?.message}
           />
-          <p className="text-[11px] text-muted-foreground sm:col-span-2">
-            Cheia a capacidade, o sistema não deixa matricular mais alunos (e põe os aprovados em lista de espera). Não se pode baixar a capacidade abaixo do número de alunos já matriculados.
+          <p className="text-[11px] text-muted-foreground sm:col-span-3">
+            <strong>Capacidade</strong> é o limite de matrículas: cheia, o sistema não matricula mais alunos (os aprovados ficam em lista de espera) e não pode ficar abaixo dos alunos já matriculados.
           </p>
         </div>
 
@@ -345,7 +351,7 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
               )}
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1.6fr] gap-3 items-end">
               <Input
                 type="time"
                 label="Hora de Início *"
@@ -361,13 +367,12 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
                 {...register("endTime")}
                 error={errors.endTime?.message}
               />
-            </div>
 
             {/* Atalhos rápidos de horários frequentes para conveniência */}
             {currentPresets.length > 0 && (
               <div className="space-y-1.5">
                 <span className="text-[11px] text-muted-foreground font-medium">
-                  Sugestões rápidas para o turno (clique para aplicar ou ajuste livremente acima):
+                  Sugestões (clique para aplicar):
                 </span>
                 <div className="flex flex-wrap gap-1.5">
                   {currentPresets.map((preset) => {
@@ -390,11 +395,12 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
                 </div>
               </div>
             )}
+            </div>
           </div>
         )}
 
         {/* Botões de Ação no Padrão MindGest */}
-        <div className="flex justify-end gap-3 pt-3">
+        <div className="flex justify-end gap-3 pt-1">
           <Button type="button" variant="outline" onClick={onClose}>
             Cancelar
           </Button>
@@ -403,6 +409,7 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
           </ButtonSubmit>
         </div>
       </form>
+      )}
     </GlobalModal>
   );
 }
