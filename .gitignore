@@ -67,9 +67,12 @@ desktop.ini
 .tmp
 /tmp
 
-# testes
+# testes (Playwright: resultados, relatorios e logs das corridas e2e)
 /test-results/
 /playwright-report/
+/blob-report/
+/playwright/.cache/
+pw-*.log
 *.tgz
 
 # Exportacao do Notion (documentacao interna; servida publicamente por public/)
