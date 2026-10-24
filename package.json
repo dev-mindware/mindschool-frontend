@@ -52,7 +52,7 @@
     "input-otp": "^1.4.2",
     "jspdf": "^4.2.1",
     "lucide-react": "^0.511.0",
-    "next": "16.3.8",
+    "next": "16.4.3",
     "next-themes": "^0.4.6",
     "nuqs": "^2.6.0",
     "qrcode": "^1.5.4",
@@ -74,7 +74,7 @@
     "use-debounce": "^10.0.6",
     "vaul": "^1.1.2",
     "write-excel-file": "^4.1.1",
-    "zod": "^3.25.42",
+    "zod": "^4.6.6",
     "zustand": "^5.0.5"
   },
   "devDependencies": {
@@ -92,7 +92,7 @@
     "@types/react-dom": "^19",
     "baseline-browser-mapping": "^2.10.0",
     "eslint": "^9",
-    "eslint-config-next": "16.3.8",
+    "eslint-config-next": "16.4.3",
     "jest": "^30.4.2",
     "jest-environment-jsdom": "^30.4.1",
     "orval": "^7.11.2",
@@ -103,7 +103,8 @@
   },
   "pnpm": {
     "overrides": {
-      "fast-uri": ">=3.1.8",
+      "fast-uri": ">=4.2.3",
+      "follow-redirects": ">=1.16.1",
       "source-map-js": ">=1.2.2"
     }
   },

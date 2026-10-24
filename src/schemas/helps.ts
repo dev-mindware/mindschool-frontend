@@ -40,18 +40,18 @@ export const ItemSchema = z
     description: z.string().trim().optional(),
     type: z.enum(["PRODUCT", "SERVICE"]),
     quantity: z
-      .number({ invalid_type_error: "A quantidade deve ser um número" })
+      .number({ error: "A quantidade deve ser um número" })
       .positive("A quantidade deve ser maior que 0"),
     unitPrice: z
-      .number({ invalid_type_error: "O preço unitário deve ser um número" })
+      .number({ error: "O preço unitário deve ser um número" })
       .positive("O preço unitário deve ser maior que 0"),
     discount: z
-      .number({ invalid_type_error: "O desconto deve ser numérico" })
+      .number({ error: "O desconto deve ser numérico" })
       .min(0, "O desconto não pode ser negativo")
       .optional()
       .nullable(),
     total: z
-      .number({ invalid_type_error: "O total deve ser um número" })
+      .number({ error: "O total deve ser um número" })
       .positive("O total deve ser maior que 0")
       .optional()
       .nullable(),
@@ -94,7 +94,7 @@ export const optionalTaxNumberSchema = z
  * Suporta também o indicativo internacional +244 seguido dos 9 dígitos.
  */
 export const phoneNumberSchema = z
-  .string({ invalid_type_error: "Insira um número de telefone válido" })
+  .string({ error: "Insira um número de telefone válido" })
   .trim()
   .refine(
     (value) => {
@@ -187,7 +187,7 @@ export const quantitySchema = (
   label = "A quantidade"
 ) =>
   z.coerce
-    .number({ invalid_type_error: `${label} deve ser um número inteiro` })
+    .number({ error: `${label} deve ser um número inteiro` })
     .int(`${label} deve ser um número inteiro`)
     .min(min, `${label} deve ser de pelo menos ${min}`)
     .max(max, `${label} não pode exceder ${max}`);
@@ -199,7 +199,7 @@ export const currencySchema = (
   label = "O valor monetário"
 ) => {
   let schema = z.coerce
-    .number({ invalid_type_error: `${label} deve ser um valor numérico` })
+    .number({ error: `${label} deve ser um valor numérico` })
     .min(min, `${label} deve ser maior ou igual a ${min}`);
   if (typeof max === "number") {
     schema = schema.max(max, `${label} não pode exceder ${max}`);
@@ -210,14 +210,14 @@ export const currencySchema = (
 /** Schema reutilizável para percentagens (0 a 100) */
 export const percentageSchema = (min = 0, max = 100, label = "A percentagem") =>
   z.coerce
-    .number({ invalid_type_error: `${label} deve ser um valor numérico` })
+    .number({ error: `${label} deve ser um valor numérico` })
     .min(min, `${label} deve ser de pelo menos ${min}%`)
     .max(max, `${label} não pode exceder ${max}%`);
 
 /** Schema reutilizável para escala de notas de avaliação de Angola (0 a 20 valores do MED) */
 export const schoolGradeSchema = (label = "A nota") =>
   z.coerce
-    .number({ invalid_type_error: `${label} deve ser um valor numérico` })
+    .number({ error: `${label} deve ser um valor numérico` })
     .min(0, `${label} deve ser no mínimo 0 valores`)
     .max(20, `${label} não pode exceder 20 valores (escala nacional do MED)`);
 
