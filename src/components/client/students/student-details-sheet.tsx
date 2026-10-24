@@ -84,14 +84,6 @@ export function StudentDetailsSheet({
                   <span className="text-muted-foreground">N.º do Documento</span>
                   <span className="font-mono font-medium">{student.idDocumentNumber}</span>
                 </div>
-                <div className="flex justify-between py-1 border-b border-border/50 text-sm">
-                  <span className="text-muted-foreground">Nacionalidade</span>
-                  <span className="font-medium">{student.nationality}</span>
-                </div>
-                <div className="flex justify-between py-1 text-sm">
-                  <span className="text-muted-foreground">Residência</span>
-                  <span className="font-medium text-right">{student.address}</span>
-                </div>
               </div>
             </TabsContent>
 
@@ -112,10 +104,6 @@ export function StudentDetailsSheet({
                     <Icon name="Phone" className="w-3.5 h-3.5" />
                     {student.guardianPhone}
                   </span>
-                </div>
-                <div className="flex justify-between py-1 text-sm">
-                  <span className="text-muted-foreground">Localização</span>
-                  <span className="font-medium">{student.city}, Angola</span>
                 </div>
               </div>
 

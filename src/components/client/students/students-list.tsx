@@ -39,7 +39,6 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent }: 
 
   const levels = useMemo(() => uniq(students.map((s) => s.currentClassLevel)), [students]);
   const sections = useMemo(() => uniq(students.map((s) => s.currentSectionName)), [students]);
-  const provinces = useMemo(() => uniq(students.map((s) => s.province)), [students]);
   const years = useMemo(() => uniq(students.map((s) => s.academicYear)), [students]);
 
   const columns: Column<Student>[] = [
@@ -87,7 +86,6 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent }: 
           { key: "classe", label: "Classe", icon: "GraduationCap", options: levels.map((l) => ({ value: l, label: l })), match: (s, v) => s.currentClassLevel === v },
           { key: "turma", label: "Turma", icon: "Users", options: [{ value: "__none", label: "Sem turma" }, ...sections.map((l) => ({ value: l, label: l }))], match: (s, v) => (v === "__none" ? !s.currentSectionName : s.currentSectionName === v) },
           { key: "genero", label: "Género", icon: "User", options: [{ value: "MALE", label: "Masculino" }, { value: "FEMALE", label: "Feminino" }], match: (s, v) => s.gender === v },
-          { key: "provincia", label: "Província", icon: "MapPin", options: provinces.map((l) => ({ value: l, label: l })), match: (s, v) => s.province === v },
           { key: "ano", label: "Ano lectivo", icon: "CalendarRange", options: years.map((l) => ({ value: l, label: l })), match: (s, v) => s.academicYear === v },
         ]}
         dateFilters={[{ key: "registo", label: "Registo", getDate: (s) => s.createdAt }]}

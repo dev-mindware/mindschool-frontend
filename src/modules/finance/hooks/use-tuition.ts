@@ -21,7 +21,7 @@ export function useTuition(searchQuery = "", statusFilter: TuitionStatus | "ALL"
     enabled: Boolean(schoolId),
     staleTime: 30 * 1000,
   });
-  const { data: plans = [] } = useQuery({ queryKey: financeKeys.plans(schoolId), queryFn: () => tuitionService.plans(), enabled: Boolean(schoolId), staleTime: 60 * 1000 });
+  const { data: plans = [], isLoading: plansLoading } = useQuery({ queryKey: financeKeys.plans(schoolId), queryFn: () => tuitionService.plans(), enabled: Boolean(schoolId), staleTime: 60 * 1000 });
 
   const filtered = useMemo(() => {
     const q = searchQuery.trim().toLowerCase();
@@ -57,6 +57,7 @@ export function useTuition(searchQuery = "", statusFilter: TuitionStatus | "ALL"
 
   return {
     plans,
+    plansLoading,
     fees: paginated,
     allFees: filtered,
     isLoading,

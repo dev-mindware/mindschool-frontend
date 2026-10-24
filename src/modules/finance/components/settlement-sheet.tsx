@@ -100,14 +100,15 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-full sm:max-w-xl flex flex-col p-0 gap-0">
-        <SheetHeader className="p-6 border-b shrink-0">
+        <SheetHeader className="p-5 border-b shrink-0">
           <SheetTitle className="text-lg font-bold">Marcar como pago</SheetTitle>
           <SheetDescription className="text-xs">
-            Regista o pagamento do valor total em dívida e pede ao MindGest a factura-recibo (o documento com valor fiscal). Não há pagamento parcial.
+            Regista o valor total em dívida e pede a factura-recibo ao MindGest. Não há pagamento parcial.
           </SheetDescription>
         </SheetHeader>
 
-        <div className="flex-1 space-y-5 overflow-y-auto p-6">
+        {/* Nenhum painel tem scroll: o corpo é compacto (o resumo das cobranças é uma linha e as formas de pagamento cabem numa só). */}
+        <div className="flex-1 space-y-3 overflow-y-auto p-5">
           {done ? (
             <DoneCard settlement={done} />
           ) : (
@@ -118,18 +119,13 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
                 </p>
               )}
 
-              <div className="space-y-2 rounded-xl border bg-muted/40 p-4">
+              <div className="space-y-1.5 rounded-xl border bg-muted/40 p-3">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{fees[0]!.studentName}</p>
-                <ul className="space-y-1 text-xs">
-                  {fees.map((f) => (
-                    <li key={f.id} className="flex justify-between gap-2">
-                      <span>{f.monthLabel} / {f.year}{(f.penalties?.length ?? 0) > 0 ? " + multa" : ""}</span>
-                      <span className="font-medium tabular-nums">{formatCurrency(f.totalAmount)}</span>
-                    </li>
-                  ))}
-                </ul>
-                <div className="flex justify-between border-t pt-2 text-sm font-bold">
-                  <span>Total a pagar</span>
+                <p className="text-xs">
+                  {fees.map((f) => `${f.monthLabel} / ${f.year}${(f.penalties?.length ?? 0) > 0 ? " + multa" : ""}`).join(" · ")}
+                </p>
+                <div className="flex justify-between border-t pt-1.5 text-sm font-bold">
+                  <span>Total a pagar ({fees.length} {fees.length === 1 ? "cobrança" : "cobranças"})</span>
                   <span className="text-primary tabular-nums">{formatCurrency(total)}</span>
                 </div>
               </div>
@@ -138,17 +134,14 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
 
               <div className="space-y-2">
                 <Label className="text-xs font-semibold uppercase tracking-wider text-foreground">Forma de pagamento</Label>
-                <div className="grid grid-cols-2 gap-2.5">
+                <div className="grid grid-cols-2 gap-2">
                   {PAYMENT_METHODS.map((m) => {
                     const on = method === m.id;
                     return (
-                      <button key={m.id} type="button" onClick={() => setMethod(m.id)}
-                        className={`flex flex-col items-start rounded-xl border p-3 text-left transition-all ${on ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:bg-muted/50"}`}>
-                        <div className="mb-1 flex items-center gap-2">
-                          <Icon name={m.icon as any} className={`h-4 w-4 ${on ? "text-primary" : "text-muted-foreground"}`} />
-                          <span className="text-sm font-semibold text-foreground">{m.label}</span>
-                        </div>
-                        <span className="line-clamp-1 text-[11px] text-muted-foreground">{m.desc}</span>
+                      <button key={m.id} type="button" title={m.desc} onClick={() => setMethod(m.id)}
+                        className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-all ${on ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:bg-muted/50"}`}>
+                        <Icon name={m.icon as any} className={`h-4 w-4 ${on ? "text-primary" : "text-muted-foreground"}`} />
+                        <span className="text-sm font-semibold text-foreground">{m.label}</span>
                       </button>
                     );
                   })}
@@ -250,13 +243,13 @@ function CustomerChooser(p: {
     <div className="space-y-2">
       <Label className="text-xs font-semibold uppercase tracking-wider text-foreground">Em nome de quem sai a factura-recibo</Label>
       <p className="text-[11px] text-muted-foreground">Por omissão, o encarregado com NIF; sem NIF, o aluno; sem NIF de ninguém, «consumidor final». O NIF é facultativo, serve só para a factura-recibo (é enviado ao MindGest, que a emite) e, se o guardar, fica na ficha cifrado.</p>
-      <div className="space-y-2">
+      <div className="space-y-1.5">
         {rows.map((r) => (
-          <div key={`${r.choice.kind}-${r.choice.guardianId ?? ""}`} className={`rounded-xl border p-3 ${same(r.choice) ? "border-primary bg-primary/5" : "border-border"}`}>
+          <div key={`${r.choice.kind}-${r.choice.guardianId ?? ""}`} className={`rounded-lg border px-3 py-2 ${same(r.choice) ? "border-primary bg-primary/5" : "border-border"}`}>
             <button type="button" className="flex w-full items-center justify-between gap-2 text-left" onClick={() => p.onChoose(r.choice)}>
-              <span>
-                <span className="block text-sm font-semibold">{r.title}</span>
-                <span className="block text-[11px] text-muted-foreground">{r.subtitle}</span>
+              <span className="min-w-0 truncate">
+                <span className="text-sm font-semibold">{r.title}</span>
+                <span className="text-[11px] text-muted-foreground"> · {r.subtitle}</span>
               </span>
               <span className="font-mono text-xs text-muted-foreground">{r.nif ? `NIF ${r.nif}` : "sem NIF"}</span>
             </button>
@@ -264,8 +257,8 @@ function CustomerChooser(p: {
           </div>
         ))}
         <button type="button" onClick={() => p.onChoose({ kind: "consumidor_final" })}
-          className={`flex w-full items-center justify-between rounded-xl border p-3 text-left ${p.choice?.kind === "consumidor_final" ? "border-primary bg-primary/5" : "border-border"}`}>
-          <span><span className="block text-sm font-semibold">Consumidor final</span><span className="block text-[11px] text-muted-foreground">Factura sem NIF do cliente</span></span>
+          className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left ${p.choice?.kind === "consumidor_final" ? "border-primary bg-primary/5" : "border-border"}`}>
+          <span><span className="text-sm font-semibold">Consumidor final</span><span className="text-[11px] text-muted-foreground"> · factura sem NIF do cliente</span></span>
         </button>
       </div>
     </div>

@@ -14,9 +14,6 @@ export interface StudentFormValues {
   idDocumentNumber: string;
   /** NIF opcional (factura-recibo em nome do aluno quando o encarregado não tem NIF). */
   nif?: string;
-  address: string;
-  city: string;
-  province: string;
   sectionId?: string;
   guardianMode: "existing" | "new";
   guardianId?: string;

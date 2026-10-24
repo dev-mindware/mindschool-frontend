@@ -148,6 +148,80 @@ export function FormTextarea({ label, value, onChange, placeholder, rows = 3, er
   );
 }
 
+interface FormMultiComboboxProps {
+  label: string;
+  values: string[];
+  onValuesChange: (v: string[]) => void;
+  options: Array<{ value: string; label: string; hint?: string }>;
+  placeholder?: string;
+  searchPlaceholder?: string;
+  error?: string;
+  disabled?: boolean;
+  className?: string;
+}
+
+/**
+ * Escolha múltipla com pesquisa: o botão resume a escolha e a lista longa (com «Todas» e «Limpar») vive num popover,
+ * por isso o modal que a contém não precisa de scroll.
+ */
+export function FormMultiCombobox({ label, values, onValuesChange, options, placeholder = "Seleccione", searchPlaceholder = "Pesquisar...", error, disabled, className }: FormMultiComboboxProps) {
+  const [openPopover, setOpenPopover] = useState(false);
+  const [q, setQ] = useState("");
+  const shown = options.filter((o) => !q || `${o.label} ${o.hint ?? ""}`.toLowerCase().includes(q.trim().toLowerCase()));
+  const chosen = options.filter((o) => values.includes(o.value));
+  const summary = chosen.length === 0 ? placeholder : chosen.length <= 2 ? chosen.map((o) => o.label).join(", ") : `${chosen.length} seleccionadas`;
+  const toggle = (v: string) => onValuesChange(values.includes(v) ? values.filter((x) => x !== v) : [...values, v]);
+
+  return (
+    <div className={cn("flex flex-col gap-1.5", className)}>
+      <label className="text-sm font-medium">{label}</label>
+      <Popover open={openPopover} onOpenChange={setOpenPopover}>
+        <PopoverTrigger asChild>
+          <Button type="button" variant="outline" disabled={disabled} className="h-10 w-full justify-between font-normal">
+            <span className={cn("truncate", chosen.length === 0 && "text-muted-foreground")}>{summary}</span>
+            <Icon name="ChevronsUpDown" className="size-4 opacity-50 shrink-0" />
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-[--radix-popover-trigger-width] min-w-64 p-2 space-y-2" align="start">
+          <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={searchPlaceholder} startIcon="Search" />
+          <div className="flex items-center justify-between px-1 text-xs">
+            <span className="text-muted-foreground">{values.length} seleccionada(s)</span>
+            <span className="flex gap-3">
+              <button type="button" className="font-medium text-primary hover:underline" onClick={() => onValuesChange(Array.from(new Set([...values, ...shown.map((o) => o.value)])))}>Todas</button>
+              <button type="button" className="text-muted-foreground hover:underline" onClick={() => onValuesChange([])}>Limpar</button>
+            </span>
+          </div>
+          <div className="max-h-60 overflow-y-auto space-y-0.5">
+            {shown.length === 0 && <p className="p-2 text-sm text-muted-foreground">Sem resultados.</p>}
+            {shown.map((o) => {
+              const on = values.includes(o.value);
+              return (
+                <button
+                  key={o.value}
+                  type="button"
+                  role="option"
+                  aria-selected={on}
+                  onClick={() => toggle(o.value)}
+                  className={cn("flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-muted", on && "bg-primary/10 font-medium")}
+                >
+                  <span className="flex items-center gap-2 truncate">
+                    <span className={cn("flex size-4 shrink-0 items-center justify-center rounded-sm border", on ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/40")}>
+                      {on && <Icon name="Check" className="size-3" />}
+                    </span>
+                    <span className="truncate">{o.label}</span>
+                  </span>
+                  {o.hint && <span className="shrink-0 text-xs text-muted-foreground">{o.hint}</span>}
+                </button>
+              );
+            })}
+          </div>
+        </PopoverContent>
+      </Popover>
+      {error && <p className="text-xs text-destructive">{error}</p>}
+    </div>
+  );
+}
+
 interface FormComboboxProps {
   label: string;
   value?: string;

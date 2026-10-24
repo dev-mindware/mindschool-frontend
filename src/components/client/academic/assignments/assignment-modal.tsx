@@ -16,6 +16,7 @@ import {
   Icon,
   Badge,
 } from "@/components";
+import { FormMultiCombobox } from "@/components/common/form-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 
@@ -234,8 +235,6 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
   const [weeklyHours, setWeeklyHours] = useState(4);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isQuickTeacherOpen, setIsQuickTeacherOpen] = useState(false);
-  const [sectionSearch, setSectionSearch] = useState("");
-  const [subjectSearch, setSubjectSearch] = useState("");
 
   // Carregamento automático das disciplinas com base nas qualificações/histórico do professor
   useEffect(() => {
@@ -259,30 +258,6 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
     () => teachers.map((t) => ({ value: t.id, label: t.full_name })),
     [teachers]
   );
-
-  const filteredSections = useMemo(() => {
-    const q = sectionSearch.trim().toLowerCase();
-    if (!q) return sections;
-    return sections.filter((s) => s.name.toLowerCase().includes(q) || s.classLevel.toLowerCase().includes(q));
-  }, [sections, sectionSearch]);
-
-  const filteredSubjects = useMemo(() => {
-    const q = subjectSearch.trim().toLowerCase();
-    if (!q) return subjects;
-    return subjects.filter((s) => s.name.toLowerCase().includes(q) || s.code.toLowerCase().includes(q));
-  }, [subjects, subjectSearch]);
-
-  const handleToggleSection = (sectionId: string) => {
-    setSelectedSectionIds((prev) =>
-      prev.includes(sectionId) ? prev.filter((id) => id !== sectionId) : [...prev, sectionId]
-    );
-  };
-
-  const handleToggleSubject = (subjectId: string) => {
-    setSelectedSubjectIds((prev) =>
-      prev.includes(subjectId) ? prev.filter((id) => id !== subjectId) : [...prev, subjectId]
-    );
-  };
 
   const handleQuickTeacherCreated = (newTeacherId: string, qualifiedSubjectIds: string[]) => {
     setSelectedTeacherId(newTeacherId);
@@ -346,7 +321,7 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
         description="Vincule um professor a várias turmas e disciplinas simultâneas no ano lectivo"
         className="w-max"
       >
-        <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+        <form onSubmit={handleSubmit} className="space-y-3">
           {/* Seleção do Professor com Botão Rápido de Criação */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
@@ -377,115 +352,25 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Bloco de Turmas com Múltipla Escolha */}
-            <div className="space-y-2 rounded-lg border border-border/50 bg-background/50 p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                  <Icon name="DoorOpen" className="size-3.5 text-primary" />
-                  Turmas Alocadas ({selectedSectionIds.length} selecionadas) *
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className="text-xs text-primary hover:underline font-medium"
-                    onClick={() => setSelectedSectionIds(filteredSections.map((s) => s.id))}
-                  >
-                    Todas
-                  </button>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <button
-                    type="button"
-                    className="text-xs text-muted-foreground hover:underline"
-                    onClick={() => setSelectedSectionIds([])}
-                  >
-                    Limpar
-                  </button>
-                </div>
-              </div>
+            {/* Turmas (escolha múltipla com pesquisa: a lista longa vive num popover, o modal não tem scroll) */}
+            <FormMultiCombobox
+              label={`Turmas alocadas (${selectedSectionIds.length}) *`}
+              values={selectedSectionIds}
+              onValuesChange={setSelectedSectionIds}
+              placeholder="Seleccione as turmas..."
+              searchPlaceholder="Filtrar turmas..."
+              options={sections.map((s) => ({ value: s.id, label: `${s.classLevel} ${s.name}`, hint: s.shift === "MORNING" ? "Manhã" : s.shift === "AFTERNOON" ? "Tarde" : "Noite" }))}
+            />
 
-              <Input
-                placeholder="Filtrar turmas..."
-                value={sectionSearch}
-                onChange={(e) => setSectionSearch(e.target.value)}
-                className="h-8 text-xs"
-              />
-
-              <div className="max-h-52 overflow-y-auto space-y-1.5 pr-1">
-                {filteredSections.map((s) => {
-                  const isChecked = selectedSectionIds.includes(s.id);
-                  return (
-                    <label
-                      key={s.id}
-                      className={`flex items-center justify-between gap-2 p-2 rounded-md border text-xs cursor-pointer transition-colors ${
-                        isChecked ? "border-primary/50 bg-primary/10 text-foreground font-medium" : "border-border/40 hover:bg-muted/40 text-muted-foreground"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <Checkbox checked={isChecked} onCheckedChange={() => handleToggleSection(s.id)} />
-                        <span className="truncate">{s.classLevel} {s.name}</span>
-                      </div>
-                      <Badge variant="outline" className="text-[10px] shrink-0 font-normal">
-                        {s.shift === "MORNING" ? "Manhã" : s.shift === "AFTERNOON" ? "Tarde" : "Noite"}
-                      </Badge>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
-
-            {/* Bloco de Disciplinas com Auto-load e Check/Uncheck */}
-            <div className="space-y-2 rounded-lg border border-border/50 bg-background/50 p-3">
-              <div className="flex items-center justify-between">
-                <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-                  <Icon name="BookOpen" className="size-3.5 text-primary" />
-                  Disciplinas ({selectedSubjectIds.length} selecionadas) *
-                </span>
-                <div className="flex gap-2">
-                  <button
-                    type="button"
-                    className="text-xs text-primary hover:underline font-medium"
-                    onClick={() => setSelectedSubjectIds(filteredSubjects.map((s) => s.id))}
-                  >
-                    Todas
-                  </button>
-                  <span className="text-xs text-muted-foreground">•</span>
-                  <button
-                    type="button"
-                    className="text-xs text-muted-foreground hover:underline"
-                    onClick={() => setSelectedSubjectIds([])}
-                  >
-                    Limpar
-                  </button>
-                </div>
-              </div>
-
-              <Input
-                placeholder="Filtrar disciplinas..."
-                value={subjectSearch}
-                onChange={(e) => setSubjectSearch(e.target.value)}
-                className="h-8 text-xs"
-              />
-
-              <div className="max-h-52 overflow-y-auto space-y-1.5 pr-1">
-                {filteredSubjects.map((sub) => {
-                  const isChecked = selectedSubjectIds.includes(sub.id);
-                  return (
-                    <label
-                      key={sub.id}
-                      className={`flex items-center justify-between gap-2 p-2 rounded-md border text-xs cursor-pointer transition-colors ${
-                        isChecked ? "border-primary/50 bg-primary/10 text-foreground font-medium" : "border-border/40 hover:bg-muted/40 text-muted-foreground"
-                      }`}
-                    >
-                      <div className="flex items-center gap-2 truncate">
-                        <Checkbox checked={isChecked} onCheckedChange={() => handleToggleSubject(sub.id)} />
-                        <span className="truncate">{sub.name}</span>
-                      </div>
-                      <span className="text-[10px] font-mono opacity-70">{sub.code}</span>
-                    </label>
-                  );
-                })}
-              </div>
-            </div>
+            {/* Disciplinas */}
+            <FormMultiCombobox
+              label={`Disciplinas (${selectedSubjectIds.length}) *`}
+              values={selectedSubjectIds}
+              onValuesChange={setSelectedSubjectIds}
+              placeholder="Seleccione as disciplinas..."
+              searchPlaceholder="Filtrar disciplinas..."
+              options={subjects.map((s) => ({ value: s.id, label: s.name, hint: s.code }))}
+            />
           </div>
 
           <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
@@ -516,7 +401,7 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
           </div>
 
           {/* Botões de Ação no Padrão MindGest */}
-          <div className="flex justify-end gap-3 pt-3">
+          <div className="flex justify-end gap-3 pt-1">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>

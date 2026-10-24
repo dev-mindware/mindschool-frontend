@@ -9,6 +9,7 @@ import { useGradeTerms } from "@/hooks/school/use-grades";
 import { useStudents } from "@/hooks/school/use-students";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { lastTerm } from "@/lib/terms";
 
 type Doc = ReturnType<typeof useCertificates>["documents"][number];
 
@@ -21,11 +22,11 @@ function IssueBoletimModal() {
 
   return (
     <FormModal id="boletim-issue" title="Emitir boletim de notas" description="Só se emite com a pauta do período fechada. O boletim é numerado e guardado em PDF e Excel." submitLabel="Emitir boletim" isLoading={issue.isPending} disabled={!studentId} onSubmit={() =>
-      issue.mutateAsync({ studentId, documentType: "DECLARATION_WITH_GRADES", purpose: "Boletim de notas", termId: termId === "last" ? undefined : termId })
+      issue.mutateAsync({ studentId, documentType: "DECLARATION_WITH_GRADES", purpose: "Boletim de notas", termId: termId === "last" ? lastTerm(terms)?.id : termId })
         .then(async (d) => { SucessMessage(`Boletim ${d.documentNumber} emitido.`); await openDocumentPdf(d.id); })
         .catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível emitir o boletim (a pauta do período tem de estar fechada).")); throw e; })}>
       <div className="sm:col-span-2"><StudentSelect label="Aluno *" students={students} value={studentId} onChange={setStudentId} /></div>
-      <div className="sm:col-span-2"><FormSelect label="Período" value={termId} onValueChange={setTermId} options={[{ value: "last", label: "Anual / último período" }, ...terms.map((t) => ({ value: t.id, label: `${t.sequence}.º Trimestre` }))]} /></div>
+      <div className="sm:col-span-2"><FormSelect label="Período" value={termId} onValueChange={setTermId} options={[{ value: "last", label: "Último período iniciado" }, ...terms.map((t) => ({ value: t.id, label: `${t.sequence}.º Trimestre` }))]} /></div>
     </FormModal>
   );
 }

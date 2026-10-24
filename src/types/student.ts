@@ -14,10 +14,6 @@ export interface Student {
   idDocumentType: IdDocumentType;
   idDocumentNumber: string;
   nif?: string;
-  nationality: string;
-  address: string;
-  city: string;
-  province: string;
   status: StudentStatus;
   guardianId: string;
   guardianName: string;

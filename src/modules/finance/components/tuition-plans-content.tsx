@@ -16,6 +16,7 @@ import {
   InputCurrency,
   TitleList,
 } from "@/components";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useTuition } from "@/modules/finance/hooks/use-tuition";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -27,7 +28,7 @@ const MODAL_ID = "tuition-policy";
 
 /** Política financeira da escola (propina, prazos, multas progressivas, emolumentos e régua de email). */
 export function TuitionPlansContent() {
-  const { plans, savePolicy } = useTuition();
+  const { plans, plansLoading, savePolicy } = useTuition();
   const { openModal } = useModal();
   const policy = plans[0];
 
@@ -133,7 +134,7 @@ export function TuitionPlansContent() {
           </Button>
 
           <FeatureGate permission="school:update" fallback="disabled" tooltipMessage="Apenas a direcção geral pode alterar a política financeira.">
-            <Button onClick={openEdit} className="gap-2 text-xs font-semibold">
+            <Button onClick={openEdit} disabled={plansLoading} className="gap-2 text-xs font-semibold">
               <Icon name="Pencil" className="size-4" />
               Configurar política financeira
             </Button>
@@ -185,7 +186,14 @@ export function TuitionPlansContent() {
         size="lg"
         onSubmit={save}
       >
-        <div className="grid grid-cols-1 gap-5 sm:col-span-2">
+        {/* Três separadores em vez de uma coluna longa: nenhum modal tem scroll. */}
+        <Tabs defaultValue="valores" className="sm:col-span-2">
+          <TabsList className="grid w-full grid-cols-3">
+            <TabsTrigger value="valores">Valores e prazos</TabsTrigger>
+            <TabsTrigger value="multas">Multas</TabsTrigger>
+            <TabsTrigger value="email">Lembretes por e-mail</TabsTrigger>
+          </TabsList>
+          <TabsContent value="valores" className="space-y-5 pt-3">
           {/* Bloco 1: Valores Base */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 border-b border-border/40 pb-1.5">
@@ -250,6 +258,8 @@ export function TuitionPlansContent() {
             </p>
           </div>
 
+          </TabsContent>
+          <TabsContent value="multas" className="space-y-5 pt-3">
           {/* Bloco 3: Multas e Agravamento Progressivo por Mês */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 border-b border-border/40 pb-1.5">
@@ -330,6 +340,8 @@ export function TuitionPlansContent() {
             </p>
           </div>
 
+          </TabsContent>
+          <TabsContent value="email" className="space-y-5 pt-3">
           {/* Bloco 4: Automação da Régua de E-mail */}
           <div className="space-y-3">
             <div className="flex items-center gap-2 border-b border-border/40 pb-1.5">
@@ -419,7 +431,8 @@ export function TuitionPlansContent() {
               )}
             </div>
           </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </FormModal>
 
       {/* Modal do Estúdio de Templates de E-mail com Live Preview */}

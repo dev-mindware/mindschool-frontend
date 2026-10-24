@@ -21,7 +21,6 @@ import {
   StudentIdentificationFields,
   StudentFormValues,
 } from "./student-identification-fields";
-import { StudentAcademicFields } from "./student-academic-fields";
 import { StudentGuardianFields } from "./student-guardian-fields";
 import { validateIdDocumentByType } from "@/schemas/helps";
 import { nifError } from "@/lib/nif";
@@ -34,9 +33,6 @@ const studentFormSchema = z
     idDocumentType: z.enum(["IDENTITY_CARD", "BIRTH_CERTIFICATE", "PASSPORT"]),
     idDocumentNumber: z.string().trim().min(3, "Número de documento é obrigatório"),
     nif: z.string().trim().optional().or(z.literal("")).refine((v) => !nifError(v), { message: nifError("x") }),
-    address: z.string().trim().min(2, "Endereço é obrigatório"),
-    city: z.string().trim().min(1, "Cidade é obrigatória"),
-    province: z.string().trim().min(1, "Província é obrigatória"),
     guardianMode: z.enum(["existing", "new"]),
     guardianId: z.string().optional(),
     guardianName: z.string().optional(),
@@ -133,9 +129,6 @@ export function StudentModal({
       idDocumentType: "IDENTITY_CARD",
       idDocumentNumber: "",
       nif: "",
-      address: "Luanda, Angola",
-      city: "Luanda",
-      province: "Luanda",
       guardianMode: "existing",
       guardianId: "",
       guardianName: "",
@@ -160,9 +153,6 @@ export function StudentModal({
         idDocumentType: studentToEdit.idDocumentType,
         idDocumentNumber: studentToEdit.idDocumentNumber,
         nif: studentToEdit.nif ?? "",
-        address: studentToEdit.address,
-        city: studentToEdit.city,
-        province: studentToEdit.province,
         guardianMode: studentToEdit.guardianId ? "existing" : "new",
         guardianId: studentToEdit.guardianId || "",
         guardianName: studentToEdit.guardianName || "",
@@ -178,9 +168,6 @@ export function StudentModal({
         idDocumentType: "IDENTITY_CARD",
         idDocumentNumber: "",
         nif: "",
-        address: "Luanda, Angola",
-        city: "Luanda",
-        province: "Luanda",
         guardianMode: "existing",
         guardianId: "",
         guardianName: "",
@@ -258,11 +245,6 @@ export function StudentModal({
             selectedDocType={selectedDocType}
             setValue={setValue}
             watch={watch}
-          />
-
-          <StudentAcademicFields
-            register={register}
-            errors={errors}
           />
 
           <StudentGuardianFields
