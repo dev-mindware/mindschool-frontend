@@ -64,7 +64,7 @@ describe("navegação modular", () => {
     },
   );
 
-  it("o director vê as páginas repartidas por módulos pela ordem do rail", () => {
+  it("o diretor vê as páginas repartidas por módulos pela ordem do rail", () => {
     const nav = forRole("DIRECTOR_GENERAL");
     expect(nav.modules.map((m) => m.id)).toEqual(["inicio", "secretaria", "academico", "avaliacao", "vida", "financeiro", "relatorios", "configuracoes"]);
     expect(nav.pageCount).toBe(nav.modules.reduce((a, m) => a + m.pageCount, 0));
@@ -92,7 +92,7 @@ describe("navegação modular", () => {
     }
   });
 
-  it("páginas fora do menu (notificações) não pertencem a nenhum módulo: nada fica activo", () => {
+  it("páginas fora do menu (notificações) não pertencem a nenhum módulo: nada fica ativo", () => {
     const nav = forRole("DIRECTOR_GENERAL");
     expect(activeModule(nav, "/notifications")).toBeUndefined();
     expect(activeModule(nav, "/academic/classes")!.id).toBe("academico");
@@ -122,7 +122,7 @@ describe("navegação modular", () => {
 
     it("o detalhe em sub-páginas forma 3 ramificações «Secção › Página (link) › Detalhe»; nunca repete etiquetas", () => {
       expect(deriveBreadcrumb(modules, "/tuition/payments", "Propinas")!.map((c) => c.label)).toEqual(["Propinas & Finanças", "Propinas"]);
-      expect(deriveBreadcrumb(modules, "/tuition/invoices/123", "Detalhe")!.map((c) => c.label)).toEqual(["Propinas & Finanças", "Facturas", "Detalhe"]);
+      expect(deriveBreadcrumb(modules, "/tuition/invoices/123", "Detalhe")!.map((c) => c.label)).toEqual(["Propinas & Finanças", "Faturas", "Detalhe"]);
       expect(deriveBreadcrumb(modules, "/grades/pautas/turma-1", "Pauta Consolidada")).toEqual([
         { label: "Avaliações & Pautas" },
         { label: "Pautas Trimestrais", href: "/grades/pautas" },

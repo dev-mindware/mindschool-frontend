@@ -12,7 +12,7 @@ const sub = (plan: PlanType, extra: Partial<Subscription> = {}) =>
 
 type State = "oculto" | "cadeado" | "aberto";
 
-/** Estado de cada URL no menu do director para a subscrição dada. */
+/** Estado de cada URL no menu do diretor para a subscrição dada. */
 const states = (s: Subscription | undefined, urls: string[]): Record<string, State> => {
   const list = getSidebarForUser(menuItems.items, "DIRECTOR_GENERAL", s).flatMap((i) => (i.items?.length ? i.items : [i]));
   return Object.fromEntries(
@@ -24,7 +24,7 @@ const states = (s: Subscription | undefined, urls: string[]): Record<string, Sta
 };
 const all = (urls: string[], state: State) => Object.fromEntries(urls.map((u) => [u, state]));
 
-// O calendário é núcleo: no Essencial mostra dias lectivos e feriados; o calendário geral é do Profissional (decidido na página).
+// O calendário é núcleo: no Essencial mostra dias letivos e feriados; o calendário geral é do Profissional (decidido na página).
 const CORE = ["/students/list", "/tuition/payments", "/academic/timetables", "/academic/calendar", "/academic/library", "/plans"];
 const TEASERS = ["/academic/lessons", "/dropout-risk", "/online-exams"];
 const PRO_ONLY = ["/teachers-attendance", "/academic/health-psychology", "/academic/transport", "/academic/extracurricular"];

@@ -6,6 +6,6 @@ describe("Estados fiscais", () => {
       expect(FISCAL_STATUS[s].label).toBeTruthy();
       expect(FISCAL_STATUS[s].hint).toBeTruthy();
     }
-    expect(FISCAL_STATUS.pausada.hint).toMatch(/reactivad/);
+    expect(FISCAL_STATUS.pausada.hint).toMatch(/reativad/);
   });
 });

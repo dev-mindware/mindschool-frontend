@@ -6,7 +6,7 @@ const apiError = (code: string, detail: string, errors?: Array<{ message: string
 describe("getApiErrorMessage", () => {
   it("traduz códigos conhecidos para uma frase com o que fazer", () => {
     const msg = getApiErrorMessage(apiError("CANCELLATION_DEADLINE_PASSED", "Prazo de anulacao ultrapassado"), "Erro");
-    expect(msg).toMatch(/Direcção/);
+    expect(msg).toMatch(/Direção/);
     expect(msg).toContain("Prazo de anulacao ultrapassado"); // junta o detalhe da API quando é curto
   });
 
@@ -25,5 +25,16 @@ describe("glossário", () => {
     const incomplete = Object.entries(GLOSSARY).filter(([, e]) => e.title.length <= 2 || e.text.length <= 20).map(([k]) => k);
     expect(incomplete).toEqual([]);
     expect(GLOSSARY.mt.text).not.toMatch(/\b\d+(?:,\d+)?\s*valores\b/);
+  });
+});
+
+describe("erros de campo com o nome do campo", () => {
+  const err = (field: string, message: string) => ({ response: { data: { code: "VALIDATION_ERROR", detail: "Pedido invalido", errors: [{ field, message }] } } });
+  it("diz que campo falhou", () => {
+    expect(getApiErrorMessage(err("document_number", "Minimo de 4 caracteres."), "Erro")).toBe("Documento: Minimo de 4 caracteres.");
+    expect(getApiErrorMessage(err("generate.breaks.0.after", "Intervalo invalido"), "Erro")).toBe("Intervalo invalido");
+  });
+  it("não repete o nome quando a mensagem já o traz", () => {
+    expect(getApiErrorMessage(err("nif", "NIF inválido."), "Erro")).toBe("NIF inválido.");
   });
 });

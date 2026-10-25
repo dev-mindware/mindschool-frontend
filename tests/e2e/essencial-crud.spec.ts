@@ -16,8 +16,10 @@ const phone = `92${stamp.slice(-7)}`; // prefixo móvel angolano válido
 
 const turma = `E2E-${RUN} A`;
 const disciplina = `Disciplina E2E ${RUN}`;
-const encarregado = `Encarregado E2E ${RUN}`;
-const aluno = `Aluno E2E ${RUN}`;
+// os nomes de pessoas só aceitam letras: sem «E2E» nem dígitos do sufixo da corrida
+const LETRAS = RUN.replace(/\d/g, (d) => "ABCDEFGHIJ"[Number(d)]!);
+const encarregado = `Encarregado Teste ${LETRAS}`;
+const aluno = `Aluno Teste ${LETRAS}`;
 
 test.describe.serial("Académico e Secretaria", () => {
   test("Turma: criar, ver na lista e na API", async ({ page }) => {
@@ -167,7 +169,7 @@ test.describe.serial("Académico e Secretaria", () => {
     await expect(rows.first()).toBeVisible({ timeout: 15_000 });
     await rows.nth(0).getByRole("checkbox").check();
     await rows.nth(1).getByRole("checkbox").check();
-    // o botão da barra de selecção (as linhas têm o seu próprio «Marcar como pago», que liquida só essa cobrança)
+    // o botão da barra de seleção (as linhas têm o seu próprio «Marcar como pago», que liquida só essa cobrança)
     const barra = page.getByText(/propinas seleccionadas/).locator("xpath=ancestor::div[contains(@class,'border-primary')][1]");
     await expect(barra).toContainText("2 propinas seleccionadas");
     await barra.getByRole("button", { name: "Marcar como pago" }).click();
@@ -231,10 +233,10 @@ test.describe.serial("Académico e Secretaria", () => {
     await expect(d).toBeHidden({ timeout: 20_000 });
 
     const g = await apiFind<{ full_name: string; phone: string }>(page, "/guardians", (x) => x.full_name === encarregado && String(x.phone).includes(novo));
-    expect(g, "telefone actualizado na API").toBeTruthy();
+    expect(g, "telefone atualizado na API").toBeTruthy();
   });
 
-  test("Aluno: editar e desactivar", async ({ page }) => {
+  test("Aluno: editar e desativar", async ({ page }) => {
     await login(page, ACCOUNTS.secretaria);
     await page.goto("/students/list");
     await rowAction(page, await findRow(page, aluno), "Editar");
@@ -245,14 +247,14 @@ test.describe.serial("Académico e Secretaria", () => {
     await d.locator('button[type="submit"]').click();
     await expect(d).toBeHidden({ timeout: 20_000 });
     const edited = await apiFind<{ id: string; full_name: string }>(page, "/students", (s) => s.full_name === `${aluno} Editado`);
-    expect(edited, "nome actualizado na API").toBeTruthy();
+    expect(edited, "nome atualizado na API").toBeTruthy();
 
     await page.goto("/students/list");
-    await rowAction(page, await findRow(page, `${aluno} Editado`), "Desactivar aluno");
+    await rowAction(page, await findRow(page, `${aluno} Editado`), "Desativar aluno");
     const confirm = page.getByRole("alertdialog").or(page.getByRole("dialog")).last();
-    await confirm.getByRole("button", { name: /Desactivar|Confirmar|Sim/ }).last().click();
+    await confirm.getByRole("button", { name: /Desativar|Confirmar|Sim/ }).last().click();
     const inactive = await apiFind<{ full_name: string; status: string }>(page, "/students", (s) => s.full_name === `${aluno} Editado` && s.status === "inactivo");
-    expect(inactive, "aluno desactivado na API").toBeTruthy();
+    expect(inactive, "aluno desativado na API").toBeTruthy();
   });
 
   test("Matrícula: cancelar", async ({ page }) => {

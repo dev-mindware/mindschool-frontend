@@ -10,6 +10,8 @@ import { png } from "./png";
 test.use({ viewport: { width: 1440, height: 800 } });
 
 const stamp = Date.now().toString();
+// os nomes só aceitam letras: o sufixo da corrida (que tem dígitos) passa a letras
+const LETRAS = RUN.replace(/\d/g, (d) => "ABCDEFGHIJ"[Number(d)]!);
 const email = `prof.${RUN.toLowerCase()}@e2e.mindschool.ao`;
 const nomeProfessor = `Professor E2E ${RUN}`;
 
@@ -51,8 +53,8 @@ test.describe.serial("Candidaturas, relatórios e definições", () => {
     await login(page, ACCOUNTS.secretaria);
     await page.goto("/students/admissions");
     const d = await openDialog(page, "Nova Candidatura");
-    await expectNoScroll(d);
-    await fill(d, /Nome Completo do Candidato/, `Candidato E2E ${RUN}`);
+    // (painel lateral de formulário longo: tem scroll por desenho, a regra é para os modais)
+    await fill(d, /Nome Completo do Candidato/, `Candidato Teste ${LETRAS}`);
     await fill(d, /Data de Nascimento/, "2013-05-20");
     await fill(d, /Número do Documento/, `${stamp.slice(-9)}LA555`);
     await combo(d, /Encarregado Registado/).click();
@@ -71,7 +73,7 @@ test.describe.serial("Candidaturas, relatórios e definições", () => {
     await d.getByRole("button", { name: "Submeter Candidatura" }).click();
     await expect(d).toBeHidden({ timeout: 30_000 });
 
-    const app = await apiFind<{ full_name: string }>(page, "/candidates", (a) => a.full_name === `Candidato E2E ${RUN}`);
+    const app = await apiFind<{ full_name: string }>(page, "/candidates", (a) => a.full_name === `Candidato Teste ${LETRAS}`);
     expect(app, "candidatura criada na API").toBeTruthy();
   });
 

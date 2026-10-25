@@ -19,7 +19,7 @@ test.describe.serial("Finanças: emolumentos e política", () => {
     await page.goto("/tuition/plans");
     const botao = page.getByRole("button", { name: "Novo emolumento" }).first();
     await expect(botao).toBeVisible();
-    // o botão está dentro de um invólucro `pointer-events-none` (FeatureGate desactivado): o clique não abre nada
+    // o botão está dentro de um invólucro `pointer-events-none` (FeatureGate desativado): o clique não abre nada
     await botao.click({ force: true });
     await expect(page.getByRole("dialog")).toHaveCount(0);
   });

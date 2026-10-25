@@ -26,10 +26,10 @@ test.describe.serial("Pedagógico", () => {
     else await expect(page.locator("main")).not.toContainText(/Application error/i);
   });
 
-  test("Calendário: a direcção marca um dia não lectivo", async ({ page }) => {
+  test("Calendário: a direção marca um dia não letivo", async ({ page }) => {
     await login(page, ACCOUNTS.direccao);
     await page.goto("/academic/calendar");
-    const d = await openDialog(page, "Marcar dia não lectivo");
+    const d = await openDialog(page, "Marcar dia não letivo");
     await expectNoScroll(d);
     const inputs = d.locator("input:visible, textarea:visible");
     const n = await inputs.count();
@@ -43,6 +43,6 @@ test.describe.serial("Pedagógico", () => {
     await expect(d).toBeHidden({ timeout: 20_000 });
 
     const mark = await apiFind<{ date: string }>(page, "/school-days", (m) => String(m.date ?? "").startsWith("2026-12-18"), { from: "2026-12-01", to: "2026-12-31" });
-    expect(mark, "dia não lectivo registado na API").toBeTruthy();
+    expect(mark, "dia não letivo registado na API").toBeTruthy();
   });
 });

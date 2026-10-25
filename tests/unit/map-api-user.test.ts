@@ -18,7 +18,7 @@ describe("papeis da API -> frontend", () => {
     expect(pickPrimaryRole(["desconhecido"])).toBeNull();
   });
 
-  it("o papel depende da escola activa", () => {
+  it("o papel depende da escola ativa", () => {
     expect(primaryRoleOf(me, "s1")).toBe("PEDAGOGIC_DIRECTOR");
     expect(primaryRoleOf(me, "s2")).toBe("SECRETARY");
     expect(mapApiUser(me, "s2").company.name).toBe("Colegio B");

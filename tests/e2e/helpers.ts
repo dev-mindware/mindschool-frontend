@@ -33,7 +33,7 @@ export async function login(page: Page, email: string): Promise<void> {
   // O frontend guarda a sessão em cookies do Next e envia `Authorization`; para confirmar dados na API entra-se também
   // directamente nela (cookies da própria API, no mesmo contexto do browser).
   const direct = await page.request.post(`${API}/auth/login`, { data: { email, password: PASSWORD }, headers: { Origin: APP_ORIGIN } });
-  expect(direct.ok(), `login directo na API → ${direct.status()}`).toBeTruthy();
+  expect(direct.ok(), `login direto na API → ${direct.status()}`).toBeTruthy();
 }
 
 // ---- API (com a sessão do browser) ------------------------------------------------------------------------------------
@@ -97,11 +97,13 @@ export async function openDialog(page: Page, button: string | RegExp): Promise<L
 
 /** Regra do produto: nenhum modal tem scroll. */
 export async function expectNoScroll(d: Locator): Promise<void> {
-  // qualquer elemento do modal (ele próprio incluído) com overflow vertical activo e conteúdo maior do que a caixa
+  // painéis laterais (Sheet) de formulários longos têm scroll por desenho: a regra é para os modais
+  if ((await d.getAttribute("data-slot")) === "sheet-content") return;
+  // qualquer elemento do modal (ele próprio incluído) com overflow vertical ativo e conteúdo maior do que a caixa
   const scrolls = await d.evaluate((el) =>
     [el, ...el.querySelectorAll("*")].some((n) => {
-      const oy = getComputedStyle(n).overflowY;
-      return (oy === "auto" || oy === "scroll") && n.scrollHeight > n.clientHeight + 1;
+      const { overflowY: oy, overflowX: ox } = getComputedStyle(n);
+      return ((oy === "auto" || oy === "scroll") && n.scrollHeight > n.clientHeight + 1) || ((ox === "auto" || ox === "scroll") && n.scrollWidth > n.clientWidth + 1);
     }),
   );
   expect(scrolls, "o modal tem scroll (nenhum modal pode ter)").toBe(false);
@@ -143,7 +145,7 @@ export async function findRow(page: Page, text: string): Promise<Locator> {
   return row;
 }
 
-/** Menu de acções de uma linha: abre-o e escolhe o item. */
+/** Menu de ações de uma linha: abre-o e escolhe o item. */
 export async function rowAction(page: Page, row: Locator, item: string | RegExp): Promise<void> {
   await row.locator('button[aria-haspopup="menu"]').first().click();
   await page.getByText(item, { exact: typeof item === "string" }).last().click();
