@@ -8,7 +8,7 @@ import { TeacherDashboard } from "../teacher/teacher-dashboard";
 import { useSchoolOverview } from "@/hooks/dashboard/use-school-overview";
 import { formatCurrency } from "@/utils/format-currency";
 import { AttendanceBars, CashDonut, DebtorsCard, EventsCard, IndicatorsBars, LessonsCard, LevelDonut, QuickLinks, RequestsCard, RevenueChart, RiskCard } from "./overview-blocks";
-import { SchoolOnboardingBanner } from "./school-onboarding-banner";
+import { SetupGuide } from "../setup-guide";
 
 const COMPARE: Record<string, string> = { month: "neste mês", quarter: "neste trimestre", year: "neste ano" };
 
@@ -33,13 +33,13 @@ function buildRoleCards(o: ReturnType<typeof useSchoolOverview>): Card[] {
   if (role === "SECRETARY") {
     cards.push({
       title: kpis.studentsActive,
-      subtitle: "Alunos activos",
+      subtitle: "Alunos ativos",
       icon: "GraduationCap",
       description: kpis.studentsTotal > 0 ? `${kpis.studentsTotal} alunos registados` : "Nenhum aluno registado",
     });
     cards.push({
       title: kpis.enrolled,
-      subtitle: "Matrículas activas",
+      subtitle: "Matrículas ativas",
       icon: "ClipboardCheck",
       description: kpis.noSectionCount > 0 ? `${kpis.noSectionCount} sem turma atribuída` : "Situação de enturmação regular",
     });
@@ -86,7 +86,7 @@ function buildRoleCards(o: ReturnType<typeof useSchoolOverview>): Card[] {
     });
     cards.push({
       title: kpis.studentsActive,
-      subtitle: "Alunos activos",
+      subtitle: "Alunos ativos",
       icon: "GraduationCap",
       description: `${kpis.studentsTotal} alunos registados`,
     });
@@ -96,16 +96,16 @@ function buildRoleCards(o: ReturnType<typeof useSchoolOverview>): Card[] {
   if (role === "PEDAGOGIC_DIRECTOR") {
     cards.push({
       title: kpis.studentsActive,
-      subtitle: "Alunos activos",
+      subtitle: "Alunos ativos",
       icon: "GraduationCap",
       description: kpis.studentsTotal > 0 ? `${kpis.studentsTotal} alunos registados` : "Nenhum aluno registado",
     });
     cards.push({
       title: kpis.enrolled,
-      subtitle: "Matrículas activas",
+      subtitle: "Matrículas ativas",
       icon: "ClipboardCheck",
-      description: kpis.enrolled > 0 ? "Matrículas confirmadas" : "Sem matrículas activas",
-      extra: { name: "Matrículas activas", value: kpis.enrolled },
+      description: kpis.enrolled > 0 ? "Matrículas confirmadas" : "Sem matrículas ativas",
+      extra: { name: "Matrículas ativas", value: kpis.enrolled },
     });
     cards.push({
       title: kpis.attendanceRate !== null ? `${kpis.attendanceRate}%` : "—",
@@ -127,16 +127,16 @@ function buildRoleCards(o: ReturnType<typeof useSchoolOverview>): Card[] {
   // Visão executiva padrão (OWNER, DIRECTOR_GENERAL, ADMIN, MANAGER)
   cards.push({
     title: kpis.studentsActive,
-    subtitle: "Alunos activos",
+    subtitle: "Alunos ativos",
     icon: "GraduationCap",
     description: kpis.studentsTotal > 0 ? `${kpis.studentsTotal} alunos registados` : "Nenhum aluno registado ainda",
   });
   cards.push({
     title: kpis.enrolled,
-    subtitle: "Matrículas activas",
+    subtitle: "Matrículas ativas",
     icon: "ClipboardCheck",
     description: kpis.enrolled > 0 ? (kpis.noSectionCount > 0 ? `${kpis.noSectionCount} sem turma` : "Todas com turma atribuída") : "Aguardando confirmações",
-    extra: { name: "Matrículas activas", value: kpis.enrolled },
+    extra: { name: "Matrículas ativas", value: kpis.enrolled },
   });
   cards.push({
     title: formatCurrency(kpis.collectedPeriod),
@@ -212,12 +212,10 @@ export function DashboardOverview() {
         ))}
       </div>
 
-      {/* Guia de início rápido se a escola for nova e sem movimentação */}
-      {isSchoolEmpty && (
-        <div data-tour="dashboard-onboarding">
-          <SchoolOnboardingBanner />
-        </div>
-      )}
+      {/* Guia de arranque: diz o próximo passo enquanto a escola não está configurada (desaparece quando tudo está feito) */}
+      <div data-tour="dashboard-onboarding">
+        <SetupGuide studentsTotal={kpis.studentsTotal} enrolled={kpis.enrolled} />
+      </div>
 
       {/* Gráficos de Receita e Distribuição */}
       {(!isSchoolEmpty || scope.receipts || o.byLevel.length > 0) && (

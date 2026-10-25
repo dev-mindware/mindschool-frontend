@@ -8,7 +8,7 @@ import { PreferredContactChannel } from "@/types";
 
 const ITEMS_PER_PAGE = 8;
 
-/** Encarregados da escola activa (API). Pesquisa e paginacao no cliente. */
+/** Encarregados da escola ativa (API). Pesquisa e paginacao no cliente. */
 export function useGuardians(searchQuery = "", channelFilter: PreferredContactChannel | "ALL" = "ALL") {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const queryClient = useQueryClient();

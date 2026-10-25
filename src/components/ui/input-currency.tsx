@@ -107,6 +107,8 @@ const InputCurrency = React.forwardRef<HTMLInputElement, InputCurrencyProps>(
               onValueChange?.(values.floatValue ?? 0);
             }}
             {...props}
+            // 0 mostra-se vazio (placeholder «0,00»): com «0,00» escrito, o que se digita entra antes do zero e o valor vem multiplicado por 10
+            value={props.value === 0 || props.value === "0" ? "" : props.value}
           />
 
           {endIcon && (

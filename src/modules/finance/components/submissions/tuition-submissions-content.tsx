@@ -25,13 +25,13 @@ export function TuitionSubmissionsContent() {
   const columns: Column<ApiSubmission>[] = [
     { key: "protocol", header: "Protocolo", render: (_, s) => (<div><span className="font-mono text-xs font-semibold text-primary">{s.protocol}</span><div className="text-[11px] text-muted-foreground">{s.created_at.slice(0, 10)}{s.waiting_hours !== null && ` · há ${s.waiting_hours} h`}</div></div>) },
     { key: "student", header: "Aluno", render: (_, s) => (<div><span className="font-medium">{s.student.full_name}</span><div className="text-[11px] text-muted-foreground">por {s.submitted_by.full_name}</div></div>) },
-    { key: "items", header: "Facturas", render: (_, s) => <span className="text-xs">{s.items.length === 1 ? s.items[0]!.description : `${s.items.length} facturas`}</span> },
+    { key: "items", header: "Faturas", render: (_, s) => <span className="text-xs">{s.items.length === 1 ? s.items[0]!.description : `${s.items.length} facturas`}</span> },
     { key: "total_amount", header: "Valor", render: (_, s) => <span className="font-semibold tabular-nums">{formatCurrency(Number(s.total_amount))}</span> },
     { key: "method", header: "Método", render: (_, s) => <span className="text-xs">{METHOD_LABEL[s.method]}</span> },
     { key: "paid_on", header: "Pago em", render: (_, s) => <span className="text-xs">{s.paid_on}</span> },
     { key: "status", header: "Estado", render: (_, s) => <SubmissionBadge status={s.status} /> },
     {
-      key: "actions", header: "Acção",
+      key: "actions", header: "Ação",
       render: (_, s) => <ButtonOnlyAction data={s} actions={[{ label: OPEN_SUBMISSION.includes(s.status) ? "Analisar comprovativo" : "Ver detalhes", icon: "Eye", onClick: open }]} />,
     },
   ];

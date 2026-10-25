@@ -4,7 +4,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from "@tansta
 import { archiveService, type ArchiveFilters } from "@/services/archive-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 
-/** Arquivo documental da escola activa: resumo, pesquisa paginada por cursor, prorrogação da retenção e pacote ZIP. */
+/** Arquivo documental da escola ativa: resumo, pesquisa paginada por cursor, prorrogação da retenção e pacote ZIP. */
 export function useArchive(filters: ArchiveFilters) {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const qc = useQueryClient();

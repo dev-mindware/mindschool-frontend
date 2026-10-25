@@ -26,8 +26,8 @@ export function ActivityCertificatePrintModal({ target }: { target?: Certificate
           <div className="text-[11px] font-bold uppercase tracking-widest text-slate-600">República de Angola • Ministério da Educação</div>
           <div className="text-lg font-black uppercase">{profile.schoolName}</div>
           <h2 className="font-serif text-2xl font-bold">Certificado de Participação</h2>
-          <p className="text-sm leading-relaxed">Certifica-se que o(a) aluno(a) <strong>{target.studentName}</strong> participou na actividade extracurricular <strong>{target.activityName}</strong>, desde {formatDate(target.enrolledAt)}.</p>
-          <div className="grid grid-cols-2 gap-8 pt-10 text-xs"><div className="border-t border-slate-400 pt-1">O Responsável da Actividade</div><div className="border-t border-slate-400 pt-1">A Direcção</div></div>
+          <p className="text-sm leading-relaxed">Certifica-se que o(a) aluno(a) <strong>{target.studentName}</strong> participou na atividade extracurricular <strong>{target.activityName}</strong>, desde {formatDate(target.enrolledAt)}.</p>
+          <div className="grid grid-cols-2 gap-8 pt-10 text-xs"><div className="border-t border-slate-400 pt-1">O Responsável da Atividade</div><div className="border-t border-slate-400 pt-1">A Direção</div></div>
           <div className="text-[10px] text-slate-400">Emitido em {formatDate(new Date())}</div>
         </div>
       )}

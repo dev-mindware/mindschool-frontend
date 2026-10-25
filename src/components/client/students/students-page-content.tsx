@@ -22,7 +22,7 @@ export function StudentsPageContent() {
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
         <DynamicMetricCard title={counts.total} subtitle="Total de Estudantes" description="Alunos registados na base" icon="GraduationCap" />
-        <DynamicMetricCard title={counts.enrolled} subtitle="Matriculados" description="Com matrícula activa no ano" icon="CircleCheck" />
+        <DynamicMetricCard title={counts.enrolled} subtitle="Matriculados" description="Com matrícula ativa no ano" icon="CircleCheck" />
         <DynamicMetricCard title={counts.pending} subtitle="Pendentes" description="Aguardam confirmação" icon="Clock" />
         <DynamicMetricCard title={counts.cancelled} subtitle="Anulações" description="Processos cancelados" icon="UserX" />
       </div>
@@ -36,13 +36,13 @@ export function StudentsPageContent() {
       <StudentModal isOpen={addOpen} onClose={() => setAddOpen(false)} />
       <ConfirmModal
         id="student-deactivate"
-        title="Desactivar aluno"
-        description={toDeactivate ? `Desactivar ${toDeactivate.fullName} (processo ${toDeactivate.studentNumber})?` : ""}
+        title="Desativar aluno"
+        description={toDeactivate ? `Desativar ${toDeactivate.fullName} (processo ${toDeactivate.studentNumber})?` : ""}
         destructive
-        confirmLabel="Desactivar"
+        confirmLabel="Desativar"
         effects={[
-          "O aluno passa a «inactivo» e deixa de aparecer nas listas de alunos activos.",
-          "Não apaga a ficha, as notas, as facturas nem os documentos: tudo se mantém.",
+          "O aluno passa a «inactivo» e deixa de aparecer nas listas de alunos ativos.",
+          "Não apaga a ficha, as notas, as faturas nem os documentos: tudo se mantém.",
           "Não anula a matrícula nem liberta a vaga: para isso use «Cancelar matrícula» em Matrículas.",
           "O estado «inactivo» não é definitivo: o aluno pode voltar a «activo».",
         ]}

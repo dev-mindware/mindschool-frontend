@@ -7,7 +7,7 @@ import { useActiveSchoolStore, type SchoolMembership } from "@/stores/school/act
 interface SchoolContextValue {
   /** Escolas a que o utilizador pertence (as da sua conta; é o que o switcher da sidebar lista). */
   schools: SchoolMembership[];
-  /** Escola activa: papel, plano, permissões e dados da aplicação vêm dela. */
+  /** Escola ativa: papel, plano, permissões e dados da aplicação vêm dela. */
   current: SchoolMembership | undefined;
   /** O switcher só faz sentido com mais do que uma escola. */
   hasMultiple: boolean;
@@ -17,9 +17,9 @@ interface SchoolContextValue {
 
 const SchoolContext = createContext<SchoolContextValue | undefined>(undefined);
 
-/** Escola activa e troca de escola (multi-escola): o switcher da sidebar e o painel Multi-Escola usam o mesmo ponto. */
+/** Escola ativa e troca de escola (multi-escola): o switcher da sidebar e o painel Multi-Escola usam o mesmo ponto. */
 export function SchoolProvider({ children }: { children: ReactNode }) {
-  useSchoolProfile(); // hidrata o perfil institucional com os dados reais da escola activa
+  useSchoolProfile(); // hidrata o perfil institucional com os dados reais da escola ativa
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const memberships = useActiveSchoolStore((s) => s.memberships);
   const selectSchool = useActiveSchoolStore((s) => s.selectSchool);

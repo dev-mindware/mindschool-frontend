@@ -24,7 +24,7 @@ export const TUTORIAL_VIDEOS: TutorialVideo[] = [
   {
     id: "1",
     title: "1 — Configuração Inicial da Instituição Escolar",
-    description: "Aprenda a registar dados institucionais, ciclos de ensino e parâmetros do ano lectivo no MindSchool.",
+    description: "Aprenda a registar dados institucionais, ciclos de ensino e parâmetros do ano letivo no MindSchool.",
     category: "geral",
     youtubeId: "OM3l6od4pNA",
     duration: "3:34",

@@ -50,7 +50,7 @@ export function GoogleFormModal({ isOpen, onClose, activeExam }: GoogleFormModal
                     {!googleConnected
                       ? 'A escola ainda não ligou a conta Google.'
                       : 'A ligação Google da escola foi feita antes desta funcionalidade e não inclui a permissão do Google Forms.'}{' '}
-                    A Direcção/Titular tem de ligar (ou voltar a ligar) a conta Google da escola.
+                    A Direção/Titular tem de ligar (ou voltar a ligar) a conta Google da escola.
                   </p>
                   <Button size="sm" variant="outline" className="h-7 text-xs" onClick={reconnect} disabled={connect.isPending}>
                     Ligar conta Google

@@ -7,13 +7,13 @@ import { extracurricularService, type ApiActivityDetail, type NewActivity } from
 import { studentsService } from "@/services/students-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 
-/** Actividades extracurriculares da escola activa, com as inscricoes de cada uma. */
+/** Atividades extracurriculares da escola ativa, com as inscricoes de cada uma. */
 export function useExtracurricular() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const queryClient = useQueryClient();
 
   const { data: activities = [], isLoading } = useQuery({ queryKey: ["activities", schoolId], queryFn: extracurricularService.list, enabled: Boolean(schoolId), staleTime: 15 * 1000 });
-  // Detalhe (inscritos) de todas as actividades: sao poucas por escola e a lista de inscricoes e uma vista transversal.
+  // Detalhe (inscritos) de todas as atividades: sao poucas por escola e a lista de inscricoes e uma vista transversal.
   const { data: details = [] } = useQuery({
     queryKey: ["activity-details", schoolId, activities.map((a) => `${a.id}:${a.enrolled}`).join(",")],
     queryFn: () => Promise.all(activities.map((a) => extracurricularService.detail(a.id))),

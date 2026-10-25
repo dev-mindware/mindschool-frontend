@@ -55,7 +55,7 @@ export function ChangePasswordModal() {
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
         <Input
-          label="Palavra-passe actual"
+          label="Palavra-passe atual"
           type="password"
           error={errors.currentPassword?.message}
           {...register("currentPassword")}

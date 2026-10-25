@@ -40,7 +40,7 @@ export function LessonKeepEditor({
   const [checklist, setChecklist] = useState<Array<{ id: string; text: string; done: boolean }>>(
     existingNote?.checklist || [
       { id: "1", text: "Verificação de presenças / chamada", done: false },
-      { id: "2", text: "Correcção das tarefas anteriores", done: false },
+      { id: "2", text: "Correção das tarefas anteriores", done: false },
       { id: "3", text: "Exposição do novo tema da aula", done: false },
       { id: "4", text: "Exercícios práticos em sala", done: false },
     ]

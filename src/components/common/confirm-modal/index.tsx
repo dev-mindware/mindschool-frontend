@@ -12,9 +12,9 @@ interface ConfirmModalProps {
   confirmLabel?: string;
   destructive?: boolean;
   isLoading?: boolean;
-  /** O que a acção provoca (uma linha por efeito): mostra-se antes de confirmar. */
+  /** O que a ação provoca (uma linha por efeito): mostra-se antes de confirmar. */
   effects?: string[];
-  /** Acção que não se desfaz (ou só por um processo próprio): avisa-se em destaque. */
+  /** Ação que não se desfaz (ou só por um processo próprio): avisa-se em destaque. */
   irreversible?: boolean;
   onConfirm: () => void | Promise<unknown>;
 }
@@ -65,7 +65,7 @@ export function ConfirmModal({ id, title, description, confirmLabel = "Confirmar
       {irreversible && (
         <p className="mt-2 flex items-start gap-1.5 text-xs font-medium text-destructive">
           <Icon name="TriangleAlert" className="mt-0.5 size-3.5 shrink-0" />
-          Esta acção não se pode desfazer.
+          Esta ação não se pode desfazer.
         </p>
       )}
     </GlobalModal>

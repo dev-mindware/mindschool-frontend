@@ -42,7 +42,7 @@ function ExtendModal({ item, onSubmit, pending }: { item: ApiArchiveItem | null;
   if (!open["archive-retention"]) return null;
   return (
     <FormModal
-      id="archive-retention" title="Prorrogar a retenção" description={item ? `${item.file_name} — prazo actual ${item.retention_until ? formatDate(item.retention_until) : "—"}` : undefined}
+      id="archive-retention" title="Prorrogar a retenção" description={item ? `${item.file_name} — prazo atual ${item.retention_until ? formatDate(item.retention_until) : "—"}` : undefined}
       submitLabel="Prorrogar" isLoading={pending} disabled={!until || reason.trim().length < 5}
       onSubmit={() => onSubmit(until, reason.trim()).then(() => { setUntil(""); setReason(""); })}
     >

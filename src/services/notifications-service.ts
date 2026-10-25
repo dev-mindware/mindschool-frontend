@@ -27,7 +27,7 @@ const toNotification = (n: ApiNotification): NotificationType => ({
 });
 
 export const notificationsService = {
-  /** Feed in-app do utilizador na escola activa (`GET /schools/:id/notifications`), paginado por cursor. */
+  /** Feed in-app do utilizador na escola ativa (`GET /schools/:id/notifications`), paginado por cursor. */
   page: async (params: { cursor?: string | null; unread?: boolean; limit?: number }): Promise<{ data: NotificationType[]; nextCursor: string | null }> => {
     const { data } = await api.get<Page>("/s/notifications", {
       params: { limit: params.limit ?? 20, ...(params.cursor ? { cursor: params.cursor } : {}), ...(params.unread ? { unread: "true" } : {}) },

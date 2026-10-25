@@ -11,7 +11,7 @@ import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 
 const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
-const STATUS: Record<TeacherStatus, string> = { activo: "Activo", licenca: "Em licença", desvinculado: "Desvinculado" };
+const STATUS: Record<TeacherStatus, string> = { activo: "Ativo", licenca: "Em licença", desvinculado: "Desvinculado" };
 
 function CardPreview({ payload, name }: { payload: string; name: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
@@ -57,10 +57,12 @@ function CredentialsModal({ teacher }: { teacher: ApiTeacherFull | null }) {
     <>
       <FormModal id="teachers-credentials" title={`Credenciais de ponto — ${teacher?.full_name ?? ""}`} description="O cartão físico só é mostrado uma vez: imprima-o logo após a emissão." size="lg" readOnly onSubmit={() => undefined}>
         <div className="sm:col-span-2 space-y-4 text-sm">
+          <Can permission="attendance:write" fallback={<p className="text-xs text-muted-foreground">A emissão de credenciais é feita pela Direção Pedagógica.</p>}>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="outline" disabled={issue.isPending} onClick={() => issue.mutateAsync("cartao_fisico").then((c) => { setCard(c.qr_payload ?? null); SucessMessage("Cartão emitido."); }).catch(fail)}>Emitir cartão físico</Button>
             <Button size="sm" variant="outline" disabled={issue.isPending} onClick={() => issue.mutateAsync("app_dinamico").then(() => SucessMessage("Credencial da aplicação emitida.")).catch(fail)}>Emitir QR da aplicação</Button>
           </div>
+          </Can>
           {card && teacher && (
             <div className="space-y-2">
               <div id="teacher-card-container">
@@ -102,7 +104,7 @@ export function TeachersPageContent() {
 
   if (t.forbidden) return <EmptyState icon="Lock" title="Sem acesso" description="O seu perfil não gere o corpo docente." />;
 
-  const setStatus = (x: ApiTeacherFull, status: TeacherStatus) => t.update.mutateAsync({ id: x.id, status }).then(() => SucessMessage("Estado actualizado.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
+  const setStatus = (x: ApiTeacherFull, status: TeacherStatus) => t.update.mutateAsync({ id: x.id, status }).then(() => SucessMessage("Estado atualizado.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
 
   const columns: Column<ApiTeacherFull>[] = [
     { key: "full_name", header: "Professor", render: (_, x) => (<div className="flex flex-col"><span className="font-medium">{x.full_name}</span><span className="text-xs text-muted-foreground">{x.email}</span></div>) },
@@ -110,11 +112,11 @@ export function TeachersPageContent() {
     { key: "academic_qualification", header: "Habilitação", render: (_, x) => x.academic_qualification ?? "—" },
     { key: "status", header: "Estado", render: (_, x) => <Badge variant={x.status === "activo" ? "outline" : "secondary"} className={x.status === "activo" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700" : ""}>{STATUS[x.status]}</Badge> },
     {
-      key: "action", header: "Acção",
+      key: "action", header: "Ação",
       render: (_, x) => (
         <ButtonOnlyAction data={x} actions={[
           { label: "Credenciais QR", icon: "QrCode", onClick: (r) => { setCreds(r); openModal("teachers-credentials"); } },
-          ...(x.status !== "activo" ? [{ permission: "teacher:write", label: "Marcar como activo", icon: "CircleCheck" as const, onClick: (r: ApiTeacherFull) => void setStatus(r, "activo") }] : []),
+          ...(x.status !== "activo" ? [{ permission: "teacher:write", label: "Marcar como ativo", icon: "CircleCheck" as const, onClick: (r: ApiTeacherFull) => void setStatus(r, "activo") }] : []),
           ...(x.status !== "licenca" ? [{ permission: "teacher:write", label: "Colocar em licença", icon: "Clock" as const, onClick: (r: ApiTeacherFull) => void setStatus(r, "licenca") }] : []),
           ...(x.status !== "desvinculado" ? [{ permission: "teacher:write", label: "Desvincular", icon: "UserX" as const, variant: "destructive" as const, onClick: (r: ApiTeacherFull) => void setStatus(r, "desvinculado") }] : []),
         ]} />
@@ -144,7 +146,7 @@ export function TeachersPageContent() {
           { value: "estado", label: "Estado", compare: (a, b) => a.status.localeCompare(b.status) },
         ]}
         emptyTitle="Sem professores"
-        emptyDescription="Crie a ficha do primeiro professor."
+        emptyDescription="Um professor precisa de duas coisas: a conta de acesso (Definições › Utilizadores e Papéis, papel «Professor») e a ficha de docente. Crie a ficha em «Nova ficha» escolhendo o utilizador que convidou."
         emptyIcon="GraduationCap"
       />
 

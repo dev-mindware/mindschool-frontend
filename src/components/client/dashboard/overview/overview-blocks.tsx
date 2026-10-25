@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Bar, BarChart, CartesianGrid, Cell, Label, Pie, PieChart, XAxis, YAxis } from "recharts";
 import { Badge, Card, CardContent, CardDescription, CardHeader, CardTitle, ChartContainer, ChartTooltip, ChartTooltipContent, Icon, type ChartConfig } from "@/components";
 import { EVENT_TYPE_LABEL } from "@/services/calendar-service";
+import { REQUEST_STATUS_LABEL, REQUEST_TYPE_LABEL } from "@/services/secretary-requests-service";
 import { formatAxisCurrency, formatCurrency } from "@/utils/format-currency";
 import { OverviewLegendRow } from "./overview-legend-row";
 import { OverviewSectionCard } from "./overview-section-card";
@@ -51,7 +52,7 @@ export function RevenueChart({ data }: { data: Overview["monthly"] }) {
           icon="Coins"
           title="Sem receitas cobradas no período"
           description="Os pagamentos confirmados de propinas e serviços ao longo do ano civil serão registados aqui."
-          actionLabel="Consultar facturação"
+          actionLabel="Consultar faturação"
           actionHref="/tuition/invoices"
         />
       ) : (
@@ -74,11 +75,11 @@ export function LevelDonut({ data }: { data: Overview["byLevel"] }) {
   const total = data.reduce((a, d) => a + d.value, 0);
   const config = Object.fromEntries(data.map((d, i) => [d.name, { label: d.name, color: PALETTE[i % PALETTE.length] }])) satisfies ChartConfig;
   return (
-    <ChartCard title="Alunos por classe" icon="ChartPie" description="Matrículas activas">
+    <ChartCard title="Alunos por classe" icon="ChartPie" description="Matrículas ativas">
       {total === 0 ? (
         <BlockEmptyState
           icon="GraduationCap"
-          title="Sem turmas ou matrículas activas"
+          title="Sem turmas ou matrículas ativas"
           description="A distribuição de estudantes por classe e curso aparecerá quando houver alunos matriculados."
           actionLabel="Realizar matrículas"
           actionHref="/students/enrollments"
@@ -177,8 +178,8 @@ export function RequestsCard({ requests }: { requests: Overview["openRequests"] 
         />
       ) : (
         <ul>{requests.map((r) => (
-          <Row key={r.id} right={<Badge variant="outline">{r.status === "aberto" ? "Aberto" : "Em análise"}</Badge>}>
-            <p className="truncate font-medium">{r.subject}</p><p className="font-mono text-xs text-muted-foreground">{r.protocol}</p>
+          <Row key={r.id} right={<Badge variant="outline">{REQUEST_STATUS_LABEL[r.status] ?? r.status}</Badge>}>
+            <p className="truncate font-medium">{REQUEST_TYPE_LABEL[r.type] ?? r.subject}</p><p className="truncate text-xs text-muted-foreground"><span className="font-mono">{r.protocol}</span>{r.subject ? ` · ${r.subject}` : ""}</p>
           </Row>
         ))}</ul>
       )}
@@ -208,7 +209,7 @@ export function EventsCard({ events }: { events: Overview["upcoming"] }) {
   );
 }
 
-/** `collections`: o plano inclui a cobrança por e-mail; sem ela, as ligações vão para as facturas. */
+/** `collections`: o plano inclui a cobrança por e-mail; sem ela, as ligações vão para as faturas. */
 export function DebtorsCard({ debtors, collections }: { debtors: Overview["topDebtors"]; collections: boolean }) {
   const href = collections ? "/tuition/collections" : "/tuition/invoices";
   return (
@@ -219,7 +220,7 @@ export function DebtorsCard({ debtors, collections }: { debtors: Overview["topDe
           tone="success"
           title="Cobranças em dia"
           description="Não foram detectadas propinas em atraso ou alunos inadimplentes."
-          actionLabel={collections ? "Consultar cobranças" : "Consultar facturas"}
+          actionLabel={collections ? "Consultar cobranças" : "Consultar faturas"}
           actionHref={href}
         />
       ) : (
@@ -308,7 +309,7 @@ export function CashDonut({ collected, overdue }: { collected: number; overdue: 
 export function IndicatorsBars({ items }: { items: Array<{ name: string; value: number }> }) {
   const config = { value: { label: "Total", color: "var(--primary)" } } satisfies ChartConfig;
   return (
-    <ChartCard title="Outros indicadores" icon="ChartBar" description="Pendências e carga actual">
+    <ChartCard title="Outros indicadores" icon="ChartBar" description="Pendências e carga atual">
       {items.length === 0 ? (
         <BlockEmptyState
           icon="ChartBar"

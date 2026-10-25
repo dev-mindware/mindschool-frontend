@@ -21,7 +21,7 @@ type ActionItem<T> = {
   variant?: ActionVariant;
   className?: string;
   isProtected?: boolean; // Permite forçar ou remover a proteção manualmente
-  /** Permissão da API necessária (acções de escrita): sem ela a acção não aparece. */
+  /** Permissão da API necessária (acções de escrita): sem ela a ação não aparece. */
   permission?: string;
 };
 
@@ -49,7 +49,7 @@ function isSeparator<T>(action: Action<T>): action is SeparatorItem {
 export function ButtonOnlyAction<T>({ data, actions: allActions }: Props<T>) {
   const { can } = useCan();
   const actions = allActions.filter((a) => isSeparator(a) || !a.permission || can(a.permission));
-  // Sem nenhuma acção permitida não há menu (só leitura).
+  // Sem nenhuma ação permitida não há menu (só leitura).
   if (!actions.some((a) => !isSeparator(a))) return null;
   return (
     <DropdownMenu>
@@ -58,7 +58,7 @@ export function ButtonOnlyAction<T>({ data, actions: allActions }: Props<T>) {
           size="icon"
           variant="ghost"
           className="rounded-full shadow-none"
-          aria-label="Open actions menu"
+          aria-label="Abrir menu de ações"
         >
           <Icon name="Ellipsis" size={16} aria-hidden="true" />
         </Button>
@@ -72,7 +72,7 @@ export function ButtonOnlyAction<T>({ data, actions: allActions }: Props<T>) {
           const variant = action.variant || "default";
           const itemKey = action.label + index;
 
-          // Verifica se o rótulo indica uma acção crítica, excepto quando isProtected já estiver definido.
+          // Verifica se o rótulo indica uma ação crítica, excepto quando isProtected já estiver definido.
           const isCritical =
             action.isProtected ??
             /criar|novo|editar|apagar|excluir|remover|deletar|gerar|cancelar|clonar|converter|emitir/i.test(
@@ -145,7 +145,7 @@ type Props<T> = {
 export function ButtonOnlyAction<T>({ data, actions: allActions }: Props<T>) {
   const { can } = useCan();
   const actions = allActions.filter((a) => isSeparator(a) || !a.permission || can(a.permission));
-  // Sem nenhuma acção permitida não há menu (só leitura).
+  // Sem nenhuma ação permitida não há menu (só leitura).
   if (!actions.some((a) => !isSeparator(a))) return null;
   return (
     <DropdownMenu>
@@ -154,7 +154,7 @@ export function ButtonOnlyAction<T>({ data, actions: allActions }: Props<T>) {
           size="icon"
           variant="ghost"
           className="rounded-full shadow-none"
-          aria-label="Open actions menu"
+          aria-label="Abrir menu de ações"
         >
           <Icon name="Ellipsis" size={16} aria-hidden="true" />
         </Button>

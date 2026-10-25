@@ -91,7 +91,8 @@ export function useAdmissionSessions() {
   const refresh = () => qc.invalidateQueries({ queryKey: ["admission-sessions", schoolId] });
   const create = useMutation({ mutationFn: (v: { classLevelId?: string; title: string; scheduledAt: string; location?: string; capacity: number }) => phase6Service.createSession({ ...v, academicYearId: year!.id }), onSuccess: refresh });
   const cancel = useMutation({ mutationFn: phase6Service.cancelSession, onSuccess: refresh });
-  return { sessions: list.data ?? [], isLoading: list.isLoading, forbidden: forbidden(list.error), hasYear: Boolean(year), levels, applications, create, cancel };
+  const update = useMutation({ mutationFn: (v: { id: string; title?: string; scheduledAt?: string; location?: string | null; capacity?: number }) => phase6Service.updateSession(v.id, v), onSuccess: refresh });
+  return { sessions: list.data ?? [], isLoading: list.isLoading, forbidden: forbidden(list.error), hasYear: Boolean(year), levels, applications, create, cancel, update };
 }
 
 export function useAdmissionSession(id: string | undefined) {

@@ -19,7 +19,7 @@ export function EnrollmentsPageContent() {
       {/* Header com TitleList e Botão de Ação */}
       <TitleList
         title="Matrículas & Inscrições"
-        suTitle="Gestão do processo lectivo digital, confirmações e atribuição de turmas."
+        suTitle="Gestão do processo letivo digital, confirmações e atribuição de turmas."
       >
         <Can permission="enrollment:write">
         <Button
@@ -38,12 +38,12 @@ export function EnrollmentsPageContent() {
         <DynamicMetricCard
           title={counts.total}
           subtitle="Total de Matrículas"
-          description="Inscrições no ano lectivo activo"
+          description="Inscrições no ano letivo ativo"
           icon="ClipboardList"
         />
         <DynamicMetricCard
           title={counts.active}
-          subtitle="Activas & Confirmadas"
+          subtitle="Ativas & Confirmadas"
           description="Alunos com vaga efectiva"
           icon="CircleCheck"
         />

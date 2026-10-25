@@ -15,7 +15,7 @@ const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString("pt-PT"
 const DISCREPANCY: Record<ApiMindgestDiscrepancy["kind"], string> = {
   sem_liquidacao_local: "Documento no MindGest sem pagamento correspondente",
   estado_diferente: "Estado diferente entre o MindGest e o MindSchool",
-  origem_desconhecida: "Nota de crédito sem factura-recibo de origem",
+  origem_desconhecida: "Nota de crédito sem fatura-recibo de origem",
 };
 
 function lagText(seconds: number | null): string {
@@ -46,7 +46,7 @@ export function MindgestOperations({ s, onChange }: { s: ApiMindgestStatus; onCh
     onError: fail,
   });
   const pause = useMutation({ mutationFn: mindgestService.pause, onSuccess: () => { SucessMessage("Emissões em pausa. Os pagamentos continuam a registar-se."); refresh(); }, onError: fail });
-  const resume = useMutation({ mutationFn: mindgestService.resume, onSuccess: () => { SucessMessage("Emissões reactivadas: as facturas em espera vão seguir."); refresh(); }, onError: fail });
+  const resume = useMutation({ mutationFn: mindgestService.resume, onSuccess: () => { SucessMessage("Emissões reativadas: as faturas em espera vão seguir."); refresh(); }, onError: fail });
   const rotate = useMutation({
     mutationFn: mindgestService.rotateSecret,
     onSuccess: (r) => { setSecret({ value: r.webhook_secret, until: r.previous_valid_until }); refresh(); },
@@ -69,12 +69,12 @@ export function MindgestOperations({ s, onChange }: { s: ApiMindgestStatus; onCh
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <p className="text-muted-foreground">
-            O MindSchool confere sozinho, de poucos em poucos minutos, o estado das facturas no MindGest (cobre avisos perdidos, importa notas de crédito e volta a tentar
+            O MindSchool confere sozinho, de poucos em poucos minutos, o estado das faturas no MindGest (cobre avisos perdidos, importa notas de crédito e volta a tentar
             facturas presas). Última sincronização: <strong className="text-foreground">{lagText(r.lag_seconds)}</strong> ({when(r.last_at)}).
           </p>
           {failing && (
             <p className="text-xs text-destructive">
-              A sincronização falhou {r.consecutive_failures} vezes seguidas. Os pagamentos continuam a registar-se, mas o estado das facturas pode estar desactualizado.
+              A sincronização falhou {r.consecutive_failures} vezes seguidas. Os pagamentos continuam a registar-se, mas o estado das faturas pode estar desactualizado.
               Use «Testar ligação»; se persistir, desligue e volte a ligar a partir do MindGest.
             </p>
           )}
@@ -89,7 +89,7 @@ export function MindgestOperations({ s, onChange }: { s: ApiMindgestStatus; onCh
                   </li>
                 ))}
               </ul>
-              <p className="text-[11px] text-muted-foreground">Fecham-se sozinhas quando o MindGest e o MindSchool voltam a coincidir. Correcções de facturas fazem-se no MindGest.</p>
+              <p className="text-[11px] text-muted-foreground">Fecham-se sozinhas quando o MindGest e o MindSchool voltam a coincidir. Correções de faturas fazem-se no MindGest.</p>
             </div>
           )}
           <Button size="sm" variant="outline" className="gap-1.5" disabled={sync.isPending} onClick={() => sync.mutate()}>
@@ -101,18 +101,18 @@ export function MindgestOperations({ s, onChange }: { s: ApiMindgestStatus; onCh
       <Card>
         <CardHeader className="flex-row items-center justify-between gap-3 space-y-0 pb-3">
           <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-            <Icon name="ShieldAlert" className="size-4 text-primary" />Emissão de facturas
+            <Icon name="ShieldAlert" className="size-4 text-primary" />Emissão de faturas
           </CardTitle>
-          <Badge variant={s.paused ? "warning" : "success"}>{s.paused ? "Em pausa" : "Activa"}</Badge>
+          <Badge variant={s.paused ? "warning" : "success"}>{s.paused ? "Em pausa" : "Ativa"}</Badge>
         </CardHeader>
         <CardContent className="space-y-3 text-sm">
           <p className="text-muted-foreground">
             {s.paused
-              ? `As emissões estão em pausa desde ${when(s.paused_at)}. A ligação mantém-se e os pagamentos continuam a registar-se; as facturas-recibo ficam em espera e seguem ao reactivar. Atenção ao prazo legal de emissão (5.º dia útil após o pagamento).`
-              : "Em caso de dúvida (imposto mal definido, empresa errada), pode suspender as emissões sem desligar a escola: nada é enviado ao MindGest até reactivar."}
+              ? `As emissões estão em pausa desde ${when(s.paused_at)}. A ligação mantém-se e os pagamentos continuam a registar-se; as faturas-recibo ficam em espera e seguem ao reativar. Atenção ao prazo legal de emissão (5.º dia útil após o pagamento).`
+              : "Em caso de dúvida (imposto mal definido, empresa errada), pode suspender as emissões sem desligar a escola: nada é enviado ao MindGest até reativar."}
           </p>
           {s.paused ? (
-            <Button size="sm" className="gap-1.5" disabled={resume.isPending} onClick={() => resume.mutate()}><Icon name="Play" className="size-4" />Reactivar emissões</Button>
+            <Button size="sm" className="gap-1.5" disabled={resume.isPending} onClick={() => resume.mutate()}><Icon name="Play" className="size-4" />Reativar emissões</Button>
           ) : (
             <Button size="sm" variant="outline" className="gap-1.5" disabled={pause.isPending} onClick={() => openModal(PAUSE)}><Icon name="Pause" className="size-4" />Pausar emissões</Button>
           )}
@@ -149,7 +149,7 @@ export function MindgestOperations({ s, onChange }: { s: ApiMindgestStatus; onCh
       <ConfirmModal
         id={PAUSE}
         title="Pausar as emissões"
-        description="Nenhuma factura-recibo será enviada ao MindGest até reactivar. Os pagamentos continuam a registar-se e as facturas ficam em espera. Lembre-se de que a factura tem prazo legal de emissão."
+        description="Nenhuma fatura-recibo será enviada ao MindGest até reativar. Os pagamentos continuam a registar-se e as faturas ficam em espera. Lembre-se de que a fatura tem prazo legal de emissão."
         confirmLabel="Pausar"
         onConfirm={() => pause.mutateAsync()}
       />

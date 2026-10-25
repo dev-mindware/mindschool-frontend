@@ -93,7 +93,7 @@ export function StepUpDialog() {
             <Input id="stepup-password" type="password" autoComplete="current-password" autoFocus value={password} onChange={(e) => setPassword(e.target.value)} required />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="stepup-code">Código do segundo factor <span className="text-muted-foreground">(se activo)</span></Label>
+            <Label htmlFor="stepup-code">Código do segundo factor <span className="text-muted-foreground">(se ativo)</span></Label>
             <Input id="stepup-code" inputMode="numeric" autoComplete="one-time-code" value={code} onChange={(e) => setCode(e.target.value)} placeholder="000000" />
           </div>
           {error && <p role="alert" className="text-sm text-destructive">{error}</p>}

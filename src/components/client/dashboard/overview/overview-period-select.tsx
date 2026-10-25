@@ -15,7 +15,7 @@ import {
 import type { DashboardPeriodType } from "@/types";
 
 /**
- * Selector de período do dashboard. Lê e escreve directamente no search param,
+ * Selector de período do dashboard. Lê e escreve diretamente no search param,
  * por isso pode ser montado no cabeçalho da página, longe dos gráficos.
  */
 export function OverviewPeriodSelect() {

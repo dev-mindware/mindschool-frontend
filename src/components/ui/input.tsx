@@ -211,7 +211,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               onChange={onChange}
               disabled={disabled}
               className={cn(
-                "flex-1 bg-transparent placeholder:text-muted-foreground text-foreground outline-none text-left",
+                "min-w-0 flex-1 bg-transparent placeholder:text-muted-foreground text-foreground outline-none text-left",
                 "disabled:cursor-not-allowed disabled:opacity-50"
               )}
               {...props}

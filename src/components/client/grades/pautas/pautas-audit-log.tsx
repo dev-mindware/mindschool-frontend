@@ -17,7 +17,7 @@ export function PautasAuditLogSection({ auditLogs }: PautasAuditLogProps) {
   const columns: Column<PautaAuditEntry>[] = [
     { key: 'timestamp', header: 'Data e hora', render: (_, l) => <span className="font-mono text-xs text-muted-foreground">{new Date(l.timestamp).toLocaleString('pt-AO')}</span> },
     { key: 'sectionName', header: 'Turma', render: (_, l) => <span className="font-medium">{l.sectionName}</span> },
-    { key: 'action', header: 'Acção', render: (_, l) => <Badge variant={l.action === 'CLOSED' ? 'default' : 'warning'} className="text-[10px] font-normal">{ACTION_LABEL[l.action]}</Badge> },
+    { key: 'action', header: 'Ação', render: (_, l) => <Badge variant={l.action === 'CLOSED' ? 'default' : 'warning'} className="text-[10px] font-normal">{ACTION_LABEL[l.action]}</Badge> },
     { key: 'userName', header: 'Responsável', render: (_, l) => <span className="font-medium">{l.userName}</span> },
     { key: 'reason', header: 'Justificativa', render: (_, l) => <span className="line-clamp-2 max-w-xs text-xs text-muted-foreground" title={l.reason}>{l.reason}</span> },
   ];
@@ -36,7 +36,7 @@ export function PautasAuditLogSection({ auditLogs }: PautasAuditLogProps) {
         searchPlaceholder="Pesquisar turma, responsável ou motivo"
         searchText={(l) => `${l.sectionName} ${l.userName} ${l.reason}`}
         filters={[
-          { key: 'accao', label: 'Acção', icon: 'ListFilter', options: Object.entries(ACTION_LABEL).map(([value, label]) => ({ value, label })), match: (l, v) => l.action === v },
+          { key: 'accao', label: 'Ação', icon: 'ListFilter', options: Object.entries(ACTION_LABEL).map(([value, label]) => ({ value, label })), match: (l, v) => l.action === v },
           { key: 'turma', label: 'Turma', icon: 'Users', options: uniq(auditLogs.map((l) => l.sectionName)).map((v) => ({ value: v, label: v })), match: (l, v) => l.sectionName === v },
           { key: 'responsavel', label: 'Responsável', icon: 'UserCheck', options: uniq(auditLogs.map((l) => l.userName)).map((v) => ({ value: v, label: v })), match: (l, v) => l.userName === v },
         ]}

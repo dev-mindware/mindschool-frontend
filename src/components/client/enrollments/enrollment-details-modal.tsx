@@ -26,7 +26,7 @@ interface EnrollmentDetailsModalProps {
 const SHIFT_LABEL: Record<string, string> = { MORNING: "Manhã", AFTERNOON: "Tarde", EVENING: "Noite", DIURNO: "Diurno" };
 
 const STATUS_LABELS: Record<string,{ label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
-  ACTIVE: { label: "Matrícula Efectiva (Activa)", variant: "default" },
+  ACTIVE: { label: "Matrícula Efectiva (Ativa)", variant: "default" },
   TRANSFERRED: { label: "Transferido", variant: "secondary" },
   CANCELLED: { label: "Cancelada / Anulada", variant: "destructive" },
 };
@@ -60,7 +60,7 @@ export function EnrollmentDetailsModal({
               </SheetTitle>
               <SheetDescription asChild>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-xs text-muted-foreground">Ano Lectivo: {enrollment.academicYear}</span>
+                  <span className="text-xs text-muted-foreground">Ano Letivo: {enrollment.academicYear}</span>
                   <Badge variant={statusConfig.variant}>{statusConfig.label}</Badge>
                 </div>
               </SheetDescription>
@@ -101,7 +101,7 @@ export function EnrollmentDetailsModal({
             <span className="text-sm font-semibold">{enrollment.tuitionPlanId || "Plano Geral"}</span>
           </div>
           <div>
-            <span className="text-xs text-muted-foreground block">Ano Lectivo</span>
+            <span className="text-xs text-muted-foreground block">Ano Letivo</span>
             <span className="text-sm font-semibold">{enrollment.academicYear}</span>
           </div>
         </div>

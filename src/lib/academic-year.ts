@@ -1,5 +1,5 @@
 /**
- * Ano lectivo a criar (corpo de `POST /academic-years`). As regras espelham as da API para o erro aparecer antes do pedido:
+ * Ano letivo a criar (corpo de `POST /academic-years`). As regras espelham as da API para o erro aparecer antes do pedido:
  * nome `AAAA/AAAA` com anos seguidos, fim depois do início e matrículas dentro do ano.
  */
 export interface AcademicYearDraft {
@@ -12,7 +12,7 @@ export interface AcademicYearDraft {
 
 export type AcademicYearErrors = Partial<Record<keyof AcademicYearDraft, string>>;
 
-/** Ano lectivo sugerido para hoje: começa a 1 de Setembro; de Agosto em diante já é o do ano que começa. */
+/** Ano letivo sugerido para hoje: começa a 1 de Setembro; de Agosto em diante já é o do ano que começa. */
 export function suggestAcademicYear(today: Date = new Date()): AcademicYearDraft {
   const y = today.getMonth() >= 7 ? today.getFullYear() : today.getFullYear() - 1;
   return {
@@ -39,7 +39,7 @@ export function validateAcademicYear(v: AcademicYearDraft): AcademicYearErrors {
     e.enrollment_close_date = "O fecho não pode ser antes da abertura das matrículas.";
   }
   if (!e.enrollment_close_date && !e.end_date && v.enrollment_close_date > v.end_date) {
-    e.enrollment_close_date = "As matrículas têm de fechar até ao fim do ano lectivo.";
+    e.enrollment_close_date = "As matrículas têm de fechar até ao fim do ano letivo.";
   }
   return e;
 }

@@ -171,7 +171,7 @@ export function DropoutRiskPageContent() {
             variant="default"
             onClick={() => handleOpenIntervention(item)}
             className="h-8 gap-1 text-xs font-medium"
-            title="Registar Acção Pedagógica"
+            title="Registar Ação Pedagógica"
           >
             <Icon name="UserCheck" className="w-3.5 h-3.5" />
             Intervir

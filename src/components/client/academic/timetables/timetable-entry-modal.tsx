@@ -234,7 +234,7 @@ export function TimetableEntryModal({
     }
   }, [selectedSection, rooms, roomId]);
 
-  // Cálculo da duração activa em minutos
+  // Cálculo da duração ativa em minutos
   const currentDurationMin = useMemo(() => {
     if (timeMode === "dynamic") {
       return toMinutes(endTime) - toMinutes(startTime);
@@ -259,7 +259,7 @@ export function TimetableEntryModal({
     return `${start.start} às ${end?.end || start.end}`;
   }, [timeMode, startTime, endTime, availableSlots, selectedSection, slotsFor, firstSlot, span]);
 
-  // Minutos de início e fim activos para detecção universal de conflitos
+  // Minutos de início e fim ativos para detecção universal de conflitos
   const activeStartMin = useMemo(() => {
     if (timeMode === "dynamic") return toMinutes(startTime);
     const start = availableSlots.find((s) => s.position === firstSlot);
@@ -332,7 +332,7 @@ export function TimetableEntryModal({
           roomId: roomId || undefined,
           shift: selectedSection?.shift ? SHIFT_MAP[selectedSection.shift] : undefined,
         });
-        SucessMessage("Aula actualizada com sucesso no horário!");
+        SucessMessage("Aula atualizada com sucesso no horário!");
       } else {
         await addLesson.mutateAsync({
           sectionId,
@@ -354,7 +354,7 @@ export function TimetableEntryModal({
         getApiErrorMessage(
           err,
           entryToEdit
-            ? "Não foi possível actualizar a aula no horário."
+            ? "Não foi possível atualizar a aula no horário."
             : "Não foi possível adicionar a aula ao horário.",
         ),
       );
@@ -416,7 +416,7 @@ export function TimetableEntryModal({
       title={entryToEdit ? "Editar Aula no Horário Semanal" : "Adicionar Aula ao Horário Semanal"}
       description={
         entryToEdit
-          ? "Actualize o dia, as horas, a disciplina, o professor ou a sala"
+          ? "Atualize o dia, as horas, a disciplina, o professor ou a sala"
           : "Seleccione o dia, o período de horas, a disciplina e o professor responsável"
       }
       className="w-full sm:max-w-2xl"
@@ -468,7 +468,7 @@ export function TimetableEntryModal({
           <div className="flex flex-wrap items-center justify-between gap-2">
             <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
               <Icon name="Clock" className="w-4 h-4 text-primary" />
-              Período de Horas & Duração Lectiva
+              Período de Horas & Duração Letiva
             </span>
             <div className="flex items-center gap-1.5">
               {currentDurationMin > 0 ? (

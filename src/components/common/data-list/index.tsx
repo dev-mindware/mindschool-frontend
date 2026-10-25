@@ -11,6 +11,7 @@ import { SearchHandlerWrapper } from "@/components/common/search-handler-wrapper
 import { ListSkeleton } from "@/components/common/skeletons/list-skeleton";
 import { FilterPopover } from "@/components/shared/filters/filter-popover";
 import { useListFilters, type ListFiltersState } from "@/hooks/common/use-list-filters";
+import { normalize } from "@/utils/normalize-string";
 
 export interface ListFilterDef<T> {
   key: string;
@@ -43,8 +44,9 @@ export function filterKeysOf<T>(filters: ListFilterDef<T>[], dateFilters: ListDa
 /** Aplica pesquisa, filtros, datas e ordenação declarados a um conjunto de linhas. */
 export function applyListFilters<T>(rows: T[], f: ListFiltersState, defs: { searchText?: (r: T) => string; filters?: ListFilterDef<T>[]; dateFilters?: ListDateFilterDef<T>[]; sorts?: ListSortDef<T>[] }): T[] {
   let out = rows;
-  const q = f.search.trim().toLowerCase();
-  if (q && defs.searchText) out = out.filter((r) => defs.searchText!(r).toLowerCase().includes(q));
+  // sem acentos nem maiúsculas: «ângelo» encontra «Angelo» e vice-versa
+  const q = normalize(f.search.trim());
+  if (q && defs.searchText) out = out.filter((r) => normalize(defs.searchText!(r)).includes(q));
   for (const def of defs.filters ?? []) {
     const v = f.get(def.key);
     if (v) out = out.filter((r) => def.match(r, v));
@@ -77,8 +79,9 @@ interface ListFilterBarProps<T> {
 export function ListFilterBar<T>({ prefix, f, searchPlaceholder = "Pesquisar...", searchable = true, filters = [], dateFilters = [], sorts = [], toolbar, shown, total }: ListFilterBarProps<T>) {
   return (
     <div className="w-full flex flex-col gap-4 px-2 sm:px-0" data-tour={`${prefix}-filters`}>
-      <div className="flex flex-col sm:flex-row gap-4 justify-between items-baseline">
-        {searchable && <SearchHandlerWrapper search={f.search} setSearch={f.setSearch} className="w-full" placeholder={searchPlaceholder} />}
+      {/* telemóvel: grelha de 2 colunas (antes cada filtro ocupava uma linha); ecrã largo: quebra de linha em vez de transbordar à direita */}
+      <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-row sm:flex-wrap sm:items-center">
+        {searchable && <SearchHandlerWrapper search={f.search} setSearch={f.setSearch} className="col-span-2 w-full sm:w-auto sm:min-w-64 sm:flex-1" placeholder={searchPlaceholder} />}
         {filters.map((def) => (
           <FilterPopover key={def.key} icon={def.icon} label={def.label} options={def.options} value={f.get(def.key) || null} onChange={(v) => f.setFilter(def.key, v)} />
         ))}
@@ -88,7 +91,7 @@ export function ListFilterBar<T>({ prefix, f, searchPlaceholder = "Pesquisar..."
             <FilterPopover icon="ArrowDownUp" label="Ordem" options={[{ value: "asc", label: "Crescente" }, { value: "desc", label: "Decrescente" }]} value={f.sort ? f.order : null} onChange={(v) => { if (v && v !== f.order) f.toggleOrder(); }} />
           </>
         )}
-        {toolbar}
+        {toolbar && <div className="col-span-2 sm:col-span-1">{toolbar}</div>}
       </div>
 
       {dateFilters.length > 0 && (
@@ -134,7 +137,7 @@ interface DataListProps<T extends { id: string }> {
   emptyTitle?: string;
   emptyDescription?: string;
   emptyIcon?: keyof typeof icons;
-  /** Acções da barra de filtros (ex.: exportar). */
+  /** Ações da barra de filtros (ex.: exportar). */
   toolbar?: ReactNode;
   /** Rota de detalhe ao duplo clique. */
   route?: string;

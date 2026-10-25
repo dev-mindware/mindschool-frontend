@@ -59,7 +59,7 @@ export function AdmissionsPageContent() {
           title={counts.total}
           subtitle="Total de Candidaturas"
           icon="GraduationCap"
-          description="Inscrições submetidas neste ano lectivo"
+          description="Inscrições submetidas neste ano letivo"
         />
         <DynamicMetricCard
           title={counts.pendingExam}
@@ -85,11 +85,11 @@ export function AdmissionsPageContent() {
         title="Como avança uma candidatura"
         items={[
           { label: "Submetida", description: "Recebida, com os documentos por validar.", next: "validar os documentos (menu da candidatura)." },
-          { label: "Docs Validados", description: "Documentos conferidos pela secretaria.", next: "lançar a nota da prova de acesso, se a classe a exige, e depois o despacho da Direcção." },
-          { label: "Em Avaliação", description: "Aguarda nota e/ou decisão.", next: "despacho da Direcção Pedagógica (aprovar, lista de espera ou não admitir)." },
+          { label: "Docs Validados", description: "Documentos conferidos pela secretaria.", next: "lançar a nota da prova de acesso, se a classe a exige, e depois o despacho da Direção." },
+          { label: "Em Avaliação", description: "Aguarda nota e/ou decisão.", next: "despacho da Direção Pedagógica (aprovar, lista de espera ou não admitir)." },
           { label: "Aprovado", description: "Admitido e com vaga.", next: "converter em aluno e matrícula (cria a ficha, a matrícula e as propinas)." },
           { label: "Lista de Espera", description: "Aprovado, mas sem vaga na classe. É promovido sozinho quando uma matrícula é anulada ou a capacidade aumenta; também se pode promover à mão.", next: "aguardar vaga." },
-          { label: "Não Admitido", description: "Candidatura encerrada: nota abaixo do mínimo, ausência à prova ou decisão da Direcção." },
+          { label: "Não Admitido", description: "Candidatura encerrada: nota abaixo do mínimo, ausência à prova ou decisão da Direção." },
           { label: "Matriculado", description: "Já é aluno: converteu-se em matrícula." },
           { label: "Desistente", description: "O candidato desistiu; liberta a vaga se a tinha." },
         ]}

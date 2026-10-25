@@ -42,7 +42,7 @@ const DEFAULT_EMOLUMENTS: CustomEmolument[] = [
     price: 2000,
     deliveryDays: 2,
     requiresPayment: true,
-    description: "Comprovativo de frequência lectiva do aluno.",
+    description: "Comprovativo de frequência letiva do aluno.",
     active: true,
   },
   {
@@ -52,7 +52,7 @@ const DEFAULT_EMOLUMENTS: CustomEmolument[] = [
     price: 7500,
     deliveryDays: 5,
     requiresPayment: true,
-    description: "Certificado oficial de conclusão de ciclo/ano lectivo.",
+    description: "Certificado oficial de conclusão de ciclo/ano letivo.",
     active: true,
   },
   {
@@ -153,7 +153,7 @@ export function CustomEmolumentsSection() {
       customEmoluments: updated,
       emailCollections: policy?.emailCollections,
     });
-    SucessMessage(editing ? "Emolumento actualizado." : "Emolumento criado com sucesso.");
+    SucessMessage(editing ? "Emolumento atualizado." : "Emolumento criado com sucesso.");
   };
 
   const remove = async (id: string) => {
@@ -208,13 +208,13 @@ export function CustomEmolumentsSection() {
       header: "Estado",
       render: (_, item) => (
         <Badge variant={item.active ? "outline" : "secondary"} className={item.active ? "border-emerald-600 text-emerald-600" : ""}>
-          {item.active ? "Activo" : "Inactivo"}
+          {item.active ? "Ativo" : "Inactivo"}
         </Badge>
       ),
     },
     {
       key: "actions",
-      header: "Acções",
+      header: "Ações",
       render: (_, item) => (
         <div className="flex items-center gap-1">
           <ButtonOnlyAction
@@ -250,7 +250,7 @@ export function CustomEmolumentsSection() {
             Defina os preços em Kwanzas (Kz) e os prazos de entrega para os documentos e serviços solicitados por alunos e encarregados.
           </p>
         </div>
-        <FeatureGate permission="school:update" fallback="disabled" tooltipMessage="Apenas a direcção pode gerir emolumentos.">
+        <FeatureGate permission="school:update" fallback="disabled" tooltipMessage="Apenas a direção pode gerir emolumentos.">
           <Button size="sm" onClick={openNew} className="gap-2 text-xs font-semibold">
             <Icon name="Plus" className="size-4" />
             Novo emolumento
@@ -301,7 +301,7 @@ export function CustomEmolumentsSection() {
               value={active}
               onValueChange={setActive}
               options={[
-                { value: "true", label: "Activo (disponível para cobrança)" },
+                { value: "true", label: "Ativo (disponível para cobrança)" },
                 { value: "false", label: "Inactivo" },
               ]}
             />

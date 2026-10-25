@@ -60,7 +60,7 @@ export function EnrollmentsList({ enrollments, isLoading, isError }: Enrollments
         <div className="flex flex-col">
           <span className="font-medium text-foreground">{item.studentName}</span>
           <span className="text-xs text-muted-foreground">
-            Ano Lectivo: {item.academicYear}
+            Ano Letivo: {item.academicYear}
           </span>
         </div>
       ),
@@ -160,11 +160,11 @@ export function EnrollmentsList({ enrollments, isLoading, isError }: Enrollments
         searchPlaceholder="Pesquisar por n.º de matrícula, aluno, processo ou turma"
         searchText={(e) => `${e.enrollmentNumber} ${e.studentName} ${e.studentNumber} ${e.sectionName}`}
         filters={[
-          { key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "ACTIVE", label: "Activas" }, { value: "PENDING", label: "Pendentes" }, { value: "TRANSFERRED", label: "Transferidas" }, { value: "CANCELLED", label: "Canceladas" }], match: (e, v) => e.status === v },
+          { key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "ACTIVE", label: "Ativas" }, { value: "PENDING", label: "Pendentes" }, { value: "TRANSFERRED", label: "Transferidas" }, { value: "CANCELLED", label: "Canceladas" }], match: (e, v) => e.status === v },
           { key: "turma", label: "Turma", icon: "Users", options: uniq(enrollments.map((e) => e.sectionName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.sectionName === v },
           { key: "classe", label: "Classe", icon: "GraduationCap", options: uniq(enrollments.map((e) => e.classLevelName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.classLevelName === v },
           { key: "turno", label: "Turno", icon: "Sun", options: uniq(enrollments.map((e) => e.shift)).map((v) => ({ value: v, label: v })), match: (e, v) => e.shift === v },
-          { key: "ano", label: "Ano lectivo", icon: "CalendarRange", options: uniq(enrollments.map((e) => e.academicYear)).map((v) => ({ value: v, label: v })), match: (e, v) => e.academicYear === v },
+          { key: "ano", label: "Ano letivo", icon: "CalendarRange", options: uniq(enrollments.map((e) => e.academicYear)).map((v) => ({ value: v, label: v })), match: (e, v) => e.academicYear === v },
           { key: "plano", label: "Plano financeiro", icon: "Wallet", options: uniq(enrollments.map((e) => e.tuitionPlanName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.tuitionPlanName === v },
           { key: "bolsa", label: "Bolsa", icon: "Award", options: [{ value: "sim", label: "Com bolsa" }, { value: "nao", label: "Sem bolsa" }], match: (e, v) => (v === "sim" ? Boolean(e.hasScholarship) : !e.hasScholarship) },
         ]}

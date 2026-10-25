@@ -9,7 +9,7 @@ import { Student, StudentStatus } from "@/types";
 const ITEMS_PER_PAGE = 8;
 
 /**
- * Alunos da escola activa (API MindEscola). Lista lida por completo (cursor) e filtrada/paginada no cliente; a pesquisa
+ * Alunos da escola ativa (API MindEscola). Lista lida por completo (cursor) e filtrada/paginada no cliente; a pesquisa
  * por texto (>= 2 caracteres) tambem vai ao servidor.
  */
 export function useStudents(searchQuery = "", statusFilter: StudentStatus | "ALL" = "ALL", classFilter = "ALL") {

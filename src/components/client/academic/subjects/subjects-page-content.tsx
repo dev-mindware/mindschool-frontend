@@ -55,7 +55,7 @@ export function SubjectsPageContent() {
         />
         <DynamicMetricCard
           title={counts.active}
-          subtitle="Disciplinas Activas"
+          subtitle="Disciplinas Ativas"
           description="Em vigor na matriz curricular"
           icon="CircleCheck"
         />

@@ -141,7 +141,7 @@ export function TuitionCollectionsContent() {
     },
     {
       key: "action",
-      header: "Acção",
+      header: "Ação",
       className: "text-right",
       render: (_, item) => (
         <Button

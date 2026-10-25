@@ -45,7 +45,7 @@ export function JustificationsList({ classId }: JustificationsListProps) {
     { key: "student.full_name", header: "Aluno", render: (_, r) => <span className="font-medium">{r.student.full_name}</span> },
     { key: "unjustified_absences", header: "Injustificadas", render: (_, r) => <Badge variant={r.unjustified_absences > 0 ? "destructive" : "outline"}>{r.unjustified_absences}</Badge> },
     { key: "justified_absences", header: "Justificadas", render: (_, r) => <Badge variant="outline">{r.justified_absences}</Badge> },
-    { key: "action", header: "Acção", render: (_, r) => <ButtonOnlyAction data={r} actions={[{ label: "Ver / justificar faltas", icon: "FileText", onClick: (x) => { setTarget({ id: x.enrollment_id, name: x.student.full_name }); openModal("absences-detail"); } }]} /> },
+    { key: "action", header: "Ação", render: (_, r) => <ButtonOnlyAction data={r} actions={[{ label: "Ver / justificar faltas", icon: "FileText", onClick: (x) => { setTarget({ id: x.enrollment_id, name: x.student.full_name }); openModal("absences-detail"); } }]} /> },
   ];
 
   return (

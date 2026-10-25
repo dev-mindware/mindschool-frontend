@@ -18,7 +18,7 @@ const STATUS: Record<ApiInvoice["status"], { label: string; variant: "success" |
 };
 const TYPE: Record<ApiInvoice["type"], string> = { propina_mensal: "Propina", matricula: "Matrícula", servico_extra: "Serviço", multa: "Multa de mora" };
 
-/** Cobranças da escola em modo de leitura (o que a família deve e o que já pagou); a factura-recibo de cada pagamento está no separador «Facturas». */
+/** Cobranças da escola em modo de leitura (o que a família deve e o que já pagou); a fatura-recibo de cada pagamento está no separador «Faturas». */
 function ChargesList() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const { data = [], isLoading, isError, refetch } = useQuery({ queryKey: financeKeys.invoices(schoolId), queryFn: tuitionService.invoices, enabled: Boolean(schoolId), staleTime: 30 * 1000, retry: false });
@@ -32,34 +32,34 @@ function ChargesList() {
     { key: "total_due", header: "Total", render: (_, i) => <span className="tabular-nums">{formatCurrency(Number(i.total_due))}</span> },
     { key: "balance", header: "Em dívida", render: (_, i) => <span className={`font-semibold tabular-nums ${i.is_overdue ? "text-destructive" : ""}`}>{formatCurrency(Number(i.balance))}</span> },
     { key: "status", header: "Estado", render: (_, i) => <StatusBadge status={i.status} map={STATUS} /> },
-    { key: "fiscal", header: "Fiscal", render: (_, i) => (<div><Badge variant={(FISCAL_STATUS[i.fiscal.status as keyof typeof FISCAL_STATUS] ?? FISCAL_STATUS.sem_submissao).variant} className="font-normal">{(FISCAL_STATUS[i.fiscal.status as keyof typeof FISCAL_STATUS] ?? FISCAL_STATUS.sem_submissao).label}</Badge>{i.fiscal.certificate_number && <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">{i.fiscal.certificate_number}</div>}{i.fiscal.corrected && (<div className="mt-1 max-w-52 text-[11px] text-amber-700" title="A cobrança não muda sozinha: reveja-a se for preciso.">{i.fiscal.correction_notice ?? "Factura corrigida/anulada no MindGest"}{i.fiscal.credit_notes?.[0]?.number ? ` (NC ${i.fiscal.credit_notes[0].number})` : ""}</div>)}</div>) },
+    { key: "fiscal", header: "Fiscal", render: (_, i) => (<div><Badge variant={(FISCAL_STATUS[i.fiscal.status as keyof typeof FISCAL_STATUS] ?? FISCAL_STATUS.sem_submissao).variant} className="font-normal">{(FISCAL_STATUS[i.fiscal.status as keyof typeof FISCAL_STATUS] ?? FISCAL_STATUS.sem_submissao).label}</Badge>{i.fiscal.certificate_number && <div className="mt-0.5 font-mono text-[11px] text-muted-foreground">{i.fiscal.certificate_number}</div>}{i.fiscal.corrected && (<div className="mt-1 max-w-52 text-[11px] text-amber-700" title="A cobrança não muda sozinha: reveja-a se for preciso.">{i.fiscal.correction_notice ?? "Fatura corrigida/anulada no MindGest"}{i.fiscal.credit_notes?.[0]?.number ? ` (NC ${i.fiscal.credit_notes[0].number})` : ""}</div>)}</div>) },
   ];
 
   return (
     <div className="space-y-6">
       <div className="flex gap-3 rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">
         <Icon name="Link" className="mt-0.5 size-4 shrink-0 text-primary" />
-        <p>Uma <strong>cobrança</strong> não é um documento fiscal: a <strong>factura-recibo</strong> é emitida no <strong>MindGest</strong> quando a cobrança é paga («Marcar como pago» em Propinas). A coluna «Fiscal» mostra o estado dessa factura; o detalhe está no separador «Facturas».</p>
+        <p>Uma <strong>cobrança</strong> não é um documento fiscal: a <strong>factura-recibo</strong> é emitida no <strong>MindGest</strong> quando a cobrança é paga («Marcar como pago» em Propinas). A coluna «Fiscal» mostra o estado dessa fatura; o detalhe está no separador «Faturas».</p>
       </div>
 
       <StatusLegend
         title="O que significam os estados e as colunas"
         items={[
           { label: "Por pagar", description: "Emitida e dentro do prazo." },
-          { label: "Parcialmente paga", description: "Já recebeu pagamentos, mas ainda falta valor. «Total» é o valor da factura (menos desconto, mais multa na própria factura); «Em dívida» é o que falta pagar." },
-          { label: "Vencida", description: "Passou o vencimento com valor em dívida. Passado o prazo de tolerância, o sistema cria a multa de mora como uma factura à parte (tipo «Multa de mora»), ligada a esta." },
-          { label: "Paga", description: "Totalmente liquidada. O comprovativo de pagamento é um documento interno, sem valor fiscal; o documento fiscal é a factura-recibo emitida no MindGest (separador «Facturas»)." },
+          { label: "Parcialmente paga", description: "Já recebeu pagamentos, mas ainda falta valor. «Total» é o valor da fatura (menos desconto, mais multa na própria fatura); «Em dívida» é o que falta pagar." },
+          { label: "Vencida", description: "Passou o vencimento com valor em dívida. Passado o prazo de tolerância, o sistema cria a multa de mora como uma fatura à parte (tipo «Multa de mora»), ligada a esta." },
+          { label: "Paga", description: "Totalmente liquidada. O comprovativo de pagamento é um documento interno, sem valor fiscal; o documento fiscal é a fatura-recibo emitida no MindGest (separador «Faturas»)." },
           { label: "Anulada", description: "Anulada (por exemplo, ao anular a matrícula). Nunca se apaga: fica no histórico. Não se anula a partir desta lista." },
-          { label: "Ref. MS…", description: "Referência de pagamento da factura: é o código que o encarregado indica ao pagar." },
-          { label: "Fiscal", description: "Estado da factura-recibo do pagamento: «Certificada» (com n.º fiscal), «A aguardar MindGest», «Escola não ligada» ou «Falta o imposto» (esperam e seguem sozinhas), «Rejeitada» ou «Erro». «Sem factura»: a cobrança ainda não foi paga." },
+          { label: "Ref. MS…", description: "Referência de pagamento da fatura: é o código que o encarregado indica ao pagar." },
+          { label: "Fiscal", description: "Estado da fatura-recibo do pagamento: «Certificada» (com n.º fiscal), «A aguardar MindGest», «Escola não ligada» ou «Falta o imposto» (esperam e seguem sozinhas), «Rejeitada» ou «Erro». «Sem fatura»: a cobrança ainda não foi paga." },
         ]}
       />
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
-        <DynamicMetricCard title={live.length} subtitle="Facturas" icon="Receipt" description="Sem as anuladas" />
+        <DynamicMetricCard title={live.length} subtitle="Faturas" icon="Receipt" description="Sem as anuladas" />
         <DynamicMetricCard title={live.filter((i) => i.status === "paga").length} subtitle="Liquidadas" icon="CircleCheck" description="Totalmente pagas" />
         <DynamicMetricCard title={live.filter((i) => i.is_overdue && i.status !== "paga").length} subtitle="Vencidas" icon="TriangleAlert" colors="destructive" description="Por cobrar" />
-        <DynamicMetricCard title={pendingFiscal} subtitle="Pagas sem factura certificada" icon="ShieldAlert" description="Factura-recibo em espera, em curso ou com erro" />
+        <DynamicMetricCard title={pendingFiscal} subtitle="Pagas sem fatura certificada" icon="ShieldAlert" description="Fatura-recibo em espera, em curso ou com erro" />
       </div>
 
       <DataList<ApiInvoice>
@@ -84,22 +84,22 @@ function ChargesList() {
           { value: "valor", label: "Valor", compare: (a, b) => Number(a.total_due) - Number(b.total_due) },
           { value: "divida", label: "Em dívida", compare: (a, b) => Number(a.balance) - Number(b.balance) },
         ]}
-        emptyTitle="Sem facturas"
-        emptyDescription="As facturas são geradas na matrícula e mensalmente, segundo a política de propinas."
+        emptyTitle="Sem faturas"
+        emptyDescription="As faturas são geradas na matrícula e mensalmente, segundo a política de propinas."
         emptyIcon="Receipt"
       />
     </div>
   );
 }
 
-/** Página «Facturas»: as facturas-recibo fiscais (MindGest) e, ao lado, as cobranças que lhes dão origem. */
+/** Página «Faturas»: as faturas-recibo fiscais (MindGest) e, ao lado, as cobranças que lhes dão origem. */
 export function TuitionInvoicesContent() {
   return (
     <div className="space-y-6">
-      <TitleList title="Facturas" suTitle="Facturas-recibo emitidas no MindGest ao marcar as propinas como pagas, e as cobranças da escola. Estornos e notas de crédito fazem-se só no MindGest." />
+      <TitleList title="Faturas" suTitle="Faturas-recibo emitidas no MindGest ao marcar as propinas como pagas, e as cobranças da escola. Estornos e notas de crédito fazem-se só no MindGest." />
       <Tabs defaultValue="facturas" className="space-y-4">
         <TabsList className="flex h-auto flex-wrap">
-          <TabsTrigger value="facturas" className="text-xs">Facturas</TabsTrigger>
+          <TabsTrigger value="facturas" className="text-xs">Faturas</TabsTrigger>
           <TabsTrigger value="cobrancas" className="text-xs">Cobranças</TabsTrigger>
         </TabsList>
         <TabsContent value="facturas"><FiscalDocumentsContent /></TabsContent>

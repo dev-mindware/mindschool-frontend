@@ -22,9 +22,9 @@ export function Appearance() {
   const [font, setFont] = useState<FontName>(DEFAULT_FONT);
 
   const themes = [
-    { name: "Light", value: "light", img: "/themes/light.png" },
-    { name: "Dark", value: "dark", img: "/themes/dark.png" },
-    { name: "System", value: "system", img: "/themes/system.png" },
+    { name: "Claro", value: "light", img: "/themes/light.png" },
+    { name: "Escuro", value: "dark", img: "/themes/dark.png" },
+    { name: "Sistema", value: "system", img: "/themes/system.png" },
   ];
 
   useEffect(() => {

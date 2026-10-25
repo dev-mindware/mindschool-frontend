@@ -34,7 +34,7 @@ const MONTHS = [
 ];
 
 export function TuitionPaymentsContent() {
-  // Propinas escolhidas para «Marcar como pago» (uma liquidação, uma factura-recibo; têm de ser do mesmo aluno).
+  // Propinas escolhidas para «Marcar como pago» (uma liquidação, uma fatura-recibo; têm de ser do mesmo aluno).
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [settling, setSettling] = useState<StudentTuitionFee[]>([]);
   const { allFees, summary, isLoading, counts } = useTuition();
@@ -159,7 +159,7 @@ export function TuitionPaymentsContent() {
     },
     {
       key: "action",
-      header: "Acções",
+      header: "Ações",
       className: "text-right",
       render: (_, item) => {
         const isPaid = item.status === "PAID";
@@ -170,7 +170,7 @@ export function TuitionPaymentsContent() {
                 <FeatureGate
                   permission="payment:write"
                   fallback="disabled"
-                  tooltipMessage="Apenas a secretaria, a tesouraria e a direcção podem marcar propinas como pagas."
+                  tooltipMessage="Apenas a secretaria, a tesouraria e a direção podem marcar propinas como pagas."
                 >
                   <Button
                     size="sm"
@@ -222,12 +222,12 @@ export function TuitionPaymentsContent() {
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <TitleList
           title="Gestão de Propinas & Mensalidades"
-          suTitle="Marque as propinas como pagas: regista o pagamento e pede ao MindGest a factura-recibo (o documento fiscal). O comprovativo interno não tem valor fiscal."
+          suTitle="Marque as propinas como pagas: regista o pagamento e pede ao MindGest a fatura-recibo (o documento fiscal). O comprovativo interno não tem valor fiscal."
         />
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 px-3 py-1 font-semibold text-xs gap-1.5">
             <Icon name="ShieldCheck" className="w-3.5 h-3.5 text-emerald-600" />
-            Facturação via MindGest
+            Faturação via MindGest
           </Badge>
         </div>
       </div>
@@ -266,8 +266,8 @@ export function TuitionPaymentsContent() {
           { label: "Pendente", description: "Dentro do prazo ou com pagamento parcial: ainda há valor por pagar." },
           { label: "Em Atraso", description: "Passou o vencimento. Depois da tolerância cria-se a multa de mora (e, se a escola o definir, um agravamento por cada mês completo), que aparece na coluna «Multa» e soma ao total." },
           { label: "Liquidada", description: "Propina e multas totalmente pagas." },
-          { label: "Marcar como pago", description: "Regista o pagamento do saldo total (propina e multas por pagar; não há pagamento parcial) e pede ao MindGest a factura-recibo, que é o documento fiscal. Seleccione várias propinas do mesmo aluno para as pagar num só acto, com uma só factura. Se a escola não estiver ligada ao MindGest, o pagamento fica registado e a factura segue quando for ligada." },
-          { label: "Ver comprovativo", description: "Comprovativo interno do pagamento, sem valor fiscal. A factura-recibo está em Facturas." },
+          { label: "Marcar como pago", description: "Regista o pagamento do saldo total (propina e multas por pagar; não há pagamento parcial) e pede ao MindGest a fatura-recibo, que é o documento fiscal. Seleccione várias propinas do mesmo aluno para as pagar num só acto, com uma só fatura. Se a escola não estiver ligada ao MindGest, o pagamento fica registado e a fatura segue quando for ligada." },
+          { label: "Ver comprovativo", description: "Comprovativo interno do pagamento, sem valor fiscal. A fatura-recibo está em Faturas." },
         ]}
       />
 
@@ -279,7 +279,7 @@ export function TuitionPaymentsContent() {
           </span>
           <div className="flex items-center gap-2">
             <Button size="sm" variant="ghost" onClick={() => setSelected(new Set())}>Limpar</Button>
-            <FeatureGate permission="payment:write" fallback="disabled" tooltipMessage="Apenas a secretaria, a tesouraria e a direcção podem marcar propinas como pagas.">
+            <FeatureGate permission="payment:write" fallback="disabled" tooltipMessage="Apenas a secretaria, a tesouraria e a direção podem marcar propinas como pagas.">
               <Button size="sm" disabled={chosenStudents !== 1} onClick={() => setSettling(chosen)} className="gap-1.5 font-semibold">
                 <Icon name="CreditCard" className="size-3.5" /> Marcar como pago
               </Button>

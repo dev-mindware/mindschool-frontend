@@ -16,6 +16,7 @@ import { GuardianModal } from "./guardian-modal";
 import { GuardianDetailsModal } from "./guardian-details-modal";
 import { InviteCredentialsModal } from "@/components/client/shared/invite-credentials-modal";
 import { useGuardians } from "@/hooks/school/use-guardians";
+import { RELATIONSHIP_LABELS } from "@/constants/labels";
 
 interface GuardiansListProps {
   guardians: Guardian[];
@@ -78,7 +79,7 @@ export function GuardiansList({ guardians, isLoading, isError }: GuardiansListPr
                 key={idx}
                 className="text-xs bg-muted px-2 py-0.5 rounded-full text-foreground"
               >
-                {w.studentName} ({w.relationship})
+                {w.studentName} ({RELATIONSHIP_LABELS[w.relationship] ?? w.relationship})
               </span>
             ))
           ) : (

@@ -318,7 +318,7 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
         onClose={onClose}
         canClose
         title="Atribuição Docente (Múltiplas Turmas & Disciplinas)"
-        description="Vincule um professor a várias turmas e disciplinas simultâneas no ano lectivo"
+        description="Vincule um professor a várias turmas e disciplinas simultâneas no ano letivo"
         className="w-max"
       >
         <form onSubmit={handleSubmit} className="space-y-3">

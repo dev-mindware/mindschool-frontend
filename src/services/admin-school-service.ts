@@ -6,11 +6,11 @@ import { fetchAllPages } from "./api-pagination";
 export type SchoolRole = "titular" | "direccao_pedagogica" | "secretaria" | "professor" | "financeiro" | "encarregado" | "aluno" | "admin_sistema" | "auditor_med";
 
 export const ROLE_LABEL: Record<SchoolRole, string> = {
-  titular: "Direcção Geral (Titular)", direccao_pedagogica: "Direcção Pedagógica", secretaria: "Secretaria", professor: "Professor", financeiro: "Financeiro",
+  titular: "Direção Geral (Titular)", direccao_pedagogica: "Direção Pedagógica", secretaria: "Secretaria", professor: "Professor", financeiro: "Financeiro",
   encarregado: "Encarregado", aluno: "Aluno", admin_sistema: "Administrador do sistema", auditor_med: "Auditor do MED",
 };
 
-export interface ApiMembership { id: string; role: SchoolRole; is_active: boolean; granted_at: string; user: { id: string; email: string; full_name: string; status: string } }
+export interface ApiMembership { id: string; role: SchoolRole; is_active: boolean; granted_at: string; user: { id: string; email: string; full_name: string; status: string; invite_pending?: boolean } }
 
 // ---- Professores -------------------------------------------------------------------------------------------------
 

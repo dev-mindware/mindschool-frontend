@@ -14,7 +14,7 @@ interface CanProps {
 }
 
 /**
- * Mostra o conteúdo só a quem tem a permissão da API (ex.: botões de criar/editar). Quem apenas lê não vê acções de
+ * Mostra o conteúdo só a quem tem a permissão da API (ex.: botões de criar/editar). Quem apenas lê não vê ações de
  * escrita, em vez de as ver e levar um 403. A API continua a ser a barreira.
  */
 export function Can({ permission, anyOf, fallback = null, children }: CanProps) {

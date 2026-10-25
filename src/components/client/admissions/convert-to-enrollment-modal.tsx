@@ -245,7 +245,7 @@ export function ConvertToEnrollmentModal({
             </div>
           )}
 
-          <Input label="Ano Lectivo (o da turma)" value={currentSection?.academicYear ?? "Escolha a turma"} disabled />
+          <Input label="Ano Letivo (o da turma)" value={currentSection?.academicYear ?? "Escolha a turma"} disabled />
 
           <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground space-y-1">
             <p className="font-semibold text-foreground">O que é criado</p>

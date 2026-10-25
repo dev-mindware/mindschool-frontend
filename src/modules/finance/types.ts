@@ -73,11 +73,11 @@ export interface StudentTuitionFee {
   discountAmount: number;
   /** Multas de mora (facturas próprias ligadas a esta) já geradas, pagas ou não. */
   penaltyAmount: number;
-  /** Em dívida: saldo da factura + multas por pagar (se estiver tudo pago, o total facturado). */
+  /** Em dívida: saldo da fatura + multas por pagar (se estiver tudo pago, o total faturado). */
   totalAmount: number;
-  /** Saldo só da factura de origem, sem multas. */
+  /** Saldo só da fatura de origem, sem multas. */
   baseBalance?: number;
-  /** Multas ainda por pagar, a liquidar junto com a factura de origem. */
+  /** Multas ainda por pagar, a liquidar junto com a fatura de origem. */
   penalties?: Array<{ id: string; balance: number }>;
   dueDate: string;
   status: TuitionStatus;

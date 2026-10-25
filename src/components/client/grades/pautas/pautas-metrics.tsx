@@ -33,7 +33,7 @@ export function PautasMetrics({
       <DynamicMetricCard
         title={pending.toString()}
         subtitle="Pendentes de Fecho"
-        description="Aguardando validação da Direcção"
+        description="Aguardando validação da Direção"
         icon="Clock"
       />
       <DynamicMetricCard

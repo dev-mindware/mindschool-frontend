@@ -7,7 +7,7 @@ import { FinanceDashboard } from "./finance-dashboard";
 export function TuitionOverviewContent() {
   return (
     <div className="space-y-6">
-      <TitleList title="Propinas & Taxas Escolares" suTitle="Facturação, cobrança e pagamentos das famílias num só painel." />
+      <TitleList title="Propinas & Taxas Escolares" suTitle="Faturação, cobrança e pagamentos das famílias num só painel." />
       <FinanceDashboard variant="operations" />
     </div>
   );

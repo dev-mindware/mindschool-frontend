@@ -124,7 +124,7 @@ export function GuardianDetailsModal({
             </div>
           ) : (
             <div className="p-4 rounded-xl border border-dashed text-center text-xs text-muted-foreground">
-              Nenhum educando vinculado a este encarregado actualmente.
+              Nenhum educando vinculado a este encarregado atualmente.
             </div>
           )}
         </div>

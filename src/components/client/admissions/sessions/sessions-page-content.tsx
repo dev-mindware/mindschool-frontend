@@ -68,6 +68,9 @@ function NewSessionModal() {
     );
   }, [f.cycleId, levels]);
 
+  // a API recusa uma sessão no passado: avisa-se no próprio campo, antes de submeter
+  const whenInPast = Boolean(f.when) && new Date(f.when).getTime() <= Date.now();
+
   const handleCycleChange = (cycleId: string) => {
     set("cycleId", cycleId);
     set("levelId", "all");
@@ -80,11 +83,11 @@ function NewSessionModal() {
       description={
         hasYear
           ? "Defina data, local, vagas e a classe designada da prova de acesso."
-          : "Não há ano lectivo activo."
+          : "Não há ano letivo ativo."
       }
       submitLabel="Criar Sessão de Prova"
       isLoading={create.isPending}
-      disabled={!hasYear || f.title.trim().length < 3 || !f.when}
+      disabled={!hasYear || f.title.trim().length < 3 || !f.when || whenInPast}
       onSubmit={() =>
         create
           .mutateAsync({
@@ -112,6 +115,7 @@ function NewSessionModal() {
         type="datetime-local"
         value={f.when}
         onChange={(e) => set("when", e.target.value)}
+        error={whenInPast ? "A sessão tem de ser no futuro." : undefined}
       />
 
       <Input
@@ -152,6 +156,58 @@ function NewSessionModal() {
           })),
         ]}
       />
+    </FormModal>
+  );
+}
+
+/** `YYYY-MM-DDTHH:mm` na hora local, o formato do campo `datetime-local`. */
+const toLocalInput = (iso: string) => {
+  const d = new Date(iso);
+  return new Date(d.getTime() - d.getTimezoneOffset() * 60_000).toISOString().slice(0, 16);
+};
+
+/** Edição de uma sessão agendada (título, data, local e vagas). A classe e o ano não mudam. */
+function EditSessionModal({ session }: { session: SessionRow | null }) {
+  const { update } = useAdmissionSessions();
+  const [f, setF] = useState({ title: "", when: "", location: "", capacity: 1 });
+  useEffect(() => {
+    if (session) setF({ title: session.title, when: toLocalInput(session.scheduled_at), location: session.location ?? "", capacity: session.capacity });
+  }, [session]);
+  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }));
+  const whenInPast = Boolean(f.when) && new Date(f.when).getTime() <= Date.now();
+  const belowRegistered = Boolean(session) && f.capacity < (session?.registered ?? 0);
+
+  return (
+    <FormModal
+      id="session-edit"
+      title="Editar sessão da prova de acesso"
+      description="Só se editam sessões agendadas. As vagas não podem ficar abaixo dos candidatos já inscritos."
+      submitLabel="Guardar alterações"
+      isLoading={update.isPending}
+      disabled={!session || f.title.trim().length < 3 || !f.when || whenInPast || belowRegistered}
+      onSubmit={() =>
+        session
+          ? update
+              .mutateAsync({ id: session.id, title: f.title.trim(), scheduledAt: new Date(f.when).toISOString(), location: f.location.trim() || null, capacity: f.capacity })
+              .then(() => SucessMessage("Sessão atualizada."))
+              .catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível atualizar a sessão.")); throw e; })
+          : undefined
+      }
+    >
+      <div className="sm:col-span-2">
+        <Input label="Título da Prova de Acesso *" value={f.title} onChange={(e) => set("title", e.target.value)} />
+      </div>
+      <Input label="Data e Hora da Prova *" type="datetime-local" value={f.when} error={whenInPast ? "A sessão tem de ser no futuro." : undefined} onChange={(e) => set("when", e.target.value)} />
+      <Input
+        label="Capacidade de Vagas *"
+        type="quantity"
+        value={f.capacity}
+        error={belowRegistered ? `Já há ${session?.registered} inscritos: as vagas não podem ser menos.` : undefined}
+        onChange={(e) => set("capacity", Math.max(1, Number(e.target.value) || 1))}
+      />
+      <div className="sm:col-span-2">
+        <Input label="Sala / Local da Prova" startIcon="MapPin" value={f.location} onChange={(e) => set("location", e.target.value)} />
+      </div>
     </FormModal>
   );
 }
@@ -520,11 +576,7 @@ function SessionModal({ id }: { id: string | null }) {
           )}
 
           {/* Rodapé de Ações dentro do corpo do modal */}
-          <div className="flex flex-wrap items-center justify-between gap-3 pt-3 border-t">
-            <Button type="button" variant="outline" onClick={() => closeModal("session-detail")}>
-              Fechar
-            </Button>
-
+          <div className="flex flex-wrap items-center justify-end gap-3 pt-3 border-t">
             {!cancelled && session.registrations.length > 0 && (
               <Button
                 type="button"
@@ -567,6 +619,7 @@ export function AdmissionSessionsPageContent() {
   const { openModal } = useModal();
   const [openId, setOpenId] = useState<string | null>(null);
   const [target, setTarget] = useState<SessionRow | null>(null);
+  const [editing, setEditing] = useState<SessionRow | null>(null);
 
   if (forbidden)
     return (
@@ -633,6 +686,15 @@ export function AdmissionSessionsPageContent() {
             },
             ...(s.status === "agendada"
               ? [
+                  {
+                    permission: "admission:write",
+                    label: "Editar Sessão",
+                    icon: "Pencil" as const,
+                    onClick: (x: SessionRow) => {
+                      setEditing(x);
+                      openModal("session-edit");
+                    },
+                  },
                   {
                     permission: "admission:write",
                     label: "Cancelar Prova",
@@ -710,6 +772,7 @@ export function AdmissionSessionsPageContent() {
 
       <NewSessionModal />
       <SessionModal id={openId} />
+      <EditSessionModal session={editing} />
       <ConfirmModal
         id="session-cancel"
         destructive

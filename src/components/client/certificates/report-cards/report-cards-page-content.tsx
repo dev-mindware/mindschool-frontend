@@ -43,7 +43,7 @@ export function ReportCardsPageContent() {
     { key: "issueDate", header: "Emitido em", render: (_, d) => <span className="font-mono text-xs">{d.issueDate}</span> },
     {
       key: "action",
-      header: "Acções",
+      header: "Ações",
       render: (_, d) => (
         <ButtonOnlyAction
           data={d}

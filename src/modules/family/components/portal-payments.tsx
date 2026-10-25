@@ -74,7 +74,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
 
   const payableColumns: Column<ApiPayable>[] = [
     { key: "select", header: "", render: (_, p) => <Checkbox checked={Boolean(selected[p.id])} disabled={Number(p.available) <= 0} onCheckedChange={(v) => toggle(p.id, v === true)} aria-label={`Seleccionar ${p.description}`} /> },
-    { key: "description", header: "Factura", render: (_, p) => (<div><span className="font-medium capitalize">{p.description}</span><div className="font-mono text-[11px] text-muted-foreground">Ref. {p.payment_reference}</div></div>) },
+    { key: "description", header: "Fatura", render: (_, p) => (<div><span className="font-medium capitalize">{p.description}</span><div className="font-mono text-[11px] text-muted-foreground">Ref. {p.payment_reference}</div></div>) },
     { key: "due_date", header: "Vencimento", render: (_, p) => <span className="text-xs">{p.due_date}</span> },
     { key: "balance", header: "Em dívida", render: (_, p) => <span className="font-semibold tabular-nums">{formatCurrency(p.balance)}</span> },
     {
@@ -92,7 +92,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
 
   const submissionColumns: Column<ApiSubmission>[] = [
     { key: "protocol", header: "Protocolo", render: (_, s) => (<div><span className="font-mono text-xs font-semibold text-primary">{s.protocol}</span><div className="text-[11px] text-muted-foreground">{s.created_at.slice(0, 10)}</div></div>) },
-    { key: "items", header: "Facturas", render: (_, s) => <span className="text-xs capitalize">{s.items.length === 1 ? s.items[0]!.description : `${s.items.length} facturas`}</span> },
+    { key: "items", header: "Faturas", render: (_, s) => <span className="text-xs capitalize">{s.items.length === 1 ? s.items[0]!.description : `${s.items.length} facturas`}</span> },
     { key: "total_amount", header: "Valor", render: (_, s) => <span className="font-semibold tabular-nums">{formatCurrency(s.confirmed_amount ?? s.total_amount)}</span> },
     { key: "method", header: "Método", render: (_, s) => <span className="text-xs">{METHOD_LABEL[s.method]}</span> },
     {
@@ -105,7 +105,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
       ),
     },
     {
-      key: "actions", header: "Acção",
+      key: "actions", header: "Ação",
       render: (_, s) => (
         <ButtonOnlyAction data={s} actions={[
           { label: "Ver comprovativo", icon: "Eye", onClick: openProof },
@@ -138,25 +138,25 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
         <DynamicMetricCard title={formatCurrency(debt)} subtitle="Em dívida" icon="Wallet" colors={debt > 0 ? "destructive" : "default"} description={`${payables.length} factura(s) por pagar`} />
         <DynamicMetricCard title={formatCurrency(overdue)} subtitle="Vencido" icon="TriangleAlert" colors={overdue > 0 ? "destructive" : "default"} description={overdue > 0 ? "Regularize para evitar multa de mora" : "Nada em atraso"} />
         <DynamicMetricCard title={formatCurrency(inReview)} subtitle="Em análise" icon="Hourglass" description="À espera de validação pela escola. Ainda conta como dívida e a multa pode ser criada até ser aprovado" />
-        <DynamicMetricCard title={next ? next.due_date : "—"} subtitle="Próximo vencimento" icon="CalendarClock" description={next ? `${next.description} · ${formatCurrency(next.balance)}` : "Sem facturas a vencer"} />
+        <DynamicMetricCard title={next ? next.due_date : "—"} subtitle="Próximo vencimento" icon="CalendarClock" description={next ? `${next.description} · ${formatCurrency(next.balance)}` : "Sem faturas a vencer"} />
       </div>
 
       {awaiting.length > 0 && (
         <div className="flex gap-3 rounded-lg border border-amber-500/40 bg-amber-500/5 p-3 text-sm">
           <Icon name="TriangleAlert" className="mt-0.5 size-4 shrink-0 text-amber-600" />
-          <p>A escola pediu um novo comprovativo para {awaiting.map((s) => s.protocol).join(", ")}. Use a acção «Enviar novo comprovativo» na lista abaixo.</p>
+          <p>A escola pediu um novo comprovativo para {awaiting.map((s) => s.protocol).join(", ")}. Use a ação «Enviar novo comprovativo» na lista abaixo.</p>
         </div>
       )}
 
       <section className="space-y-3">
         <div className="flex flex-wrap items-center justify-between gap-2">
           <div>
-            <h3 className="text-base font-semibold">Facturas por pagar — {studentName}</h3>
-            <p className="text-xs text-muted-foreground">Seleccione as facturas, pague por transferência e submeta o comprovativo. A escola valida e confirma por email.</p>
+            <h3 className="text-base font-semibold">Faturas por pagar — {studentName}</h3>
+            <p className="text-xs text-muted-foreground">Seleccione as faturas, pague por transferência e submeta o comprovativo. A escola valida e confirma por email.</p>
           </div>
           <Button className="gap-2" disabled={chosen.length === 0 || pay.banks.length === 0} onClick={openPay}>
             <Icon name="Landmark" className="size-4" />
-            {chosen.length ? `Pagar ${chosen.length} factura(s) · ${formatCurrency(total)}` : "Pagar facturas"}
+            {chosen.length ? `Pagar ${chosen.length} factura(s) · ${formatCurrency(total)}` : "Pagar faturas"}
           </Button>
         </div>
         {pay.banks.length === 0 && <p className="rounded-lg border border-dashed p-3 text-xs text-muted-foreground">A escola ainda não indicou os dados bancários para pagamento online. Contacte a secretaria.</p>}
@@ -166,7 +166,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
           columns={payableColumns}
           isLoading={pay.isLoading}
           pageSize={8}
-          searchPlaceholder="Pesquisar factura"
+          searchPlaceholder="Pesquisar fatura"
           searchText={(p) => `${p.description} ${p.payment_reference}`}
           filters={[
             { key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "vencida", label: "Vencidas" }, { value: "porpagar", label: "Por pagar" }, { value: "analise", label: "Com comprovativo em análise" }], match: (p, v) => (v === "vencida" ? p.is_overdue : v === "porpagar" ? !p.is_overdue : Number(p.reserved) > 0) },
@@ -174,7 +174,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
           ]}
           dateFilters={[{ key: "vencimento", label: "Vencimento", getDate: (p) => p.due_date }]}
           sorts={[{ value: "vencimento", label: "Vencimento", compare: (a, b) => a.due_date.localeCompare(b.due_date) }, { value: "valor", label: "Valor", compare: (a, b) => Number(a.balance) - Number(b.balance) }]}
-          emptyTitle="Sem facturas por pagar"
+          emptyTitle="Sem faturas por pagar"
           emptyDescription="Está tudo em dia. Obrigado!"
           emptyIcon="CircleCheck"
         />
@@ -231,7 +231,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
 
           <section className="space-y-3">
             <h4 className="flex items-center gap-2 text-sm font-semibold"><span className="flex size-5 items-center justify-center rounded-full bg-primary text-[11px] text-primary-foreground">2</span>Submeta o comprovativo</h4>
-            <p className="text-xs text-muted-foreground">Pode pagar menos do que está em dívida em cada factura: fica como pagamento parcial e o resto continua por pagar. A escola confirma o valor e só então o pagamento fica registado.</p>
+            <p className="text-xs text-muted-foreground">Pode pagar menos do que está em dívida em cada fatura: fica como pagamento parcial e o resto continua por pagar. A escola confirma o valor e só então o pagamento fica registado.</p>
             <ul className="divide-y rounded-lg border">
               {chosen.map((p) => (
                 <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 text-sm">
@@ -252,7 +252,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
         </div>
       </GlobalModal>
 
-      <ConfirmModal id={CANCEL_MODAL} title="Cancelar comprovativo" description={cancelTarget ? `Cancelar o comprovativo ${cancelTarget.protocol}? As facturas voltam a ficar disponíveis para pagamento.` : ""} destructive confirmLabel="Cancelar comprovativo"
+      <ConfirmModal id={CANCEL_MODAL} title="Cancelar comprovativo" description={cancelTarget ? `Cancelar o comprovativo ${cancelTarget.protocol}? As faturas voltam a ficar disponíveis para pagamento.` : ""} destructive confirmLabel="Cancelar comprovativo"
         onConfirm={() => (cancelTarget ? pay.cancel.mutateAsync(cancelTarget.id).then(() => { SucessMessage("Comprovativo cancelado."); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível cancelar.")); throw e; }) : Promise.resolve())} />
     </div>
   );

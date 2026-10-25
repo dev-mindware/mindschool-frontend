@@ -174,7 +174,7 @@ export function CouncilsPageContent() {
     { key: "scheduled_at", header: "Agendado para", render: (_, c) => <span className="text-xs">{formatDateTime(c.scheduled_at)}</span> },
     { key: "agenda", header: "Agenda", render: (_, c) => <span className="line-clamp-1 text-muted-foreground">{c.agenda ?? "—"}</span> },
     { key: "status", header: "Estado", render: (_, c) => <Badge variant="outline">{c.status === "encerrado" ? "Encerrado" : "Agendado"}</Badge> },
-    { key: "action", header: "Acção", render: (_, c) => <ButtonOnlyAction data={c} actions={[{ label: "Abrir conselho", icon: "Eye", onClick: (x) => { setOpenId(x.id); openModal("council-detail"); } }]} /> },
+    { key: "action", header: "Ação", render: (_, c) => <ButtonOnlyAction data={c} actions={[{ label: "Abrir conselho", icon: "Eye", onClick: (x) => { setOpenId(x.id); openModal("council-detail"); } }]} /> },
   ];
 
   return (

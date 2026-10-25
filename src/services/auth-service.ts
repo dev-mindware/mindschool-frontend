@@ -4,7 +4,7 @@ import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import api from "./api";
 
 export const authService = {
-  /** Utilizador actual + escolas a que pertence (`GET /auth/me`); sincroniza a escola activa. */
+  /** Utilizador atual + escolas a que pertence (`GET /auth/me`); sincroniza a escola ativa. */
   getMe: async (): Promise<User | null> => {
     try {
       const response = await api.get<ApiMe>("/auth/me");
@@ -19,7 +19,7 @@ export const authService = {
       const sub = schoolId && !familyOnly ? await api.get<ApiSubscription>(`/schools/${schoolId}/subscription/entitlements`).then((r) => mapApiSubscription(r.data)).catch(() => undefined) : undefined;
       return mapApiUser(response.data, schoolId, sub);
     } catch (error) {
-      console.error("Erro ao obter o utilizador actual:", error);
+      console.error("Erro ao obter o utilizador atual:", error);
       return null;
     }
   },

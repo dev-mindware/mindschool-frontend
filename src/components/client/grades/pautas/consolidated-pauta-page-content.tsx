@@ -71,7 +71,7 @@ export function ConsolidatedPautaPageContent() {
     <div className="space-y-6">
       <TitleList
         title={`Pauta Consolidada — ${pauta.sectionName}`}
-        suTitle={`${TERM_LABEL[pauta.term]} • Ano Lectivo ${pauta.academicYear} • Turno: ${pauta.shift} • ${pauta.students.length} Estudantes`}
+        suTitle={`${TERM_LABEL[pauta.term]} • Ano Letivo ${pauta.academicYear} • Turno: ${pauta.shift} • ${pauta.students.length} Estudantes`}
       >
         <Badge variant={pauta.isClosed ? "default" : "warning"}>
           {pauta.isClosed ? "Fechada e Homologada" : "Em Elaboração"}
@@ -127,7 +127,7 @@ export function ConsolidatedPautaPageContent() {
               Pauta Consolidada — {pauta.sectionName}
             </h2>
             <p className="text-xs text-muted-foreground mt-0.5">
-              {TERM_LABEL[pauta.term]} • Ano Lectivo {pauta.academicYear} • Turno: {pauta.shift} • {pauta.students.length} Estudantes
+              {TERM_LABEL[pauta.term]} • Ano Letivo {pauta.academicYear} • Turno: {pauta.shift} • {pauta.students.length} Estudantes
             </p>
           </div>
           <div className="text-right text-xs">
@@ -207,7 +207,7 @@ export function ConsolidatedPautaPageContent() {
                 <td className="py-2.5 px-3 text-center border-l border-border">
                   {student.transitionStatus === "APPROVED" && <Badge variant="success">Aprovado</Badge>}
                   {student.transitionStatus === "APPROVED_WITH_CONDITIONS" && (
-                    <Badge variant="info" title={student.exceptionApplied}>Excepção 7ª/8ª</Badge>
+                    <Badge variant="info" title={student.exceptionApplied}>Exceção 7ª/8ª</Badge>
                   )}
                   {student.transitionStatus === "FAILED" && <Badge variant="destructive">Não transita</Badge>}
                 </td>

@@ -9,7 +9,7 @@ export interface ExportPdfOptions {
 }
 
 /**
- * Converte qualquer elemento DOM num PDF de alta resolução e descarrega directamente para o utilizador.
+ * Converte qualquer elemento DOM num PDF de alta resolução e descarrega diretamente para o utilizador.
  */
 export async function downloadElementAsPdf(
   elementOrId: HTMLElement | string,
@@ -44,7 +44,7 @@ export async function downloadElementAsPdf(
         (t as HTMLElement).style.width = "100%";
         (t as HTMLElement).style.maxWidth = "none";
       });
-      // Desactivar posições sticky no clone para evitar sobreposição no PDF
+      // Desativar posições sticky no clone para evitar sobreposição no PDF
       const stickies = clonedEl.querySelectorAll<HTMLElement>(".sticky");
       stickies.forEach((s) => {
         s.style.position = "static";

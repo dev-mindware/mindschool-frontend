@@ -1,7 +1,7 @@
 /**
  * Papéis sensíveis (administração de sistema, Titular, direcção, financeiro) só usam a API depois de activarem o segundo factor
- * (a API responde 403 `MFA_ENROLLMENT_REQUIRED` quando a política está activa, por omissão em produção). O cliente HTTP avisa
- * a interface com este evento e `MfaEnrollmentDialog` leva o utilizador à activação, em vez de mostrar páginas «restritas» sem explicação.
+ * (a API responde 403 `MFA_ENROLLMENT_REQUIRED` quando a política está ativa, por omissão em produção). O cliente HTTP avisa
+ * a interface com este evento e `MfaEnrollmentDialog` leva o utilizador à ativação, em vez de mostrar páginas «restritas» sem explicação.
  */
 export const MFA_ENROLLMENT_EVENT = "mfa:enrollment-required";
 

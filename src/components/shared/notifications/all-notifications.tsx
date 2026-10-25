@@ -74,7 +74,7 @@ export function AllNotifications() {
     <div className="space-y-6">
       <TitleList
         title="Notificações"
-        suTitle="Mantenha-se actualizado sobre as suas actividades e mensagens"
+        suTitle="Mantenha-se atualizado sobre as suas atividades e mensagens"
       >
         <div className="flex gap-2">
           {unreadCount > 0 && (

@@ -62,7 +62,7 @@ export function GradeEntryTable({
         <span className="text-xs text-muted-foreground italic">Pendente</span>
       );
     }
-    // positiva a partir da nota mínima da escola (Políticas); o regime de excepção só se aplica na transição, não aqui
+    // positiva a partir da nota mínima da escola (Políticas); o regime de exceção só se aplica na transição, não aqui
     if (score >= passMark) {
       return (
         <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-success-border bg-success-muted text-success">
@@ -113,7 +113,7 @@ export function GradeEntryTable({
               </Badge>
             </div>
             <p className="text-muted-foreground text-[11px]">
-              Docente: {sheet.teacherName} • Última actualização:{" "}
+              Docente: {sheet.teacherName} • Última atualização:{" "}
               {formatDate(sheet.updatedAt)}{" "}
               {new Date(sheet.updatedAt).toLocaleTimeString("pt-AO", {
                 hour: "2-digit",
@@ -127,7 +127,7 @@ export function GradeEntryTable({
           {!isPautaClosed && (
             <span className="text-[11px] text-muted-foreground flex items-center gap-1">
               <Icon name="Info" className="h-3.5 w-3.5" />
-              As notas ficam guardadas ao lançar. Quem fecha a pauta da turma é a Direcção.
+              As notas ficam guardadas ao lançar. Quem fecha a pauta da turma é a Direção.
             </span>
           )}
 
@@ -205,6 +205,7 @@ export function GradeEntryTable({
                     status={entry.statuses?.continuousAssessment}
                     readOnly={isReadOnly}
                     tone="bg-info-muted/15"
+                    label={`${entry.studentName} — MAC (avaliação contínua)`}
                     onValueChange={(raw) => handleInputChange(entry.studentId, "continuousAssessment", raw)}
                     onStatusChange={onSetStatus ? (s) => onSetStatus(entry.studentId, "continuousAssessment", s) : undefined}
                   />
@@ -215,6 +216,7 @@ export function GradeEntryTable({
                     status={entry.statuses?.teacherTest}
                     readOnly={isReadOnly}
                     tone="bg-info-muted/15"
+                    label={`${entry.studentName} — NPP (prova do professor)`}
                     onValueChange={(raw) => handleInputChange(entry.studentId, "teacherTest", raw)}
                     onStatusChange={onSetStatus ? (s) => onSetStatus(entry.studentId, "teacherTest", s) : undefined}
                   />
@@ -232,6 +234,7 @@ export function GradeEntryTable({
                     status={entry.statuses?.termExam}
                     readOnly={isReadOnly}
                     tone="bg-primary/5"
+                    label={`${entry.studentName} — NPT (prova trimestral)`}
                     onValueChange={(raw) => handleInputChange(entry.studentId, "termExam", raw)}
                     onStatusChange={onSetStatus ? (s) => onSetStatus(entry.studentId, "termExam", s) : undefined}
                   />

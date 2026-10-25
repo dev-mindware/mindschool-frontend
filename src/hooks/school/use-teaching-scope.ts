@@ -15,7 +15,7 @@ export interface TeachingSubjectOption {
 /**
  * Hook para delimitar o escopo de leccionação do utilizador autenticado:
  * - Se for professor (TEACHER): restringe estritamente às turmas e disciplinas onde lecciona.
- * - Se for direcção/admin: disponibiliza visão institucional ampla da escola.
+ * - Se for direção/admin: disponibiliza visão institucional ampla da escola.
  */
 export function useTeachingScope() {
   const { user } = useAuth();
@@ -35,7 +35,7 @@ export function useTeachingScope() {
     );
   }, [user, teachers]);
 
-  // Atribuições docentes do utilizador actual
+  // Atribuições docentes do utilizador atual
   const myAssignments = useMemo(() => {
     if (!isTeacher) return allAssignments;
     return allAssignments.filter((a) => {
@@ -58,7 +58,7 @@ export function useTeachingScope() {
   /**
    * Devolve as disciplinas disponíveis para uma determinada turma:
    * - Para professores: APENAS as disciplinas que ele lecciona na turma seleccionada.
-   * - Para direcção/admin: todas as disciplinas com atribuição nessa turma.
+   * - Para direção/admin: todas as disciplinas com atribuição nessa turma.
    */
   const getSubjectsForSection = useMemo(() => {
     return (sectionId: string): TeachingSubjectOption[] => {
@@ -80,7 +80,7 @@ export function useTeachingScope() {
         return Array.from(map.values());
       }
 
-      // Direcção / Admin: todas as disciplinas atribuídas à turma
+      // Direção / Admin: todas as disciplinas atribuídas à turma
       const classAssignments = allAssignments.filter((a) => a.sectionId === sectionId);
       const map = new Map<string, TeachingSubjectOption>();
       for (const a of classAssignments) {

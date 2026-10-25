@@ -10,7 +10,7 @@ import {
 } from "@/components/ui/sheet";
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Button, Icon } from "@/components";
-import { MIND_WEEKLY_MESSAGE_LIMIT, countWeeklyUserMessages, MIND_RETRY_ERROR_MESSAGE } from "@/constants/mind-ai";
+import { MIND_WEEKLY_MESSAGE_LIMIT, countWeeklyUserMessages, MIND_RETRY_ERROR_MESSAGE, mindSchoolContext, suggestionChipsFor } from "@/constants/mind-ai";
 import { useAuthStore } from "@/stores";
 import { useSendChatMessage } from "@/hooks";
 import { ChatHistoryItem } from "@/types";
@@ -382,7 +382,8 @@ export function ChatbotSheet() {
         sessionId,
         companyId: user.company.id,
         userId: user.id,
-        storeId: user.store?.id ?? null,
+        storeId: null, // a escola não tem lojas
+        ...mindSchoolContext(user),
         role: user.role,
         history: historyPayload,
       },
@@ -601,6 +602,7 @@ export function ChatbotSheet() {
             messagesEndRef={messagesEndRef}
             totalMessagesUsed={totalMessagesUsed}
             messageLimit={mindMessageLimit}
+            chips={suggestionChipsFor(user?.role)}
           />
 
           <HistoryTab sessions={sessions} openSession={openSession} />

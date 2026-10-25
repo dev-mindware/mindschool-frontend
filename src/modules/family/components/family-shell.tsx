@@ -37,7 +37,7 @@ export function FamilyShell({ title, description, perStudent = true, children }:
           <div>
             <h3 className="font-semibold text-foreground">{ward.student.full_name}</h3>
             <p className="text-xs text-muted-foreground">
-              {ward.current_enrollment ? `${ward.current_enrollment.class_level} ${ward.current_enrollment.section} • ${ward.current_enrollment.shift}` : "Sem matrícula activa"} • {ward.relationship_type}
+              {ward.current_enrollment ? `${ward.current_enrollment.class_level} ${ward.current_enrollment.section} • ${ward.current_enrollment.shift}` : "Sem matrícula ativa"} • {ward.relationship_type}
             </p>
           </div>
           <Badge variant="outline">{ward.student.status}</Badge>

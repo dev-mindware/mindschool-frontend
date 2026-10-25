@@ -60,7 +60,7 @@ export function AssignmentsList({ assignments, isLoading }: AssignmentsListProps
     },
     {
       key: "academicYear",
-      header: "Ano Lectivo",
+      header: "Ano Letivo",
       render: (_, item) => (
         <span className="text-xs text-muted-foreground font-mono">
           {item.academicYear}
@@ -90,7 +90,7 @@ export function AssignmentsList({ assignments, isLoading }: AssignmentsListProps
           { key: "professor", label: "Professor", icon: "User", options: uniq(assignments.map((a) => a.teacherName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.teacherName === v },
           { key: "turma", label: "Turma", icon: "Users", options: uniq(assignments.map((a) => a.sectionName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.sectionName === v },
           { key: "disciplina", label: "Disciplina", icon: "BookOpen", options: uniq(assignments.map((a) => a.subjectName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.subjectName === v },
-          { key: "ano", label: "Ano lectivo", icon: "CalendarRange", options: uniq(assignments.map((a) => a.academicYear)).map((v) => ({ value: v, label: v })), match: (a, v) => a.academicYear === v },
+          { key: "ano", label: "Ano letivo", icon: "CalendarRange", options: uniq(assignments.map((a) => a.academicYear)).map((v) => ({ value: v, label: v })), match: (a, v) => a.academicYear === v },
           { key: "carga", label: "Carga semanal", icon: "Clock", options: [{ value: "baixa", label: "Até 2 h" }, { value: "media", label: "3 a 4 h" }, { value: "alta", label: "5 h ou mais" }], match: (a, v) => (v === "baixa" ? a.weeklyHours <= 2 : v === "media" ? a.weeklyHours >= 3 && a.weeklyHours <= 4 : a.weeklyHours >= 5) },
         ]}
         dateFilters={[{ key: "criada", label: "Atribuição", getDate: (a) => a.createdAt }]}

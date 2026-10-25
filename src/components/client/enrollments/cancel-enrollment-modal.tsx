@@ -86,10 +86,10 @@ export function CancelEnrollmentModal({
             a data de hoje e fica registada na auditoria.
           </p>
           <ul className="mt-2 list-disc space-y-0.5 pl-4">
-            <li>As facturas ainda por pagar são anuladas (as já certificadas ficam a precisar de nota de crédito).</li>
+            <li>As faturas ainda por pagar são anuladas (as já certificadas ficam a precisar de nota de crédito).</li>
             <li>A vaga é libertada e o primeiro da lista de espera da classe é promovido.</li>
             <li>Se for a única matrícula do aluno, o aluno passa a «inactivo».</li>
-            <li>Depois do fim do 2.º trimestre só a Direcção, com justificação documentada, pode anular.</li>
+            <li>Depois do fim do 2.º trimestre só a Direção, com justificação documentada, pode anular.</li>
           </ul>
         </div>
 

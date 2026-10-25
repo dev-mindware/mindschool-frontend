@@ -15,10 +15,10 @@ const ORDER_LABEL: Record<string, string> = {
   pending_payment: "A aguardar pagamento", payment_proof_submitted: "Comprovativo enviado", under_review: "Em análise", proof_replacement_required: "Comprovativo a substituir",
   approved: "Aprovada", rejected: "Rejeitada", cancelled: "Cancelada",
 };
-const STATUS_LABEL: Record<string, string> = { trial: "Período de teste", active: "Activa", past_due: "Pagamento em atraso", grace: "Em tolerância", suspended: "Suspensa", cancelled: "Cancelada", expired: "Expirada" };
+const STATUS_LABEL: Record<string, string> = { trial: "Período de teste", active: "Ativa", past_due: "Pagamento em atraso", grace: "Em tolerância", suspended: "Suspensa", cancelled: "Cancelada", expired: "Expirada" };
 const QUOTA_NAME: Record<string, string> = {
   students: "Alunos", users: "Utilizadores internos", teachers: "Professores", sections: "Turmas",
-  exports_month: "Exportações este mês", academic_years_active: "Anos lectivos activos", storage_mb: "Armazenamento",
+  exports_month: "Exportações este mês", academic_years_active: "Anos letivos ativos", storage_mb: "Armazenamento",
 };
 const QUOTA_NOTE: Record<string, string> = {
   users: "Conta só quem tem papel interno (direcção, secretaria, financeiro, professor). Encarregados e alunos não contam.",
@@ -48,7 +48,7 @@ export function SubscriptionManager() {
     { key: "status", header: "Estado", render: (_, o) => <Badge variant="outline">{ORDER_LABEL[o.status] ?? o.status}</Badge> },
     { key: "proofs", header: "Comprovativo", render: (_, o) => (o.proofs.length ? <span className="text-xs">{o.proofs.find((p) => p.is_current)?.file_name ?? "—"}</span> : "—") },
     {
-      key: "action", header: "Acção",
+      key: "action", header: "Ação",
       render: (_, o) => OPEN.includes(o.status) ? (
         <ButtonOnlyAction data={o} actions={[
           { label: "Enviar comprovativo", icon: "Upload", onClick: (x) => { setOrder(x); setFile(null); openModal("sub-proof"); } },
@@ -66,10 +66,10 @@ export function SubscriptionManager() {
 
       {sub && (
         <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
-          <DynamicMetricCard title={sub.plan.name} subtitle="Plano actual" icon="Crown" description={sub.message} />
+          <DynamicMetricCard title={sub.plan.name} subtitle="Plano atual" icon="Crown" description={sub.message} />
           <DynamicMetricCard title={STATUS_LABEL[sub.status] ?? sub.status} subtitle="Estado" icon="CircleDot" colors={["suspended", "expired", "cancelled", "past_due"].includes(sub.status) ? "destructive" : "default"} description={sub.pending_plan ? `Mudança para ${sub.pending_plan.name} em ${sub.pending_plan.effective_at}` : undefined} />
           <DynamicMetricCard title={sub.trial_ends_at ? sub.trial_ends_at.slice(0, 10) : (sub.period_end ?? "—")} subtitle={sub.trial_ends_at ? "Teste até" : "Pago até"} icon="CalendarClock" description={sub.cancel_at_period_end ? "Cancelamento agendado" : undefined} />
-          <DynamicMetricCard title={current?.addons.length ?? 0} subtitle="Add-ons activos" icon="Puzzle" description={current?.addons.map((a) => a.name).join(", ") || "Nenhum"} />
+          <DynamicMetricCard title={current?.addons.length ?? 0} subtitle="Add-ons ativos" icon="Puzzle" description={current?.addons.map((a) => a.name).join(", ") || "Nenhum"} />
         </div>
       )}
 
@@ -125,13 +125,13 @@ export function SubscriptionManager() {
         />
       </div>
 
-      <FormModal id="sub-proof" title="Enviar comprovativo" description={`${catalog?.payment_instructions ?? ""}`.trim() || "O comprovativo (PDF ou PNG, até 10 MB) é analisado pela equipa; o plano só é activado após a aprovação."} submitLabel="Enviar" isLoading={submitProof.isPending} disabled={!file} onSubmit={() => (order && file ? submitProof.mutateAsync({ orderId: order.id, file }).then(() => SucessMessage("Comprovativo enviado para análise.")).catch(fail) : undefined)}>
+      <FormModal id="sub-proof" title="Enviar comprovativo" description={`${catalog?.payment_instructions ?? ""}`.trim() || "O comprovativo (PDF ou PNG, até 10 MB) é analisado pela equipa; o plano só é ativado após a aprovação."} submitLabel="Enviar" isLoading={submitProof.isPending} disabled={!file} onSubmit={() => (order && file ? submitProof.mutateAsync({ orderId: order.id, file }).then(() => SucessMessage("Comprovativo enviado para análise.")).catch(fail) : undefined)}>
         <FileUpload value={file} onChange={setFile} accept={PROOF_ACCEPT_PDF_PNG} label="Ficheiro do comprovativo (PDF ou PNG) *" />
       </FormModal>
 
       <ConfirmModal id="sub-cancel-order" destructive title="Cancelar ordem" description="A ordem deixa de ser analisada. Pode criar outra quando quiser." confirmLabel="Cancelar ordem" isLoading={cancelOrder.isPending} onConfirm={() => (order ? cancelOrder.mutateAsync(order.id).then(() => SucessMessage("Ordem cancelada.")).catch(fail) : undefined)} />
 
-      <FormModal id="sub-cancel" title="Cancelar subscrição" description="Mantém-se activa até ao fim do período pago. Indique o motivo (mínimo 5 caracteres)." submitLabel="Agendar cancelamento" isLoading={cancelSubscription.isPending} disabled={reason.trim().length < 5} onSubmit={() => cancelSubscription.mutateAsync(reason.trim()).then(() => SucessMessage("Cancelamento agendado para o fim do período.")).catch(fail)}>
+      <FormModal id="sub-cancel" title="Cancelar subscrição" description="Mantém-se ativa até ao fim do período pago. Indique o motivo (mínimo 5 caracteres)." submitLabel="Agendar cancelamento" isLoading={cancelSubscription.isPending} disabled={reason.trim().length < 5} onSubmit={() => cancelSubscription.mutateAsync(reason.trim()).then(() => SucessMessage("Cancelamento agendado para o fim do período.")).catch(fail)}>
         <div className="sm:col-span-2"><Input label="Motivo *" value={reason} onChange={(e) => setReason(e.target.value)} /></div>
       </FormModal>
     </div>

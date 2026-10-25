@@ -42,7 +42,7 @@ export function MultiSchoolPageContent() {
     return (
       <EmptyState
         icon="Lock"
-        title="Multi-Escola indisponível no plano actual"
+        title="Multi-Escola indisponível no plano atual"
         description="O painel consolidado do grupo faz parte do plano Enterprise. Nenhuma escola do grupo o tem contratado de momento."
       >
         <Button size="sm" onClick={() => planModal.open({ requiredPlan: 'enterprise', featureName: 'Multi-Escola', description: 'O painel consolidado do grupo faz parte do plano Enterprise.' })}>Ver o plano Enterprise</Button>
@@ -64,16 +64,16 @@ export function MultiSchoolPageContent() {
       { key: 'dropout_rate', header: 'Abandono', render: (_: unknown, s: (typeof schools)[number]) => <span className="font-mono">{pct(s.dropout_rate)}</span> },
     ] : []),
     ...(hasMoney ? [
-      { key: 'invoiced', header: 'Facturado', render: (_: unknown, s: (typeof schools)[number]) => <span className="font-mono">{formatCurrencyCompact(s.invoiced)}</span> },
+      { key: 'invoiced', header: 'Faturado', render: (_: unknown, s: (typeof schools)[number]) => <span className="font-mono">{formatCurrencyCompact(s.invoiced)}</span> },
       { key: 'collected', header: 'Cobrado', render: (_: unknown, s: (typeof schools)[number]) => <span className="font-mono">{formatCurrencyCompact(s.collected)}</span> },
       { key: 'collection_rate', header: 'Cobrança', render: (_: unknown, s: (typeof schools)[number]) => <span className="font-mono">{pct(s.collection_rate)}</span> },
       { key: 'delinquency_rate', header: 'Inadimplência', render: (_: unknown, s: (typeof schools)[number]) => <span className="font-mono">{pct(s.delinquency_rate)}</span> },
     ] : []),
     {
-      key: 'enter', header: 'Acção',
-      // Entrar numa escola é trocar de escola activa (o mesmo que o switcher da sidebar); só nas escolas onde o utilizador tem conta.
+      key: 'enter', header: 'Ação',
+      // Entrar numa escola é trocar de escola ativa (o mesmo que o switcher da sidebar); só nas escolas onde o utilizador tem conta.
       render: (_: unknown, s: (typeof schools)[number]) => s.school.id === current?.schoolId
-        ? <Badge variant="outline">Escola activa</Badge>
+        ? <Badge variant="outline">Escola ativa</Badge>
         : mySchools.some((m) => m.schoolId === s.school.id)
           ? <Button size="sm" variant="outline" onClick={() => switchSchool(s.school.id)}>Entrar</Button>
           : <span className="text-xs text-muted-foreground">Sem acesso</span>,
@@ -87,7 +87,7 @@ export function MultiSchoolPageContent() {
     { key: 'granted_at', header: 'Desde', render: (_, m) => <span className="text-xs">{m.granted_at.slice(0, 10)}</span> },
     {
       key: 'actions',
-      header: 'Acção',
+      header: 'Ação',
       render: (_, m) => (
         <ButtonOnlyAction data={m} actions={[
           { label: 'Alterar papel', icon: 'UserCog', onClick: (x) => { setEditing(x); setEditRole(x.role); openModal('group-member-role'); } },
@@ -175,7 +175,7 @@ export function MultiSchoolPageContent() {
       </FormModal>
 
       <FormModal id="group-member-role" title="Alterar papel" description={editing?.full_name} submitLabel="Guardar" isLoading={g.setRole.isPending}
-        onSubmit={() => (editing ? g.setRole.mutateAsync({ userId: editing.user_id, role: editRole }).then(() => { SucessMessage('Papel actualizado.'); }).catch((e) => fail(e)) : undefined)}>
+        onSubmit={() => (editing ? g.setRole.mutateAsync({ userId: editing.user_id, role: editRole }).then(() => { SucessMessage('Papel atualizado.'); }).catch((e) => fail(e)) : undefined)}>
         <div className="sm:col-span-2"><FormSelect label="Papel" value={editRole} onValueChange={(v) => setEditRole(v as GroupRole)} options={ROLE_OPTIONS} /></div>
       </FormModal>
 

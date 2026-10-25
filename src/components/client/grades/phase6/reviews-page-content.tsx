@@ -12,7 +12,7 @@ const TYPE: Record<string, string> = { avaliacao_continua: "Aval. contínua", av
 const val = (g: ApiReview["grade"]) => (g ? (g.numeric_value ?? g.qualitative_value ?? g.status) : "—");
 
 
-/** Reapreciação de notas: o professor da disciplina inicia a revisão; a Direcção decide (deferir cria nova versão da nota). */
+/** Reapreciação de notas: o professor da disciplina inicia a revisão; a Direção decide (deferir cria nova versão da nota). */
 export function GradeReviewsPageContent() {
   const { reviews, isLoading, forbidden, start, decide } = useGradeReviews(undefined);
   const { openModal, closeModal } = useModal();
@@ -32,14 +32,14 @@ export function GradeReviewsPageContent() {
     { key: "grade", header: "Nota", render: (_, r) => <span className="font-mono">{val(r.grade)}{r.new_grade ? ` → ${val(r.new_grade)}` : ""}</span> },
     { key: "created_at", header: "Pedido em", render: (_, r) => <span className="font-mono text-xs">{r.created_at.slice(0, 10)}</span> },
     { key: "status", header: "Estado", render: (_, r) => <Badge variant={r.status === "deferido" ? "default" : r.status === "indeferido" ? "destructive" : "outline"}>{REVIEW_STATUS_LABEL[r.status]}</Badge> },
-    { key: "action", header: "Acção", render: (_, r) => <ButtonOnlyAction data={r} actions={[{ label: ["pedido", "em_revisao"].includes(r.status) ? "Rever / decidir" : "Ver detalhe", icon: "Eye", onClick: open }]} /> },
+    { key: "action", header: "Ação", render: (_, r) => <ButtonOnlyAction data={r} actions={[{ label: ["pedido", "em_revisao"].includes(r.status) ? "Rever / decidir" : "Ver detalhe", icon: "Eye", onClick: open }]} /> },
   ];
 
   const subjects = [...new Set(reviews.map((r) => r.assessment.subject))].sort();
 
   return (
     <div className="space-y-6">
-      <TitleList title="Reapreciação de Notas" suTitle="Pedidos dos encarregados/alunos sobre notas de pautas fechadas: revisão pelo professor e decisão da Direcção." />
+      <TitleList title="Reapreciação de Notas" suTitle="Pedidos dos encarregados/alunos sobre notas de pautas fechadas: revisão pelo professor e decisão da Direção." />
 
       <DataList<ApiReview>
         prefix="reapreciacoes"
@@ -67,7 +67,7 @@ export function GradeReviewsPageContent() {
       <FormModal id="review-detail" title={active ? `${active.student.full_name} — ${active.assessment.subject}` : "Reapreciação"} description={active ? REVIEW_STATUS_LABEL[active.status] : undefined} size="lg" readOnly onSubmit={() => undefined}>
         {active && (
           <div className="sm:col-span-2 space-y-3 text-sm">
-            <p><span className="text-muted-foreground">Nota actual:</span> <strong className="font-mono">{val(active.grade)}</strong> (v{active.grade?.version ?? "—"})</p>
+            <p><span className="text-muted-foreground">Nota atual:</span> <strong className="font-mono">{val(active.grade)}</strong> (v{active.grade?.version ?? "—"})</p>
             <p className="rounded-lg border p-2"><span className="text-muted-foreground">Motivo do pedido:</span> {active.reason}</p>
             {active.review_note && <p className="rounded-lg border p-2"><span className="text-muted-foreground">Revisão:</span> {active.review_note}</p>}
             {active.decision_note && <p className="rounded-lg border p-2"><span className="text-muted-foreground">Decisão:</span> {active.decision_note}</p>}
@@ -76,7 +76,7 @@ export function GradeReviewsPageContent() {
                 <FormTextarea label="Parecer / fundamentação (mín. 10 caracteres para decidir)" value={note} onChange={setNote} />
                 <Input label="Nota corrigida (0-20)" type="quantity" min={0} max={20} step={0.5} value={newValue} onChange={(e) => setNewValue(e.target.value)} />
                 <ul className="list-disc space-y-1 pl-4 text-[11px] text-muted-foreground">
-                  <li><strong>Deferir</strong> cria uma nova versão da nota (a anterior fica no histórico) e exige uma nota diferente da actual. Se a pauta estiver fechada, volta a guardar-se uma versão da pauta e a proposta de transição do aluno pode ter de ser revista.</li>
+                  <li><strong>Deferir</strong> cria uma nova versão da nota (a anterior fica no histórico) e exige uma nota diferente da atual. Se a pauta estiver fechada, volta a guardar-se uma versão da pauta e a proposta de transição do aluno pode ter de ser revista.</li>
                   <li><strong>Indeferir</strong> mantém a nota. Nos dois casos a justificação (mín. 10 caracteres) fica registada.</li>
                 </ul>
                 <div className="flex flex-wrap items-end gap-2">

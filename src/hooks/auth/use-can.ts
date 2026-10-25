@@ -3,7 +3,7 @@
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 
 /**
- * Permissões efectivas do utilizador na escola activa (as mesmas que a API aplica). Serve para a interface mostrar só o
+ * Permissões efectivas do utilizador na escola ativa (as mesmas que a API aplica). Serve para a interface mostrar só o
  * que o papel pode fazer: quem só lê não vê botões de criar/editar. A API continua a ser a única barreira.
  * Sem a lista (sessão antiga) assume-se «pode», e a API recusa se não puder.
  */

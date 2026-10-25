@@ -23,7 +23,7 @@ export function RequestsTable() {
     { key: "type", header: "Serviço / assunto", render: (_, r) => (<div className="flex flex-col"><span className="font-medium">{REQUEST_TYPE_LABEL[r.type]}</span><span className="line-clamp-1 text-xs italic text-muted-foreground">{r.subject}</span></div>) },
     { key: "status", header: "Estado", render: (_, r) => <RequestStatusBadge status={r.status} /> },
     {
-      key: "action", header: "Acção",
+      key: "action", header: "Ação",
       render: (_, r) => <ButtonOnlyAction data={r} actions={[
         { label: "Abrir / tratar", icon: "Eye", onClick: (x) => { setSelectedId(x.id); openModal("request-detail"); } },
         { label: "Comprovativo (PDF)", icon: "FileDown", onClick: (x) => { setSlip(x); openModal("request-slip"); } },

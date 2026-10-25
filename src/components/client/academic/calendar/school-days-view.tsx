@@ -12,16 +12,16 @@ import { ErrorMessage, SucessMessage } from "@/utils/messages";
 
 type Kind = "lectivo" | "fim_de_semana" | "pausa" | "marca" | "feriado";
 
-const WEEKEND_REASONS = ["Fim de semana", "Dia da semana nao lectivo"];
+const WEEKEND_REASONS = ["Fim de semana", "Dia da semana nao letivo"];
 
 const kindOf = (d: ApiSchoolDay): Kind => {
   if (d.lectivo) return "lectivo";
   if (WEEKEND_REASONS.includes(d.reason)) return "fim_de_semana";
-  if (d.reason === "Fora dos periodos lectivos") return "pausa";
+  if (d.reason === "Fora dos periodos letivos") return "pausa";
   return d.source === "calendario" ? "marca" : "feriado";
 };
 
-const KIND_LABEL: Record<"marca" | "feriado", string> = { marca: "Marca da Direcção", feriado: "Feriado" };
+const KIND_LABEL: Record<"marca" | "feriado", string> = { marca: "Marca da Direção", feriado: "Feriado" };
 const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."));
 
 function MarkDayModal() {
@@ -33,10 +33,10 @@ function MarkDayModal() {
   const submit = () =>
     mark
       .mutateAsync({ startDate: f.start, endDate: f.end || undefined, title: f.title.trim(), justification: f.justification.trim() })
-      .then(() => { SucessMessage("Dia(s) marcado(s) como não lectivo(s)."); setF({ start: "", end: "", title: "", justification: "" }); })
+      .then(() => { SucessMessage("Dia(s) marcado(s) como não letivo(s)."); setF({ start: "", end: "", title: "", justification: "" }); })
       .catch((e) => { fail(e); throw e; });
   return (
-    <FormModal id="school-days-mark" title="Marcar dia não lectivo" description="Use para decretos, calamidades ou encerramentos. Estes dias deixam de ser lectivos: o contador de dias lectivos desce e a assiduidade já não é exigida (as faltas já lançadas não se apagam). Só se marcam dias dentro do ano lectivo; a marca remove-se depois, com «Remover marca»." submitLabel="Marcar" isLoading={mark.isPending} onSubmit={submit} disabled={!f.start || f.title.trim().length < 3 || f.justification.trim().length < 5}>
+    <FormModal id="school-days-mark" title="Marcar dia não letivo" description="Use para decretos, calamidades ou encerramentos. Estes dias deixam de ser letivos: o contador de dias letivos desce e a assiduidade já não é exigida (as faltas já lançadas não se apagam). Só se marcam dias dentro do ano letivo; a marca remove-se depois, com «Remover marca»." submitLabel="Marcar" isLoading={mark.isPending} onSubmit={submit} disabled={!f.start || f.title.trim().length < 3 || f.justification.trim().length < 5}>
       <Input label="Início *" type="date" value={f.start} onChange={(e) => set("start", e.target.value)} />
       <Input label="Fim (opcional)" type="date" value={f.end} onChange={(e) => set("end", e.target.value)} />
       <div className="sm:col-span-2"><Input label="Título *" startIcon="CalendarX" value={f.title} onChange={(e) => set("title", e.target.value)} /></div>
@@ -46,8 +46,8 @@ function MarkDayModal() {
 }
 
 /**
- * Calendário do Essencial: dias lectivos, feriados e marcas da Direcção do ano lectivo, só de leitura (a Direcção pode
- * marcar dias não lectivos). Os eventos, as actividades e o Google Calendar fazem parte do plano Profissional.
+ * Calendário do Essencial: dias letivos, feriados e marcas da Direção do ano letivo, só de leitura (a Direção pode
+ * marcar dias não letivos). Os eventos, as atividades e o Google Calendar fazem parte do plano Profissional.
  */
 export function SchoolDaysView() {
   const [month, setMonth] = useState(() => new Date());
@@ -76,20 +76,20 @@ export function SchoolDaysView() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Calendário Escolar" suTitle={s.year ? `Ano lectivo ${s.year.name}: dias lectivos, feriados e marcas da Direcção.` : "Não há ano lectivo activo."}>
+      <TitleList title="Calendário Escolar" suTitle={s.year ? `Ano letivo ${s.year.name}: dias letivos, feriados e marcas da Direção.` : "Não há ano letivo ativo."}>
         <Can permission="calendar:mark_day">
-          <Button size="sm" className="gap-1.5" disabled={!s.year} onClick={() => openModal("school-days-mark")}><Icon name="CalendarX" className="size-4" />Marcar dia não lectivo</Button>
+          <Button size="sm" className="gap-1.5" disabled={!s.year} onClick={() => openModal("school-days-mark")}><Icon name="CalendarX" className="size-4" />Marcar dia não letivo</Button>
         </Can>
       </TitleList>
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-3">
-        <DynamicMetricCard title={count("lectivo")} subtitle="Dias lectivos no mês" icon="CalendarCheck" description="Dias de aulas para os alunos" />
+        <DynamicMetricCard title={count("lectivo")} subtitle="Dias letivos no mês" icon="CalendarCheck" description="Dias de aulas para os alunos" />
         <DynamicMetricCard title={count("feriado")} subtitle="Feriados no mês" icon="PartyPopper" description="Calculados pela regra nacional" />
-        <DynamicMetricCard title={count("marca")} subtitle="Marcas da Direcção" icon="CalendarX" description="Dias não lectivos decretados" colors={count("marca") > 0 ? "destructive" : "default"} />
+        <DynamicMetricCard title={count("marca")} subtitle="Marcas da Direção" icon="CalendarX" description="Dias não letivos decretados" colors={count("marca") > 0 ? "destructive" : "default"} />
       </div>
 
       <MonthCalendar items={items} month={month} onMonthChange={setMonth} markedDays={nonLective} />
-      <p className="text-xs text-muted-foreground">Dias com fundo âmbar são não lectivos (feriados, pausas e marcas da Direcção). Fins de semana não se destacam.</p>
+      <p className="text-xs text-muted-foreground">Dias com fundo âmbar são não letivos (feriados, pausas e marcas da Direção). Fins de semana não se destacam.</p>
 
       <section className="space-y-2">
         <h3 className="text-sm font-semibold">Feriados e marcas deste mês</h3>
@@ -119,7 +119,7 @@ export function SchoolDaysView() {
         <div className="flex items-start gap-3">
           <Icon name="Lock" className="mt-0.5 size-4 text-muted-foreground" />
           <div>
-            <p className="text-sm font-medium">Quer planear actividades, avaliações e reuniões no calendário?</p>
+            <p className="text-sm font-medium">Quer planear atividades, avaliações e reuniões no calendário?</p>
             <p className="text-xs text-muted-foreground">O calendário geral, as revisões com impacto e a ligação ao Google Calendar estão no plano Profissional.</p>
           </div>
         </div>
@@ -128,7 +128,7 @@ export function SchoolDaysView() {
 
       <MarkDayModal />
       <ConfirmModal
-        id="school-days-unmark" destructive title="Remover marca de dia não lectivo" description={toRemove ? `Os dias de «${toRemove.reason}» voltam a contar como lectivos.` : ""}
+        id="school-days-unmark" destructive title="Remover marca de dia não letivo" description={toRemove ? `Os dias de «${toRemove.reason}» voltam a contar como letivos.` : ""}
         confirmLabel="Remover" isLoading={s.unmark.isPending}
         onConfirm={() => (toRemove?.event_id ? s.unmark.mutateAsync(toRemove.event_id).then(() => SucessMessage("Marca removida.")).catch((e) => { fail(e); throw e; }) : Promise.resolve())}
       />

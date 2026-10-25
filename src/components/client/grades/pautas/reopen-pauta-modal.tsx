@@ -107,7 +107,7 @@ export function ReopenPautaModal({
         <div className="space-y-1.5 rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground">
           <p className="font-semibold text-foreground">Antes de reabrir</p>
           <ul className="list-disc space-y-1 pl-4">
-            <li>Só a Direcção pode reabrir, e só enquanto o ano lectivo não estiver encerrado.</li>
+            <li>Só a Direção pode reabrir, e só enquanto o ano letivo não estiver encerrado.</li>
             <li>Não é possível se já existirem decisões de transição confirmadas: é preciso anulá-las primeiro.</li>
             <li>A versão guardada ao fechar não se apaga; ao fechar de novo cria-se uma versão nova. Fica tudo na auditoria, com o seu nome.</li>
           </ul>

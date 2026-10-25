@@ -3,6 +3,7 @@
 import { Badge, DataList, DynamicMetricCard, TitleList, type Column } from "@/components";
 import { useSchoolEmails } from "@/modules/finance/hooks/use-tuition-payments";
 import type { ApiEmailLog } from "@/modules/finance/services/tuition-payments-service";
+import { formatDateTime } from "@/utils/format-date";
 
 export const EMAIL_STATUS: Record<ApiEmailLog["status"], { label: string; variant: "success" | "destructive" | "warning" | "secondary" }> = {
   enviado: { label: "Enviado", variant: "success" },
@@ -24,7 +25,7 @@ export function EmailStatusBadge({ status }: { status: ApiEmailLog["status"] }) 
 }
 
 export const emailLogColumns = (showSchool = false): Column<ApiEmailLog>[] => [
-  { key: "created_at", header: "Quando", render: (_, l) => <span className="text-xs">{l.created_at.slice(0, 16).replace("T", " ")}</span> },
+  { key: "created_at", header: "Quando", render: (_, l) => <span className="text-xs">{formatDateTime(l.created_at)}</span> },
   { key: "subject", header: "Assunto", render: (_, l) => (<div className="max-w-sm"><span className="line-clamp-1 font-medium">{l.subject}</span><span className="font-mono text-[11px] text-muted-foreground">{l.template_code}</span></div>) },
   { key: "recipient", header: "Destinatário", render: (_, l) => <span className="text-xs">{l.recipient}</span> },
   ...(showSchool ? [{ key: "school_id", header: "Escola", render: (_: unknown, l: ApiEmailLog) => <span className="font-mono text-[11px] text-muted-foreground">{l.school_id?.slice(-8) ?? "plataforma"}</span> }] : []),

@@ -252,7 +252,7 @@ export const admissionsService = {
     return list.map(toExam);
   },
 
-  /** Candidatura (cria o candidato se ainda nao existir) para o ano lectivo activo; a classe resolve-se pelo numero. */
+  /** Candidatura (cria o candidato se ainda nao existir) para o ano letivo ativo; a classe resolve-se pelo numero. */
   submit: async (v: {
     fullName: string;
     birthDate: string;
@@ -266,7 +266,7 @@ export const admissionsService = {
     documents?: ApplicationDocuments;
   }) => {
     const [year, levels] = await Promise.all([academicService.activeYear(), academicService.classLevels()]);
-    if (!year) throw new Error("Não há ano lectivo activo.");
+    if (!year) throw new Error("Não há ano letivo ativo.");
     const n = levelNumber(v.desiredClassLevelName);
     const level = levels.find((l) => l.level_number === n) ?? levels.find((l) => l.name === v.desiredClassLevelName);
     if (!level) throw new Error(`A classe "${v.desiredClassLevelName}" não existe nesta escola.`);

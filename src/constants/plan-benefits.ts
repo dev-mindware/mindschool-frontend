@@ -6,7 +6,7 @@ export const PLAN_BENEFITS: Record<PlanType, readonly string[]> = {
     "Gestão académica de turmas, matrículas e horários",
     "Pautas trimestrais e lançamento de notas",
     "Cobrança de propinas e emissão de recibos",
-    "Dias lectivos e feriados do ano lectivo",
+    "Dias letivos e feriados do ano letivo",
     "Portal do aluno e do encarregado",
   ],
   profissional: [
@@ -19,7 +19,7 @@ export const PLAN_BENEFITS: Record<PlanType, readonly string[]> = {
     "Tudo o que o Profissional inclui",
     "Cobrança automática por e-mail aos encarregados",
     "Gestão multi-escola",
-    "BI & Analytics: tendências por ano lectivo e por mês",
+    "BI & Analytics: tendências por ano letivo e por mês",
     "Arquivo documental: pesquisa, retenção e pacotes de descarga",
     "Gerador automático de horários sem conflitos",
     "Alunos, turmas e professores sem limite",

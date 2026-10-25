@@ -175,7 +175,7 @@ export function DropoutRiskDiagnosticModal({
           )}
         </div>
 
-        {/* Rodapé com Acções */}
+        {/* Rodapé com Ações */}
         <div className="flex items-center justify-between pt-3">
           {selectedAlert.status !== "RESOLVED" && (
             <Button

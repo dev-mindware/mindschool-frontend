@@ -5,6 +5,7 @@ import { RouteProtector } from "@/contexts";
 import { FeatureGateProvider, SchoolProvider } from "@/providers";
 import { STAFF_ROLES } from "@/constants/roles";
 import { Role } from "@/types";
+import { ScrollToTop } from "@/components/common/scroll-to-top";
 
 type Props = {
   children: React.ReactNode;
@@ -17,6 +18,7 @@ export default function ClientLayout({ children }: Props) {
         <FeatureGateProvider>
           <AppSidebar />
           <SidebarInset>
+            <ScrollToTop />
             <ImpersonationBanner />
             <TrialBanner />
             <BreadcrumbProvider>

@@ -4,11 +4,11 @@ import { ExamGradingPageContent } from "@/components/client/online-exams/exam-gr
 export default function ExamGradingPage() {
   return (
     <PageWrapper
-      subRoute="Mesa de Correcção"
+      subRoute="Mesa de Correção"
       segments={[
         { label: "Avaliações & Pautas" },
         { label: "Provas Online", href: "/online-exams" },
-        { label: "Mesa de Correcção" },
+        { label: "Mesa de Correção" },
       ]}
     >
       <ExamGradingPageContent />

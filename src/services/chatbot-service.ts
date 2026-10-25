@@ -17,6 +17,11 @@ export const ChatbotService = {
       const response = await api.post<ChatbotResponse>(url, data);
       return response.data;
     } catch (err: any) {
+      // 401/403 não é «limite de tokens»: o servidor do assistente recusou a sessão (configuração do serviço), e dizê-lo evita tentativas inúteis
+      const status = err?.response?.status;
+      if (status === 401 || status === 403) {
+        throw new Error("O assistente MIND recusou o seu acesso (erro de autorização). Contacte o suporte se continuar.");
+      }
       const detail =
         err?.response?.data?.detail ||
         err?.response?.data?.message ||

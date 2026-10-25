@@ -58,6 +58,12 @@ export async function downloadExcelFile(filename: string, sheetName: string, dat
 /**
  * Converte texto CSV (de modelos ou relatórios de rejeição) para um ficheiro Excel (.xlsx) nativo e faz o download.
  */
+/** O Excel só aceita nomes de folha até 31 caracteres e sem `\ / ? * [ ] :`. */
+export function excelSheetName(name: string | undefined): string {
+  const clean = (name ?? "").replace(/[\\/?*[\]:]/g, " ").replace(/\s+/g, " ").trim().slice(0, 31).trim();
+  return clean || "Folha 1";
+}
+
 export async function downloadCsvAsExcel(filename: string, sheetName: string, csvContent: string): Promise<void> {
   const lines = csvContent.split(/\r?\n/).filter((l) => l.trim().length > 0);
   if (lines.length === 0) return;
@@ -96,6 +102,6 @@ export async function downloadCsvAsExcel(filename: string, sheetName: string, cs
 
   const file = filename.endsWith(".xlsx") ? filename : `${filename}.xlsx`;
   await writeXlsxFile(rows, {
-    sheet: sheetName || "Folha 1",
+    sheet: excelSheetName(sheetName),
   }).toFile(file);
 }

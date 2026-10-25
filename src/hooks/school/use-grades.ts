@@ -5,7 +5,7 @@ import { GradeField, GradeState, gradesService } from "@/services/grades-service
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { AssessmentTerm } from "@/types/grade";
 
-/** Mini-pauta (disciplina x turma x trimestre) da escola activa, com lancamento de notas pela API. */
+/** Mini-pauta (disciplina x turma x trimestre) da escola ativa, com lancamento de notas pela API. */
 export function useGradeSheet(sectionId?: string, subjectId?: string, term?: AssessmentTerm) {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const queryClient = useQueryClient();
@@ -36,7 +36,7 @@ export function useGradeSheet(sectionId?: string, subjectId?: string, term?: Ass
   };
 }
 
-/** Periodos do ano lectivo activo (id + sequencia). */
+/** Periodos do ano letivo ativo (id + sequencia). */
 export function useGradeTerms() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   return useQuery({ queryKey: ["terms", schoolId], queryFn: () => gradesService.terms(), enabled: Boolean(schoolId), staleTime: 5 * 60 * 1000 });

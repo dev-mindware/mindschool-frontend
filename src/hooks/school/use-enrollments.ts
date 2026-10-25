@@ -8,7 +8,7 @@ import { EnrollmentStatus } from "@/types";
 
 const ITEMS_PER_PAGE = 8;
 
-/** Matriculas da escola activa (API). */
+/** Matriculas da escola ativa (API). */
 export function useEnrollments(searchQuery = "", statusFilter: EnrollmentStatus | "ALL" = "ALL", sectionFilter = "ALL") {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const queryClient = useQueryClient();

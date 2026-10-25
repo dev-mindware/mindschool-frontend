@@ -149,7 +149,7 @@ export function TransitionsPageContent() {
             return (
               <Badge variant="default" className="text-xs bg-emerald-600 text-white hover:bg-emerald-600">
                 <Icon name="CircleCheck" className="h-3 w-3 mr-1" />
-                Transita Directo
+                Transita Direto
               </Badge>
             );
           case "APPROVED_WITH_CONDITIONS":
@@ -159,7 +159,7 @@ export function TransitionsPageContent() {
                 className="text-xs border-blue-400 text-blue-700 bg-blue-50 dark:bg-blue-950/30"
               >
                 <Icon name="Scale" className="h-3 w-3 mr-1" />
-                Excepção Legal 7ª/8ª
+                Exceção Legal 7ª/8ª
               </Badge>
             );
           case "FAILED":
@@ -201,7 +201,7 @@ export function TransitionsPageContent() {
     <div className="space-y-6">
       <TitleList
         title="Motor de Transição de Classe (Conselho de Notas)"
-        suTitle="Aplicação automatizada das regras do Decreto Executivo n.º 424/25 e regime de excepções da 7.ª e 8.ª classe."
+        suTitle="Aplicação automatizada das regras do Decreto Executivo n.º 424/25 e regime de exceções da 7.ª e 8.ª classe."
       >
         <div className="flex items-center gap-2">
           <Button
@@ -220,13 +220,13 @@ export function TransitionsPageContent() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <DynamicMetricCard
           title={stats.directApproval.toString()}
-          subtitle="Aprovados Directos"
+          subtitle="Aprovados Diretos"
           description="Sem deficiências em disciplinas"
           icon="CircleCheck"
         />
         <DynamicMetricCard
           title={stats.conditionalApproval.toString()}
-          subtitle="Excepções Legais"
+          subtitle="Exceções Legais"
           description="Art.º 24.º Dec. 424/25 (7ª e 8ª)"
           icon="Scale"
         />
@@ -248,7 +248,7 @@ export function TransitionsPageContent() {
           <strong>Regra Geral:</strong> Transição para o ano seguinte requer nota final de disciplina (MFD) ≥ 10.0 valores em todas as disciplinas curriculares.
         </p>
         <p>
-          <strong>Regime de excepção (7.ª e 8.ª classe), se estiver activo:</strong> pode transitar com apoio quem tiver, no máximo, o número de disciplinas negativas definido pela escola, com notas dentro do intervalo definido, e <strong>nenhuma delas nuclear (Língua Portuguesa ou Matemática)</strong>. Os valores estão em Definições › Políticas da Escola.
+          <strong>Regime de exceção (7.ª e 8.ª classe), se estiver ativo:</strong> pode transitar com apoio quem tiver, no máximo, o número de disciplinas negativas definido pela escola, com notas dentro do intervalo definido, e <strong>nenhuma delas nuclear (Língua Portuguesa ou Matemática)</strong>. Os valores estão em Definições › Políticas da Escola.
         </p>
         <p>
           <strong>Isto é uma proposta do sistema.</strong> A decisão final é tomada e registada no Conselho de Turma final (Avaliação › Conselhos de Turma); se divergir da proposta, exige justificação.
@@ -281,7 +281,7 @@ export function TransitionsPageContent() {
         searchPlaceholder="Pesquisar estudante por nome ou número"
         searchText={(r) => `${r.studentName} ${r.studentNumber}`}
         filters={[
-          { key: "situacao", label: "Situação", icon: "ListFilter", options: [{ value: "APPROVED", label: "Aprovado" }, { value: "APPROVED_WITH_CONDITIONS", label: "Excepção legal" }, { value: "FAILED", label: "Não transita" }], match: (r, v) => r.transitionStatus === v },
+          { key: "situacao", label: "Situação", icon: "ListFilter", options: [{ value: "APPROVED", label: "Aprovado" }, { value: "APPROVED_WITH_CONDITIONS", label: "Exceção legal" }, { value: "FAILED", label: "Não transita" }], match: (r, v) => r.transitionStatus === v },
           { key: "deficiencias", label: "Disciplinas negativas", icon: "TriangleAlert", options: [{ value: "0", label: "Nenhuma" }, { value: "1", label: "1" }, { value: "2", label: "2" }, { value: "3", label: "3 ou mais" }], match: (r, v) => (v === "3" ? r.failedSubjectsCount >= 3 : r.failedSubjectsCount === Number(v)) },
           { key: "media", label: "Média global", icon: "Gauge", options: [{ value: "alta", label: "14 ou mais" }, { value: "media", label: "10 a 13,9" }, { value: "baixa", label: "Abaixo de 10" }], match: (r, v) => (v === "alta" ? r.termAverageTotal >= 14 : v === "media" ? r.termAverageTotal >= 10 && r.termAverageTotal < 14 : r.termAverageTotal < 10) },
         ]}

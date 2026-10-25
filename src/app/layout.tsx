@@ -20,7 +20,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || "https://mindschool.mindware.ao"),
   title: {
     default: "MindSchool | Sistema Integrado de Gestão Escolar",
-    template: "%s | MindSchool",
+    template: "%s · MindSchool",
   },
 
   description:

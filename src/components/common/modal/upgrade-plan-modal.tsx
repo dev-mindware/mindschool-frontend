@@ -33,7 +33,7 @@ export function UpgradePlanModal() {
           <div className="space-y-2 text-sm text-foreground/80">
             <p>
               Tentou aceder a uma funcionalidade que não está disponível no
-              plano actual. Actualize o plano para a utilizar.
+              plano atual. Atualize o plano para a utilizar.
             </p>
             <ul className="list-disc list-inside space-y-1 text-muted-foreground ml-1">
               <li>Acesso a relatórios avançados</li>

@@ -24,7 +24,7 @@ interface MonthCalendarProps {
   onMonthChange: (d: Date) => void;
   onSelectItem?: (item: CalendarItem) => void;
   onSelectDay?: (date: string) => void;
-  /** Datas (AAAA-MM-DD) marcadas como não lectivas: fundo destacado. */
+  /** Datas (AAAA-MM-DD) marcadas como não letivas: fundo destacado. */
   markedDays?: Set<string>;
   className?: string;
 }

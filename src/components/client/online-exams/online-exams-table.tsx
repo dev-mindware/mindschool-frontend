@@ -58,7 +58,7 @@ export function OnlineExamsTable({ exams, isLoading, onOpenQuestions, onOpenGoog
     { key: 'status', header: 'Estado', render: (_, e) => <StatusBadge status={e.status} map={EXAM_STATUS_STYLE} className="text-xs font-normal" /> },
     {
       key: 'actions',
-      header: 'Acção',
+      header: 'Ação',
       render: (_, e) => (
         <ButtonOnlyAction
           data={e}

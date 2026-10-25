@@ -15,7 +15,7 @@ const STATUS_VARIANT: Record<AnnouncementStatus, "warning" | "success" | "second
 const AUDIENCE_LABEL: Record<AnnouncementAudience, string> = { escola: "Toda a escola", turma: "Turma" };
 const fail = (e: unknown): never => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
 
-/** Comunicados da direcção e dos professores (API): chegam ao portal dos encarregados quando publicados. */
+/** Comunicados da direção e dos professores (API): chegam ao portal dos encarregados quando publicados. */
 export function CommunicationPageContent() {
   const a = useAnnouncements();
   const { data: sections = [] } = useSections();
@@ -31,11 +31,11 @@ export function CommunicationPageContent() {
 
   const sectionName = (id: string | null) => (id ? sections.find((s) => s.id === id)?.name ?? "—" : "—");
   const openNew = () => { setEditing(null); setTitle(""); setBody(""); setAudience("escola"); setSectionId(""); openModal("announcement-form"); };
-  const openEdit = (x: ApiAnnouncement) => { setEditing(x); setTitle(x.title); setBody(x.body); openModal("announcement-form"); };
+  const openEdit = (x: ApiAnnouncement) => { setEditing(x); setTitle(x.title); setBody(x.body); setAudience(x.audience); setSectionId(x.section_id ?? ""); openModal("announcement-form"); };
 
   const save = () =>
     (editing
-      ? a.update.mutateAsync({ id: editing.id, title: title.trim(), body: body.trim() }).then(() => { SucessMessage("Comunicado actualizado."); })
+      ? a.update.mutateAsync({ id: editing.id, title: title.trim(), body: body.trim(), audience, sectionId: sectionId || undefined }).then(() => { SucessMessage("Comunicado atualizado."); })
       : a.create.mutateAsync({ title: title.trim(), body: body.trim(), audience, sectionId: sectionId || undefined }).then(() => { SucessMessage("Comunicado criado como rascunho."); })
     ).catch(fail);
 
@@ -46,7 +46,7 @@ export function CommunicationPageContent() {
     { key: "created_at", header: "Criado em", render: (_, x) => <span className="text-xs">{x.created_at.slice(0, 10)}</span> },
     { key: "published_at", header: "Publicado em", render: (_, x) => <span className="text-xs">{x.published_at?.slice(0, 10) ?? "—"}</span> },
     {
-      key: "actions", header: "Acção",
+      key: "actions", header: "Ação",
       render: (_, x) => (
         <ButtonOnlyAction data={x} actions={[
           { label: "Ver", icon: "Eye", onClick: (r) => { setViewing(r); openModal("announcement-view"); } },
@@ -62,7 +62,7 @@ export function CommunicationPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Comunicados" suTitle="Comunicação institucional da direcção e dos professores, publicada no portal dos encarregados.">
+      <TitleList title="Comunicados" suTitle="Comunicação institucional da direção e dos professores, publicada no portal dos encarregados.">
         <Can permission="announcement:write"><Button onClick={openNew} className="gap-2 text-xs shadow-xs"><Icon name="Plus" className="size-4" />Novo comunicado</Button></Can>
       </TitleList>
 
@@ -99,10 +99,10 @@ export function CommunicationPageContent() {
       />
 
       <FormModal id="announcement-form" title={editing ? "Editar comunicado" : "Novo comunicado"} description={editing ? "Só rascunhos podem ser editados." : "É criado como rascunho; publique-o para chegar ao portal."} submitLabel={editing ? "Guardar" : "Criar rascunho"} size="md"
-        isLoading={a.create.isPending || a.update.isPending} disabled={title.trim().length < 3 || body.trim().length < 3 || (!editing && audience === "turma" && !sectionId)} onSubmit={save}>
+        isLoading={a.create.isPending || a.update.isPending} disabled={title.trim().length < 3 || body.trim().length < 3 || (audience === "turma" && !sectionId)} onSubmit={save}>
         <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
           <Input label="Título *" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Reunião geral de encarregados de educação" />
-          {!editing && (
+          {(
             <div className={cn("grid grid-cols-1 gap-3", audience === "turma" && "sm:grid-cols-2")}>
               <FormSelect label="Destinatários" value={audience} onValueChange={(v) => setAudience(v as AnnouncementAudience)} options={[{ value: "escola", label: "Toda a escola" }, { value: "turma", label: "Uma turma" }]} />
               {audience === "turma" && <FormSelect label="Turma *" value={sectionId} onValueChange={setSectionId} options={sections.map((s) => ({ value: s.id, label: s.name }))} />}

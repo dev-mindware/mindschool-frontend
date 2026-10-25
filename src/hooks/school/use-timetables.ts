@@ -10,7 +10,7 @@ import { useEntitled } from "@/hooks/common/use-entitled";
 
 const SHIFT: Record<string, Shift> = { MORNING: "manha", AFTERNOON: "tarde", EVENING: "noite", DIURNO: "diurno" };
 
-/** Horarios (versoes), tempos (campainha), salas e a grelha por turma/professor da escola activa. */
+/** Horarios (versoes), tempos (campainha), salas e a grelha por turma/professor da escola ativa. */
 export function useTimetables(timetableId?: string) {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const qc = useQueryClient();

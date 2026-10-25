@@ -12,7 +12,7 @@ import { formatCurrency } from "@/utils/format-currency";
 
 const ATT_COLORS = ["#10b981", "#f59e0b", "#3b82f6", "#ef4444"];
 
-/** Painel do encarregado / aluno: situação financeira em destaque (com acesso directo ao pagamento), notas, assiduidade e novidades. */
+/** Painel do encarregado / aluno: situação financeira em destaque (com acesso direto ao pagamento), notas, assiduidade e novidades. */
 export function FamilyDashboard() {
   const portal = usePortal();
   const [picked, setPicked] = useState("");
@@ -46,7 +46,7 @@ export function FamilyDashboard() {
       <div className="flex flex-wrap items-end justify-between gap-3">
         <div>
           <h2 className="text-lg font-semibold">{ward?.student.full_name}</h2>
-          <p className="text-xs text-muted-foreground">{ward?.current_enrollment ? `${ward.current_enrollment.class_level} ${ward.current_enrollment.section} · ${ward.current_enrollment.shift}` : "Sem matrícula activa"}</p>
+          <p className="text-xs text-muted-foreground">{ward?.current_enrollment ? `${ward.current_enrollment.class_level} ${ward.current_enrollment.section} · ${ward.current_enrollment.shift}` : "Sem matrícula ativa"}</p>
         </div>
         {wards.length > 1 && <div className="w-60"><FormSelect label="Educando" value={active} onValueChange={setPicked} options={wards.map((w) => ({ value: w.student.id, label: w.student.full_name }))} /></div>}
       </div>
@@ -57,14 +57,14 @@ export function FamilyDashboard() {
             <DynamicMetricCard title={formatCurrency(debt)} subtitle="Em dívida" icon="Wallet" colors={debt > 0 ? "destructive" : "default"} description={debt > 0 ? `${payables.length} factura(s) por pagar` : "Está tudo em dia"} />
             <DynamicMetricCard title={formatCurrency(overdue)} subtitle="Vencido" icon="TriangleAlert" colors={overdue > 0 ? "destructive" : "default"} description={overdue > 0 ? "Pague para evitar multa de mora" : "Nada em atraso"} />
             <DynamicMetricCard title={formatCurrency(inReview)} subtitle="Em análise" icon="Hourglass" description={open.length ? `${open.length} comprovativo(s) a validar` : "Sem comprovativos pendentes"} />
-            <DynamicMetricCard title={next ? next.due_date : "—"} subtitle="Próximo vencimento" icon="CalendarClock" description={next ? `${next.description} · ${formatCurrency(next.balance)}` : "Sem facturas a vencer"} />
+            <DynamicMetricCard title={next ? next.due_date : "—"} subtitle="Próximo vencimento" icon="CalendarClock" description={next ? `${next.description} · ${formatCurrency(next.balance)}` : "Sem faturas a vencer"} />
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <ChartCard title="Propinas e taxas por pagar" icon="Receipt" description="Pague por transferência e submeta o comprovativo; a escola valida e confirma por email."
                 action={<Button asChild size="sm" className="gap-2"><Link href="/familia/financeiro"><Icon name="Landmark" className="size-4" />Pagar agora</Link></Button>}>
-                {payables.length === 0 ? <ChartEmpty text="Não há facturas por pagar. Obrigado!" /> : (
+                {payables.length === 0 ? <ChartEmpty text="Não há faturas por pagar. Obrigado!" /> : (
                   <ul className="space-y-3 pb-2">
                     {payables.slice(0, 6).map((p) => (
                       <li key={p.id} className="flex items-center justify-between gap-3 text-sm">

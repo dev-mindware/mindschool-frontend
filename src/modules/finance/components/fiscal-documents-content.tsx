@@ -6,6 +6,7 @@ import { Badge, Button, DataList, DynamicMetricCard, FeatureGate, Icon, StatusLe
 import { ErrorMessage, SucessMessage } from "@/utils/messages";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { formatCurrency } from "@/utils/format-currency";
+import { mindgestService } from "@/services/mindgest-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { financeKeys } from "@/modules/finance/query-keys";
 import { FISCAL_STATUS, settlementService, type ApiFiscalDocumentRow, type FiscalDocumentStatus } from "@/modules/finance/services/settlement-service";
@@ -17,8 +18,8 @@ const formatDate = (iso: string): string => iso.split("-").reverse().join("/");
 const STATES = Object.keys(FISCAL_STATUS).filter((s) => s !== "sem_submissao") as FiscalDocumentStatus[];
 
 /**
- * Facturas-recibo emitidas no MindGest, uma por liquidação. Só leitura: estornos e notas de crédito fazem-se no MindGest
- * (as que existirem aparecem ligadas à factura de origem). O PDF vem por intermédio da API.
+ * Faturas-recibo emitidas no MindGest, uma por liquidação. Só leitura: estornos e notas de crédito fazem-se no MindGest
+ * (as que existirem aparecem ligadas à fatura de origem). O PDF vem por intermédio da API.
  */
 export function FiscalDocumentsContent() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
@@ -31,6 +32,9 @@ export function FiscalDocumentsContent() {
     staleTime: 30 * 1000,
     retry: false,
   });
+
+  // só o titular lê o estado da ligação: para os outros papéis (403) o aviso simplesmente não aparece
+  const mindgest = useQuery({ queryKey: ["mindgest-status", schoolId], queryFn: mindgestService.status, enabled: Boolean(schoolId), staleTime: 60 * 1000, retry: false });
 
   const reprocess = useMutation({
     mutationFn: (id: string) => settlementService.reprocess(id),
@@ -57,7 +61,7 @@ export function FiscalDocumentsContent() {
 
   const columns: Column<ApiFiscalDocumentRow>[] = [
     {
-      key: "number", header: "Factura-recibo",
+      key: "number", header: "Fatura-recibo",
       render: (_, d) => (
         <div>
           <span className="font-mono text-xs font-semibold">{d.number ?? "—"}</span>
@@ -95,7 +99,7 @@ export function FiscalDocumentsContent() {
             <Badge variant={st.variant} className="font-normal" title={st.hint}>{st.label}</Badge>
             {d.error && <p className="text-[11px] text-destructive">{d.error.message}</p>}
             {(d.status === "sem_ligacao" || d.status === "sem_catalogo" || d.status === "pausada") && <p className="text-[11px] text-muted-foreground">{st.hint}</p>}
-            {d.corrected && <p className="text-[11px] font-medium text-amber-700">{d.correction_notice ?? "Factura corrigida/anulada no MindGest"}: a cobrança não mudou, reveja-a se for preciso.</p>}
+            {d.corrected && <p className="text-[11px] font-medium text-amber-700">{d.correction_notice ?? "Fatura corrigida/anulada no MindGest"}: a cobrança não mudou, reveja-a se for preciso.</p>}
             {d.status === "pendente_fiscal" && d.attempts > 1 && <p className="text-[11px] text-muted-foreground">{d.attempts} tentativas; a repetir sozinha.</p>}
             {d.legal_deadline && d.status !== "certificada" && (
               <p className={`flex items-center gap-1 text-[11px] ${d.deadline_passed ? "font-medium text-destructive" : "text-muted-foreground"}`}>
@@ -116,7 +120,7 @@ export function FiscalDocumentsContent() {
       },
     },
     {
-      key: "actions", header: "Acções", className: "text-right",
+      key: "actions", header: "Ações", className: "text-right",
       render: (_, d) => (
         <div className="flex items-center justify-end gap-1.5">
           {d.pdf_available && (
@@ -139,10 +143,19 @@ export function FiscalDocumentsContent() {
 
   return (
     <div className="space-y-6">
+      {mindgest.data && mindgest.data.status !== "active" && (
+        <div className="flex gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs" role="status">
+          <Icon name="TriangleAlert" className="mt-0.5 size-4 shrink-0 text-amber-600" />
+          <p>
+            <strong>O MindGest não está ligado a esta escola.</strong> Os pagamentos ficam registados e as faturas-recibo esperam, em «Sem ligação»; seguem sozinhas
+            quando o titular ligar a escola em Definições › Integrações › MindGest.
+          </p>
+        </div>
+      )}
       <div className="flex gap-3 rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">
         <Icon name="Info" className="mt-0.5 size-4 shrink-0 text-primary" />
         <div className="space-y-1">
-          <p><strong>Cobrança</strong> é o que a família deve (propina, matrícula, multa). <strong>Pagamento</strong> é o dinheiro recebido: regista-se ao «Marcar como pago». <strong>Factura</strong> é a factura-recibo, o documento fiscal, emitida no <strong>MindGest</strong> por cada acto de pagamento (pode incluir várias cobranças).</p>
+          <p><strong>Cobrança</strong> é o que a família deve (propina, matrícula, multa). <strong>Pagamento</strong> é o dinheiro recebido: regista-se ao «Marcar como pago». <strong>Fatura</strong> é a fatura-recibo, o documento fiscal, emitida no <strong>MindGest</strong> por cada acto de pagamento (pode incluir várias cobranças).</p>
           <p>Estornos e notas de crédito fazem-se <strong>só no MindGest</strong>, pelo proprietário ou gestor. Aqui só se vê o resultado.</p>
         </div>
       </div>
@@ -152,17 +165,17 @@ export function FiscalDocumentsContent() {
         items={[
           { label: FISCAL_STATUS.certificada.label, description: FISCAL_STATUS.certificada.hint },
           { label: FISCAL_STATUS.pendente_fiscal.label, description: FISCAL_STATUS.pendente_fiscal.hint },
-          { label: FISCAL_STATUS.sem_ligacao.label, description: FISCAL_STATUS.sem_ligacao.hint, next: "o titular liga a escola em Definições › Integrações › MindGest; a factura segue sozinha." },
+          { label: FISCAL_STATUS.sem_ligacao.label, description: FISCAL_STATUS.sem_ligacao.hint, next: "o titular liga a escola em Definições › Integrações › MindGest; a fatura segue sozinha." },
           { label: FISCAL_STATUS.sem_catalogo.label, description: FISCAL_STATUS.sem_catalogo.hint, next: "defina o imposto dos serviços no MindGest (Plugins › MindSchool › Serviços)." },
-          { label: FISCAL_STATUS.pausada.label, description: FISCAL_STATUS.pausada.hint, next: "o titular reactiva em Definições › Integrações › MindGest; a factura segue sozinha." },
+          { label: FISCAL_STATUS.pausada.label, description: FISCAL_STATUS.pausada.hint, next: "o titular reativa em Definições › Integrações › MindGest; a fatura segue sozinha." },
           { label: FISCAL_STATUS.rejeitada.label, description: FISCAL_STATUS.rejeitada.hint },
           { label: FISCAL_STATUS.erro.label, description: FISCAL_STATUS.erro.hint, next: "«Reprocessar» (titular ou financeiro)." },
-          { label: "Prazo legal", description: "A factura-recibo deve ser emitida até ao 5.º dia útil seguinte ao pagamento (Decreto Presidencial 71/25, art. 8.º); a emissão tardia pode ter multa de 0,2% do valor. O titular e o financeiro são avisados ao 3.º dia útil. O prazo conta só sábados e domingos como não úteis (feriados não são descontados, por prudência)." },
+          { label: "Prazo legal", description: "A fatura-recibo deve ser emitida até ao 5.º dia útil seguinte ao pagamento (Decreto Presidencial 71/25, art. 8.º); a emissão tardia pode ter multa de 0,2% do valor. O titular e o financeiro são avisados ao 3.º dia útil. O prazo conta só sábados e domingos como não úteis (feriados não são descontados, por prudência)." },
         ]}
       />
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
-        <DynamicMetricCard title={data.length} subtitle="Facturas-recibo" icon="Receipt" description="Uma por acto de pagamento" />
+        <DynamicMetricCard title={data.length} subtitle="Faturas-recibo" icon="Receipt" description="Uma por acto de pagamento" />
         <DynamicMetricCard title={count(["certificada"])} subtitle="Certificadas" icon="ShieldCheck" description="Com número fiscal" />
         <DynamicMetricCard title={count(["pendente_fiscal", "sem_ligacao", "sem_catalogo", "pausada"])} subtitle="Em curso ou em espera" icon="Clock" description="Seguem sozinhas" />
         <DynamicMetricCard title={count(["erro", "rejeitada"])} subtitle="Precisam de atenção" icon="ShieldAlert" colors="destructive" description="Erro ou rejeitadas" />
@@ -176,7 +189,7 @@ export function FiscalDocumentsContent() {
         isError={isError}
         refetch={() => void refetch()}
         pageSize={10}
-        searchPlaceholder="Pesquisar aluno, cliente, NIF ou n.º da factura"
+        searchPlaceholder="Pesquisar aluno, cliente, NIF ou n.º da fatura"
         searchText={(d) => `${d.student?.full_name ?? ""} ${d.customer?.name ?? ""} ${d.customer?.nif ?? ""} ${d.number ?? ""}`}
         filters={[{ key: "estado", label: "Estado", icon: "ListFilter", options: STATES.map((value) => ({ value, label: FISCAL_STATUS[value].label })), match: (d, v) => d.status === v }]}
         dateFilters={[{ key: "data", label: "Data", getDate: (d) => d.created_at.slice(0, 10) }]}
@@ -184,8 +197,8 @@ export function FiscalDocumentsContent() {
           { value: "recentes", label: "Mais recentes", compare: (a, b) => b.created_at.localeCompare(a.created_at) },
           { value: "valor", label: "Valor", compare: (a, b) => Number(a.total) - Number(b.total) },
         ]}
-        emptyTitle="Ainda não há facturas"
-        emptyDescription="A factura-recibo nasce quando se marca uma propina como paga (Propinas › Marcar como pago)."
+        emptyTitle="Ainda não há faturas"
+        emptyDescription="A fatura-recibo nasce quando se marca uma propina como paga (Propinas › Marcar como pago)."
         emptyIcon="Receipt"
       />
     </div>

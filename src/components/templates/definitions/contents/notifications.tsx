@@ -88,7 +88,7 @@ export function Notification() {
 
     if (permission === "granted") {
       setBrowserNotificationsEnabled(true);
-      SucessMessage("Notificações do navegador activadas.");
+      SucessMessage("Notificações do navegador ativadas.");
       return;
     }
 
@@ -211,7 +211,7 @@ export function Notification() {
               }
               onCheckedChange={handleBrowserNotificationsChange}
               disabled={!browserNotificationsAvailable || browserNotificationsBlocked}
-              aria-label="Activar notificações do navegador"
+              aria-label="Ativar notificações do navegador"
             />
           }
         />

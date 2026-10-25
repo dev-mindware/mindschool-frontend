@@ -30,7 +30,7 @@ async function call<T>(path: string, token: string, method: "GET" | "POST" = "GE
  */
 export async function enterImpersonationAction(v: { accessToken: string; expiresAt: string; schoolId: string }): Promise<ImpersonationActionResult> {
   const jar = await cookies();
-  if (jar.get(IMPERSONATION_BACKUP_KEY)) return { ok: false, message: "Já existe uma personificação activa: termine-a primeiro." };
+  if (jar.get(IMPERSONATION_BACKUP_KEY)) return { ok: false, message: "Já existe uma personificação ativa: termine-a primeiro." };
   const backup: Backup = { a: jar.get(ACCESS_TOKEN_KEY)?.value ?? "", r: jar.get(REFRESH_TOKEN_KEY)?.value ?? "", role: jar.get(ROLE_KEY)?.value ?? "" };
   if (!backup.a || !backup.r) return { ok: false, message: "A sessão do administrador não foi encontrada. Inicie sessão de novo." };
 

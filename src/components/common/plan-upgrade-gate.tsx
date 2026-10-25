@@ -41,7 +41,7 @@ export function PlanUpgradeGate({
               <span className="font-semibold text-foreground">
                 {featureName}
               </span>{" "}
-              não está disponível no plano actual. Actualize a subscrição
+              não está disponível no plano atual. Atualize a subscrição
               para desbloquear esta funcionalidade.
             </>
           ) : (

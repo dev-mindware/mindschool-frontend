@@ -30,7 +30,7 @@ export function BookCatalogView() {
       },
     },
     {
-      key: "action", header: "Acção",
+      key: "action", header: "Ação",
       render: (_, b) => (
         <ButtonOnlyAction data={b} actions={[{ permission: "library:write", label: availability(b) === "disponivel" ? "Emprestar" : "Emprestar (indisponível: sem exemplares)", icon: "BookOpen", onClick: (x) => openModal("library-new-loan", { bookId: x.id }), className: availability(b) === "disponivel" ? "" : "pointer-events-none opacity-40" }]} />
       ),

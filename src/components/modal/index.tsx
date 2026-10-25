@@ -31,7 +31,7 @@ export interface ModalProps {
   hideHeader?: boolean;
   /** Permite fechar (X, Esc, clique fora). Por omissão `true`. */
   canClose?: boolean;
-  /** Mantém o clique fora do modal desactivado (úteis em formulários, para não perder dados). */
+  /** Mantém o clique fora do modal desativado (úteis em formulários, para não perder dados). */
   preventOutsideClose?: boolean;
   children?: ReactNode;
   /** Botões do rodapé: ficam fixos no fundo, alinhados à direita, fora da área com scroll. */

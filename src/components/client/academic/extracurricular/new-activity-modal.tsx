@@ -17,11 +17,11 @@ export function NewActivityModal() {
   const submit = () =>
     create
       .mutateAsync({ name: f.name.trim(), description: f.description.trim() || undefined, teacherId: f.teacherId || undefined, weekday: Number(f.weekday) || undefined, startTime: f.start || undefined, endTime: f.end || undefined, location: f.location.trim() || undefined, capacity: f.capacity })
-      .then(() => { SucessMessage("Actividade criada."); setF(EMPTY); })
-      .catch((err) => { ErrorMessage(getApiErrorMessage(err, "Não foi possível criar a actividade.")); throw err; });
+      .then(() => { SucessMessage("Atividade criada."); setF(EMPTY); })
+      .catch((err) => { ErrorMessage(getApiErrorMessage(err, "Não foi possível criar a atividade.")); throw err; });
 
   return (
-    <FormModal id="activity-new" title="Nova actividade" description={hasActiveYear ? "Clubes, desporto ou outras actividades fora do currículo." : "Não há ano lectivo activo; crie-o primeiro."} size="lg" submitLabel="Criar actividade" isLoading={create.isPending} disabled={!hasActiveYear || f.name.trim().length < 2} onSubmit={submit}>
+    <FormModal id="activity-new" title="Nova atividade" description={hasActiveYear ? "Clubes, desporto ou outras atividades fora do currículo." : "Não há ano letivo ativo; crie-o primeiro."} size="lg" submitLabel="Criar atividade" isLoading={create.isPending} disabled={!hasActiveYear || f.name.trim().length < 2} onSubmit={submit}>
       <div className="sm:col-span-2"><Input label="Nome *" startIcon="Trophy" placeholder="Ex: Clube de Xadrez" value={f.name} onChange={(e) => set("name", e.target.value)} /></div>
       <FormTextarea label="Descrição" value={f.description} onChange={(v) => set("description", v)} rows={2} />
       <FormSelect label="Responsável" value={f.teacherId || "none"} onValueChange={(v) => set("teacherId", v === "none" ? "" : v)} options={[{ value: "none", label: "Sem responsável" }, ...teachers.map((t) => ({ value: t.id, label: t.full_name }))]} />

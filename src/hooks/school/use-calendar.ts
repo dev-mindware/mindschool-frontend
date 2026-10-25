@@ -5,7 +5,7 @@ import { academicService } from "@/services/academic-service";
 import { calendarService, type NewEvent } from "@/services/calendar-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 
-/** Calendario escolar do ano lectivo activo: eventos, feriados/pontes (reconciliacao) e ligacao ao Google Calendar. */
+/** Calendario escolar do ano letivo ativo: eventos, feriados/pontes (reconciliacao) e ligacao ao Google Calendar. */
 export function useCalendar() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const qc = useQueryClient();

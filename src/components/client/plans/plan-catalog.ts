@@ -7,12 +7,12 @@ export const FEATURE_LABEL: Record<string, string> = {
   exams_full: "Provas online e exames completos",
   email_collections: "Cobrança e avisos por e-mail", portal: "Portal do aluno e do encarregado",
   reports_advanced: "Relatórios avançados", multi_school: "Multi-escola com painel do grupo",
-  sla_support: "Suporte dedicado e SLA", bi_analytics: "BI & Analytics: tendências por ano lectivo", archive_advanced: "Arquivo documental: pesquisa, retenção e pacotes", timetable_solver: "Gerador automático de horários", calendar_general: "Calendário geral da escola",
+  sla_support: "Suporte dedicado e SLA", bi_analytics: "BI & Analytics: tendências por ano letivo", archive_advanced: "Arquivo documental: pesquisa, retenção e pacotes", timetable_solver: "Gerador automático de horários", calendar_general: "Calendário geral da escola",
   google_calendar: "Integração com o Google Calendar", rooms: "Gestão de salas", lessons_summaries: "Aulas, substituições e sumários",
   risk_alerts: "Alerta de risco de abandono", teacher_attendance: "Assiduidade docente com QR Code", school_services: "Saúde, transporte e extracurriculares",
 };
 
-const QUOTA_LABEL: Record<string, string> = { students: "alunos", users: "utilizadores", teachers: "professores", sections: "turmas", exports_month: "exportações por mês", academic_years_active: "anos lectivos activos", storage_mb: "de armazenamento" };
+const QUOTA_LABEL: Record<string, string> = { students: "alunos", users: "utilizadores", teachers: "professores", sections: "turmas", exports_month: "exportações por mês", academic_years_active: "anos letivos ativos", storage_mb: "de armazenamento" };
 
 export const fmtQuota = (key: string, limit: number | null) => {
   if (limit === null) return `${QUOTA_LABEL[key] ?? key} ilimitados`.replace(/^./, (c) => c.toUpperCase());

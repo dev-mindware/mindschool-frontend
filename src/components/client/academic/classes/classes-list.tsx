@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { Can, DataList, type Column } from "@/components";
+import { Can, ConfirmModal, DataList, type Column } from "@/components";
+import { useModal } from "@/stores/modal/use-modal-store";
+import { useAcademicSections } from "@/hooks/school/use-academic";
+import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { getApiErrorMessage } from "@/utils/api-error";
 import { AcademicSection } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -28,6 +32,9 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
   const [selectedForDetails, setSelectedForDetails] = useState<AcademicSection | null>(null);
   const [isDetailsModalOpen, setIsDetailsModalOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<AcademicSection | null>(null);
+  const { openModal } = useModal();
+  const { remove } = useAcademicSections();
 
   const handleEdit = (section: AcademicSection) => {
     setSelectedSection(section);
@@ -47,7 +54,7 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
         <div className="flex flex-col">
           <span className="font-semibold text-foreground">{item.name}</span>
           <span className="text-xs text-muted-foreground">
-            Ano Lectivo: {item.academicYear}
+            Ano Letivo: {item.academicYear}
           </span>
         </div>
       ),
@@ -177,6 +184,13 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
               <Icon name="Pencil" className="h-4 w-4" />
               Editar Turma
             </DropdownMenuItem>
+            <DropdownMenuItem
+              className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+              onClick={() => { setToDelete(item); openModal("section-delete"); }}
+            >
+              <Icon name="Trash2" className="h-4 w-4" />
+              Apagar Turma
+            </DropdownMenuItem>
 </Can>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -192,16 +206,16 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
         columns={columns}
         isLoading={isLoading}
         pageSize={10}
-        searchPlaceholder="Pesquisar turma, classe, sala ou director"
+        searchPlaceholder="Pesquisar turma, classe, sala ou diretor"
         searchText={(s) => `${s.name} ${s.classLevel} ${s.roomNumber} ${s.mainTeacherName ?? ""}`}
         filters={[
           { key: "turno", label: "Turno", icon: "Sun", options: [{ value: "MORNING", label: "Manhã" }, { value: "AFTERNOON", label: "Tarde" }, { value: "EVENING", label: "Noite" }], match: (s, v) => s.shift === v },
           { key: "ciclo", label: "Ciclo", icon: "Layers", options: [{ value: "PRIMARY", label: "Primário" }, { value: "LOWER_SECONDARY", label: "Iº Ciclo" }, { value: "UPPER_SECONDARY", label: "IIº Ciclo / Médio" }], match: (s, v) => s.cycle === v },
           { key: "classe", label: "Classe", icon: "GraduationCap", options: uniq(sections.map((s) => s.classLevel)).map((v) => ({ value: v, label: v })), match: (s, v) => s.classLevel === v },
-          { key: "ano", label: "Ano lectivo", icon: "CalendarRange", options: uniq(sections.map((s) => s.academicYear)).map((v) => ({ value: v, label: v })), match: (s, v) => s.academicYear === v },
+          { key: "ano", label: "Ano letivo", icon: "CalendarRange", options: uniq(sections.map((s) => s.academicYear)).map((v) => ({ value: v, label: v })), match: (s, v) => s.academicYear === v },
           { key: "lotacao", label: "Lotação", icon: "Gauge", options: [{ value: "cheia", label: "Lotada (≥100%)" }, { value: "alta", label: "Alta (≥85%)" }, { value: "livre", label: "Com vagas (<85%)" }], match: (s, v) => { const r = s.capacity > 0 ? s.currentEnrollmentCount / s.capacity : 0; return v === "cheia" ? r >= 1 : v === "alta" ? r >= 0.85 : r < 0.85; } },
-          { key: "estado", label: "Estado", icon: "ToggleLeft", options: [{ value: "on", label: "Activas" }, { value: "off", label: "Inactivas" }], match: (s, v) => (v === "on" ? s.isActive : !s.isActive) },
-          { key: "director", label: "Director de turma", icon: "UserCheck", options: [{ value: "com", label: "Com director" }, { value: "sem", label: "Sem director" }], match: (s, v) => (v === "com" ? Boolean(s.mainTeacherId) : !s.mainTeacherId) },
+          { key: "estado", label: "Estado", icon: "ToggleLeft", options: [{ value: "on", label: "Ativas" }, { value: "off", label: "Inactivas" }], match: (s, v) => (v === "on" ? s.isActive : !s.isActive) },
+          { key: "director", label: "Diretor de turma", icon: "UserCheck", options: [{ value: "com", label: "Com diretor" }, { value: "sem", label: "Sem diretor" }], match: (s, v) => (v === "com" ? Boolean(s.mainTeacherId) : !s.mainTeacherId) },
         ]}
         sorts={[
           { value: "nome", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name, "pt") },
@@ -220,6 +234,26 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
           setSelectedSection(null);
         }}
         sectionToEdit={selectedSection}
+      />
+
+      <ConfirmModal
+        id="section-delete"
+        title="Apagar turma"
+        description={toDelete ? `Apagar a turma «${toDelete.classLevel} ${toDelete.name}»?` : ""}
+        confirmLabel="Apagar turma"
+        destructive
+        irreversible
+        isLoading={remove.isPending}
+        effects={[
+          "Só se apaga uma turma vazia: sem alunos matriculados, disciplinas atribuídas, horário, aulas, pautas ou conselhos.",
+          "Se a turma já tem histórico, o sistema recusa e diz o que a impede de ser apagada.",
+          "Apagar a turma liberta uma vaga na quota de turmas do plano.",
+        ]}
+        onConfirm={() =>
+          toDelete
+            ? remove.mutateAsync(toDelete.id).then(() => { SucessMessage("Turma apagada."); setToDelete(null); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível apagar a turma.")); throw e; })
+            : undefined
+        }
       />
 
       <ClassDetailsModal

@@ -30,7 +30,7 @@ export function DropoutRiskInterventionModal({
   const [actionTitle, setActionTitle] = useState("");
   const [actionNotes, setActionNotes] = useState("");
   const [followUpDate, setFollowUpDate] = useState("");
-  const [intervenorName, setIntervenorName] = useState("Direcção Pedagógica");
+  const [intervenorName, setIntervenorName] = useState("Direção Pedagógica");
 
   useEffect(() => {
     if (selectedAlert) {
@@ -80,7 +80,7 @@ export function DropoutRiskInterventionModal({
             onValueChange={(val) => setActionType(val as ActionType)}
             options={[
               { label: "Contacto Telefónico com Encarregado", value: "GUARDIAN_CONTACT" },
-              { label: "Reunião Presencial na Direcção", value: "PEDAGOGIC_MEETING" },
+              { label: "Reunião Presencial na Direção", value: "PEDAGOGIC_MEETING" },
               { label: "Plano de Recuperação Académica", value: "RECOVERY_PLAN" },
               { label: "Atribuição de Apoio / Tutoria", value: "TUTORING_ASSIGNED" },
               { label: "Encaminhamento para Apoio Social", value: "SOCIAL_ASSISTANCE" },

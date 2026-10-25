@@ -25,7 +25,7 @@ interface StudentSelectProps {
 }
 
 /**
- * Selecção de aluno padrão (MindGest `PaginatedSelect`): pesquisa por nome / n.º de processo e paginação,
+ * Seleção de aluno padrão (MindGest `PaginatedSelect`): pesquisa por nome / n.º de processo e paginação,
  * mantendo sempre o aluno escolhido nas opções. Usar em todos os modais que pedem um aluno.
  */
 export function StudentSelect({ students, value, onChange, label = "Aluno", placeholder = "Pesquisar aluno...", error, disabled, isLoading, pageSize = 6, className }: StudentSelectProps) {

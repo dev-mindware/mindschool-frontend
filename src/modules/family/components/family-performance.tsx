@@ -52,7 +52,7 @@ export function FamilyPerformance({ studentId }: FamilyContext) {
     { key: "review_deadline", header: "Prazo", render: (_, a) => <span className="text-xs">{a.review_deadline ?? "—"}</span> },
     { key: "review", header: "Reapreciação", render: (_, a) => (a.review ? <Badge variant="outline">{a.review.status}</Badge> : <span className="text-xs text-muted-foreground">—</span>) },
     {
-      key: "actions", header: "Acção",
+      key: "actions", header: "Ação",
       render: (_, a) => (
         <ButtonOnlyAction data={a} actions={a.review
           ? a.review.status === "pedido" ? [{ label: "Cancelar pedido", icon: "X", variant: "destructive", onClick: (x) => void run(live.cancelReview.mutateAsync(x.review!.id), "Pedido cancelado.") }] : []

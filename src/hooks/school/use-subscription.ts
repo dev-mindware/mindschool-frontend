@@ -4,7 +4,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { subscriptionService, type OrderRequest } from "@/services/subscription-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 
-/** Subscricao da escola activa: estado, catalogo, simulacao (quote), ordens e comprovativo de pagamento. */
+/** Subscricao da escola ativa: estado, catalogo, simulacao (quote), ordens e comprovativo de pagamento. */
 export function useSubscription() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const qc = useQueryClient();

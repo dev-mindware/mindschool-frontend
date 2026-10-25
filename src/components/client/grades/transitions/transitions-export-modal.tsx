@@ -7,6 +7,7 @@ import { ConsolidatedStudentRow } from "@/types/grade";
 import { downloadElementAsPdf } from "@/utils/export-pdf";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { formatDate } from "@/utils";
+import { governmentLine, registrationLine } from "@/lib/document-header";
 
 interface TransitionsExportModalProps {
   isOpen: boolean;
@@ -34,7 +35,7 @@ export function TransitionsExportModal({
   const { profile, calendar } = useSchoolSettingsStore();
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const displayYear = calendar.academicYear || "2025/2026";
+  const displayYear = calendar.academicYear || "";
   const totalStudents = students.length;
 
   const handleDownload = async () => {
@@ -83,19 +84,15 @@ export function TransitionsExportModal({
                 MINISTÉRIO DA EDUCAÇÃO
               </div>
               <div className="text-[10px] uppercase text-black/70 tracking-wide mt-0.5">
-                GOVERNO PROVINCIAL DE {profile.province?.toUpperCase() || "LUANDA"} • DIRECÇÃO MUNICIPAL DA EDUCAÇÃO DE {profile.municipality?.toUpperCase() || "TALATONA"}
+                {governmentLine(profile, "DIRECÇÃO MUNICIPAL DA EDUCAÇÃO DE")}
               </div>
 
               <div className="mt-2.5">
                 <h1 className="text-base font-black tracking-tight text-black uppercase font-serif">
-                  {profile.schoolName || "COLÉGIO PRIVADO MINDSCHOOL"}
+                  {profile.schoolName}
                 </h1>
-                <p className="text-[10px] uppercase text-black/80 font-medium">
-                  {profile.subTitle || "Ensino Primário, I e II Ciclos do Ensino Secundário Geral e Técnico"}
-                </p>
-                <p className="text-[9px] text-black/60 font-mono mt-0.5">
-                  Registo MED: {profile.medRegistrationCode || "MED-AO-LUA-2018-0492"} • {profile.decreeNumber || "Decreto Executivo n.º 148/18"}
-                </p>
+                {profile.subTitle && <p className="text-[10px] uppercase text-black/80 font-medium">{profile.subTitle}</p>}
+                <p className="text-[9px] text-black/60 font-mono mt-0.5">{registrationLine(profile)}</p>
               </div>
 
               <div className="mt-3.5 inline-block border-y-2 border-black py-1 px-8">
@@ -111,7 +108,7 @@ export function TransitionsExportModal({
             {/* 2. BARRA DE METADADOS DA TURMA */}
             <div className="grid grid-cols-4 border-b-2 border-black text-xs font-semibold text-black divide-x divide-black bg-slate-50/50">
               <div className="py-2 px-3 text-center">
-                <span className="block text-[9px] font-bold uppercase text-black/60">Ano Lectivo</span>
+                <span className="block text-[9px] font-bold uppercase text-black/60">Ano Letivo</span>
                 <span className="font-bold text-black text-xs">{displayYear}</span>
               </div>
               <div className="py-2 px-3 text-center">
@@ -130,7 +127,7 @@ export function TransitionsExportModal({
 
             {/* 3. TERMO DE REUNIÃO FORMAL */}
             <div className="mt-3.5 text-justify text-[11px] leading-relaxed text-black indent-6">
-              Aos {formatDate(new Date())}, nas instalações da instituição escolar <strong>{profile.schoolName || "Colégio Privado MindSchool"}</strong>, reuniu-se em plenário extraordinário o Conselho de Docentes e Equipa Pedagógica da turma <strong>{sectionName}</strong>, sob a presidência da Direcção Geral. A sessão teve como finalidade exclusiva a verificação minuciosa do rendimento académico final, a conferência das médias globais e a deliberação soberana sobre a transição de classe dos estudantes, aplicando com total rigor os critérios estabelecidos pelo <strong>Decreto Executivo n.º 424/25</strong> e as faculdades concedidas pelo regime de excepções do Artigo 24.º para o ensino secundário geral.
+              Aos {formatDate(new Date())}, nas instalações da instituição escolar <strong>{profile.schoolName || "Colégio Privado MindSchool"}</strong>, reuniu-se em plenário extraordinário o Conselho de Docentes e Equipa Pedagógica da turma <strong>{sectionName}</strong>, sob a presidência da Direção Geral. A sessão teve como finalidade exclusiva a verificação minuciosa do rendimento académico final, a conferência das médias globais e a deliberação soberana sobre a transição de classe dos estudantes, aplicando com total rigor os critérios estabelecidos pelo <strong>Decreto Executivo n.º 424/25</strong> e as faculdades concedidas pelo regime de exceções do Artigo 24.º para o ensino secundário geral.
             </div>
 
             {/* 4. TABELA FORMAL DE DELIBERAÇÕES */}
@@ -180,7 +177,7 @@ export function TransitionsExportModal({
                         </td>
                         <td className="py-1 px-2 text-center text-[10px] font-bold uppercase tracking-tight">
                           {student.transitionStatus === "APPROVED" && (
-                            <span className="text-black">Transita (Directo)</span>
+                            <span className="text-black">Transita (Direto)</span>
                           )}
                           {student.transitionStatus === "APPROVED_WITH_CONDITIONS" && (
                             <span className="text-black">Transita (Art. 24.º)</span>
@@ -207,13 +204,13 @@ export function TransitionsExportModal({
               </div>
               <div className="grid grid-cols-4 gap-2 text-center text-xs font-semibold text-black divide-x divide-black/30">
                 <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Aprovados Directos</span>
+                  <span className="block text-[9px] text-black/70 uppercase">Aprovados Diretos</span>
                   <span className="font-black text-sm">
                     {stats.directApproval} ({totalStudents > 0 ? ((stats.directApproval / totalStudents) * 100).toFixed(1) : 0}%)
                   </span>
                 </div>
                 <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Excepções Legais (Art. 24.º)</span>
+                  <span className="block text-[9px] text-black/70 uppercase">Exceções Legais (Art. 24.º)</span>
                   <span className="font-black text-sm">
                     {stats.conditionalApproval} ({totalStudents > 0 ? ((stats.conditionalApproval / totalStudents) * 100).toFixed(1) : 0}%)
                   </span>
@@ -248,7 +245,7 @@ export function TransitionsExportModal({
               <div className="flex flex-col items-center">
                 <div className="w-48 border-b border-black mb-1.5" />
                 <span className="font-bold text-[10px] uppercase">O Presidente do Conselho</span>
-                <span className="text-[9px] text-black/70 mt-0.5">{profile.directorGeneralName || "Director Geral"}</span>
+                <span className="text-[9px] text-black/70 mt-0.5">{profile.directorGeneralName || "Diretor Geral"}</span>
               </div>
             </div>
           </div>
@@ -259,7 +256,7 @@ export function TransitionsExportModal({
           <div className="text-xs text-muted-foreground flex items-center gap-1.5">
             <Icon name="Info" className="w-4 h-4 text-primary" />
             <span>
-              A ata do conselho será exportada directamente em formato PDF oficial (A4 Retrato).
+              A ata do conselho será exportada diretamente em formato PDF oficial (A4 Retrato).
             </span>
           </div>
 

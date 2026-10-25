@@ -99,7 +99,7 @@ export function PlanCheckout() {
 
       <div className="grid gap-6 lg:grid-cols-12">
         <div className="space-y-6 lg:col-span-8">
-          <Step n={1} title="Ciclo de facturação">
+          <Step n={1} title="Ciclo de faturação">
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
               {PERIODS.map((p) => (
                 <button key={p.value} type="button" onClick={() => setMonths(p.value)} className={`rounded-lg border-2 p-3 text-left transition ${months === p.value ? "border-primary bg-primary/5" : "border-border hover:border-muted-foreground/40"}`}>
@@ -145,7 +145,7 @@ export function PlanCheckout() {
               {busy && <Icon name="LoaderCircle" className="mr-2 size-4 animate-spin" />}
               {busy ? "A processar..." : "Concluir subscrição"}
             </Button>
-            <p className="text-center text-xs text-muted-foreground">O plano é activado depois de a equipa validar o comprovativo.</p>
+            <p className="text-center text-xs text-muted-foreground">O plano é ativado depois de a equipa validar o comprovativo.</p>
           </Step>
         </div>
 
@@ -200,7 +200,7 @@ export function PlanCheckout() {
         </aside>
       </div>
 
-      <GlobalModal sucess canClose={false} id="subscription-created" size="sm" title="Comprovativo enviado" description="Receberá uma notificação quando o pagamento for validado e o plano ficar activo.">
+      <GlobalModal sucess canClose={false} id="subscription-created" size="sm" title="Comprovativo enviado" description="Receberá uma notificação quando o pagamento for validado e o plano ficar ativo.">
         <Button className="w-full" onClick={() => { closeModal("subscription-created"); router.push("/subscription"); }}>Ver a minha subscrição</Button>
       </GlobalModal>
     </div>

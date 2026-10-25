@@ -7,7 +7,7 @@ import { studentsService } from "@/services/students-service";
 import { academicService } from "@/services/academic-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 
-/** Biblioteca da escola activa: acervo, emprestimos (alunos e professores), devolucao e renovacao. */
+/** Biblioteca da escola ativa: acervo, emprestimos (alunos e professores), devolucao e renovacao. */
 export function useLibrary() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const queryClient = useQueryClient();

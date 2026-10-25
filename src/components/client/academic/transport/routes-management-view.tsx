@@ -25,15 +25,15 @@ export function RoutesManagementView() {
     { key: "vehicle_plate", header: "Viatura", render: (_, r) => <span className="font-mono text-xs">{r.vehicle_plate ?? "—"}</span> },
     { key: "driver_name", header: "Motorista", render: (_, r) => (<div className="flex flex-col"><span>{r.driver_name ?? "—"}</span><span className="text-xs text-muted-foreground">{r.driver_phone ?? ""}</span></div>) },
     { key: "occupied", header: "Ocupação", render: (_, r) => <Badge variant={r.seats_free === 0 ? "destructive" : "outline"} className="font-mono">{r.occupied}/{r.capacity}</Badge> },
-    { key: "is_active", header: "Estado", render: (_, r) => (r.is_active ? <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">Activa</Badge> : <Badge variant="secondary">Inactiva</Badge>) },
+    { key: "is_active", header: "Estado", render: (_, r) => (r.is_active ? <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">Ativa</Badge> : <Badge variant="secondary">Inactiva</Badge>) },
     {
-      key: "action", header: "Acção",
+      key: "action", header: "Ação",
       render: (_, r) => (
         <ButtonOnlyAction data={r} actions={[
           { permission: "transport:write", label: "Paragens e passageiros", icon: "Route", onClick: (x) => { setDetailId(x.id); openModal("transport-route-detail"); } },
           { permission: "transport:write", label: "Alocar aluno", icon: "UserPlus", onClick: (x) => openModal("transport-assign", { routeId: x.id }), className: !r.is_active || r.seats_free === 0 ? "pointer-events-none opacity-40" : "" },
           { permission: "transport:write", label: "Lista de passageiros (PDF)", icon: "FileDown", onClick: (x) => openModal("transport-manifest", { routeId: x.id }) },
-          { permission: "transport:write", label: r.is_active ? "Desactivar rota" : "Activar rota", icon: "CirclePower", onClick: (x) => void setActive.mutateAsync({ id: x.id, isActive: !x.is_active }).then(() => SucessMessage(x.is_active ? "Rota desactivada." : "Rota activada.")).catch(err) },
+          { permission: "transport:write", label: r.is_active ? "Desativar rota" : "Ativar rota", icon: "CirclePower", onClick: (x) => void setActive.mutateAsync({ id: x.id, isActive: !x.is_active }).then(() => SucessMessage(x.is_active ? "Rota desativada." : "Rota ativada.")).catch(err) },
         ]} />
       ),
     },
@@ -44,7 +44,7 @@ export function RoutesManagementView() {
     { key: "route_id", header: "Rota", render: (_, a) => routeName(a.route_id) },
     { key: "stop_id", header: "Paragem", render: (_, a) => stopName(a) },
     { key: "valid_from", header: "Desde", render: (_, a) => <span className="font-mono text-xs">{a.valid_from}</span> },
-    { key: "action", header: "Acção", render: (_, a) => <ButtonOnlyAction data={a} actions={[{ permission: "transport:write", label: "Terminar alocação", icon: "UserX", variant: "destructive", onClick: (x) => void endAssignment.mutateAsync(x.id).then(() => SucessMessage("Alocação terminada.")).catch(err) }]} /> },
+    { key: "action", header: "Ação", render: (_, a) => <ButtonOnlyAction data={a} actions={[{ permission: "transport:write", label: "Terminar alocação", icon: "UserX", variant: "destructive", onClick: (x) => void endAssignment.mutateAsync(x.id).then(() => SucessMessage("Alocação terminada.")).catch(err) }]} /> },
   ];
 
   return (
@@ -63,7 +63,7 @@ export function RoutesManagementView() {
             searchPlaceholder="Pesquisar por rota, paragem, motorista ou matrícula"
             searchText={(r) => `${r.name} ${r.driver_name ?? ""} ${r.vehicle_plate ?? ""} ${r.stops.map((s) => s.name).join(" ")}`}
             filters={[
-              { key: "estado", label: "Estado", icon: "Tag", options: [{ value: "activa", label: "Activa" }, { value: "inactiva", label: "Inactiva" }], match: (r, v) => (v === "activa" ? r.is_active : !r.is_active) },
+              { key: "estado", label: "Estado", icon: "Tag", options: [{ value: "activa", label: "Ativa" }, { value: "inactiva", label: "Inactiva" }], match: (r, v) => (v === "activa" ? r.is_active : !r.is_active) },
               { key: "lotacao", label: "Lotação", icon: "Armchair", options: [{ value: "livres", label: "Com lugares livres" }, { value: "cheia", label: "Lotada" }], match: (r, v) => (v === "livres" ? r.seats_free > 0 : r.seats_free === 0) },
               { key: "viatura", label: "Viatura", icon: "Bus", options: [{ value: "com", label: "Com viatura" }, { value: "sem", label: "Sem viatura" }], match: (r, v) => (v === "com" ? Boolean(r.vehicle_plate) : !r.vehicle_plate) },
             ]}

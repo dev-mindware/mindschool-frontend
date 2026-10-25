@@ -18,7 +18,7 @@ export function BreadcrumbProvider({ children }: { children: React.ReactNode }) 
 
   useEffect(() => {
     if (title) {
-      document.title = title 
+      document.title = /· MindSchool$/.test(title) ? title : `${title} · MindSchool`
     }
   }, [title])
 

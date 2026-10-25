@@ -6,6 +6,8 @@ import { useLibrary } from "@/hooks/school/use-library";
 import type { ApiLoan } from "@/services/library-service";
 import { getApiErrorMessage } from "@/utils/api-error";
 
+const MAX_RENEWALS = 2; // igual ao limite da API
+
 const loanState = (l: ApiLoan) => (l.status === "devolvido" ? "devolvido" : l.overdue ? "atraso" : "curso");
 
 /** Balcão de empréstimos: devolução e renovação; os atrasos aparecem a vermelho. */
@@ -25,11 +27,12 @@ export function LoansManagementView() {
           : <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">Em curso</Badge>),
     },
     {
-      key: "action", header: "Acção",
+      key: "action", header: "Ação",
       render: (_, l) => l.status === "emprestado" ? (
         <ButtonOnlyAction data={l} actions={[
           { permission: "library:write", label: "Devolver", icon: "Undo2", onClick: (x) => void run(giveBack.mutateAsync(x.id), "Devolução registada.") },
-          { permission: "library:write", label: l.overdue ? "Renovar (indisponível: em atraso)" : "Renovar", icon: "RefreshCcw", onClick: (x) => void run(renew.mutateAsync(x.id), "Empréstimo renovado."), className: l.overdue ? "pointer-events-none opacity-40" : "" },
+          // 2 renovações no máximo (a API recusa a terceira): o menu deixa de a oferecer
+          ...(l.renewals < MAX_RENEWALS ? [{ permission: "library:write", label: l.overdue ? "Renovar (indisponível: em atraso)" : "Renovar", icon: "RefreshCcw" as const, onClick: (x: typeof l) => void run(renew.mutateAsync(x.id), "Empréstimo renovado."), className: l.overdue ? "pointer-events-none opacity-40" : "" }] : []),
         ]} />
       ) : null,
     },

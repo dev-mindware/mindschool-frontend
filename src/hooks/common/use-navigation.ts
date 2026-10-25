@@ -8,7 +8,7 @@ import { useAuth } from "@/hooks/auth";
 import { filterByPermissions, getSidebarForUser } from "@/lib/get-sidebar-for-user";
 import { useCan } from "@/hooks/auth/use-can";
 
-/** Navegação do utilizador autenticado: itens filtrados por papel/plano, modelo modular, módulo activo pela URL. */
+/** Navegação do utilizador autenticado: itens filtrados por papel/plano, modelo modular, módulo ativo pela URL. */
 export function useNavigation(): { ready: boolean; items: MenuItem[]; model: NavigationModel; active: ReturnType<typeof activeModule>; pathname: string } {
   const { user } = useAuth();
   const pathname = usePathname();

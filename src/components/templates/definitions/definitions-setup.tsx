@@ -252,7 +252,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
               </Button>
             </div>
 
-            {/* Conteúdo da Tab Activa */}
+            {/* Conteúdo da Tab Ativa */}
             {!isMobile &&
               enabledTabs.map((tab) => (
                 <TabsContent key={tab.id} value={tab.id} className="!py-4 sm:p-6 mt-0">

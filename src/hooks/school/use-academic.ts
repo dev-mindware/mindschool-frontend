@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { academicService } from "@/services/academic-service";
+import { sectionsService } from "@/services/sections-service";
 import type { AcademicYearDraft } from "@/lib/academic-year";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { EducationCycle, Shift } from "@/types";
@@ -57,8 +58,13 @@ export function useAcademicSections(searchQuery = "", shiftFilter: Shift | "ALL"
     }) => academicService.saveSection(v.id, v),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sections", schoolId] }),
   });
+  const remove = useMutation({
+    mutationFn: (id: string) => sectionsService.remove(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sections", schoolId] }),
+  });
   return {
     sections: paging.paginated,
+    remove,
     allSections: sections,
     isLoading,
     save,
@@ -81,7 +87,7 @@ export function useSubjects(searchQuery = "", cycleFilter: EducationCycle | "ALL
   }, [subjects, searchQuery, cycleFilter]);
   const paging = usePaging(filtered);
   const save = useMutation({
-    mutationFn: (v: { id?: string; name: string; isCore: boolean; gradingScale?: "quantitativa" | "qualitativa" | "mista" }) =>
+    mutationFn: (v: { id?: string; name: string; isCore: boolean; code?: string; gradingScale?: "quantitativa" | "qualitativa" | "mista" }) =>
       academicService.saveSubject(v.id, v),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["subjects", schoolId] }),
   });

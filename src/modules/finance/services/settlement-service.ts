@@ -9,7 +9,7 @@ const newKey = (): string =>
 
 export const settlementService = {
   /**
-   * Marcar como pago (uma liquidação, uma factura-recibo). A chave de idempotência é do pedido: repetir o mesmo clique
+   * Marcar como pago (uma liquidação, uma fatura-recibo). A chave de idempotência é do pedido: repetir o mesmo clique
    * não regista duas vezes (o chamador reutiliza a chave enquanto o pedido é o mesmo).
    */
   create: async (v: SettlementInput, key: string = newKey()): Promise<ApiSettlement> =>

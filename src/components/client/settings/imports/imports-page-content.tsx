@@ -239,7 +239,7 @@ function ImportWizardModal() {
             </div>
             {job.status !== "committed" && (
               <p className="text-muted-foreground">
-                Nada foi gravado ainda: isto é só a validação. Linhas «novas» serão criadas; as «já existentes» e os duplicados no ficheiro não são gravados nem actualizados.
+                Nada foi gravado ainda: isto é só a validação. Linhas «novas» serão criadas; as «já existentes» e os duplicados no ficheiro não são gravados nem atualizados.
               </p>
             )}
 
@@ -387,7 +387,7 @@ export function ImportsPageContent() {
     },
     {
       key: "action",
-      header: "Acção",
+      header: "Ação",
       render: (_, j) => (
         <ButtonOnlyAction
           data={j}

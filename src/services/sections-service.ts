@@ -1,3 +1,4 @@
+import api from "./api";
 import { fetchAllPages } from "./api-pagination";
 import type { AcademicSection, EducationCycle } from "@/types";
 
@@ -24,7 +25,7 @@ const CYCLE: Record<string, EducationCycle> = {
 };
 
 export const sectionsService = {
-  /** Turmas da escola activa (todas as do ano; `academicYearId` opcional). */
+  /** Turmas da escola ativa (todas as do ano; `academicYearId` opcional). */
   list: async (academicYearId?: string): Promise<AcademicSection[]> => {
     const rows = await fetchAllPages<ApiSection>("/s/sections", academicYearId ? { academic_year_id: academicYearId } : {});
     return rows.map((s) => ({
@@ -42,5 +43,10 @@ export const sectionsService = {
       createdAt: "",
       updatedAt: "",
     }));
+  },
+
+  /** Apaga uma turma vazia (a API recusa, com o motivo, se tiver alunos, disciplinas, horário ou pautas). */
+  remove: async (id: string): Promise<void> => {
+    await api.delete(`/s/sections/${id}`);
   },
 };

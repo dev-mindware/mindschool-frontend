@@ -14,7 +14,7 @@ export function useAnnouncements() {
   const refresh = () => queryClient.invalidateQueries({ queryKey: key });
 
   const create = useMutation({ mutationFn: (v: NewAnnouncement) => announcementsService.create(v), onSuccess: refresh });
-  const update = useMutation({ mutationFn: (v: { id: string; title: string; body: string }) => announcementsService.update(v.id, { title: v.title, body: v.body }), onSuccess: refresh });
+  const update = useMutation({ mutationFn: (v: { id: string; title: string; body: string; audience?: "escola" | "turma"; sectionId?: string }) => announcementsService.update(v.id, { title: v.title, body: v.body, ...(v.audience ? { audience: v.audience, section_id: v.audience === "turma" ? v.sectionId ?? null : null } : {}) }), onSuccess: refresh });
   const publish = useMutation({ mutationFn: (id: string) => announcementsService.publish(id), onSuccess: refresh });
   const archive = useMutation({ mutationFn: (id: string) => announcementsService.archive(id), onSuccess: refresh });
 

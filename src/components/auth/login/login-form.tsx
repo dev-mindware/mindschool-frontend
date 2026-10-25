@@ -147,7 +147,7 @@ export function LoginForm() {
       </div>
 
       <div className="text-sm text-center text-muted-foreground mt-2">
-        As escolas são activadas pela equipa Mindware; o Titular recebe um convite por email.
+        As escolas são ativadas pela equipa Mindware; o Titular recebe um convite por email.
       </div>
     </form>
   );

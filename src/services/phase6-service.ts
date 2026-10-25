@@ -145,6 +145,11 @@ export const phase6Service = {
       academic_year_id: v.academicYearId, title: v.title, scheduled_at: v.scheduledAt, capacity: v.capacity,
       ...(v.classLevelId ? { class_level_id: v.classLevelId } : {}), ...(v.location ? { location: v.location } : {}),
     })).data,
+  updateSession: async (id: string, v: { title?: string; scheduledAt?: string; location?: string | null; capacity?: number }) =>
+    (await api.patch<ApiSessionSummary>(`/s/admission-exam-sessions/${id}`, {
+      ...(v.title !== undefined ? { title: v.title } : {}), ...(v.scheduledAt !== undefined ? { scheduled_at: v.scheduledAt } : {}),
+      ...(v.location !== undefined ? { location: v.location } : {}), ...(v.capacity !== undefined ? { capacity: v.capacity } : {}),
+    })).data,
   cancelSession: async (id: string) => (await api.post(`/s/admission-exam-sessions/${id}/cancel`, {})).data,
   registerCandidate: async (applicationId: string, sessionId: string) => (await api.post(`/s/admission-applications/${applicationId}/exam-registration`, { session_id: sessionId })).data,
   putSessionResults: async (id: string, results: Array<{ application_id: string; status: "presente" | "ausente"; score?: number }>) =>

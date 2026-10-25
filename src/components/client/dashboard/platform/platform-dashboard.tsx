@@ -9,7 +9,7 @@ import { OverviewSectionCard } from "../overview/overview-section-card";
 import { QuickLinks } from "../overview/overview-blocks";
 import { BlockEmptyState } from "../overview/block-empty-state";
 
-const STATUS_LABEL: Record<string, string> = { trial: "Em período de teste", active: "Activas", ativa: "Activas", past_due: "Pagamento em atraso", suspended: "Suspensas", cancelled: "Canceladas", expired: "Expiradas", pending: "Pendentes" };
+const STATUS_LABEL: Record<string, string> = { trial: "Em período de teste", active: "Ativas", ativa: "Ativas", past_due: "Pagamento em atraso", suspended: "Suspensas", cancelled: "Canceladas", expired: "Expiradas", pending: "Pendentes" };
 const ATTENTION: Record<string, string> = { orders_awaiting_review: "Comprovativos por rever", past_due: "Pagamentos em atraso", trials_ending: "Testes a terminar", dead_letter: "Eventos falhados" };
 const LINKS = [
   { label: "Painel da plataforma", href: `${ADMIN_PANEL_URL}/dashboard`, icon: "Server" as const },

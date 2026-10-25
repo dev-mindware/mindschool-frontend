@@ -23,7 +23,7 @@ import {
 interface SettlementSheetProps {
   isOpen: boolean;
   onClose: () => void;
-  /** Propinas escolhidas na lista: têm de ser do mesmo aluno (uma liquidação, uma factura-recibo). */
+  /** Propinas escolhidas na lista: têm de ser do mesmo aluno (uma liquidação, uma fatura-recibo). */
   fees: StudentTuitionFee[];
 }
 
@@ -44,7 +44,7 @@ export function invoiceIdsOf(fees: StudentTuitionFee[]): string[] {
 /**
  * Marcar como pago (uma ou mais cobranças do mesmo aluno). Regista o pagamento do valor total em dívida e pede a
  * factura-recibo ao MindGest. O pagamento fica sempre registado; se a escola não estiver ligada, ou faltar o imposto de
- * algum serviço, a factura-recibo fica em espera e segue sozinha.
+ * algum serviço, a fatura-recibo fica em espera e segue sozinha.
  */
 export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps) {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
@@ -103,7 +103,7 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
         <SheetHeader className="p-5 border-b shrink-0">
           <SheetTitle className="text-lg font-bold">Marcar como pago</SheetTitle>
           <SheetDescription className="text-xs">
-            Regista o valor total em dívida e pede a factura-recibo ao MindGest. Não há pagamento parcial.
+            Regista o valor total em dívida e pede a fatura-recibo ao MindGest. Não há pagamento parcial.
           </SheetDescription>
         </SheetHeader>
 
@@ -115,7 +115,7 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
             <>
               {mixed && (
                 <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
-                  Escolheu propinas de alunos diferentes. Cada pagamento (e cada factura-recibo) é de um só aluno: deixe só um aluno seleccionado.
+                  Escolheu propinas de alunos diferentes. Cada pagamento (e cada fatura-recibo) é de um só aluno: deixe só um aluno seleccionado.
                 </p>
               )}
 
@@ -193,15 +193,15 @@ function IntegrationNotice({ state, loading }: { state: ApiCustomerOptions["inte
   if (loading || !state || state === "ready") {
     return state === "ready" ? (
       <p className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-800">
-        <Icon name="ShieldCheck" className="mt-0.5 size-4 shrink-0" /> A escola está ligada ao MindGest: a factura-recibo é pedida logo a seguir ao pagamento.
+        <Icon name="ShieldCheck" className="mt-0.5 size-4 shrink-0" /> A escola está ligada ao MindGest: a fatura-recibo é pedida logo a seguir ao pagamento.
       </p>
     ) : null;
   }
   const text = state === "pausada"
-    ? "As emissões pelo MindGest estão em pausa. O pagamento fica registado e a factura-recibo segue quando o titular reactivar as emissões (Definições › Integrações › MindGest)."
+    ? "As emissões pelo MindGest estão em pausa. O pagamento fica registado e a fatura-recibo segue quando o titular reativar as emissões (Definições › Integrações › MindGest)."
     : state === "sem_ligacao"
-    ? "A escola não está ligada ao MindGest. O pagamento fica registado, mas a factura-recibo só é emitida depois de o titular ligar a escola (Definições › Integrações › MindGest)."
-    : "O catálogo do MindGest está incompleto: há serviços sem imposto definido. O pagamento fica registado e a factura-recibo segue quando o imposto for definido no MindGest.";
+    ? "A escola não está ligada ao MindGest. O pagamento fica registado, mas a fatura-recibo só é emitida depois de o titular ligar a escola (Definições › Integrações › MindGest)."
+    : "O catálogo do MindGest está incompleto: há serviços sem imposto definido. O pagamento fica registado e a fatura-recibo segue quando o imposto for definido no MindGest.";
   return (
     <p className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900">
       <Icon name="TriangleAlert" className="mt-0.5 size-4 shrink-0" /> {text}
@@ -214,12 +214,12 @@ function DoneCard({ settlement }: { settlement: ApiSettlement }) {
   return (
     <div className="space-y-3 rounded-xl border bg-muted/40 p-4 text-sm">
       <p className="flex items-center gap-2 font-semibold"><Icon name="CircleCheck" className="size-4 text-emerald-600" /> Pagamento registado: {formatCurrency(Number(settlement.total))}</p>
-      <p className="text-xs text-muted-foreground">Cliente da factura-recibo: <strong>{settlement.customer.name}</strong>{settlement.customer.nif ? ` · NIF ${settlement.customer.nif}` : " · consumidor final"}</p>
+      <p className="text-xs text-muted-foreground">Cliente da fatura-recibo: <strong>{settlement.customer.name}</strong>{settlement.customer.nif ? ` · NIF ${settlement.customer.nif}` : " · consumidor final"}</p>
       <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs text-muted-foreground">Factura-recibo:</span>
+        <span className="text-xs text-muted-foreground">Fatura-recibo:</span>
         <Badge variant={st.variant} className="font-normal">{st.label}</Badge>
       </div>
-      <p className="text-xs text-muted-foreground">{st.hint} Acompanhe em <strong>Propinas &amp; Finanças › Facturas</strong>.</p>
+      <p className="text-xs text-muted-foreground">{st.hint} Acompanhe em <strong>Propinas &amp; Finanças › Faturas</strong>.</p>
     </div>
   );
 }
@@ -241,8 +241,8 @@ function CustomerChooser(p: {
   ];
   return (
     <div className="space-y-2">
-      <Label className="text-xs font-semibold uppercase tracking-wider text-foreground">Em nome de quem sai a factura-recibo</Label>
-      <p className="text-[11px] text-muted-foreground">Por omissão, o encarregado com NIF; sem NIF, o aluno; sem NIF de ninguém, «consumidor final». O NIF é facultativo, serve só para a factura-recibo (é enviado ao MindGest, que a emite) e, se o guardar, fica na ficha cifrado.</p>
+      <Label className="text-xs font-semibold uppercase tracking-wider text-foreground">Em nome de quem sai a fatura-recibo</Label>
+      <p className="text-[11px] text-muted-foreground">Por omissão, o encarregado com NIF; sem NIF, o aluno; sem NIF de ninguém, «consumidor final». O NIF é facultativo, serve só para a fatura-recibo (é enviado ao MindGest, que a emite) e, se o guardar, fica na ficha cifrado.</p>
       <div className="space-y-1.5">
         {rows.map((r) => (
           <div key={`${r.choice.kind}-${r.choice.guardianId ?? ""}`} className={`rounded-lg border px-3 py-2 ${same(r.choice) ? "border-primary bg-primary/5" : "border-border"}`}>

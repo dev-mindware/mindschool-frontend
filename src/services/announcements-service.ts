@@ -22,7 +22,7 @@ export const announcementsService = {
   list: () => fetchAllPages<ApiAnnouncement>("/s/announcements"),
   create: async (v: NewAnnouncement) =>
     (await api.post<ApiAnnouncement>("/s/announcements", { title: v.title, body: v.body, audience: v.audience, ...(v.audience === "turma" ? { section_id: v.sectionId } : {}) })).data,
-  update: async (id: string, v: { title: string; body: string }) => (await api.patch<ApiAnnouncement>(`/s/announcements/${id}`, v)).data,
+  update: async (id: string, v: { title: string; body: string; audience?: "escola" | "turma"; section_id?: string | null }) => (await api.patch<ApiAnnouncement>(`/s/announcements/${id}`, v)).data,
   publish: async (id: string) => (await api.post<ApiAnnouncement>(`/s/announcements/${id}/publish`, {})).data,
   archive: async (id: string) => (await api.post<ApiAnnouncement>(`/s/announcements/${id}/archive`, {})).data,
 };

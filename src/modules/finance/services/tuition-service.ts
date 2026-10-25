@@ -32,7 +32,7 @@ export interface ApiInvoice {
   related_invoice_id?: string | null;
   fiscal: {
     status: string; document_id?: string | null; certificate_number: string | null;
-    /** Nota(s) de crédito emitida(s) no MindGest sobre a factura-recibo desta cobrança. */
+    /** Nota(s) de crédito emitida(s) no MindGest sobre a fatura-recibo desta cobrança. */
     corrected?: boolean; correction_notice?: string | null; credit_notes?: Array<{ id: string; number: string | null; issued_at: string | null }>;
   };
 }
@@ -88,28 +88,28 @@ export { METHOD_TO_API, type UiPaymentMethod } from "@/modules/finance/settlemen
 const money = (v: string) => Number(v);
 
 export const tuitionService = {
-  /** Facturas da escola (leitura): a emissão e certificação fiscal são tratadas no MindGest. */
+  /** Faturas da escola (leitura): a emissão e certificação fiscal são tratadas no MindGest. */
   invoices: (): Promise<ApiInvoice[]> => fetchAllPages<ApiInvoice>("/s/invoices"),
-  /** Abre o comprovativo interno (PDF) do último pagamento da factura. */
+  /** Abre o comprovativo interno (PDF) do último pagamento da fatura. */
   openReceipt: async (invoiceId: string): Promise<void> => {
     const pays = (await api.get<{ data: Array<{ id: string }> }>(`/s/invoices/${invoiceId}/payments`)).data.data;
     const last = pays[pays.length - 1];
-    if (!last) throw new Error("Esta factura ainda não tem pagamentos.");
+    if (!last) throw new Error("Esta fatura ainda não tem pagamentos.");
     const blob = (await api.get<Blob>(`/s/invoices/${invoiceId}/payments/${last.id}/receipt.pdf`, { responseType: "blob" })).data;
     window.open(URL.createObjectURL(blob), "_blank");
   },
 
-  /** Facturas de propina/matricula da escola activa, enriquecidas com turma e encarregado (juncao com alunos e matriculas). */
+  /** Faturas de propina/matricula da escola ativa, enriquecidas com turma e encarregado (juncao com alunos e matriculas). */
   fees: async (): Promise<StudentTuitionFee[]> => {
     const [invoices, students, enrollments, guardians] = await Promise.all([
       fetchAllPages<ApiInvoice>("/s/invoices"), studentsService.list(), enrollmentsService.list(),
-      // sem permissao de ler encarregados (ou falha): as facturas continuam a listar-se, so sem o e-mail
+      // sem permissao de ler encarregados (ou falha): as faturas continuam a listar-se, so sem o e-mail
       guardiansService.list().catch(() => []),
     ]);
     const studentBy = new Map(students.map((s) => [s.id, s]));
     const emailByGuardian = new Map(guardians.map((g) => [g.id, g.email]));
     const sectionBy = new Map(enrollments.filter((e) => e.status === "ACTIVE").map((e) => [e.studentId, e.sectionName]));
-    // A multa (e cada agravamento mensal) e uma factura propria ligada a de origem: soma-se aqui a quem a originou.
+    // A multa (e cada agravamento mensal) e uma fatura propria ligada a de origem: soma-se aqui a quem a originou.
     const finesBy = new Map<string, ApiInvoice[]>();
     for (const f of invoices) {
       if (f.type !== "multa" || f.status === "anulada" || !f.related_invoice_id) continue;
@@ -153,10 +153,10 @@ export const tuitionService = {
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
   },
 
-  /** Envia agora o lembrete de cobranca (e-mail) a cada factura; devolve o resultado real, factura a factura. */
+  /** Envia agora o lembrete de cobranca (e-mail) a cada fatura; devolve o resultado real, factura a fatura. */
   sendReminders: async (invoiceIds: string[]): Promise<ReminderBatchResult> => {
     const total: ReminderBatchResult = { sent: 0, failed: 0, cancelled: 0, results: [] };
-    for (let i = 0; i < invoiceIds.length; i += 200) { // a API aceita ate 200 facturas por pedido
+    for (let i = 0; i < invoiceIds.length; i += 200) { // a API aceita ate 200 faturas por pedido
       const { data } = await api.post<ReminderBatchResult>("/s/finance/reminders/send", { invoice_ids: invoiceIds.slice(i, i + 200), channel: "email" });
       total.sent += data.sent; total.failed += data.failed; total.cancelled += data.cancelled; total.results.push(...data.results);
     }

@@ -44,7 +44,7 @@ export function MindgestConsent() {
           <Icon name="Link" className="size-5 text-primary" />Ligar a escola ao MindGest
         </CardTitle>
         <p className="text-sm text-muted-foreground">
-          O <strong className="text-foreground">{client.name}</strong> ({client.redirect_origin.replace(/^https?:\/\//, "")}) pede para emitir as facturas da sua escola.
+          O <strong className="text-foreground">{client.name}</strong> ({client.redirect_origin.replace(/^https?:\/\//, "")}) pede para emitir as faturas da sua escola.
         </p>
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
@@ -73,8 +73,8 @@ export function MindgestConsent() {
                 <p className="mb-1 font-medium">O MindGest poderá</p>
                 <ul className="list-disc space-y-1 pl-4 text-muted-foreground">
                   <li>Receber o catálogo de emolumentos da escola.</li>
-                  <li>Emitir facturas-recibo quando a secretaria marcar um pagamento.</li>
-                  <li>Consultar essas facturas e o seu estado.</li>
+                  <li>Emitir faturas-recibo quando a secretaria marcar um pagamento.</li>
+                  <li>Consultar essas faturas e o seu estado.</li>
                 </ul>
               </div>
               <div className="rounded-md bg-muted/50 p-3">
@@ -86,7 +86,7 @@ export function MindgestConsent() {
               </div>
             </div>
             <p className="text-xs text-muted-foreground">
-              A empresa e a loja que emitem as facturas são as da conta do MindGest que iniciou o pedido; aparecem em Definições › Integrações assim que a ligação terminar.
+              A empresa e a loja que emitem as faturas são as da conta do MindGest que iniciou o pedido; aparecem em Definições › Integrações assim que a ligação terminar.
               Pode desligar a qualquer momento.
             </p>
 

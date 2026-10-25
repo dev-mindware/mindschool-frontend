@@ -133,7 +133,7 @@ export function FinalExamsPageContent() {
     { key: "call", header: "Chamada", render: (_, e) => CALL_LABEL[e.call] },
     { key: "scheduled_date", header: "Data", render: (_, e) => <span className="font-mono text-xs">{e.scheduled_date}</span> },
     { key: "status", header: "Estado", render: (_, e) => <Badge variant="outline">{STATUS_LABEL[e.status]}</Badge> },
-    { key: "action", header: "Acção", render: (_, e) => <ButtonOnlyAction data={e} actions={[{ label: "Abrir chamada", icon: "Eye", onClick: (x) => { setOpenId(x.id); openModal("final-exam-detail"); } }]} /> },
+    { key: "action", header: "Ação", render: (_, e) => <ButtonOnlyAction data={e} actions={[{ label: "Abrir chamada", icon: "Eye", onClick: (x) => { setOpenId(x.id); openModal("final-exam-detail"); } }]} /> },
   ];
 
   return (
@@ -147,8 +147,8 @@ export function FinalExamsPageContent() {
         items={[
           { label: "1.ª chamada", description: "Alunos com MFD igual ou acima do mínimo de admissão da escola (Políticas › Exames Finais)." },
           { label: "2.ª chamada", description: "Só quem faltou à 1.ª com justificação e ainda não foi avaliado." },
-          { label: "Recurso", description: "Alunos que ficaram negativos e ainda têm MFD de admissão; só se a escola o tiver activado nas Políticas." },
-          { label: "Melhoria", description: "Alunos já aprovados que querem subir a nota; só vale se a nota nova for maior. Só se a escola a tiver activado." },
+          { label: "Recurso", description: "Alunos que ficaram negativos e ainda têm MFD de admissão; só se a escola o tiver ativado nas Políticas." },
+          { label: "Melhoria", description: "Alunos já aprovados que querem subir a nota; só vale se a nota nova for maior. Só se a escola a tiver ativado." },
         ]}
       />
 

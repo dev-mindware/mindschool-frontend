@@ -1,3 +1,4 @@
+import { createdAtFromUuidV7 } from "@/lib/uuid7";
 import { normalizeNif } from "@/lib/nif";
 import api from "./api";
 import { fetchAllPages } from "./api-pagination";
@@ -14,6 +15,7 @@ interface ApiStudent {
   nif?: string | null;
   document_type: "cedula_pessoal" | "bilhete_identidade" | "certidao_nascimento" | "passaporte";
   document_number: string;
+  process_number?: string | null;
   status: "pre_inscrito" | "activo" | "transferido" | "concluido" | "inactivo";
   photo_url: string | null;
   email?: string | null;
@@ -60,12 +62,13 @@ export const RELATIONSHIP_TO_API: Record<string, "pai" | "mae" | "tutor_legal" |
   "Mãe": "mae",
   "Tutor Legal": "tutor_legal",
 };
+const RELATIONSHIP_FROM_API: Record<string, string> = { pai: "Pai", mae: "Mãe", tutor_legal: "Tutor Legal", outro: "Outro" };
 
 function toStudent(s: ApiStudent, enrollment?: ApiEnrollment): Student {
   return {
     id: s.id,
     schoolId: s.school_id,
-    studentNumber: s.document_number, // a API identifica o aluno pelo documento (nao ha n.o de processo proprio)
+    studentNumber: s.process_number ?? s.document_number, // n.º de processo da escola (sequencial); o documento de identificação é outra coisa
     fullName: s.full_name,
     gender: s.gender === "feminino" ? "FEMALE" : "MALE",
     birthDate: s.birth_date,
@@ -76,14 +79,14 @@ function toStudent(s: ApiStudent, enrollment?: ApiEnrollment): Student {
     guardianId: s.primary_guardian?.id ?? "",
     guardianName: s.primary_guardian?.full_name ?? "",
     guardianPhone: s.primary_guardian?.phone ?? "",
-    guardianRelationship: s.primary_guardian?.relationship_type ?? "",
+    guardianRelationship: RELATIONSHIP_FROM_API[s.primary_guardian?.relationship_type ?? ""] ?? s.primary_guardian?.relationship_type ?? "",
     currentSectionId: enrollment?.section.id ?? "",
     currentSectionName: enrollment ? `${enrollment.class_level.name} ${enrollment.section.name}` : "",
     currentClassLevel: enrollment?.class_level.name ?? "",
     academicYear: "",
     photoUrl: s.photo_url ?? undefined,
     email: s.email ?? undefined,
-    createdAt: "",
+    createdAt: createdAtFromUuidV7(s.id),
     updatedAt: "",
   };
 }
@@ -103,7 +106,7 @@ export interface CreateStudentInput {
 }
 
 export const studentsService = {
-  /** Alunos da escola activa, com a turma da matricula viva (juncao de `/students` e `/enrollments`). */
+  /** Alunos da escola ativa, com a turma da matricula viva (juncao de `/students` e `/enrollments`). */
   list: async (search?: string): Promise<Student[]> => {
     const [students, enrollments] = await Promise.all([
       fetchAllPages<ApiStudent>("/s/students", search && search.trim().length >= 2 ? { q: search.trim() } : {}),

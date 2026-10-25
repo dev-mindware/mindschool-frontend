@@ -69,7 +69,7 @@ export function OnboardingTourButton({
             mode="demo"
             icon="Sparkles"
             label="Demonstração guiada"
-            description="Preenche dados de teste e limpa ao sair. Não executa acções."
+            description="Preenche dados de teste e limpa ao sair. Não executa ações."
             onSelect={startTour}
           />
         </DropdownMenuContent>

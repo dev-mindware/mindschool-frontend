@@ -1,5 +1,6 @@
 "use client";
 
+import { activeNavUrl } from "@/lib/active-nav";
 import { useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -28,12 +29,11 @@ const RAIL_WIDTH = "4.5rem";
 /** Rail + painel quando expandida; colapsada o rail desaparece e o painel fica em modo ícones (4 rem). */
 const DUAL_WIDTH = "calc(15rem + 4.5rem)";
 
-const isActive = (pathname: string, url: string) => pathname === url || pathname.startsWith(`${url}/`);
 
 interface Props { model: NavigationModel; active: NavModule | undefined; pathname: string }
 
 /**
- * Rail de módulos + painel com as secções do módulo activo. Ao colapsar o rail desaparece e o painel passa a uma
+ * Rail de módulos + painel com as secções do módulo ativo. Ao colapsar o rail desaparece e o painel passa a uma
  * coluna de ícones com as páginas do módulo; a troca de módulo vive então no botão do topo.
  */
 export function ModularSidebar({ model, active, pathname }: Props) {
@@ -42,7 +42,7 @@ export function ModularSidebar({ model, active, pathname }: Props) {
   // Módulo de uma só página (Dashboard, Configurações) ou página fora do menu (notificações): sem painel, só o rail.
   const railOnly = !isMobile && (active?.pageCount ?? 0) <= 1;
 
-  // Nesta página não há painel para colapsar: o botão (e o atalho) ficam desactivados e o rail aparece sempre.
+  // Nesta página não há painel para colapsar: o botão (e o atalho) ficam desativados e o rail aparece sempre.
   useEffect(() => {
     setCollapseLocked(railOnly);
     if (railOnly && !expanded) setOpen(true);
@@ -54,6 +54,8 @@ export function ModularSidebar({ model, active, pathname }: Props) {
 
   const top = model.modules.filter((m) => !RAIL_BOTTOM.includes(m.id));
   const bottom = model.modules.filter((m) => RAIL_BOTTOM.includes(m.id));
+  // só a página atual fica destacada (não o pai «Visão geral» ao mesmo tempo)
+  const currentUrl = activeNavUrl(pathname, active?.sections.flatMap((s) => s.links.map((l) => l.url)) ?? []);
 
   return (
     <Sidebar collapsible="icon" width={railOnly ? RAIL_WIDTH : DUAL_WIDTH}>
@@ -92,7 +94,7 @@ export function ModularSidebar({ model, active, pathname }: Props) {
                 {i > 0 && <SidebarSeparator className="mx-0 mb-2 mt-1" />}
                 {section.label && <SidebarGroupLabel className="h-7 px-3 text-xs font-normal text-muted-foreground">{section.label}</SidebarGroupLabel>}
                 <SidebarMenu className="gap-0.5 group-data-[collapsible=icon]:items-center">
-                  {section.links.map((l) => <PanelLink key={l.key} link={l} pathname={pathname} onNavigate={() => isMobile && setOpenMobile(false)} />)}
+                  {section.links.map((l) => <PanelLink key={l.key} link={l} current={l.url === currentUrl} onNavigate={() => isMobile && setOpenMobile(false)} />)}
                 </SidebarMenu>
               </SidebarGroup>
             ))}
@@ -128,8 +130,7 @@ function RailButton({ module, active, onClick }: { module: NavModule; active: bo
   );
 }
 
-function PanelLink({ link, pathname, onNavigate }: { link: NavLink; pathname: string; onNavigate: () => void }) {
-  const current = isActive(pathname, link.url);
+function PanelLink({ link, current, onNavigate }: { link: NavLink; current: boolean; onNavigate: () => void }) {
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild tooltip={link.name} isActive={current} onClick={onNavigate}

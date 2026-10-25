@@ -6,7 +6,7 @@ import { transportService } from "@/services/transport-service";
 import { studentsService } from "@/services/students-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 
-/** Transporte escolar da escola activa: rotas com paragens, lotacao e alunos alocados. */
+/** Transporte escolar da escola ativa: rotas com paragens, lotacao e alunos alocados. */
 export function useTransport() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const queryClient = useQueryClient();

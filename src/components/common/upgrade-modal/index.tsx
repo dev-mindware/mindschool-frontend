@@ -28,7 +28,7 @@ export function UpgradeModal({ feature }: { feature: string }) {
             <span className="font-semibold text-slate-900 dark:text-white">
               {feature}
             </span>{" "}
-            está disponível apenas em planos superiores. Actualize agora e
+            está disponível apenas em planos superiores. Atualize agora e
             desbloqueie todas as funcionalidades!
           </p>
         </div>

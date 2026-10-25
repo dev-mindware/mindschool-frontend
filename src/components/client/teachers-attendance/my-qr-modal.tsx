@@ -31,7 +31,7 @@ export function MyQrModal({ isOpen, onClose }: MyQrModalProps) {
         const wait = Math.max(2000, new Date(data.expires_at).getTime() - Date.now() - 1000);
         timer = setTimeout(load, wait);
       } catch (e) {
-        if (!stop) setError(getApiErrorMessage(e, "Não foi possível gerar o QR (só professores com ficha activa)."));
+        if (!stop) setError(getApiErrorMessage(e, "Não foi possível gerar o QR (só professores com ficha ativa)."));
       }
     };
     void load();

@@ -45,7 +45,7 @@ export function FamilyLibrary({ studentId, ward }: FamilyContext) {
     { key: "location", header: "Localização", render: (_, b) => <span className="text-xs text-muted-foreground">{b.location ?? "—"}</span> },
     { key: "copies_available", header: "Disponibilidade", render: (_, b) => <Badge variant={b.copies_available > 0 ? "success" : "secondary"} className="font-normal">{b.copies_available > 0 ? `${b.copies_available} disponível(eis)` : "Sem exemplares"}</Badge> },
     {
-      key: "actions", header: "Acção",
+      key: "actions", header: "Ação",
       render: (_, b) => {
         const requested = open.some((r) => r.book_id === b.id) || activeLoans.some((l) => l.book_id === b.id);
         return <Button size="sm" variant="outline" className="h-8 gap-1.5" disabled={requested} onClick={() => { setBook(b); setNotes(""); openModal(REQUEST_MODAL); }}><Icon name="BookPlus" className="size-3.5" />{requested ? "Já pedido" : "Pedir"}</Button>;
@@ -57,7 +57,7 @@ export function FamilyLibrary({ studentId, ward }: FamilyContext) {
     { key: "book_title", header: "Livro", render: (_, r) => (<div><span className="font-medium">{r.book_title}</span><p className="text-xs text-muted-foreground">{r.book_author}</p></div>) },
     { key: "created_at", header: "Pedido em", render: (_, r) => <span className="text-xs">{r.created_at.slice(0, 10)}</span> },
     { key: "status", header: "Estado", render: (_, r) => (<div><StatusBadge status={r.status} map={STATUS} />{r.decision_reason && <p className="mt-1 text-xs text-muted-foreground">{r.decision_reason}</p>}{r.loan && <p className="mt-1 text-xs text-muted-foreground">Devolver até {r.loan.due_at}</p>}</div>) },
-    { key: "actions", header: "Acção", render: (_, r) => (r.status === "pedido" ? <ButtonOnlyAction data={r} actions={[{ label: "Cancelar pedido", icon: "X", variant: "destructive", onClick: (x) => { setCancelling(x); openModal(CANCEL_MODAL); } }]} /> : null) },
+    { key: "actions", header: "Ação", render: (_, r) => (r.status === "pedido" ? <ButtonOnlyAction data={r} actions={[{ label: "Cancelar pedido", icon: "X", variant: "destructive", onClick: (x) => { setCancelling(x); openModal(CANCEL_MODAL); } }]} /> : null) },
   ];
 
   const loanColumns: Column<PortalLoan>[] = [
@@ -66,7 +66,7 @@ export function FamilyLibrary({ studentId, ward }: FamilyContext) {
     { key: "due_at", header: "Devolver até", render: (_, l) => <span className={`text-xs ${l.overdue ? "font-semibold text-destructive" : ""}`}>{l.status === "devolvido" ? `Devolvido ${l.returned_at?.slice(0, 10)}` : l.due_at}</span> },
     { key: "status", header: "Estado", render: (_, l) => <Badge variant={l.status === "devolvido" ? "secondary" : l.overdue ? "destructive" : "info"} className="font-normal">{l.status === "devolvido" ? "Devolvido" : l.overdue ? "Em atraso" : "Emprestado"}</Badge> },
     {
-      key: "actions", header: "Acção",
+      key: "actions", header: "Ação",
       render: (_, l) => (l.status === "emprestado" && !l.overdue && l.renewals < 2
         ? <Button size="sm" variant="outline" className="h-8" disabled={renew.isPending} onClick={() => void renew.mutateAsync(l.id).then(() => { SucessMessage("Empréstimo renovado."); }).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível renovar.")))}>Renovar</Button>
         : l.status === "emprestado" ? <span className="text-xs text-muted-foreground">{l.overdue ? "Devolva o livro" : "Sem renovações"}</span> : null),

@@ -10,7 +10,7 @@ interface ChartCardProps {
   title: string;
   icon: keyof typeof icons;
   description?: string;
-  /** Acção à direita do título (ex.: botão "Ver tudo"). */
+  /** Ação à direita do título (ex.: botão "Ver tudo"). */
   action?: ReactNode;
   className?: string;
   children: ReactNode;

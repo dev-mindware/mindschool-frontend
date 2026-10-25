@@ -202,7 +202,7 @@ export function EntranceExamsPageContent() {
           title={entranceExams.length}
           subtitle="Total de Provas Programadas"
           icon="FileText"
-          description="Exames cadastrados para o ano lectivo"
+          description="Exames cadastrados para o ano letivo"
         />
         <DynamicMetricCard
           title={entranceExams.reduce((acc, e) => acc + e.enrolledCandidatesCount, 0)}

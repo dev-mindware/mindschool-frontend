@@ -86,12 +86,15 @@ function BellModal() {
   };
 
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }));
+  // o intervalo só existe depois de um tempo que exista e antes do último («intervalo após o tempo 10» com 6 tempos)
+  const breakInvalid = f.breakAfter < 1 || f.breakAfter >= f.periods;
   return (
     <FormModal
       id="tt-new-bell"
       title="Nova grelha de tempos"
       description="Define os tempos de aula e o intervalo de um turno."
       submitLabel="Criar grelha"
+      disabled={breakInvalid}
       isLoading={createBell.isPending}
       onSubmit={() =>
         createBell
@@ -120,7 +123,7 @@ function BellModal() {
       <Input label="Início" type="time" value={f.start} onChange={(e) => set("start", e.target.value)} />
       <Input label="Minutos por tempo" type="quantity" min={30} max={120} step={5} value={f.minutes} onChange={(e) => set("minutes", Number(e.target.value))} />
       <Input label="N.º de tempos" type="quantity" min={1} max={12} step={1} value={f.periods} onChange={(e) => set("periods", Number(e.target.value))} />
-      <Input label="Intervalo após o tempo" type="quantity" min={1} max={10} step={1} value={f.breakAfter} onChange={(e) => set("breakAfter", Number(e.target.value))} />
+      <Input label="Intervalo após o tempo" type="quantity" min={1} max={Math.max(1, f.periods - 1)} step={1} value={f.breakAfter} error={breakInvalid ? `A grelha só tem ${f.periods} tempos: o intervalo tem de ser depois de um tempo de 1 a ${f.periods - 1}.` : undefined} onChange={(e) => set("breakAfter", Number(e.target.value))} />
       <Input label="Duração do intervalo (min)" type="quantity" min={5} max={60} step={5} value={f.breakMin} onChange={(e) => set("breakMin", Number(e.target.value))} />
     </FormModal>
   );
@@ -172,12 +175,12 @@ function TimetableGuide({ hasBells, hasRooms, roomsEnabled, hasYear, creating, o
     { done: hasRooms, title: "2. Registe as salas escolares", text: "Opcional, mas evita conflitos de ocupação física de turmas.", action: "Adicionar sala", run: onRooms },
     { done: false, title: "3. Crie a versão do horário", text: "Começa como rascunho; as turmas só veem o horário quando publicado.", action: "Criar horário", run: onCreate, primary: true },
     { done: false, title: "4. Preencha as aulas na grelha", text: "Clique num tempo livre da turma para atribuir disciplina, professor e sala." },
-    { done: false, title: "5. Valide e publique oficialmente", text: "A API impede automaticamente choques de professor, turma e sala. Valide e publique para todos os utilizadores.", isFinal: true },
+    { done: false, title: "5. Valide e publique oficialmente", text: "O sistema impede automaticamente choques de professor, turma e sala. Valide e publique para todos os utilizadores.", isFinal: true },
   ];
   // Sem o recurso «salas» (Essencial) o passo das salas não existe; a numeração vem da posição.
   const steps = allSteps.filter((s) => roomsEnabled || !s.title.includes("salas escolares"));
   return (
-    <EmptyState icon="CalendarRange" title="Ainda não há horário escolar" description={hasYear ? "Siga os passos abaixo para configurar os turnos, salas e montar a grade semanal das turmas." : "Não há ano lectivo activo. Crie o ano lectivo em Configurações antes de montar o horário."}>
+    <EmptyState icon="CalendarRange" title="Ainda não há horário escolar" description={hasYear ? "Siga os passos abaixo para configurar os turnos, salas e montar a grade semanal das turmas." : "Não há ano letivo ativo. Crie o ano letivo em Configurações antes de montar o horário."}>
       <ol className="mt-2 grid w-full max-w-3xl gap-3 text-left sm:grid-cols-2">
         {steps.map((st, i) => (
           <li key={st.title} className={"flex gap-3 rounded-lg border bg-background/80 p-3.5 transition-colors " + (st.done ? "border-emerald-500/40 bg-emerald-500/[0.04]" : "border-border") + (st.isFinal ? " sm:col-span-2" : "")}>
@@ -248,8 +251,8 @@ export function TimetablesPageContent() {
     { key: "code", header: "Código", render: (_, r) => <span className="font-mono text-xs font-semibold">{r.code}</span> },
     { key: "name", header: "Sala" },
     { key: "capacity", header: "Lotação", render: (_, r) => r.capacity ?? "—" },
-    { key: "is_active", header: "Estado", render: (_, r) => (r.is_active ? <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">Activa</Badge> : <Badge variant="secondary">Inactiva</Badge>) },
-    { key: "action", header: "Acção", render: (_, r) => <ButtonOnlyAction data={r} actions={[{ permission: "timetable:write", label: r.is_active ? "Desactivar" : "Activar", icon: "CirclePower", onClick: (x) => void tt.setRoomActive.mutateAsync({ id: x.id, isActive: !x.is_active }).then(() => SucessMessage(x.is_active ? "Sala desactivada." : "Sala activada.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."))) }]} /> },
+    { key: "is_active", header: "Estado", render: (_, r) => (r.is_active ? <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">Ativa</Badge> : <Badge variant="secondary">Inactiva</Badge>) },
+    { key: "action", header: "Ação", render: (_, r) => <ButtonOnlyAction data={r} actions={[{ permission: "timetable:write", label: r.is_active ? "Desativar" : "Ativar", icon: "CirclePower", onClick: (x) => void tt.setRoomActive.mutateAsync({ id: x.id, isActive: !x.is_active }).then(() => SucessMessage(x.is_active ? "Sala desativada." : "Sala ativada.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."))) }]} /> },
   ];
   const changeColumns: Column<ApiChange>[] = [
     { key: "effective_date", header: "Em vigor", render: (_, c) => <span className="font-mono text-xs">{c.effective_date}</span> },
@@ -268,7 +271,7 @@ export function TimetablesPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Horários Escolares" suTitle="Versões do horário (rascunho → validado → publicado), vista semanal por turma e por professor; choques são impedidos pela API.">
+      <TitleList title="Horários Escolares" suTitle="Versões do horário (rascunho → validado → publicado), vista semanal por turma e por professor. O sistema impede choques de professor, turma e sala.">
         <div className="flex flex-wrap items-center gap-2">
           <Button
             size="sm"
@@ -280,7 +283,7 @@ export function TimetablesPageContent() {
             <Icon name="Download" className="size-4" />
             Exportar Horário (PDF)
           </Button>
-          <Can permission="timetable:write"><Button size="sm" className="gap-1.5" disabled={!hasYear || tt.create.isPending} onClick={() => tt.create.mutateAsync(current?.id).then(() => SucessMessage(current ? "Nova versão criada a partir da actual." : "Horário criado.")).catch(fail)}><Icon name="Plus" className="size-4" />{current ? "Nova versão" : "Criar horário"}</Button></Can>
+          <Can permission="timetable:write"><Button size="sm" className="gap-1.5" disabled={!hasYear || tt.create.isPending} onClick={() => tt.create.mutateAsync(current?.id).then(() => SucessMessage(current ? "Nova versão criada a partir da atual." : "Horário criado.")).catch(fail)}><Icon name="Plus" className="size-4" />{current ? "Nova versão" : "Criar horário"}</Button></Can>
         </div>
       </TitleList>
 <TeacherGoogleCard />
@@ -458,8 +461,8 @@ export function TimetablesPageContent() {
         </TabsContent>
 
         <TabsContent value="bells" className="space-y-4">
-          <div className="mt-6"><Button size="sm" variant="outline" className="gap-1.5" onClick={() => openModal("tt-new-bell")}><Icon name="Plus" className="size-4" />Nova grelha</Button></div>
-          {bells.length === 0 && <EmptyState icon="Clock" title="Sem grelhas de tempos" description="A grelha define a duração dos tempos de aula e o intervalo de cada turno. É necessária para montar o horário."><Button size="sm" className="gap-1.5" onClick={() => openModal("tt-new-bell")}><Icon name="Plus" className="size-4" />Criar grelha de tempos</Button></EmptyState>}
+          <Can permission="timetable:write"><div className="mt-6"><Button size="sm" variant="outline" className="gap-1.5" onClick={() => openModal("tt-new-bell")}><Icon name="Plus" className="size-4" />Nova grelha</Button></div></Can>
+          {bells.length === 0 && <EmptyState icon="Clock" title="Sem grelhas de tempos" description="A grelha define a duração dos tempos de aula e o intervalo de cada turno. É necessária para montar o horário."><Can permission="timetable:write" fallback={<p className="text-xs text-muted-foreground">A grelha é definida pela Direção Pedagógica.</p>}><Button size="sm" className="gap-1.5" onClick={() => openModal("tt-new-bell")}><Icon name="Plus" className="size-4" />Criar grelha de tempos</Button></Can></EmptyState>}
           <div className="grid grid-cols-1 gap-3 lg:grid-cols-3">
             {bells.map((b) => (
               <DynamicMetricCard key={b.id} title={SHIFT_LABEL[b.shift]} subtitle={`${b.name} · desde ${b.valid_from}`} icon="Clock" description={b.slots.map((s) => `${s.start}–${s.end}${s.kind === "intervalo" ? " (intervalo)" : ""}`).join(" • ")} />
@@ -476,7 +479,7 @@ export function TimetablesPageContent() {
             columns={roomColumns}
             searchPlaceholder="Pesquisar sala"
             searchText={(r) => `${r.code} ${r.name}`}
-            filters={[{ key: "estado", label: "Estado", icon: "Tag", options: [{ value: "activa", label: "Activa" }, { value: "inactiva", label: "Inactiva" }], match: (r, v) => (v === "activa" ? r.is_active : !r.is_active) }]}
+            filters={[{ key: "estado", label: "Estado", icon: "Tag", options: [{ value: "activa", label: "Ativa" }, { value: "inactiva", label: "Inactiva" }], match: (r, v) => (v === "activa" ? r.is_active : !r.is_active) }]}
             sorts={[{ value: "codigo", label: "Código", compare: (a, b) => a.code.localeCompare(b.code) }, { value: "lotacao", label: "Lotação", compare: (a, b) => (a.capacity ?? 0) - (b.capacity ?? 0) }]}
             emptyTitle="Sem salas registadas"
             emptyIcon="DoorOpen"

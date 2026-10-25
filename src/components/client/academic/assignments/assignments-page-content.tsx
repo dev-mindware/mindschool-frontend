@@ -20,7 +20,7 @@ export function TeacherAssignmentsPageContent() {
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <TitleList
           title="Distribuição Docente"
-          suTitle="Atribuição de professores a turmas e disciplinas lectivas para o ano corrente"
+          suTitle="Atribuição de professores a turmas e disciplinas letivas para o ano corrente"
         />
         <Can permission="teaching:write">
         <Button
@@ -38,13 +38,13 @@ export function TeacherAssignmentsPageContent() {
         <DynamicMetricCard
           title={counts.totalAssignments}
           subtitle="Total Atribuições"
-          description="Alocações activas de aulas"
+          description="Alocações ativas de aulas"
           icon="BookOpenCheck"
         />
         <DynamicMetricCard
           title={counts.uniqueTeachers}
           subtitle="Docentes Alocados"
-          description="Professores em actividade"
+          description="Professores em atividade"
           icon="GraduationCap"
         />
         <DynamicMetricCard

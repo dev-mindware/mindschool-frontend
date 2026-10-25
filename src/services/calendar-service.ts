@@ -24,7 +24,7 @@ export interface ApiEvent {
   row_version: number;
 }
 
-/** Um dia do motor de dias lectivos. `source`: `regra` (ano, trimestres, feriados nacionais) ou `calendario` (evento/marca da Direcção). */
+/** Um dia do motor de dias letivos. `source`: `regra` (ano, trimestres, feriados nacionais) ou `calendario` (evento/marca da Direção). */
 export interface ApiSchoolDay {
   date: string;
   lectivo: boolean;
@@ -60,8 +60,8 @@ export const EVENT_TYPE_LABEL: Record<string, string> = {
   exame_nacional: "Exame nacional", exame_recurso: "Exame de recurso", exame_melhoria: "Exame de melhoria", exame_extraordinario: "Exame extraordinário",
   pausa_pedagogica: "Pausa pedagógica", recesso: "Recesso", feriado_nacional: "Feriado nacional", ponte: "Ponte", tolerancia_ponto: "Tolerância de ponto",
   comemoracao: "Comemoração", matricula: "Matrículas", ferias_professores: "Férias dos professores", seminario: "Seminário",
-  reuniao_encarregados: "Reunião de encarregados", conselho_notas: "Conselho de notas", dia_nao_lectivo_institucional: "Dia não lectivo",
-  reposicao: "Reposição de aulas", actividade_escolar: "Actividade escolar",
+  reuniao_encarregados: "Reunião de encarregados", conselho_notas: "Conselho de notas", dia_nao_lectivo_institucional: "Dia não letivo",
+  reposicao: "Reposição de aulas", actividade_escolar: "Atividade escolar",
 };
 
 export interface NewEvent {
@@ -92,7 +92,7 @@ export const calendarService = {
   cancel: async (id: string, reason: string) => (await api.post<ApiEvent>(`/s/calendar/events/${id}/cancel`, { reason })).data,
   impact: async (id: string) => (await api.get<unknown>(`/s/calendar/events/${id}/impact`)).data,
 
-  // ---- Dias lectivos (todos os planos) ----
+  // ---- Dias letivos (todos os planos) ----
   schoolDays: async (from: string, to: string): Promise<ApiSchoolDay[]> => (await api.get<{ data: ApiSchoolDay[] }>("/s/school-days", { params: { from, to } })).data.data,
   markNonLective: async (v: { startDate: string; endDate?: string; title: string; justification: string }) =>
     (await api.post("/s/school-days/marks", { start_date: v.startDate, title: v.title, justification: v.justification, ...(v.endDate ? { end_date: v.endDate } : {}) })).data,

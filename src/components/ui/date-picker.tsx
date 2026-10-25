@@ -42,7 +42,7 @@ export function DatePicker({
   className,
   id,
 }: DatePickerProps) {
-  // Se não existir um valor, utiliza a data actual apenas para montar os selectores.
+  // Se não existir um valor, utiliza a data atual apenas para montar os selectores.
   const date = value ?? new Date();
 
   const months = [

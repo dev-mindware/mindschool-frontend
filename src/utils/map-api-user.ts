@@ -53,7 +53,7 @@ export function primaryRoleOf(me: ApiMe, schoolId?: string | null): Role | null 
 }
 
 /**
- * API -> `User` do frontend. O papel e o da escola activa; `company` representa a escola activa
+ * API -> `User` do frontend. O papel e o da escola ativa; `company` representa a escola ativa
  * (o frontend herdou o conceito de "empresa" do MindGest).
  */
 export function mapApiUser(me: ApiMe, schoolId?: string | null, subscription?: Subscription): User {

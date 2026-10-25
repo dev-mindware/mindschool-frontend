@@ -164,9 +164,9 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
         <SheetHeader className="p-6 border-b shrink-0">
-          <SheetTitle className="text-lg font-bold">Boletim de Matrícula Digital (UC-01)</SheetTitle>
+          <SheetTitle className="text-lg font-bold">Boletim de Matrícula Digital</SheetTitle>
           <SheetDescription className="text-xs">
-            Efectue a inscrição de novos ingressos ou confirmação anual de alunos existentes
+            Efetue a inscrição de novos ingressos ou confirmação anual de alunos existentes
           </SheetDescription>
         </SheetHeader>
 
@@ -214,6 +214,9 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
               Dados do Novo Ingresso
             </h4>
+            <p className="text-xs text-muted-foreground" role="note">
+              Este atalho não pede encarregado. Associe-o depois em Secretaria › Encarregados; para registar o aluno já com encarregado, use «Cadastrar Aluno».
+            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2">
                 <Input
@@ -256,10 +259,10 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
           </div>
         )}
 
-        {/* Destino Lectivo */}
+        {/* Destino Letivo */}
         <div className="space-y-3">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Alocação Lectiva & Turma
+            Alocação Letiva & Turma
           </h4>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             <div className="sm:col-span-2">
@@ -267,13 +270,19 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                 label="Turma de Destino *"
                 value={selectedSectionId}
                 options={sectionOptions}
-                placeholder="Selecione a turma..."
+                placeholder={sectionOptions.length === 0 ? "Ainda não há turmas" : "Selecione a turma..."}
                 onValueChange={setSelectedSectionId}
+                disabled={sectionOptions.length === 0}
               />
+              {sectionOptions.length === 0 && (
+                <p className="mt-1.5 text-xs text-muted-foreground" role="status">
+                  Ainda não há turmas para matricular. Crie primeiro uma turma em <a className="font-medium text-primary underline" href="/academic/classes">Académico › Turmas</a>.
+                </p>
+              )}
             </div>
 
             <Input
-              label="Ano Lectivo (o da turma)"
+              label="Ano Letivo (o da turma)"
               startIcon="Calendar"
               value={selectedSection?.academicYear ?? "Escolha a turma"}
               disabled

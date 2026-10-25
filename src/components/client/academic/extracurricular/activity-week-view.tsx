@@ -5,7 +5,7 @@ import { useExtracurricular } from "@/hooks/school/use-extracurricular";
 import { useModal } from "@/stores/modal/use-modal-store";
 import type { ApiActivity } from "@/services/extracurricular-service";
 
-/** Horário semanal das actividades extracurriculares (só as que têm dia e hora definidos). */
+/** Horário semanal das atividades extracurriculares (só as que têm dia e hora definidos). */
 export function ActivityWeekView() {
   const { activities, teacherName } = useExtracurricular();
   const { openModal } = useModal();
@@ -17,7 +17,7 @@ export function ActivityWeekView() {
   return (
     <div className="space-y-3">
       <WeekTimetable<ApiActivity> blocks={blocks} days={[1, 2, 3, 4, 5, 6]} onBlockClick={(b) => b.data && b.data.status === "aberta" && openModal("activity-enroll", { activityId: b.data.id })} />
-      <p className="text-xs text-muted-foreground">Clique numa actividade aberta para inscrever um aluno. As actividades sem dia e hora fixos não aparecem aqui.</p>
+      <p className="text-xs text-muted-foreground">Clique numa atividade aberta para inscrever um aluno. As atividades sem dia e hora fixos não aparecem aqui.</p>
     </div>
   );
 }

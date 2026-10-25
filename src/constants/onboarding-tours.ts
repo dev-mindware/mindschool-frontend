@@ -184,12 +184,12 @@ export const onboardingTours: Record<OnboardingTourId, TourDefinition> = {
       tourStep(
         "dashboard-summary",
         "Indicadores principais",
-        "Compare produtos vendidos, serviços prestados e valores facturados. Utilize as variações para identificar mudanças que exigem atenção.",
+        "Compare produtos vendidos, serviços prestados e valores faturados. Utilize as variações para identificar mudanças que exigem atenção.",
         { side: "bottom" },
       ),
       tourStep(
         "dashboard-revenue",
-        "Evolução da facturação",
+        "Evolução da faturação",
         "Observe a evolução por período para reconhecer crescimento, quebras e sazonalidade antes de consultar os detalhes.",
         { side: "top" },
       ),

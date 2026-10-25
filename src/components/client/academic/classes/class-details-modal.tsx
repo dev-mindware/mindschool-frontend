@@ -86,7 +86,7 @@ export function ClassDetailsModal({
             <DetailRow label="Designação da Turma" value={section.name} />
             <DetailRow label="Ano de Escolaridade" value={section.classLevel} />
             <DetailRow label="Ciclo Curricular" value={CYCLE_LABELS[section.cycle] || section.cycle} />
-            <DetailRow label="Ano Lectivo" value={section.academicYear} />
+            <DetailRow label="Ano Letivo" value={section.academicYear} />
           </div>
           <div className="space-y-2">
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
@@ -94,7 +94,7 @@ export function ClassDetailsModal({
             </h4>
             <DetailRow label="Sala de Aulas" value={section.roomNumber} />
             <DetailRow
-              label="Turno Lectivo"
+              label="Turno Letivo"
               value={
                 section.shift === "MORNING"
                   ? "Manhã"
@@ -103,7 +103,7 @@ export function ClassDetailsModal({
                   : "Noite / Pós-laboral"
               }
             />
-            <DetailRow label="Director de Turma" value={section.mainTeacherName || "Ainda não atribuído"} />
+            <DetailRow label="Diretor de Turma" value={section.mainTeacherName || "Ainda não atribuído"} />
           </div>
         </div>
 

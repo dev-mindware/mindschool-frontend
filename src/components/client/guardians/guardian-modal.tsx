@@ -27,12 +27,24 @@ import { SucessMessage, ErrorMessage } from '@/utils/messages';
 import { GuardianPersonalInfoFields } from './guardian-personal-info-fields';
 import { GuardianContactsFields } from './guardian-contacts-fields';
 import { GuardianWardsSection } from './guardian-wards-section';
-import { phoneNumberSchema, optionalPhoneNumberSchema } from '@/schemas/helps';
+import { phoneNumberSchema, optionalPhoneNumberSchema, validateIdDocumentByType } from '@/schemas/helps';
 import { nifError } from '@/lib/nif';
 
 const guardianFormSchema = z.object({
-  fullName: z.string().trim().min(3, 'Nome completo deve ter pelo menos 3 caracteres'),
-  idDocumentNumber: z.string().trim().optional().or(z.literal('')),
+  fullName: z
+    .string()
+    .trim()
+    .min(3, 'Nome completo deve ter pelo menos 3 caracteres')
+    .regex(/^[\p{L}][\p{L}\p{M}' .-]*$/u, 'O nome só pode ter letras, espaços, apóstrofo e hífen'),
+  // BI (9 dígitos, 2 letras, 3 dígitos) ou passaporte: o mesmo rigor do formulário de aluno
+  idDocumentNumber: z
+    .string()
+    .trim()
+    .min(1, 'O número do documento é obrigatório')
+    .refine(
+      (v) => validateIdDocumentByType(v, 'IDENTITY_CARD').valid || validateIdDocumentByType(v, 'PASSPORT').valid,
+      'Documento inválido. BI: 9 dígitos, 2 letras e 3 dígitos (ex: 007849302LA042); passaporte: 1 ou 2 letras e 6 a 8 dígitos',
+    ),
   nif: z.string().trim().optional().or(z.literal('')).refine((v) => !nifError(v), { message: nifError('x') }),
   phonePrimary: phoneNumberSchema.refine((v) => !!v && v.trim().length > 0, 'Contacto principal é obrigatório'),
   phoneSecondary: optionalPhoneNumberSchema,
@@ -230,6 +242,7 @@ export function GuardianModal({
         fullName: data.fullName,
         documentNumber: data.idDocumentNumber,
         nif: data.nif || undefined,
+        profession: data.profession || undefined,
         phone: data.phonePrimary,
         email: data.email || undefined,
         wards: wards.map((w) => ({ studentId: w.studentId, relationship: w.relationship, isPrimaryContact: w.isPrimaryContact })),

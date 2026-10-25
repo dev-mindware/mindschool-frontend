@@ -31,7 +31,7 @@ const classSectionFormSchema = z
     endTime: z.string().optional(),
     roomNumber: z.string().trim().min(1, "Indique a sala de aulas"),
     capacity: quantitySchema(1, 100, "A lotação da turma"),
-    academicYear: z.string().min(1, "Selecione o ano lectivo"),
+    academicYear: z.string().min(1, "Selecione o ano letivo"),
   })
   .superRefine((data, ctx) => {
     if (data.shift !== "DIURNO") {
@@ -40,6 +40,10 @@ const classSectionFormSchema = z
       }
       if (!data.endTime) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Indique a hora de término do turno", path: ["endTime"] });
+      }
+      // o turno não pode acabar antes de começar («Manhã: 13:00 às 08:00»)
+      if (data.startTime && data.endTime && data.endTime <= data.startTime) {
+        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "A hora de término tem de ser depois da hora de início", path: ["endTime"] });
       }
     }
   });
@@ -84,9 +88,9 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
   const { save } = useAcademicSections();
   const { years, isLoading: yearsLoading, isError: yearsFailed, refetch: refetchYears } = useAcademicYears();
 
-  // Só anos lectivos que existem na escola (não se inventa um ano que a API não conhece).
+  // Só anos letivos que existem na escola (não se inventa um ano que a API não conhece).
   const academicYearOptions = useMemo(
-    () => (years ?? []).map((y) => ({ value: y.name, label: y.status === "activo" ? `${y.name} (Activo)` : y.name })),
+    () => (years ?? []).map((y) => ({ value: y.name, label: y.status === "activo" ? `${y.name} (Ativo)` : y.name })),
     [years],
   );
 
@@ -236,11 +240,11 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
       onClose={onClose}
       canClose
       title={sectionToEdit ? "Editar Turma" : "Criar Nova Turma"}
-      description="Configuração de classe, turno lectivo dinâmico, sala física e ano lectivo"
+      description="Configuração de classe, turno letivo dinâmico, sala física e ano letivo"
       className="w-full sm:max-w-3xl"
     >
       {yearsLoading ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">A carregar os anos lectivos…</p>
+        <p className="py-6 text-center text-sm text-muted-foreground">A carregar os anos letivos…</p>
       ) : years.length === 0 ? (
         <YearSetup loadFailed={yearsFailed} onRetry={() => void refetchYears()} onClose={onClose} />
       ) : (
@@ -269,15 +273,15 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
           />
 
           <SelectField
-            label="Turno Lectivo *"
+            label="Turno Letivo *"
             value={selectedShift}
             options={shiftOptions}
             onValueChange={(val) => handleShiftChange(val as Shift)}
           />
 
-          {/* Ano Lectivo Dinâmico e Editável (Não Desabilitado) */}
+          {/* Ano Letivo Dinâmico e Editável (Não Desabilitado) */}
           <SelectField
-            label="Ano Lectivo *"
+            label="Ano Letivo *"
             value={selectedAcademicYear || activeOrCurrentYear}
             options={academicYearOptions}
             onValueChange={(val) => setValue("academicYear", val, { shouldValidate: true })}

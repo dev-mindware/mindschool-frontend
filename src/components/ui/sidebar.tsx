@@ -42,7 +42,7 @@ type SidebarContextProps = {
   // Novo estado para controlar submenus
   activeSubmenu: string | null;
   setActiveSubmenu: (id: string | null) => void;
-  /** Página sem painel (só o rail): o colapso fica desactivado (botão e atalho). */
+  /** Página sem painel (só o rail): o colapso fica desativado (botão e atalho). */
   collapseLocked: boolean;
   setCollapseLocked: (locked: boolean) => void;
 };

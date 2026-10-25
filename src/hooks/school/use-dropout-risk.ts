@@ -59,7 +59,7 @@ const toAlert = (a: ApiAlert): DropoutRiskAlert => {
 };
 
 /**
- * Alertas de abandono da escola activa (API `risk-alerts`) com a forma do antigo `useDropoutRiskStore`.
+ * Alertas de abandono da escola ativa (API `risk-alerts`) com a forma do antigo `useDropoutRiskStore`.
  * Os filtros sao estado local; cada transicao exige a accao tomada (historico auditado na API).
  */
 export function useDropoutRisk(enabled = true) {
@@ -111,7 +111,7 @@ export function useDropoutRisk(enabled = true) {
     addInterventionAction: (alertId: string, d: { actionType: ActionType; title: string; notes: string; recordedBy: string; nextFollowUpDate?: string; newStatus?: AlertStatus }) =>
       act.mutate({ id: alertId, action: `${d.title}: ${d.notes}`.slice(0, 1000), status: d.newStatus ?? "IN_PROGRESS" }),
     updateAlertStatus: (alertId: string, newStatus: AlertStatus, note?: string) =>
-      act.mutate({ id: alertId, action: note && note.length >= 5 ? note : "Estado actualizado pela direcção pedagógica", status: newStatus }),
+      act.mutate({ id: alertId, action: note && note.length >= 5 ? note : "Estado atualizado pela direção pedagógica", status: newStatus }),
     getMetrics,
   };
 }

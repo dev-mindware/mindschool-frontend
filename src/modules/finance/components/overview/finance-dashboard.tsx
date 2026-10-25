@@ -26,7 +26,7 @@ export function FinanceDashboard({ variant = "operations" }: FinanceDashboardPro
 
   if (isLoading) return <DashboardSkeleton />;
   if (isError) return <EmptyState icon="Lock" title="Sem acesso aos indicadores" description="O seu perfil não pode consultar os indicadores financeiros." />;
-  if (!data?.kpis) return <EmptyState icon="Wallet" title="Ainda sem dados financeiros" description="Quando houver facturas no ano lectivo activo, os indicadores aparecem aqui." />;
+  if (!data?.kpis) return <EmptyState icon="Wallet" title="Ainda sem dados financeiros" description="Quando houver faturas no ano letivo ativo, os indicadores aparecem aqui." />;
 
   const k = data.kpis;
   const sub = data.submissions;
@@ -36,8 +36,8 @@ export function FinanceDashboard({ variant = "operations" }: FinanceDashboardPro
       {variant === "operations" && <QuickActions open={sub?.open ?? 0} />}
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" data-tour="finance-summary">
-        <DynamicMetricCard title={formatCurrency(Number(k.billed))} subtitle="Facturado no ano" icon="Receipt" description={`${k.invoices_total} facturas · ${k.students_billed} alunos`} />
-        <DynamicMetricCard title={formatCurrency(Number(k.collected))} subtitle="Cobrado" icon="Coins" description={k.collection_rate !== null ? `Taxa de cobrança ${k.collection_rate}%` : "Sem facturação"} />
+        <DynamicMetricCard title={formatCurrency(Number(k.billed))} subtitle="Faturado no ano" icon="Receipt" description={`${k.invoices_total} facturas · ${k.students_billed} alunos`} />
+        <DynamicMetricCard title={formatCurrency(Number(k.collected))} subtitle="Cobrado" icon="Coins" description={k.collection_rate !== null ? `Taxa de cobrança ${k.collection_rate}%` : "Sem faturação"} />
         <DynamicMetricCard title={formatCurrency(Number(k.overdue_amount))} subtitle="Em atraso" icon="TriangleAlert" colors={n(k.overdue_amount) > 0 ? "destructive" : "default"} description={`${k.overdue_count} facturas · ${k.students_with_debt} alunos devedores`} />
         <DynamicMetricCard title={sub?.open ?? 0} subtitle="Comprovativos por validar" icon="FileCheck" description={sub?.avg_review_hours != null ? `Validação média em ${sub.avg_review_hours} h` : "Pagamentos enviados pelas famílias"} />
       </div>
@@ -85,17 +85,17 @@ function QuickActions({ open }: { open: number }) {
 }
 
 function MonthlyChart({ data }: { data: FinanceOverview["monthly"] }) {
-  const config = { billed: { label: "Facturado", color: "color-mix(in oklab, var(--primary) 35%, transparent)" }, cash: { label: "Cobrado (caixa)", color: "var(--primary)" } } satisfies ChartConfig;
+  const config = { billed: { label: "Faturado", color: "color-mix(in oklab, var(--primary) 35%, transparent)" }, cash: { label: "Cobrado (caixa)", color: "var(--primary)" } } satisfies ChartConfig;
   const rows = data.map((m) => ({ month: monthLabel(m.month), billed: n(m.billed), cash: n(m.cash_in) }));
   return (
-    <ChartCard title="Facturado vs cobrado" icon="ChartColumn" description="Facturação por mês de vencimento e dinheiro recebido no mês">
+    <ChartCard title="Faturado vs cobrado" icon="ChartColumn" description="Faturação por mês de vencimento e dinheiro recebido no mês">
       {rows.length === 0 ? <ChartEmpty text="Sem movimentos." /> : (
         <ChartContainer config={config} className="aspect-auto h-[280px] w-full">
           <BarChart data={rows} margin={{ top: 14, right: 12, left: -4, bottom: 0 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis dataKey="month" tickLine={false} axisLine={false} tickMargin={8} />
             <YAxis tickLine={false} axisLine={false} width={68} tickFormatter={(v: number) => formatAxisCurrency(v)} />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" formatter={(v, name) => <span className="flex w-full justify-between gap-3"><span className="text-muted-foreground">{name === "billed" ? "Facturado" : "Cobrado"}</span><span className="font-medium tabular-nums">{formatCurrency(Number(v))}</span></span>} />} />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" formatter={(v, name) => <span className="flex w-full justify-between gap-3"><span className="text-muted-foreground">{name === "billed" ? "Faturado" : "Cobrado"}</span><span className="font-medium tabular-nums">{formatCurrency(Number(v))}</span></span>} />} />
             <Bar dataKey="billed" fill="var(--color-billed)" radius={[6, 6, 0, 0]} />
             <Bar dataKey="cash" fill="var(--color-cash)" radius={[6, 6, 0, 0]} />
           </BarChart>
@@ -158,7 +158,7 @@ function AgingChart({ data, overdue }: { data: FinanceOverview["aging"]; overdue
 function ClassCollection({ data }: { data: FinanceOverview["by_class"] }) {
   return (
     <ChartCard title="Cobrança por classe" icon="GraduationCap" description="Taxa de cobrança e valor em aberto de cada classe">
-      {data.length === 0 ? <ChartEmpty text="Sem classes com facturação." /> : (
+      {data.length === 0 ? <ChartEmpty text="Sem classes com faturação." /> : (
         <ul className="space-y-3 pb-2">
           {data.map((c) => (
             <li key={c.class_level} className="grid grid-cols-[110px_1fr_auto] items-center gap-3 text-sm">
@@ -201,7 +201,7 @@ function WorstSections({ rows }: { rows: FinanceOverview["worst_sections"] }) {
 function Forecast({ rows, outstanding }: { rows: FinanceOverview["forecast"]; outstanding: string }) {
   return (
     <ChartCard title="Previsão de entradas" icon="TrendingUp" description={`${formatCurrency(Number(outstanding))} em aberto no total`}>
-      {rows.length === 0 ? <ChartEmpty text="Sem facturas a vencer." /> : (
+      {rows.length === 0 ? <ChartEmpty text="Sem faturas a vencer." /> : (
         <ul className="space-y-2.5 pb-2">{rows.map((r) => <LegendRow key={r.month} label={monthLabel(r.month)} value={formatCurrency(Number(r.expected))} hint="a vencer" />)}</ul>
       )}
     </ChartCard>
@@ -220,10 +220,10 @@ function Indicators({ data }: { data: FinanceOverview }) {
     { icon: "RotateCcw", label: "Recuperado em 30 dias", value: formatCurrency(Number(k.recovered_30d)), hint: "dívida cobrada com atraso" },
     { icon: "Smartphone", label: "Pagamentos online (90 dias)", value: sub ? formatCurrency(Number(sub.online_amount_90d)) : "—", hint: sub ? `${sub.approved} aprovados · ${sub.rejected} rejeitados` : undefined },
     { icon: "Mail", label: "Lembretes por email (30 dias)", value: mails ? String(mails.sent) : "—", hint: mails ? `${mails.failed} falhas` : undefined },
-    { icon: "CircleCheck", label: "Facturas liquidadas", value: `${k.invoices_paid}/${k.invoices_total}`, hint: "no ano lectivo" },
+    { icon: "CircleCheck", label: "Faturas liquidadas", value: `${k.invoices_paid}/${k.invoices_total}`, hint: "no ano letivo" },
   ];
   return (
-    <ChartCard title="Indicadores de cobrança" icon="Gauge" description={`Ano lectivo ${data.academic_year?.name ?? ""} · actualizado a ${data.as_of}`}>
+    <ChartCard title="Indicadores de cobrança" icon="Gauge" description={`Ano letivo ${data.academic_year?.name ?? ""} · actualizado a ${data.as_of}`}>
       <div className="grid grid-cols-2 gap-3 pb-2 lg:grid-cols-4">
         {tiles.map((t) => (
           <div key={t.label} className="rounded-lg border bg-muted/20 p-3">

@@ -1,6 +1,6 @@
 import { PLAN_HIERARCHY, type PlanType, type Subscription } from "@/types";
 
-/** O que uma página (ou acção) exige do plano: a feature da API tem prioridade; `minPlan` serve de rótulo e de recurso. */
+/** O que uma página (ou ação) exige do plano: a feature da API tem prioridade; `minPlan` serve de rótulo e de recurso. */
 export interface PlanRequirement {
   minPlan?: PlanType;
   /** Chave de `FEATURES` da API (ex.: `rooms`). Resolve add-ons e overrides; só vale quando a sessão já a conhece. */

@@ -27,7 +27,7 @@ export function TeachersAttendancePageContent() {
       planModal.open({
         featureName: "Assiduidade Docente",
         requiredPlan: "profissional",
-        description: `O recurso de Assiduidade Docente (${actionName || "controlo de ponto via QR"}) não faz parte do seu plano actual. Actualize para o plano Profissional para aceder a esta funcionalidade.`,
+        description: `O recurso de Assiduidade Docente (${actionName || "controlo de ponto via QR"}) não faz parte do seu plano atual. Atualize para o plano Profissional para aceder a esta funcionalidade.`,
       });
       return false;
     }

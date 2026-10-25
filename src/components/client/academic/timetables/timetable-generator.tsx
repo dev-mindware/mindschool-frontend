@@ -73,7 +73,7 @@ export function TimetableGenerator({ timetableId, sections }: { timetableId: str
             <span>Substituir as aulas já marcadas</span>
           </label>
         </div>
-        {replace && <p className="text-xs text-amber-700 sm:col-span-2">As aulas actuais das turmas seleccionadas serão apagadas e substituídas pela proposta.</p>}
+        {replace && <p className="text-xs text-amber-700 sm:col-span-2">As aulas atuais das turmas seleccionadas serão apagadas e substituídas pela proposta.</p>}
 
         <div className="space-y-3 sm:col-span-2">
           <div className="flex flex-wrap items-center gap-2">

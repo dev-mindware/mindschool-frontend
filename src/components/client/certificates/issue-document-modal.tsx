@@ -25,7 +25,7 @@ interface IssueDocumentModalProps {
 const TYPES = [
   { value: 'CONDUCT_CERTIFICATE', label: 'Certificado de Conduta' },
   { value: 'DECLARATION_ENROLLMENT', label: 'Declaração de Frequência (sem notas)' },
-  { value: 'DECLARATION_WITH_GRADES', label: 'Declaração com Notas do Ano Lectivo (Boletim)' },
+  { value: 'DECLARATION_WITH_GRADES', label: 'Declaração com Notas do Ano Letivo (Boletim)' },
   { value: 'HABILITATION_CERTIFICATE', label: 'Certificado de Habilitações Literárias' },
   { value: 'TRANSFER_GUIDE', label: 'Guia de Transferência Escolar' },
 ];
@@ -73,7 +73,7 @@ export function IssueDocumentModal({ students, onIssue }: IssueDocumentModalProp
       <FormSelect label="Tipo de documento" value={documentType} onValueChange={(v) => setDocumentType(v as OfficialDocumentType)} options={TYPES} />
       {documentType === 'DECLARATION_WITH_GRADES' && (
         <p className="sm:col-span-2 text-xs text-muted-foreground">
-          Usa as notas do último período do ano lectivo e só se emite se a pauta desse período estiver fechada pela Direcção; caso contrário o sistema recusa e diz porquê.
+          Usa as notas do último período do ano letivo e só se emite se a pauta desse período estiver fechada pela Direção; caso contrário o sistema recusa e diz porquê.
         </p>
       )}
       {isCert && (

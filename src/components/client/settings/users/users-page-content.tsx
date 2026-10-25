@@ -7,6 +7,7 @@ import { useMemberships } from "@/hooks/school/use-admin-school";
 import { ROLE_LABEL, type ApiMembership, type SchoolRole } from "@/services/admin-school-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { formatDate } from "@/utils/format-date";
 
 const ASSIGNABLE: SchoolRole[] = ["direccao_pedagogica", "secretaria", "professor", "financeiro", "encarregado", "aluno"];
 const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
@@ -52,10 +53,10 @@ export function UsersPageContent() {
   const columns: Column<ApiMembership>[] = [
     { key: "user.full_name", header: "Utilizador", render: (_, m) => (<div className="flex flex-col"><span className="font-medium">{m.user.full_name}</span><span className="text-xs text-muted-foreground">{m.user.email}</span></div>) },
     { key: "role", header: "Papel", render: (_, m) => <Badge variant={m.is_active ? "outline" : "secondary"}>{ROLE_LABEL[m.role] ?? m.role}</Badge> },
-    { key: "is_active", header: "Estado", render: (_, m) => (m.is_active ? <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">Activo</Badge> : <Badge variant="secondary">Revogado</Badge>) },
-    { key: "granted_at", header: "Desde", render: (_, m) => <span className="font-mono text-xs">{m.granted_at.slice(0, 10)}</span> },
+    { key: "is_active", header: "Estado", render: (_, m) => (m.is_active ? (m.user.invite_pending ? <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-700">Convite pendente</Badge> : <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">Ativo</Badge>) : <Badge variant="secondary">Revogado</Badge>) },
+    { key: "granted_at", header: "Desde", render: (_, m) => <span className="font-mono text-xs">{formatDate(m.granted_at)}</span> },
     {
-      key: "action", header: "Acção",
+      key: "action", header: "Ação",
       render: (_, m) => m.is_active ? <ButtonOnlyAction data={m} actions={[{ permission: "membership:write", label: "Revogar papel", icon: "UserX", variant: "destructive", onClick: (x) => { setTarget(x); openModal("settings-revoke-user"); } }]} /> : null,
     },
   ];
@@ -69,8 +70,8 @@ export function UsersPageContent() {
       <StatusLegend
         title="O que cada papel pode fazer"
         items={[
-          { label: "Direcção Geral (Titular)", description: "Gestão da escola: subscrição e plano, utilizadores e papéis, definições e relatórios. Tem de haver sempre um titular activo." },
-          { label: "Direcção Pedagógica", description: "Turmas, disciplinas, horários, calendário, pautas (fecha e reabre), conselhos de turma, decisão das candidaturas e dias não lectivos." },
+          { label: "Direção Geral (Titular)", description: "Gestão da escola: subscrição e plano, utilizadores e papéis, definições e relatórios. Tem de haver sempre um titular ativo." },
+          { label: "Direção Pedagógica", description: "Turmas, disciplinas, horários, calendário, pautas (fecha e reabre), conselhos de turma, decisão das candidaturas e dias não letivos." },
           { label: "Secretaria", description: "Candidaturas, alunos, matrículas, encarregados e documentos oficiais." },
           { label: "Financeiro", description: "Propinas, facturas, pagamentos, comprovativos e dados bancários." },
           { label: "Professor", description: "Notas e faltas das suas turmas e disciplinas." },
@@ -87,8 +88,8 @@ export function UsersPageContent() {
         searchText={(m) => `${m.user.full_name} ${m.user.email}`}
         filters={[
           { key: "papel", label: "Papel", icon: "Shield", options: (Object.keys(ROLE_LABEL) as SchoolRole[]).map((r) => ({ value: r, label: ROLE_LABEL[r] })), match: (m, v) => m.role === v },
-          { key: "estado", label: "Estado", icon: "Tag", options: [{ value: "activo", label: "Activo" }, { value: "revogado", label: "Revogado" }], match: (m, v) => (v === "activo" ? m.is_active : !m.is_active) },
-          { key: "conta", label: "Conta", icon: "User", options: [{ value: "activo", label: "Conta activa" }, { value: "bloqueado", label: "Conta bloqueada" }], match: (m, v) => (v === "bloqueado" ? m.user.status === "bloqueado" : m.user.status !== "bloqueado") },
+          { key: "estado", label: "Estado", icon: "Tag", options: [{ value: "activo", label: "Ativo" }, { value: "revogado", label: "Revogado" }], match: (m, v) => (v === "activo" ? m.is_active : !m.is_active) },
+          { key: "conta", label: "Conta", icon: "User", options: [{ value: "activo", label: "Conta ativa" }, { value: "bloqueado", label: "Conta bloqueada" }], match: (m, v) => (v === "bloqueado" ? m.user.status === "bloqueado" : m.user.status !== "bloqueado") },
         ]}
         dateFilters={[{ key: "desde", label: "Atribuído", getDate: (m) => m.granted_at }]}
         sorts={[
@@ -109,7 +110,7 @@ export function UsersPageContent() {
         effects={[
           "O efeito é imediato: a pessoa perde o acesso a esta escola com este papel.",
           "A conta e os registos que fez (notas, documentos, pagamentos) mantêm-se, com o nome dela, na auditoria.",
-          "Não se pode revogar o seu próprio acesso nem o último titular activo da escola.",
+          "Não se pode revogar o seu próprio acesso nem o último titular ativo da escola.",
           "Para devolver o acesso, atribua o papel de novo (Adicionar utilizador, com o mesmo e-mail).",
         ]}
         confirmLabel="Revogar"

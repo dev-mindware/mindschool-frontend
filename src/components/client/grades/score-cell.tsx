@@ -1,7 +1,7 @@
 type ScoreStatus = "avaliado" | "ausente" | "dispensado" | "nao_avaliado";
 
 interface ScoreCellProps {
-  /** Nota actual (0–20) ou `undefined` se ainda não lançada. */
+  /** Nota atual (0–20) ou `undefined` se ainda não lançada. */
   value: number | undefined;
   status: ScoreStatus | undefined;
   readOnly: boolean;
@@ -10,10 +10,12 @@ interface ScoreCellProps {
   onValueChange: (raw: string) => void;
   /** Sem este callback não se mostra o seletor de estado da nota. */
   onStatusChange?: (status: ScoreStatus) => void;
+  /** Nome acessível (leitores de ecrã): ex. «Mateus Silva — MAC». */
+  label?: string;
 }
 
 /** Célula editável da grelha de notas: valor 0–20 e (opcionalmente) o estado da nota (ausente, dispensado…). */
-export function ScoreCell({ value, status, readOnly, tone, onValueChange, onStatusChange }: ScoreCellProps) {
+export function ScoreCell({ value, status, readOnly, tone, onValueChange, onStatusChange, label }: ScoreCellProps) {
   const current = status ?? "avaliado";
   return (
     <td className={`py-2 px-2 text-center ${tone}`}>
@@ -25,6 +27,7 @@ export function ScoreCell({ value, status, readOnly, tone, onValueChange, onStat
         disabled={readOnly || current !== "avaliado"}
         value={value ?? ""}
         placeholder="0.0 - 20"
+        aria-label={label ? `Nota: ${label}` : "Nota"}
         onChange={(e) => {
           const val = e.target.value;
           if (val === "") {
@@ -45,6 +48,7 @@ export function ScoreCell({ value, status, readOnly, tone, onValueChange, onStat
       {onStatusChange && (
         <select
           disabled={readOnly}
+          aria-label={label ? `Estado da nota: ${label}` : "Estado da nota"}
           value={current}
           onChange={(e) => onStatusChange(e.target.value as ScoreStatus)}
           className="mt-1 block mx-auto w-20 rounded border border-input bg-background text-[10px] py-0.5"

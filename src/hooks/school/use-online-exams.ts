@@ -7,7 +7,7 @@ import { examsService, type ApiExam, type ApiExamStatus, type NewQuestion } from
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { useGradeTerms } from "./use-grades";
 
-/** Provas online da escola activa (nativas e em Google Forms) e as accoes do professor. */
+/** Provas online da escola ativa (nativas e em Google Forms) e as accoes do professor. */
 export function useOnlineExams() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const queryClient = useQueryClient();

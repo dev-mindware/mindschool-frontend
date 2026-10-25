@@ -42,7 +42,7 @@ IBAN da Escola: {{iban_escola}}
 Caso já tenha procedido à liquidação, por favor desconsidere este aviso ou anexe o comprovativo no Portal do Encarregado.
 
 Com os melhores cumprimentos,
-Direcção Financeira de {{nome_escola}}`,
+Direção Financeira de {{nome_escola}}`,
   },
   {
     key: "grace",
@@ -76,13 +76,13 @@ Secretaria & Tesouraria de {{nome_escola}}`,
 
 Constatamos que o período de tolerância concedido para a mensalidade de {{mes_ano}} do(a) estudante {{nome_estudante}} (Processo nº {{numero_processo}}) terminou sem registo de liquidação.
 
-Deste modo, e em cumprimento das normas financeiras em vigor, foi aplicada a multa regulamentar de {{valor_multa}} Kz, perfazendo um total actualizado a regularizar de {{total_regularizar}} Kz.
+Deste modo, e em cumprimento das normas financeiras em vigor, foi aplicada a multa regulamentar de {{valor_multa}} Kz, perfazendo um total atualizado a regularizar de {{total_regularizar}} Kz.
 
 Chamamos a atenção para o facto de a não liquidação tempestiva originar o agravamento mensal da taxa de mora.
 
 Solicitamos a comparência nos serviços de tesouraria ou o envio do comprovativo de transferência bancária para o IBAN {{iban_escola}}.
 
-A Direcção de {{nome_escola}}`,
+A Direção de {{nome_escola}}`,
   },
   {
     key: "receipt",
@@ -233,7 +233,7 @@ export function EmailTemplateEditor() {
           templates: templateDrafts,
         },
       });
-      SucessMessage("Modelos de correio electrónico e horários actualizados com sucesso!");
+      SucessMessage("Modelos de correio electrónico e horários atualizados com sucesso!");
     } catch (e) {
       ErrorMessage(getApiErrorMessage(e, "Erro ao guardar modelos de e-mail."));
     }
@@ -415,7 +415,7 @@ export function EmailTemplateEditor() {
           </div>
         </div>
 
-        {/* Rodapé de Acções */}
+        {/* Rodapé de Ações */}
         <div className="flex items-center justify-end gap-3 pt-4 border-t">
           <Button
             onClick={handleSaveAll}

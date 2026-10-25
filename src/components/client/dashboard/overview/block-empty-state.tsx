@@ -17,7 +17,7 @@ interface BlockEmptyStateProps {
 
 /**
  * Estado vazio elegante e acolhedor para blocos e secções do dashboard.
- * Mostra claramente que a secção está saudável/sem pendências ou convida à acção.
+ * Mostra claramente que a secção está saudável/sem pendências ou convida à ação.
  */
 export function BlockEmptyState({
   icon,

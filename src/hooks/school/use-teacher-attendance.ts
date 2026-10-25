@@ -87,7 +87,7 @@ export function useTeacherAttendance() {
           type: r.event_type === "entrada" ? ("CHECK_IN" as const) : ("CHECK_OUT" as const),
           teacherName: r.teacher.full_name,
           time: new Date(r.recorded_at).toTimeString().slice(0, 8),
-          message: r.duplicate ? "Leitura repetida ignorada (menos de 30 s)." : r.flagged_for_review ? "Registado, mas sinalizado para revisão (fora de qualquer aula do horário)." : "Registo efectuado.",
+          message: r.duplicate ? "Leitura repetida ignorada (menos de 30 s)." : r.flagged_for_review ? "Registado, mas sinalizado para revisão (fora de qualquer aula do horário)." : "Registo efetuado.",
         };
       } catch (e) {
         const msg = (e as { message?: string }).message ?? "Leitura recusada.";

@@ -16,7 +16,7 @@ const isPeriod = (value: string): value is DashboardPeriodType =>
   DASHBOARD_PERIODS.some((option) => option.value === value);
 
 /**
- * Período activo do dashboard, guardado no URL (`?period=`).
+ * Período ativo do dashboard, guardado no URL (`?period=`).
  * O selector fica no cabeçalho da página, fora da árvore que consome os dados: partilham o mesmo search param.
  */
 export function useDashboardPeriod() {

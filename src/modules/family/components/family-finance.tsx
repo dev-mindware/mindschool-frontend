@@ -58,7 +58,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
       <TabsList className="flex h-auto flex-wrap">
         <TabsTrigger value="pending" className="text-xs">Por pagar</TabsTrigger>
         <TabsTrigger value="payments" className="text-xs">Pagamentos e comprovativos</TabsTrigger>
-        <TabsTrigger value="invoices" className="text-xs">Facturas</TabsTrigger>
+        <TabsTrigger value="invoices" className="text-xs">Faturas</TabsTrigger>
         <TabsTrigger value="statement" className="text-xs">Extracto anual</TabsTrigger>
       </TabsList>
 
@@ -68,7 +68,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
         <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
           <DynamicMetricCard title={live.payments.length} subtitle="Pagamentos" icon="Receipt" description="Registados na escola" />
           <DynamicMetricCard title={formatCurrency(live.payments.reduce((a, p) => a + Number(p.amount), 0))} subtitle="Total pago" icon="Wallet" description="Soma de todos os pagamentos" />
-          <DynamicMetricCard title={settled.length} subtitle="Facturas liquidadas" icon="CircleCheck" description="Totalmente pagas" />
+          <DynamicMetricCard title={settled.length} subtitle="Faturas liquidadas" icon="CircleCheck" description="Totalmente pagas" />
           <DynamicMetricCard title={live.payments[0] ? live.payments[0].paid_at.slice(0, 10) : "—"} subtitle="Último pagamento" icon="CalendarCheck" description={live.payments[0] ? formatCurrency(live.payments[0].amount) : "Sem pagamentos"} />
         </div>
         <DataList<PortalPayment>
@@ -80,14 +80,14 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
           ]}
           dateFilters={[{ key: "pago", label: "Data de pagamento", getDate: (p) => p.paid_at }]}
           sorts={[{ value: "data", label: "Data", compare: (a, b) => a.paid_at.localeCompare(b.paid_at) }, { value: "valor", label: "Valor", compare: (a, b) => Number(a.amount) - Number(b.amount) }]}
-          emptyTitle="Sem pagamentos" emptyDescription="Os pagamentos confirmados pela escola aparecem aqui, com o comprovativo interno de pagamento. Esse comprovativo não tem valor fiscal: a factura-recibo (documento fiscal) é emitida pela escola; se precisar dela, peça à secretaria." emptyIcon="Receipt"
+          emptyTitle="Sem pagamentos" emptyDescription="Os pagamentos confirmados pela escola aparecem aqui, com o comprovativo interno de pagamento. Esse comprovativo não tem valor fiscal: a fatura-recibo (documento fiscal) é emitida pela escola; se precisar dela, peça à secretaria." emptyIcon="Receipt"
         />
       </TabsContent>
 
       <TabsContent value="invoices">
         <DataList<PortalInvoice>
           prefix="facturas" rows={live.invoices} columns={invoiceColumns} pageSize={10}
-          searchPlaceholder="Pesquisar factura" searchText={(i) => `${TYPE[i.type] ?? i.type} ${i.status} ${i.due_date}`}
+          searchPlaceholder="Pesquisar fatura" searchText={(i) => `${TYPE[i.type] ?? i.type} ${i.status} ${i.due_date}`}
           filters={[
             { key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "paga", label: "Liquidadas" }, { value: "aberta", label: "Por pagar" }], match: (i, v) => (v === "paga" ? i.status === "paga" : i.status !== "paga") },
             { key: "vencida", label: "Vencimento", icon: "Clock", options: [{ value: "vencida", label: "Vencidas" }, { value: "emdia", label: "Em dia" }], match: (i, v) => (v === "vencida" ? i.is_overdue : !i.is_overdue) },
@@ -95,7 +95,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
           ]}
           dateFilters={[{ key: "vencimento", label: "Vencimento", getDate: (i) => i.due_date }]}
           sorts={[{ value: "vencimento", label: "Vencimento", compare: (a, b) => a.due_date.localeCompare(b.due_date) }, { value: "divida", label: "Em dívida", compare: (a, b) => Number(a.balance) - Number(b.balance) }]}
-          emptyTitle="Sem facturas" emptyDescription="Não há facturas para este educando." emptyIcon="Wallet"
+          emptyTitle="Sem faturas" emptyDescription="Não há faturas para este educando." emptyIcon="Wallet"
         />
       </TabsContent>
 
@@ -104,18 +104,18 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
         {!st ? <p className="text-sm text-muted-foreground">{statement.isLoading ? "A carregar…" : "Sem dados para este ano."}</p> : (
           <>
             <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
-              <DynamicMetricCard title={formatCurrency(st.billed)} subtitle="Facturado" icon="FileText" description={`${st.invoices} facturas em ${st.year}`} />
+              <DynamicMetricCard title={formatCurrency(st.billed)} subtitle="Faturado" icon="FileText" description={`${st.invoices} facturas em ${st.year}`} />
               <DynamicMetricCard title={formatCurrency(st.paid)} subtitle="Pago" icon="CircleCheck" description="Recebido pela escola" />
               <DynamicMetricCard title={formatCurrency(st.outstanding)} subtitle="Em dívida" icon="TriangleAlert" colors={Number(st.outstanding) > 0 ? "destructive" : "default"} description="Por liquidar" />
-              <DynamicMetricCard title={formatCurrency(st.late_fees)} subtitle="Multas de mora" icon="Clock" description="Incluídas no facturado" />
+              <DynamicMetricCard title={formatCurrency(st.late_fees)} subtitle="Multas de mora" icon="Clock" description="Incluídas no faturado" />
             </div>
-            {st.months.length === 0 ? <EmptyState icon="FileText" title="Sem movimentos" description={`Não há facturas com vencimento em ${st.year}.`} /> : (
+            {st.months.length === 0 ? <EmptyState icon="FileText" title="Sem movimentos" description={`Não há faturas com vencimento em ${st.year}.`} /> : (
               <SimpleTable
                 rows={st.months}
                 rowKey={(m) => m.month}
                 columns={[
                   { header: "Mês", className: "capitalize", render: (m) => month(m.month) },
-                  { header: "Facturado", align: "right", className: "tabular-nums", render: (m) => formatCurrency(m.billed) },
+                  { header: "Faturado", align: "right", className: "tabular-nums", render: (m) => formatCurrency(m.billed) },
                   { header: "Pago", align: "right", className: "tabular-nums", render: (m) => formatCurrency(m.paid) },
                   { header: "Em dívida", align: "right", className: "font-semibold tabular-nums", render: (m) => <span className={Number(m.outstanding) > 0 ? "text-destructive" : ""}>{formatCurrency(m.outstanding)}</span> },
                 ]}

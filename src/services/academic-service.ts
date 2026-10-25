@@ -8,7 +8,7 @@ import type { AcademicSection, EducationCycle, Shift, Subject, TeacherAssignment
 
 export interface ApiAcademicYear { id: string; name: string; status: string; start_date: string; end_date: string }
 export interface ApiClassLevel { id: string; name: string; level_number: number; cycle: string }
-interface ApiSubject { id: string; name: string; grading_scale: string; is_core_subject: boolean }
+interface ApiSubject { id: string; name: string; code?: string | null; grading_scale: string; is_core_subject: boolean }
 export interface ApiTeacher { id: string; user_id: string | null; full_name: string; email: string | null; document_number: string; status: string }
 interface ApiSectionSubject {
   id: string;
@@ -35,7 +35,7 @@ const toSubject = (s: ApiSubject): Subject => ({
   id: s.id,
   schoolId: "",
   name: s.name,
-  code: codeOf(s.name),
+  code: s.code || codeOf(s.name), // a sigla guardada; sem ela, deriva-se do nome
   cycle: "LOWER_SECONDARY" as EducationCycle, // a disciplina nao tem ciclo na API (a matriz e por turma)
   weeklyHours: 0,
   isActive: true,
@@ -48,7 +48,7 @@ const toSubject = (s: ApiSubject): Subject => ({
 export const academicService = {
   years: () => fetchAllPages<ApiAcademicYear>("/s/academic-years"),
   /**
-   * Cria um ano lectivo e, por omissão, activa-o (a escola ainda não tinha nenhum). Se a activação falhar o ano fica
+   * Cria um ano letivo e, por omissão, activa-o (a escola ainda não tinha nenhum). Se a ativação falhar o ano fica
    * criado como «planeado», que já serve para criar turmas: não se repete a criação.
    */
   createYear: async (v: AcademicYearDraft, activate = true): Promise<ApiAcademicYear> => {
@@ -86,7 +86,7 @@ export const academicService = {
       years.find((y) => y.name?.includes("2026/2027") || y.name?.includes("26/27")) ??
       years.find((y) => y.status === "activo") ??
       years[0];
-    if (!year) throw new Error("Não há ano lectivo disponível nesta escola.");
+    if (!year) throw new Error("Não há ano letivo disponível nesta escola.");
     const level = levels.find((l) => l.name === v.classLevelName || `${l.level_number}ª Classe` === v.classLevelName);
     if (!level) throw new Error(`A classe "${v.classLevelName}" não existe nesta escola.`);
     await api.post("/s/sections", {
@@ -104,15 +104,16 @@ export const academicService = {
 
   saveSubject: async (
     id: string | undefined,
-    v: { name: string; isCore: boolean; gradingScale?: "quantitativa" | "qualitativa" | "mista" },
+    v: { name: string; isCore: boolean; code?: string; gradingScale?: "quantitativa" | "qualitativa" | "mista" },
   ): Promise<void> => {
     if (id) {
-      await api.patch(`/s/subjects/${id}`, { name: v.name, is_core_subject: v.isCore });
+      await api.patch(`/s/subjects/${id}`, { name: v.name, is_core_subject: v.isCore, code: v.code?.trim() || null });
     } else {
       await api.post("/s/subjects", {
         name: v.name,
         grading_scale: v.gradingScale || "quantitativa",
         is_core_subject: v.isCore ?? false,
+        ...(v.code?.trim() ? { code: v.code.trim() } : {}),
       });
     }
   },

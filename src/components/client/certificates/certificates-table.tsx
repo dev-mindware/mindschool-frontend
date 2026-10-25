@@ -89,7 +89,7 @@ export function CertificatesTable({ documents, isLoading, onViewPreview, onDelet
     },
     {
       key: 'actions',
-      header: 'Acção',
+      header: 'Ação',
       render: (_, d) => (
         <ButtonOnlyAction
           data={d}
@@ -125,7 +125,7 @@ export function CertificatesTable({ documents, isLoading, onViewPreview, onDelet
         filters={[
           { key: 'tipo', label: 'Tipo', icon: 'ListFilter', options: Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label })), match: (d, v) => d.documentType === v },
           { key: 'turma', label: 'Turma', icon: 'Users', options: uniq(documents.map((d) => d.className)).map((v) => ({ value: v, label: v })), match: (d, v) => d.className === v },
-          { key: 'ano', label: 'Ano lectivo', icon: 'CalendarRange', options: uniq(documents.map((d) => d.academicYear)).map((v) => ({ value: v, label: v })), match: (d, v) => d.academicYear === v },
+          { key: 'ano', label: 'Ano letivo', icon: 'CalendarRange', options: uniq(documents.map((d) => d.academicYear)).map((v) => ({ value: v, label: v })), match: (d, v) => d.academicYear === v },
           { key: 'emissor', label: 'Emitido por', icon: 'UserCheck', options: uniq(documents.map((d) => d.issuedBy)).map((v) => ({ value: v, label: v })), match: (d, v) => d.issuedBy === v },
           { key: 'estado', label: 'Estado', icon: 'Flag', options: uniq(documents.map((d) => d.status)).map((v) => ({ value: v, label: v })), match: (d, v) => d.status === v },
         ]}
@@ -151,7 +151,7 @@ export function CertificatesTable({ documents, isLoading, onViewPreview, onDelet
               <li>O número do documento fica «queimado»: não se reutiliza e deixa um buraco na numeração.</li>
               <li>O código QR e o endereço de verificação deixam de validar: as cópias já entregues deixam de ser verificáveis.</li>
               <li>A eliminação fica registada na auditoria. Para corrigir um documento, emita um novo.</li>
-              <li>Esta acção não se pode desfazer.</li>
+              <li>Esta ação não se pode desfazer.</li>
             </ul>
           </AlertDialogHeader>
           <AlertDialogFooter>

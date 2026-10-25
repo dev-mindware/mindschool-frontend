@@ -1,7 +1,8 @@
 "use client";
 
+import { useDiscardGuard } from "@/components/common/discard-guard";
 import React, { useState, useMemo, useEffect } from "react";
-import { formatDate, formatIdDocument, formatPhone, cleanIdDocument, cleanPhone } from "@/utils";
+import { formatDateTime, formatIdDocument, formatPhone, cleanIdDocument, cleanPhone } from "@/utils";
 import { validateIdDocumentByType } from "@/schemas/helps";
 import { useAdmissions } from "@/hooks/school/use-admissions";
 import { useAdmissionSessions } from "@/hooks/school/use-phase6";
@@ -84,6 +85,12 @@ export const EDUCATION_CYCLES: EducationCycle[] = [
   },
 ];
 
+/** Erro de validação por baixo do campo (os campos sem `error` próprio: selecções e anexos). */
+function FieldError({ message }: { message?: string }) {
+  if (!message) return null;
+  return <p role="alert" data-field-error className="text-xs font-medium text-destructive">{message}</p>;
+}
+
 export function CandidateApplicationDrawer({
   isOpen,
   onClose,
@@ -127,6 +134,8 @@ export function CandidateApplicationDrawer({
   const [schoolCertificate, setSchoolCertificate] = useState<File | null>(null);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitErrors, setSubmitErrors] = useState<Record<string, string>>({});
+  const clearError = (key: string) => setSubmitErrors((prev) => (prev[key] ? { ...prev, [key]: "" } : prev));
 
   // Classes disponíveis para o ciclo selecionado
   const availableClasses = useMemo(() => {
@@ -267,62 +276,39 @@ export function CandidateApplicationDrawer({
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    if (!fullName.trim() || fullName.trim().length < 3) {
-      ErrorMessage("Por favor, preencha o nome completo do candidato.");
-      return;
-    }
+    // Recolhem-se todos os erros de uma vez e mostram-se no próprio campo (antes só havia um aviso temporário por tentativa).
+    const found: Record<string, string> = {};
+    if (!fullName.trim() || fullName.trim().length < 3) found.fullName = "Preencha o nome completo do candidato.";
+    else if (!/^[\p{L}][\p{L}\p{M}' .-]*$/u.test(fullName.trim())) found.fullName = "O nome só pode ter letras, espaços, apóstrofo e hífen.";
     const cleanDoc = cleanIdDocument(idDocumentNumber);
     const docValidation = validateIdDocumentByType(cleanDoc, idDocumentType);
-    if (!docValidation.valid) {
-      ErrorMessage(docValidation.message);
-      return;
-    }
+    if (!docValidation.valid) found.idDocumentNumber = docValidation.message ?? "Documento de identificação inválido.";
 
     if (guardianMode === "existing") {
-      if (!selectedGuardianId) {
-        ErrorMessage("Por favor, selecione um encarregado existente.");
-        return;
-      }
+      if (!selectedGuardianId) found.guardian = "Selecione um encarregado existente.";
     } else {
-      if (!guardianName.trim() || guardianName.trim().length < 3) {
-        ErrorMessage("Por favor, informe o nome do encarregado de educação.");
-        return;
-      }
+      if (!guardianName.trim() || guardianName.trim().length < 3) found.guardianName = "Informe o nome do encarregado de educação.";
       const digitsPhone = cleanPhone(guardianPhone).replace(/\D/g, "");
-      if (digitsPhone.length < 9) {
-        ErrorMessage("Por favor, informe o telefone do encarregado (mínimo 9 dígitos).");
-        return;
-      }
-      if (!/^(91|92|93|94|95|97|99)\d{7}$/.test(digitsPhone) && !digitsPhone.startsWith("244")) {
-        ErrorMessage("Prefixo do telefone do encarregado inválido para operadoras angolanas (91, 92, 93, 94, 95, 97, 99).");
-        return;
+      if (digitsPhone.length < 9) found.guardianPhone = "Informe o telefone do encarregado (mínimo 9 dígitos).";
+      else if (!/^(91|92|93|94|95|97|99)\d{7}$/.test(digitsPhone) && !digitsPhone.startsWith("244")) {
+        found.guardianPhone = "Prefixo inválido para operadoras angolanas (91, 92, 93, 94, 95, 97, 99).";
       }
     }
 
-    if (!selectedExamId) {
-      ErrorMessage("É obrigatório selecionar a Prova de Acesso agendada para este candidato. Se não for prestar prova, cadastre-o diretamente como Aluno.");
-      return;
-    }
+    if (!selectedExamId) found.exam = "Selecione a Prova de Acesso. Se o candidato não vai prestar prova, cadastre-o diretamente como Aluno.";
+    if (!passportPhoto) found.passportPhoto = "Carregue e recorte a Foto Tipo Passe do candidato (máx. 1000 KB).";
+    if (!idDocumentCopy) found.idDocumentCopy = "Anexe a cópia do Documento de Identificação (BI / Cédula).";
+    else if (idDocumentCopy.size > 1000 * 1024) found.idDocumentCopy = "O ficheiro excede o limite de 1000 KB.";
+    if (schoolCertificate && schoolCertificate.size > 1000 * 1024) found.schoolCertificate = "O certificado excede o limite de 1000 KB.";
 
-    if (!passportPhoto) {
-      ErrorMessage("É obrigatório carregar e recortar a Foto Tipo Passe do candidato (máx. 1000 KB).");
+    setSubmitErrors(found);
+    const keys = Object.keys(found);
+    if (keys.length > 0) {
+      ErrorMessage(keys.length === 1 ? Object.values(found)[0]! : `Faltam ${keys.length} campos obrigatórios. Veja os campos assinalados.`);
+      document.querySelector<HTMLElement>("[data-field-error]")?.scrollIntoView({ block: "center", behavior: "smooth" });
       return;
     }
-
-    if (!idDocumentCopy) {
-      ErrorMessage("É obrigatório anexar a Cópia do Documento de Identificação (BI / Cédula) do candidato.");
-      return;
-    }
-
-    if (idDocumentCopy.size > 1000 * 1024) {
-      ErrorMessage("O ficheiro da cópia do BI excede o limite máximo permitido de 1000 KB.");
-      return;
-    }
-
-    if (schoolCertificate && schoolCertificate.size > 1000 * 1024) {
-      ErrorMessage("O certificado da escola anterior excede o limite máximo permitido de 1000 KB.");
-      return;
-    }
+    if (!passportPhoto || !idDocumentCopy) return; // (já validado acima; fixa os tipos)
 
     setIsSubmitting(true);
     try {
@@ -394,8 +380,11 @@ export function CandidateApplicationDrawer({
     }
   };
 
+  const discard = useDiscardGuard(Boolean(fullName.trim() || idDocumentNumber.trim() || selectedGuardianId || guardianName.trim() || passportPhoto || idDocumentCopy), onClose);
+
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && discard.request()}>
       <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
         <SheetHeader className="p-6 border-b shrink-0">
           <div className="flex items-center gap-3">
@@ -418,6 +407,16 @@ export function CandidateApplicationDrawer({
           onSubmit={handleSubmit}
           className="flex-1 overflow-y-auto p-6 space-y-6"
         >
+          {/* O aviso vem logo ao abrir: antes só aparecia a meio do formulário, depois de o utilizador o preencher */}
+          {availableExams.length === 0 && (
+            <div role="status" className="flex gap-2 rounded-lg border border-amber-300/80 bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-950/20 dark:text-amber-300">
+              <Icon name="AlertTriangle" className="mt-0.5 h-4 w-4 shrink-0" />
+              <p>
+                <strong>Não existem Provas de Acesso agendadas.</strong> Crie primeiro uma sessão em Secretaria › Sessões da Prova de Acesso; sem ela a candidatura não pode ser submetida.
+              </p>
+            </div>
+          )}
+
           {/* Secção 1: Dados do Candidato */}
           <div className="space-y-4">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 pb-1 border-b">
@@ -431,8 +430,8 @@ export function CandidateApplicationDrawer({
                   label="Nome Completo do Candidato *"
                   placeholder="Ex: Kiara Luísa Gaspar"
                   value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  required
+                  onChange={(e) => { setFullName(e.target.value); clearError("fullName"); }}
+                  error={submitErrors.fullName}
                 />
               </div>
 
@@ -473,9 +472,8 @@ export function CandidateApplicationDrawer({
                 label="Número do Documento *"
                 placeholder="Ex: 008432190LA045"
                 value={idDocumentNumber}
-                onChange={(e) => setIdDocumentNumber(e.target.value.toUpperCase())}
-                error={docError}
-                required
+                onChange={(e) => { setIdDocumentNumber(e.target.value.toUpperCase()); clearError("idDocumentNumber"); }}
+                error={docError || submitErrors.idDocumentNumber}
               />
 
               <Input
@@ -557,8 +555,9 @@ export function CandidateApplicationDrawer({
                       value={selectedGuardianId}
                       placeholder="Selecione o encarregado da lista..."
                       options={guardianOptions}
-                      onValueChange={handleSelectExistingGuardian}
+                      onValueChange={(v) => { handleSelectExistingGuardian(v); clearError("guardian"); }}
                     />
+                    <FieldError message={submitErrors.guardian} />
 
                     {selectedGuardian && (
                       <div className="rounded-lg border border-border/70 bg-muted/30 p-3 space-y-1.5 text-xs animate-in fade-in-50 duration-200">
@@ -612,8 +611,8 @@ export function CandidateApplicationDrawer({
                     label="Nome do Encarregado de Educação *"
                     placeholder="Ex: Gaspar António Gaspar"
                     value={guardianName}
-                    onChange={(e) => setGuardianName(e.target.value)}
-                    required
+                    onChange={(e) => { setGuardianName(e.target.value); clearError("guardianName"); }}
+                    error={submitErrors.guardianName}
                   />
                 </div>
 
@@ -621,9 +620,8 @@ export function CandidateApplicationDrawer({
                   label="Telefone Principal (WhatsApp) *"
                   placeholder="+244 923 000 000"
                   value={guardianPhone}
-                  onChange={(e) => setGuardianPhone(formatPhone(e.target.value))}
-                  error={guardianPhoneError}
-                  required
+                  onChange={(e) => { setGuardianPhone(formatPhone(e.target.value)); clearError("guardianPhone"); }}
+                  error={guardianPhoneError || submitErrors.guardianPhone}
                 />
 
                 <Input
@@ -709,6 +707,7 @@ export function CandidateApplicationDrawer({
                     <p className="text-xs text-amber-700 dark:text-amber-400">
                       Segundo o regulamento escolar, as candidaturas exigem a vinculação a uma prova de acesso previamente registada. Crie uma sessão de prova de acesso no menu de Admissões antes de registar novos candidatos. Se o aluno não for fazer teste, cadastre-o diretamente no menu de Alunos.
                     </p>
+                    <FieldError message={submitErrors.exam} />
                   </div>
                 ) : (
                   <div className="space-y-2">
@@ -716,12 +715,13 @@ export function CandidateApplicationDrawer({
                       label="Prova de Acesso Designada *"
                       value={selectedExamId}
                       placeholder="Selecione a sessão de prova de acesso..."
-                      onValueChange={(val) => setSelectedExamId(val)}
+                      onValueChange={(val) => { setSelectedExamId(val); clearError("exam"); }}
                       options={availableExams.map((exam) => ({
                         value: exam.id,
-                        label: `${exam.title} (${exam.date ? formatDate(exam.date) : "Data a definir"}${exam.room ? ` • Sala: ${exam.room}` : ""})`,
+                        label: `${exam.title} (${exam.date ? formatDateTime(exam.date) : "Data a definir"}${exam.room ? ` • Sala: ${exam.room}` : ""})`,
                       }))}
                     />
+                    <FieldError message={submitErrors.exam} />
                     <p className="text-xs text-muted-foreground flex items-center gap-1">
                       <Icon name="CheckCircle2" className="h-3.5 w-3.5 text-primary" />
                       O candidato será vinculado a esta prova de acesso e a inscrição é ativada após a validação dos documentos.
@@ -745,10 +745,10 @@ export function CandidateApplicationDrawer({
               {/* 1. Foto tipo passe com ferramenta de recorte interativa */}
               <PassportPhotoCropper
                 value={passportPhoto}
-                onChange={setPassportPhoto}
+                onChange={(f) => { setPassportPhoto(f); clearError("passportPhoto"); }}
                 maxBytes={1000 * 1024}
-                required
               />
+              <FieldError message={submitErrors.passportPhoto} />
 
               {/* 2. Cópia do Documento de Identificação (BI / Cédula) */}
               <div className="space-y-1.5">
@@ -761,12 +761,13 @@ export function CandidateApplicationDrawer({
                 </div>
                 <FileUpload
                   value={idDocumentCopy}
-                  onChange={setIdDocumentCopy}
+                  onChange={(f) => { setIdDocumentCopy(f); clearError("idDocumentCopy"); }}
                   accept={PROOF_ACCEPT}
                   maxBytes={1000 * 1024}
                   label="Anexar cópia do BI / Documento de Identificação"
                   hint="PDF, PNG ou JPEG · Tamanho máximo 1000 KB"
                 />
+                <FieldError message={submitErrors.idDocumentCopy} />
               </div>
 
               {/* 3. Certificado da escola passada (opcional) */}
@@ -795,7 +796,7 @@ export function CandidateApplicationDrawer({
           <Button
             type="button"
             variant="outline"
-            onClick={onClose}
+            onClick={discard.request}
             disabled={isSubmitting}
           >
             Cancelar
@@ -803,7 +804,6 @@ export function CandidateApplicationDrawer({
           <ButtonSubmit
             form="candidate-application-form"
             isLoading={isSubmitting}
-            disabled={availableExams.length === 0 || !passportPhoto || !idDocumentCopy}
           >
             <Icon name="Check" className="h-4 w-4" />
             Submeter Candidatura
@@ -811,6 +811,8 @@ export function CandidateApplicationDrawer({
         </SheetFooter>
       </SheetContent>
     </Sheet>
+    {discard.dialog}
+    </>
   );
 }
 

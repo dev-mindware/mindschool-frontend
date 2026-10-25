@@ -53,7 +53,7 @@ export function StudentGuardianFields({
     <div className="space-y-4">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-          3. Encarregado de Educação
+          2. Encarregado de Educação
         </h4>
 
         {!isEditing && (

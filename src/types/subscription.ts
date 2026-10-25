@@ -41,7 +41,7 @@ export enum SubscriptionStatus {
   PENDING = "PENDING",
 }
 
-/** O plano da subscrição activa: `name` é o código da API (`essencial`, `profissional`, `enterprise`). O catálogo completo vem de `subscription-service`. */
+/** O plano da subscrição ativa: `name` é o código da API (`essencial`, `profissional`, `enterprise`). O catálogo completo vem de `subscription-service`. */
 export interface Plan {
   id: string;
   name: PlanType;

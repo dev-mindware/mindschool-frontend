@@ -8,7 +8,7 @@ interface EmptyStateProps {
   description?: string;
   icon: keyof typeof icons;
   className?: string;
-  /** Botões / ligações de acção (ex.: "Criar horário"). */
+  /** Botões / ligações de ação (ex.: "Criar horário"). */
   children?: ReactNode;
 }
 

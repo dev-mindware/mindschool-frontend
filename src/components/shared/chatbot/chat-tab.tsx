@@ -76,6 +76,8 @@ interface ChatTabProps {
     messagesEndRef: React.RefObject<HTMLDivElement | null>;
     totalMessagesUsed: number;
     messageLimit: number;
+    /** Sugestões do papel (ver `suggestionChipsFor`). */
+    chips?: string[];
 }
 
 export function ChatTab({
@@ -88,7 +90,8 @@ export function ChatTab({
     handleTypingComplete,
     messagesEndRef,
     totalMessagesUsed,
-    messageLimit
+    messageLimit,
+    chips = SUGGESTION_CHIPS
 }: ChatTabProps) {
     const limitReached = totalMessagesUsed >= messageLimit;
 
@@ -160,7 +163,7 @@ export function ChatTab({
             <div className="p-6 shrink-0 bg-background pt-2 border-t border-border/40">
                 {messages.length === 0 && (
                     <div className="flex gap-2 overflow-x-auto scrollbar-hide mb-4 pb-2">
-                        {SUGGESTION_CHIPS.map((chip, idx) => (
+                        {chips.map((chip, idx) => (
                             <Button
                                 key={idx}
                                 onClick={() => setInput(chip)}

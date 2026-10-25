@@ -46,7 +46,7 @@ export function FamilyCalendar() {
     { key: "title", header: "Evento", render: (_, e) => (<div><span className="font-medium">{e.title}</span>{e.description && <p className="line-clamp-1 text-xs text-muted-foreground">{e.description}</p>}</div>) },
     { key: "type", header: "Tipo", render: (_, e) => <Badge variant="outline" className="font-normal">{typeLabel(e.type)}</Badge> },
     { key: "location", header: "Local", render: (_, e) => <span className="text-xs text-muted-foreground">{e.location ?? "—"}</span> },
-    { key: "effect", header: "Aulas", render: (_, e) => <Badge variant={e.effect === "non_lective" ? "secondary" : "info"} className="font-normal">{e.effect === "non_lective" ? "Sem aulas" : "Lectivo"}</Badge> },
+    { key: "effect", header: "Aulas", render: (_, e) => <Badge variant={e.effect === "non_lective" ? "secondary" : "info"} className="font-normal">{e.effect === "non_lective" ? "Sem aulas" : "Letivo"}</Badge> },
   ];
 
   return (
@@ -67,7 +67,7 @@ export function FamilyCalendar() {
             searchPlaceholder="Pesquisar evento" searchText={(e) => `${e.title} ${e.description ?? ""} ${e.location ?? ""}`}
             filters={[
               { key: "tipo", label: "Tipo", icon: "Tag", options: [...new Set(calendar.map((e) => e.type))].map((value) => ({ value, label: typeLabel(value) })), match: (e, v) => e.type === v },
-              { key: "aulas", label: "Aulas", icon: "School", options: [{ value: "lectivo", label: "Lectivo" }, { value: "sem", label: "Sem aulas" }], match: (e, v) => (v === "sem" ? e.effect === "non_lective" : e.effect !== "non_lective") },
+              { key: "aulas", label: "Aulas", icon: "School", options: [{ value: "lectivo", label: "Letivo" }, { value: "sem", label: "Sem aulas" }], match: (e, v) => (v === "sem" ? e.effect === "non_lective" : e.effect !== "non_lective") },
             ]}
             dateFilters={[{ key: "data", label: "Data", getDate: (e) => e.start_date }]}
             sorts={[{ value: "data", label: "Data", compare: (a, b) => a.start_date.localeCompare(b.start_date) }]}

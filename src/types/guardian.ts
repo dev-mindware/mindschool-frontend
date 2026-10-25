@@ -15,7 +15,7 @@ export interface Guardian {
   fullName: string;
   idDocumentType?: string;
   idDocumentNumber?: string;
-  /** NIF opcional (cliente da factura-recibo). */
+  /** NIF opcional (cliente da fatura-recibo). */
   nif?: string;
   phonePrimary: string;
   phoneSecondary?: string;

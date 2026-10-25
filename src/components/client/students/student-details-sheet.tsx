@@ -13,6 +13,7 @@ import { Student } from "@/types";
 import { SchoolStatusBadge } from "@/components/common/school-status-badge";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components";
+import { formatDate } from "@/utils";
 
 interface StudentDetailsSheetProps {
   isOpen: boolean;
@@ -35,7 +36,7 @@ export function StudentDetailsSheet({
     <Sheet open={isOpen} onOpenChange={onClose}>
       <SheetContent className="sm:max-w-[540px] overflow-y-auto">
         <SheetHeader className="pb-4 border-b">
-          <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between pr-8">
             <span className="text-xs font-mono font-semibold px-2 py-0.5 rounded bg-muted text-muted-foreground">
               {student.studentNumber}
             </span>
@@ -43,7 +44,7 @@ export function StudentDetailsSheet({
           </div>
           <SheetTitle className="text-xl font-bold pt-2">{student.fullName}</SheetTitle>
           <SheetDescription>
-            {student.currentClassLevel} • {student.currentSectionName}
+            {[student.currentClassLevel, student.currentSectionName].filter(Boolean).join(" • ") || "Sem matrícula"}
           </SheetDescription>
         </SheetHeader>
 
@@ -120,20 +121,20 @@ export function StudentDetailsSheet({
             <TabsContent value="academic" className="space-y-3">
               <div className="rounded-lg border p-3 space-y-2.5 bg-card/50">
                 <div className="flex justify-between py-1 border-b border-border/50 text-sm">
-                  <span className="text-muted-foreground">Ano Lectivo</span>
-                  <span className="font-semibold">{student.academicYear}</span>
+                  <span className="text-muted-foreground">Ano Letivo</span>
+                  <span className="font-semibold">{student.academicYear || "—"}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-border/50 text-sm">
-                  <span className="text-muted-foreground">Classe Actual</span>
-                  <span className="font-medium">{student.currentClassLevel}</span>
+                  <span className="text-muted-foreground">Classe Atual</span>
+                  <span className="font-medium">{student.currentClassLevel || "—"}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-border/50 text-sm">
                   <span className="text-muted-foreground">Turma Atribuída</span>
-                  <span className="font-medium">{student.currentSectionName}</span>
+                  <span className="font-medium">{student.currentSectionName || "—"}</span>
                 </div>
                 <div className="flex justify-between py-1 text-sm">
                   <span className="text-muted-foreground">Cadastrado em</span>
-                  <span className="font-medium">{student.createdAt.split("T")[0]}</span>
+                  <span className="font-medium">{student.createdAt ? formatDate(student.createdAt) : "—"}</span>
                 </div>
               </div>
             </TabsContent>

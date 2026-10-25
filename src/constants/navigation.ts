@@ -114,7 +114,7 @@ export function findLink(modules: readonly NavModule[], pathname: string): { mod
 }
 
 /**
- * Módulo activo pelo caminho. Páginas fora do menu (ex.: «Ver todas» das notificações) não pertencem a nenhum módulo:
+ * Módulo ativo pelo caminho. Páginas fora do menu (ex.: «Ver todas» das notificações) não pertencem a nenhum módulo:
  * devolve `undefined` e a sidebar mostra só o rail, sem módulo destacado.
  */
 export function activeModule(model: NavigationModel, pathname: string): NavModule | undefined {

@@ -136,6 +136,7 @@ export function SubjectModal({
         id: subjectToEdit?.id,
         name: data.name.trim(),
         isCore: data.isCore,
+        code: data.code,
         gradingScale: data.gradingScale,
       });
       SucessMessage(

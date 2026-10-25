@@ -35,7 +35,7 @@ export function PortalRequestsView() {
     { key: "created_at", header: "Pedido em", render: (_, r) => <span className="text-xs">{r.created_at.slice(0, 10)}</span> },
     { key: "status", header: "Estado", render: (_, r) => (<div><StatusBadge status={r.status} map={STATUS} />{r.decision_reason && <p className="mt-1 text-xs text-muted-foreground">{r.decision_reason}</p>}</div>) },
     {
-      key: "actions", header: "Acção",
+      key: "actions", header: "Ação",
       render: (_, r) => (r.status === "pedido" ? <ButtonOnlyAction data={r} actions={[
         { permission: "library:write", label: "Aprovar e emprestar", icon: "Check", onClick: (x) => { setTarget(x); setDays("14"); openModal(APPROVE); } },
         { permission: "library:write", label: "Recusar", icon: "X", variant: "destructive", onClick: (x) => { setTarget(x); setReason(""); openModal(REJECT); } },

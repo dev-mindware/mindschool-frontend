@@ -10,7 +10,7 @@ import { notificationsService } from "@/services/notifications-service";
 import { notificationAlertState } from "./notification-alert-state";
 
 /**
- * Notificacoes in-app da escola activa (API `notifications`): lista paginada por cursor, contador de nao lidas e
+ * Notificacoes in-app da escola ativa (API `notifications`): lista paginada por cursor, contador de nao lidas e
  * alerta sonoro/do navegador quando chega uma nova (consulta periodica).
  */
 export function useNotifications(initialFilters: Omit<NotificationParams, "skip" | "take"> = {}) {

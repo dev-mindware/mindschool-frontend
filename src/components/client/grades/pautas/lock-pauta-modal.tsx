@@ -28,7 +28,7 @@ export function LockPautaModal({
 }: LockPautaModalProps) {
   const { close } = usePautas(pauta.term, []);
   // Quem fecha fica registado pela API com o utilizador autenticado (não é um texto livre).
-  const directorName = useAuthStore((s) => s.user?.name) ?? "o utilizador actual";
+  const directorName = useAuthStore((s) => s.user?.name) ?? "o utilizador atual";
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
@@ -127,7 +127,7 @@ export function LockPautaModal({
             </p>
           </div>
           <div>
-            <span className="text-muted-foreground">Ano Lectivo:</span>
+            <span className="text-muted-foreground">Ano Letivo:</span>
             <p className="font-semibold text-foreground text-sm">{pauta.academicYear}</p>
           </div>
         </div>
@@ -143,7 +143,7 @@ export function LockPautaModal({
             <li>Guarda-se uma versão imutável desta pauta (snapshot); é a que sai nos PDF e nos boletins.</li>
             <li>As notas deste período ficam bloqueadas: os professores já não as alteram.</li>
             <li>Se for o último período, o sistema gera a proposta de transição de cada aluno.</li>
-            <li>Corrigir depois só é possível por reapreciação de nota (com justificação) ou reabrindo a pauta, o que exige a Direcção e não é possível se já houver decisões de transição confirmadas.</li>
+            <li>Corrigir depois só é possível por reapreciação de nota (com justificação) ou reabrindo a pauta, o que exige a Direção e não é possível se já houver decisões de transição confirmadas.</li>
           </ul>
         </div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import {
@@ -97,7 +98,7 @@ export function TuitionPlansContent() {
           monthlyFollowup,
         },
       });
-      SucessMessage("Política financeira e regras de mora actualizadas.");
+      SucessMessage("Política financeira e regras de mora atualizadas.");
     } catch (e) {
       ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a política financeira."));
       throw e;
@@ -133,7 +134,7 @@ export function TuitionPlansContent() {
             Modelos de E-mail
           </Button>
 
-          <FeatureGate permission="school:update" fallback="disabled" tooltipMessage="Apenas a direcção geral pode alterar a política financeira.">
+          <FeatureGate permission="school:update" fallback="disabled" tooltipMessage="Apenas a direção geral pode alterar a política financeira.">
             <Button onClick={openEdit} disabled={plansLoading} className="gap-2 text-xs font-semibold">
               <Icon name="Pencil" className="size-4" />
               Configurar política financeira
@@ -142,8 +143,12 @@ export function TuitionPlansContent() {
         </div>
       </TitleList>
 
-      {!policy ? (
-        <EmptyState icon="Wallet" title="Sem política financeira" description="Defina o valor da propina e as regras de mora para gerar facturas." />
+      {plansLoading ? (
+        <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" aria-busy="true" aria-label="A carregar a política financeira">
+          {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+        </div>
+      ) : !policy ? (
+        <EmptyState icon="Wallet" title="Sem política financeira" description="Defina o valor da propina e as regras de mora para gerar faturas." />
       ) : (
         <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
           <DynamicMetricCard
@@ -165,7 +170,7 @@ export function TuitionPlansContent() {
             icon="CircleAlert"
           />
           <DynamicMetricCard
-            title={policy.emailCollections?.enabled !== false ? "Activa" : "Desactivada"}
+            title={policy.emailCollections?.enabled !== false ? "Ativa" : "Desativada"}
             subtitle="Régua de e-mail"
             description={`Lembrete ${policy.emailCollections?.preDueDays ?? 5}d antes + tolerância e multa`}
             icon="Mail"
@@ -356,7 +361,7 @@ export function TuitionPlansContent() {
                   onCheckedChange={(c) => setEmailEnabled(Boolean(c))}
                 />
                 <label htmlFor="email-enabled" className="text-xs font-medium cursor-pointer">
-                  Activar régua automática de correio electrónico para os encarregados
+                  Ativar régua automática de correio electrónico para os encarregados
                 </label>
               </div>
 

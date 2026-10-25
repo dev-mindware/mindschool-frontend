@@ -144,7 +144,7 @@ export function GradesPageContent() {
         <EmptyState
           icon="BookOpen"
           title="Nenhuma Turma Atribuída"
-          description="Não tem turmas atribuídas no presente ano lectivo. Os professores apenas podem lançar notas das turmas e disciplinas que lhes foram formalmente atribuídas pela Direcção Pedagógica."
+          description="Não tem turmas atribuídas no presente ano letivo. Os professores apenas podem lançar notas das turmas e disciplinas que lhes foram formalmente atribuídas pela Direção Pedagógica."
         />
       </div>
     );
@@ -189,14 +189,14 @@ export function GradesPageContent() {
           subtitle="Estado da pauta"
           description={
             isPautaClosed
-              ? "Fechada pela Direcção: as notas já não se alteram (só por reapreciação)"
-              : "As notas lançadas ficam guardadas; a Direcção fecha a pauta da turma"
+              ? "Fechada pela Direção: as notas já não se alteram (só por reapreciação)"
+              : "As notas lançadas ficam guardadas; a Direção fecha a pauta da turma"
           }
           icon={isPautaClosed ? "ShieldCheck" : activeSheet?.isLocked ? "Lock" : "FileSpreadsheet"}
         />
       </div>
 
-      {/* Barra de Filtros e Selecção */}
+      {/* Barra de Filtros e Seleção */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-lg border bg-card shadow-xs">
         {/* Turma (PaginatedSelect) */}
         <div className="space-y-1.5">
@@ -263,13 +263,15 @@ export function GradesPageContent() {
         <div className="p-8 text-center text-muted-foreground text-sm border rounded-lg bg-card">
           {isLoading
             ? "A carregar a mini-pauta…"
+            : sections.length === 0
+              ? (isTeacher ? "Ainda não lhe foram atribuídas turmas." : "Ainda não há turmas. Crie uma em Académico › Turmas e atribua-lhe as disciplinas para lançar notas.")
             : availableSubjects.length === 0
               ? isTeacher
                 ? "Não lecciona nenhuma disciplina nesta turma."
-                : "Esta turma não tem disciplinas atribuídas. Para lançar notas tem de existir: ano lectivo activo com os seus períodos, a disciplina atribuída a um professor na turma (Académico › Atribuições) e alunos matriculados."
+                : "Esta turma não tem disciplinas atribuídas. Para lançar notas tem de existir: ano letivo ativo com os seus períodos, a disciplina atribuída a um professor na turma (Académico › Atribuições) e alunos matriculados."
               : isMissingAssignment
                 ? "Esta disciplina não está atribuída a esta turma. Atribua-a a um professor em Académico › Atribuições."
-                : "Escolha a turma e a disciplina para carregar a mini-pauta. Os períodos vêm do ano lectivo activo."}
+                : "Escolha a turma e a disciplina para carregar a mini-pauta. Os períodos vêm do ano letivo ativo."}
         </div>
       )}
     </div>

@@ -6,7 +6,7 @@ import { icons } from "lucide-react";
 interface OverviewSectionCardProps {
     title: string;
     icon: keyof typeof icons;
-    /** Link do "Ver todos". Omitir esconde a acção. */
+    /** Link do "Ver todos". Omitir esconde a ação. */
     href?: string;
     actionLabel?: string;
     className?: string;

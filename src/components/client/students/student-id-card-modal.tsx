@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Icon } from "@/components";
 import { studentsService, type StudentCardPreviewData } from "@/services/students-service";
 import { toast } from "sonner";
+import QRCode from "qrcode";
 
 interface StudentIdCardModalProps {
   isOpen: boolean;
@@ -30,6 +31,16 @@ export function StudentIdCardModal({
   const [loading, setLoading] = useState(false);
   const [downloading, setDownloading] = useState(false);
   const [activeSide, setActiveSide] = useState<"front" | "back">("front");
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+
+  // QR real com o n.º de processo e a escola (antes era um ícone genérico que não lia nada)
+  useEffect(() => {
+    if (!data?.student.studentNumber) { setQrUrl(null); return; }
+    const payload = `MINDSCHOOL|${data.school.nif ?? ""}|${data.student.studentNumber}`;
+    let cancelled = false;
+    void QRCode.toDataURL(payload, { margin: 1, width: 192, errorCorrectionLevel: "M" }).then((url) => { if (!cancelled) setQrUrl(url); }).catch(() => { if (!cancelled) setQrUrl(null); });
+    return () => { cancelled = true; };
+  }, [data]);
 
   useEffect(() => {
     if (!isOpen || !studentId) return;
@@ -371,7 +382,7 @@ export function StudentIdCardModal({
                         className="font-medium"
                         style={{ color: palette.textDark }}
                       >
-                        {data?.student.validity || "Ano Lectivo"}
+                        {data?.student.validity || "Ano Letivo"}
                       </span>
                     </div>
                   </div>
@@ -433,13 +444,18 @@ export function StudentIdCardModal({
                       className="w-24 h-24 p-1.5 rounded-lg border bg-white shadow-sm flex items-center justify-center"
                       style={{ borderColor: palette.light }}
                     >
-                      <Icon name="QrCode" className="w-20 h-20" style={{ color: palette.dark }} />
+                      {qrUrl ? (
+                        // eslint-disable-next-line @next/next/no-img-element
+                        <img src={qrUrl} alt={`QR do processo ${data?.student.studentNumber ?? ""}`} className="w-20 h-20" />
+                      ) : (
+                        <Icon name="QrCode" className="w-20 h-20" style={{ color: palette.dark }} />
+                      )}
                     </div>
                     <span
                       className="text-[7.5px] font-medium mt-1.5 text-center max-w-[180px]"
                       style={{ color: palette.textMuted }}
                     >
-                      Digitalize para validar a autenticidade online
+                      Digitalize para ler o n.º de processo do aluno
                     </span>
                   </div>
 
@@ -478,7 +494,7 @@ export function StudentIdCardModal({
           )}
         </div>
 
-        {/* Rodapé com Acções */}
+        {/* Rodapé com Ações */}
         <div className="p-4 border-t bg-card/60 flex items-center justify-between gap-2">
           <Button variant="outline" size="sm" onClick={onClose} disabled={downloading}>
             Fechar

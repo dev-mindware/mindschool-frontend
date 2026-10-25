@@ -1,5 +1,5 @@
 /**
- * Último período lectivo já iniciado (o que um boletim «do último período» deve usar). Se nenhum começou ainda, o último por ordem.
+ * Último período letivo já iniciado (o que um boletim «do último período» deve usar). Se nenhum começou ainda, o último por ordem.
  * Datas ISO `AAAA-MM-DD` comparam-se como texto.
  */
 export function lastTerm<T extends { sequence: number; start_date: string }>(terms: T[], today: Date = new Date()): T | undefined {

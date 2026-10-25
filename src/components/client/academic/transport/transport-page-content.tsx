@@ -23,9 +23,9 @@ export function TransportPageContent() {
       </TitleList>
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
-        <DynamicMetricCard title={metrics.activeRoutes} subtitle="Itinerários activos" description="Rotas em operação" icon="MapPin" />
+        <DynamicMetricCard title={metrics.activeRoutes} subtitle="Itinerários ativos" description="Rotas em operação" icon="MapPin" />
         <DynamicMetricCard title={metrics.students} subtitle="Alunos alocados" description="Com rota e paragem definidas" icon="Users" />
-        <DynamicMetricCard title={metrics.seats} subtitle="Capacidade das viaturas" description="Soma das rotas activas" icon="Bus" />
+        <DynamicMetricCard title={metrics.seats} subtitle="Capacidade das viaturas" description="Soma das rotas ativas" icon="Bus" />
         <DynamicMetricCard title={metrics.free} subtitle="Lugares disponíveis" description="Para novas alocações" icon="CircleCheck" />
       </div>
 

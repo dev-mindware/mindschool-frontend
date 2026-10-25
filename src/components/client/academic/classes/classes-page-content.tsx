@@ -20,7 +20,7 @@ export function ClassesPageContent() {
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <TitleList
           title="Turmas & Salas de Aulas"
-          suTitle="Organização de classes, turnos lectivos e controle de lotação de vagas por sala"
+          suTitle="Organização de classes, turnos letivos e controle de lotação de vagas por sala"
         />
         <Can permission="section:write">
         <Button
@@ -38,7 +38,7 @@ export function ClassesPageContent() {
         <DynamicMetricCard
           title={counts.total}
           subtitle="Total de Turmas"
-          description="Turmas activas no ano corrente"
+          description="Turmas ativas no ano corrente"
           icon="DoorOpen"
         />
         <DynamicMetricCard

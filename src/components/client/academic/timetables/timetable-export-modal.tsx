@@ -60,7 +60,7 @@ export function TimetableExportModal({
   const [periodLabel, setPeriodLabel] = useState<string>("1º Semestre");
   const [courseSubtitle, setCourseSubtitle] = useState<string>("");
 
-  // Sincronizar turma activa se mudar
+  // Sincronizar turma ativa se mudar
   React.useEffect(() => {
     if (activeSectionId) {
       setSelectedSectionId(activeSectionId);
@@ -136,7 +136,7 @@ export function TimetableExportModal({
       if (e.weekday !== weekday) return false;
       const eStart = toMinutes(e.start);
       const eEnd = toMinutes(e.end);
-      // Coincide exacto ou sobrepõe maioritariamente o intervalo
+      // Coincide exato ou sobrepõe maioritariamente o intervalo
       return (e.start === interval.start && e.end === interval.end) || (eStart <= interval.startMin && eEnd >= interval.endMin);
     });
   };
@@ -211,7 +211,7 @@ export function TimetableExportModal({
 
           <div>
             <Input
-              label="Período Lectivo"
+              label="Período Letivo"
               value={periodLabel}
               onChange={(e) => setPeriodLabel(e.target.value)}
               placeholder="Ex: 1º Semestre ou 1.º Trimestre"

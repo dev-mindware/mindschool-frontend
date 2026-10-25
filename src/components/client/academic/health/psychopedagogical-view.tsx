@@ -22,7 +22,7 @@ export function PsychopedagogicalView() {
     { key: "summary", header: "Resumo", render: (_, c) => <span className="line-clamp-1 max-w-xs text-muted-foreground">{c.summary}</span> },
     { key: "opened_at", header: "Aberto em", render: (_, c) => <span className="font-mono text-xs">{c.opened_at.slice(0, 10)}</span> },
     { key: "status", header: "Estado", render: (_, c) => <Badge variant={c.status === "encerrado" ? "secondary" : "outline"}>{CASE_STATUS_LABEL[c.status]}</Badge> },
-    { key: "action", header: "Acção", render: (_, c) => <ButtonOnlyAction data={c} actions={[{ label: "Abrir caso", icon: "Eye", onClick: (x) => { setOpenId(x.id); openModal("health-case"); } }]} /> },
+    { key: "action", header: "Ação", render: (_, c) => <ButtonOnlyAction data={c} actions={[{ label: "Abrir caso", icon: "Eye", onClick: (x) => { setOpenId(x.id); openModal("health-case"); } }]} /> },
   ];
 
   return (

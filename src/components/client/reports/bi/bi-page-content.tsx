@@ -18,7 +18,7 @@ const RATE_CONFIG = {
   dropout: { label: "Abandono", color: "#ef4444" },
 } satisfies ChartConfig;
 const MONEY_CONFIG = {
-  billed: { label: "Facturado", color: "color-mix(in oklab, var(--primary) 35%, transparent)" },
+  billed: { label: "Faturado", color: "color-mix(in oklab, var(--primary) 35%, transparent)" },
   collected: { label: "Cobrado", color: "var(--primary)" },
 } satisfies ChartConfig;
 const COUNT_CONFIG = { enrolled: { label: "Matrículas", color: "var(--primary)" } } satisfies ChartConfig;
@@ -46,7 +46,7 @@ function RatesChart({ t }: { t: ApiTrends }) {
   const rows = t.years.map((y) => ({ year: y.academic_year.name, approval: y.approval_rate, attendance: y.attendance_rate, dropout: y.dropout_rate }));
   const has = rows.some((r) => r.approval !== null || r.attendance !== null || r.dropout !== null);
   return (
-    <ChartCard title="Aprovação, assiduidade e abandono" icon="ChartLine" description="Percentagens por ano lectivo">
+    <ChartCard title="Aprovação, assiduidade e abandono" icon="ChartLine" description="Percentagens por ano letivo">
       {!has ? <ChartEmpty text="Ainda sem dados suficientes." /> : (
         <ChartContainer config={RATE_CONFIG} className="aspect-auto h-[280px] w-full">
           <LineChart data={rows} margin={{ top: 14, right: 12, left: -8, bottom: 0 }}>
@@ -68,7 +68,7 @@ function EnrolledChart({ t }: { t: ApiTrends }) {
   const rows = t.years.map((y) => ({ year: y.academic_year.name, enrolled: y.enrolled }));
   const has = rows.some((r) => r.enrolled > 0);
   return (
-    <ChartCard title="Matrículas por ano lectivo" icon="Users" description="Matrículas confirmadas e concluídas">
+    <ChartCard title="Matrículas por ano letivo" icon="Users" description="Matrículas confirmadas e concluídas">
       {!has ? <ChartEmpty text="Sem matrículas registadas." /> : (
         <ChartContainer config={COUNT_CONFIG} className="aspect-auto h-[280px] w-full">
           <BarChart data={rows} margin={{ top: 14, right: 12, left: -8, bottom: 0 }}>
@@ -88,14 +88,14 @@ function MoneyChart({ t }: { t: ApiTrends }) {
   const rows = t.years.map((y) => ({ year: y.academic_year.name, billed: num(y.invoiced), collected: num(y.collected) }));
   const has = rows.some((r) => r.billed > 0 || r.collected > 0);
   return (
-    <ChartCard title="Facturado vs cobrado" icon="Wallet" description="Por ano lectivo">
-      {!has ? <ChartEmpty text="Sem facturação registada." /> : (
+    <ChartCard title="Faturado vs cobrado" icon="Wallet" description="Por ano letivo">
+      {!has ? <ChartEmpty text="Sem faturação registada." /> : (
         <ChartContainer config={MONEY_CONFIG} className="aspect-auto h-[280px] w-full">
           <BarChart data={rows} margin={{ top: 14, right: 12, left: -4, bottom: 0 }}>
             <CartesianGrid vertical={false} strokeDasharray="3 3" />
             <XAxis dataKey="year" tickLine={false} axisLine={false} tickMargin={8} />
             <YAxis tickLine={false} axisLine={false} width={68} tickFormatter={(v: number) => formatAxisCurrency(v)} />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" formatter={(v, name) => <span className="flex w-full justify-between gap-3"><span className="text-muted-foreground">{name === "billed" ? "Facturado" : "Cobrado"}</span><span className="font-medium tabular-nums">{formatCurrency(Number(v))}</span></span>} />} />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent indicator="dot" formatter={(v, name) => <span className="flex w-full justify-between gap-3"><span className="text-muted-foreground">{name === "billed" ? "Faturado" : "Cobrado"}</span><span className="font-medium tabular-nums">{formatCurrency(Number(v))}</span></span>} />} />
             <Bar dataKey="billed" fill="var(--color-billed)" radius={[6, 6, 0, 0]} />
             <Bar dataKey="collected" fill="var(--color-collected)" radius={[6, 6, 0, 0]} />
           </BarChart>
@@ -108,7 +108,7 @@ function MoneyChart({ t }: { t: ApiTrends }) {
 function MonthlyAttendance({ t }: { t: ApiTrends }) {
   const rows = t.attendance_monthly.map((m) => ({ month: monthLabel(m.month), rate: m.rate }));
   return (
-    <ChartCard title="Assiduidade por mês" icon="CalendarCheck" description="Ano lectivo mais recente (presenças e atrasos sobre o total de registos)">
+    <ChartCard title="Assiduidade por mês" icon="CalendarCheck" description="Ano letivo mais recente (presenças e atrasos sobre o total de registos)">
       {rows.length === 0 ? <ChartEmpty text="Sem registos de assiduidade." /> : (
         <ChartContainer config={MONTHLY_CONFIG} className="aspect-auto h-[280px] w-full">
           <BarChart data={rows} margin={{ top: 14, right: 12, left: -8, bottom: 0 }}>
@@ -124,7 +124,7 @@ function MonthlyAttendance({ t }: { t: ApiTrends }) {
   );
 }
 
-/** BI & Analytics (Enterprise): tendências da escola por ano lectivo, só com indicadores agregados. */
+/** BI & Analytics (Enterprise): tendências da escola por ano letivo, só com indicadores agregados. */
 export function BiPageContent() {
   const { trends, isLoading, error } = useAnalytics();
 
@@ -136,7 +136,7 @@ export function BiPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="BI & Analytics" suTitle="Tendências por ano lectivo e por mês, só com indicadores agregados (sem dados nominais)." />
+      <TitleList title="BI & Analytics" suTitle="Tendências por ano letivo e por mês, só com indicadores agregados (sem dados nominais)." />
 
       {provisional.length > 0 && (
         <p className="flex items-center gap-2 text-xs text-muted-foreground">
@@ -150,7 +150,7 @@ export function BiPageContent() {
           {trends.insights.map((i) => <InsightCard key={i.key} i={i} />)}
         </div>
       ) : (
-        <p className="text-sm text-muted-foreground">Precisa de pelo menos dois anos lectivos com dados para comparar.</p>
+        <p className="text-sm text-muted-foreground">Precisa de pelo menos dois anos letivos com dados para comparar.</p>
       )}
 
       <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-2">

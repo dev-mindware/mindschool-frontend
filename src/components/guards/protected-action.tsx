@@ -32,7 +32,8 @@ export function ProtectedAction({
       return;
     }
 
-    if (!hasActiveSubscription) {
+    // sem estado conhecido (encarregado e aluno não leem a subscrição da escola) não se bloqueia: só um estado inactivo conhecido bloqueia
+    if (subStatus !== undefined && !hasActiveSubscription) {
       e.preventDefault();
       e.stopPropagation();
       openModal("subscription-expired-modal");

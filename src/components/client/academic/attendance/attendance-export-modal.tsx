@@ -6,6 +6,7 @@ import { useSchoolSettingsStore } from "@/stores/school/school-settings-store";
 import { downloadElementAsPdf } from "@/utils/export-pdf";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { formatDate } from "@/utils";
+import { governmentLine, registrationLine } from "@/lib/document-header";
 
 export interface AttendanceStudentRow {
   studentId: string;
@@ -58,7 +59,7 @@ export function AttendanceExportModal({
   const { profile, calendar } = useSchoolSettingsStore();
   const [isDownloading, setIsDownloading] = useState(false);
 
-  const displayYear = calendar.academicYear || "2025/2026";
+  const displayYear = calendar.academicYear || "";
   const horarioLabel = lessonStart && lessonEnd ? `${lessonStart} – ${lessonEnd}` : "Tempo Normal";
 
   const handleDownload = async () => {
@@ -87,7 +88,7 @@ export function AttendanceExportModal({
       onClose={onClose}
       canClose
       title="Exportar Folha Oficial de Presenças (PDF)"
-      description="Documento administrativo oficial de registo diário de assiduidade e controlo do ponto lectivo."
+      description="Documento administrativo oficial de registo diário de assiduidade e controlo do ponto letivo."
       className="w-full sm:max-w-5xl"
     >
       <div className="space-y-4">
@@ -107,19 +108,15 @@ export function AttendanceExportModal({
                 MINISTÉRIO DA EDUCAÇÃO
               </div>
               <div className="text-[10px] uppercase text-black/70 tracking-wide mt-0.5">
-                GOVERNO PROVINCIAL DE {profile.province?.toUpperCase() || "LUANDA"} • DIRECÇÃO MUNICIPAL DA EDUCAÇÃO DE {profile.municipality?.toUpperCase() || "TALATONA"}
+                {governmentLine(profile, "DIRECÇÃO MUNICIPAL DA EDUCAÇÃO DE")}
               </div>
 
               <div className="mt-2.5">
                 <h1 className="text-base font-black tracking-tight text-black uppercase font-serif">
-                  {profile.schoolName || "COLÉGIO PRIVADO MINDSCHOOL"}
+                  {profile.schoolName}
                 </h1>
-                <p className="text-[10px] uppercase text-black/80 font-medium">
-                  {profile.subTitle || "Ensino Primário, I e II Ciclos do Ensino Secundário Geral e Técnico"}
-                </p>
-                <p className="text-[9px] text-black/60 font-mono mt-0.5">
-                  Registo MED: {profile.medRegistrationCode || "MED-AO-LUA-2018-0492"} • {profile.decreeNumber || "Decreto Executivo n.º 148/18"}
-                </p>
+                {profile.subTitle && <p className="text-[10px] uppercase text-black/80 font-medium">{profile.subTitle}</p>}
+                <p className="text-[9px] text-black/60 font-mono mt-0.5">{registrationLine(profile)}</p>
               </div>
 
               <div className="mt-3.5 inline-block border-y-2 border-black py-1 px-8">
@@ -135,7 +132,7 @@ export function AttendanceExportModal({
             {/* 2. GRELHA DE METADADOS DA AULA */}
             <div className="grid grid-cols-4 border-b-2 border-black text-xs font-semibold text-black divide-x divide-black bg-slate-50/50">
               <div className="py-2 px-3 text-center">
-                <span className="block text-[9px] font-bold uppercase text-black/60">Ano Lectivo</span>
+                <span className="block text-[9px] font-bold uppercase text-black/60">Ano Letivo</span>
                 <span className="font-bold text-black text-xs">{displayYear}</span>
               </div>
               <div className="py-2 px-3 text-center">
@@ -261,7 +258,7 @@ export function AttendanceExportModal({
 
             {/* 5. TERMO DE HOMOLOGAÇÃO E ASSINATURAS */}
             <div className="mt-3.5 text-justify text-[10px] leading-relaxed text-black indent-4">
-              Certifico que a presente folha de chamada e registo de ponto corresponde com absoluta veracidade às presenças, ausências e ocorrências verificadas no tempo lectivo acima identificado, em conformidade com o regulamento interno da instituição e normas do Ministério da Educação.
+              Certifico que a presente folha de chamada e registo de ponto corresponde com absoluta veracidade às presenças, ausências e ocorrências verificadas no tempo letivo acima identificado, em conformidade com o regulamento interno da instituição e normas do Ministério da Educação.
             </div>
 
             <div className="mt-8 pt-4 grid grid-cols-3 gap-6 text-center text-xs text-black">
@@ -280,7 +277,7 @@ export function AttendanceExportModal({
               <div className="flex flex-col items-center">
                 <div className="w-48 border-b border-black mb-1.5" />
                 <span className="font-bold text-[10px] uppercase">A Coordenação de Turno</span>
-                <span className="text-[9px] text-black/70 mt-0.5">{profile.pedagogicDirectorName || "Visto da Direcção"}</span>
+                <span className="text-[9px] text-black/70 mt-0.5">{profile.pedagogicDirectorName || "Visto da Direção"}</span>
               </div>
             </div>
           </div>
@@ -291,7 +288,7 @@ export function AttendanceExportModal({
           <div className="text-xs text-muted-foreground flex items-center gap-1.5">
             <Icon name="Info" className="w-4 h-4 text-primary" />
             <span>
-              A folha oficial de presenças será exportada directamente em formato PDF (A4 Retrato).
+              A folha oficial de presenças será exportada diretamente em formato PDF (A4 Retrato).
             </span>
           </div>
 

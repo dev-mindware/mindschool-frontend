@@ -13,7 +13,7 @@ export type RequestPriority = "NORMAL" | "URGENT";
 export type RequestStatus =
   | "SUBMITTED"           // Submetido (Aguardando triagem)
   | "UNDER_REVIEW"        // Em Análise na Secretaria
-  | "PENDING_DIRECTOR"    // Aguardando Despacho da Direcção
+  | "PENDING_DIRECTOR"    // Aguardando Despacho da Direção
   | "APPROVED"            // Deferido / Aprovado
   | "REJECTED"            // Indeferido
   | "READY_FOR_PICKUP"    // Pronto para Levantamento / Emissão Concluída
@@ -22,7 +22,7 @@ export type RequestStatus =
 export interface DirectorDispatch {
   decision: "APPROVED" | "REJECTED" | "NEEDS_INFO";
   observations: string;
-  dispatchedBy: string; // e.g. "Dr. Sebastião Quaresma (Director Geral)"
+  dispatchedBy: string; // e.g. "Dr. Sebastião Quaresma (Diretor Geral)"
   dispatchedAt: string;
 }
 

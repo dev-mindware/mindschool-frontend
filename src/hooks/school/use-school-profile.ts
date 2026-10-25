@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api";
 import { patchSettings } from "@/services/school-settings-service";
+import { academicService } from "@/services/academic-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { useSchoolSettingsStore } from "@/stores/school/school-settings-store";
 import type { SchoolInstitutionalProfile } from "@/types/school-settings";
@@ -20,7 +21,7 @@ interface ApiSchool {
 }
 
 /**
- * Perfil institucional da escola activa (API `GET /schools/:id`). Hidrata o store usado pelas folhas impressas
+ * Perfil institucional da escola ativa (API `GET /schools/:id`). Hidrata o store usado pelas folhas impressas
  * (circulares, horarios...) para que mostrem os dados reais da escola, e permite gravar as alteracoes.
  */
 export function useSchoolProfile() {
@@ -39,6 +40,18 @@ export function useSchoolProfile() {
     enabled: Boolean(schoolId) && !familyOnly,
     staleTime: 5 * 60 * 1000,
   });
+
+  const updateCalendar = useSchoolSettingsStore((s) => s.updateCalendar);
+  const { data: year } = useQuery({
+    queryKey: ["active-year", schoolId],
+    queryFn: academicService.activeYear,
+    enabled: Boolean(schoolId) && !familyOnly,
+    staleTime: 5 * 60 * 1000,
+  });
+  // as folhas impressas mostram o ano letivo ativo da escola (nunca um ano fixo)
+  useEffect(() => {
+    updateCalendar({ academicYear: year?.name ?? "", yearStartDate: year?.start_date ?? "", yearEndDate: year?.end_date ?? "" });
+  }, [year, updateCalendar]);
 
   useEffect(() => {
     if (!school) return;
@@ -60,6 +73,7 @@ export function useSchoolProfile() {
         p.directorGeneralName ? { branding: { director_name: p.directorGeneralName } } : {},
         {
           name: p.schoolName,
+          ...(p.taxNumber ? { nif: p.taxNumber.trim().toUpperCase() } : {}),
           phone: p.phone ? (p.phone.startsWith("+") ? p.phone : `+244${p.phone.replace(/\s+/g, "")}`) : null,
           email: p.email || null,
           address: p.fullAddress || null,

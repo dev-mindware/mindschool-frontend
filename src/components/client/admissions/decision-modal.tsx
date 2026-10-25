@@ -33,7 +33,7 @@ export function DecisionModal({
   );
   const [notes, setNotes] = useState("");
   // Quem decide fica registado pela API com o utilizador autenticado (não é um texto livre).
-  const decidedBy = useAuthStore((s) => s.user?.name) ?? "o utilizador actual";
+  const decidedBy = useAuthStore((s) => s.user?.name) ?? "o utilizador atual";
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!application || !isOpen) return null;

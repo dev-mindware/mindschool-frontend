@@ -305,7 +305,7 @@ api.interceptors.response.use(
     // ------------------------------------------------------------------------
     if (status === 403) {
       console.warn("⛔ [API] 403 Forbidden:", original.url);
-      if (isMfaEnrollmentRequired(err.response?.data)) notifyMfaEnrollmentRequired(); // a janela leva o utilizador a activar o 2.º factor
+      if (isMfaEnrollmentRequired(err.response?.data)) notifyMfaEnrollmentRequired(); // a janela leva o utilizador a ativar o 2.º factor
       // Deixa o RouteProtector / UI tratar
     }
 

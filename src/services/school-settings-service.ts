@@ -18,7 +18,7 @@ export async function readRawSettings(): Promise<Json> {
 }
 
 /**
- * A API substitui `settings` por inteiro no PATCH: por isso le-se o actual, funde-se e envia-se o resultado completo
+ * A API substitui `settings` por inteiro no PATCH: por isso le-se o atual, funde-se e envia-se o resultado completo
  * (nunca se envia so um bloco, ou as restantes definicoes seriam apagadas).
  */
 export async function patchSettings(patch: Json, extra: Json = {}): Promise<void> {

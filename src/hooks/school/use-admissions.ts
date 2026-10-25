@@ -7,7 +7,7 @@ import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import type { AdmissionApplication, Candidate } from "@/types/admission";
 
 /**
- * Admissoes da escola activa (API). Mantem a forma do antigo `useAdmissionStore` (listas + accoes assincronas)
+ * Admissoes da escola ativa (API). Mantem a forma do antigo `useAdmissionStore` (listas + accoes assincronas)
  * para que os componentes mudem so a origem dos dados.
  */
 export function useAdmissions() {

@@ -50,12 +50,12 @@ export function PautasPageContent() {
       <div className="space-y-6">
         <TitleList
           title="Pautas Trimestrais & Homologação MED"
-          suTitle="Consolidação de médias de disciplinas, validação de conformidade e fecho auditado pela Direcção Pedagógica."
+          suTitle="Consolidação de médias de disciplinas, validação de conformidade e fecho auditado pela Direção Pedagógica."
         />
         <EmptyState
           icon="Table"
           title="Nenhuma Turma Atribuída"
-          description="Não tem turmas atribuídas no presente ano lectivo. Os professores apenas podem consultar as pautas das turmas em que leccionam."
+          description="Não tem turmas atribuídas no presente ano letivo. Os professores apenas podem consultar as pautas das turmas em que leccionam."
         />
       </div>
     );
@@ -65,7 +65,7 @@ export function PautasPageContent() {
     <div className="space-y-6">
       <TitleList
         title="Pautas Trimestrais & Homologação MED"
-        suTitle="Consolidação de médias de disciplinas, validação de conformidade e fecho auditado pela Direcção Pedagógica."
+        suTitle="Consolidação de médias de disciplinas, validação de conformidade e fecho auditado pela Direção Pedagógica."
       />
 
       {/* Metrics */}
@@ -77,11 +77,11 @@ export function PautasPageContent() {
       />
 
       <StatusLegend
-        title="Estados e acções da pauta"
+        title="Estados e ações da pauta"
         items={[
-          { label: "Em aberto", description: "As notas ainda se lançam e a pauta pode não estar completa. O botão «Fechar pauta» recusa se faltar alguma nota (ou a turma não tiver disciplinas ou alunos).", next: "a Direcção fecha a pauta quando estiver completa." },
+          { label: "Em aberto", description: "As notas ainda se lançam e a pauta pode não estar completa. O botão «Fechar pauta» recusa se faltar alguma nota (ou a turma não tiver disciplinas ou alunos).", next: "a Direção fecha a pauta quando estiver completa." },
           { label: "Fechada", description: "Guarda-se uma versão imutável (snapshot) e as notas ficam bloqueadas. Se for o último período, gera-se a proposta de transição de cada aluno.", next: "correcções só por reapreciação de nota, ou reabrindo a pauta." },
-          { label: "Reaberta", description: "A Direcção reabriu-a com justificação (fica na auditoria). A versão guardada não se apaga; ao fechar de novo cria-se uma nova. Não se pode reabrir se já houver decisões de transição confirmadas." },
+          { label: "Reaberta", description: "A Direção reabriu-a com justificação (fica na auditoria). A versão guardada não se apaga; ao fechar de novo cria-se uma nova. Não se pode reabrir se já houver decisões de transição confirmadas." },
         ]}
       />
 

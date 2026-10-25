@@ -24,9 +24,9 @@ export interface ApiFiscalDocument {
   attempts: number;
   next_retry_at: string | null;
   pdf_available: boolean;
-  /** 5.º dia útil seguinte ao pagamento (DP 71/25, art. 8.º): data-limite legal para emitir a factura-recibo. */
+  /** 5.º dia útil seguinte ao pagamento (DP 71/25, art. 8.º): data-limite legal para emitir a fatura-recibo. */
   legal_deadline: string | null;
-  /** Passou o prazo sem factura emitida (ou foi emitida depois dele). */
+  /** Passou o prazo sem fatura emitida (ou foi emitida depois dele). */
   deadline_passed: boolean;
   created_at: string;
   updated_at: string;
@@ -39,7 +39,7 @@ export interface ApiFiscalDocumentRow extends ApiFiscalDocument {
   paid_at: string | null;
   invoices: Array<{ id: string; type: string; due_date: string; description: string | null; amount: string }>;
   credit_notes: ApiFiscalDocument[];
-  /** Há nota(s) de crédito emitida(s) no MindGest sobre esta factura-recibo (a cobrança não muda sozinha). */
+  /** Há nota(s) de crédito emitida(s) no MindGest sobre esta fatura-recibo (a cobrança não muda sozinha). */
   corrected: boolean;
   correction_notice: string | null;
 }
@@ -50,7 +50,7 @@ export interface ApiCustomerOptions {
   default: { kind: CustomerKind; guardian_id: string | null };
   guardians: Array<{ guardian_id: string; full_name: string; nif: string | null; is_primary_contact: boolean }>;
   student: { student_id: string; full_name: string; nif: string | null };
-  /** `ready`: a factura-recibo segue logo; `sem_ligacao`/`sem_catalogo`: fica em espera (o pagamento regista-se na mesma). */
+  /** `ready`: a fatura-recibo segue logo; `sem_ligacao`/`sem_catalogo`: fica em espera (o pagamento regista-se na mesma). */
   integration: "ready" | "sem_ligacao" | "sem_catalogo" | "pausada";
 }
 
@@ -81,14 +81,14 @@ export function settlementBody(v: SettlementInput) {
   };
 }
 
-/** Texto único para o estado fiscal, usado na lista de facturas e depois de marcar como pago. */
+/** Texto único para o estado fiscal, usado na lista de faturas e depois de marcar como pago. */
 export const FISCAL_STATUS: Record<FiscalDocumentStatus | "sem_submissao", { label: string; variant: "success" | "warning" | "destructive" | "secondary" | "info"; hint: string }> = {
-  certificada: { label: "Certificada", variant: "success", hint: "Factura-recibo certificada, com número fiscal." },
+  certificada: { label: "Certificada", variant: "success", hint: "Fatura-recibo certificada, com número fiscal." },
   pendente_fiscal: { label: "A aguardar MindGest", variant: "warning", hint: "Enviada ao MindGest, à espera da certificação. Não precisa de fazer nada." },
-  sem_ligacao: { label: "Escola não ligada", variant: "secondary", hint: "A escola não está ligada ao MindGest. O pagamento ficou registado; a factura-recibo é emitida quando o titular ligar a escola." },
-  sem_catalogo: { label: "Falta o imposto", variant: "secondary", hint: "Há serviços sem imposto definido no MindGest. O pagamento ficou registado; a factura-recibo segue quando o imposto for definido." },
-  pausada: { label: "Emissão em pausa", variant: "secondary", hint: "O titular suspendeu as emissões pelo MindGest. O pagamento ficou registado; a factura-recibo segue quando as emissões forem reactivadas." },
+  sem_ligacao: { label: "Escola não ligada", variant: "secondary", hint: "A escola não está ligada ao MindGest. O pagamento ficou registado; a fatura-recibo é emitida quando o titular ligar a escola." },
+  sem_catalogo: { label: "Falta o imposto", variant: "secondary", hint: "Há serviços sem imposto definido no MindGest. O pagamento ficou registado; a fatura-recibo segue quando o imposto for definido." },
+  pausada: { label: "Emissão em pausa", variant: "secondary", hint: "O titular suspendeu as emissões pelo MindGest. O pagamento ficou registado; a fatura-recibo segue quando as emissões forem reativadas." },
   rejeitada: { label: "Rejeitada", variant: "destructive", hint: "A certificação fiscal rejeitou o documento. Veja o motivo e corrija no MindGest." },
   erro: { label: "Erro", variant: "destructive", hint: "Não foi possível emitir. Veja o motivo e use «Reprocessar»." },
-  sem_submissao: { label: "Sem factura", variant: "secondary", hint: "Ainda não foi paga, por isso não tem factura-recibo." },
+  sem_submissao: { label: "Sem fatura", variant: "secondary", hint: "Ainda não foi paga, por isso não tem fatura-recibo." },
 };

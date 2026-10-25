@@ -20,7 +20,7 @@ const ERRORS: Record<string, string> = {
 };
 const errorText = (e: string) => ERRORS[e] ?? `O MindGest respondeu com um erro (${e}).`;
 
-/** Definições › Integrações › MindGest (só o titular): estado da ligação de facturação, catálogo de emolumentos, testar e desligar. */
+/** Definições › Integrações › MindGest (só o titular): estado da ligação de faturação, catálogo de emolumentos, testar e desligar. */
 export function MindgestSettings() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const queryClient = useQueryClient();
@@ -58,7 +58,7 @@ export function MindgestSettings() {
           {connected ? (
             <>
               <p className="text-muted-foreground">
-                As facturas desta escola são emitidas no MindGest pela empresa <strong className="text-foreground">{s.company?.name}</strong> (NIF {s.company?.nif}), loja «{s.store?.name}».
+                As faturas desta escola são emitidas no MindGest pela empresa <strong className="text-foreground">{s.company?.name}</strong> (NIF {s.company?.nif}), loja «{s.store?.name}».
                 Ligada em {when(s.connected_at)}. Última comunicação com sucesso: {when(s.last_ok_at)}.
               </p>
               {s.last_error && <p className="text-xs text-destructive">Último erro: {errorText(s.last_error)}</p>}
@@ -79,7 +79,7 @@ export function MindgestSettings() {
                 MindSchool e clique em <strong className="text-foreground">Conectar</strong>. Abre-se uma janela aqui, no MindSchool, onde o titular confirma.
               </p>
               <p className="text-xs text-muted-foreground">
-                Enquanto não estiver ligada, a escola continua a funcionar normalmente; as facturas ficam em espera até haver ligação.
+                Enquanto não estiver ligada, a escola continua a funcionar normalmente; as faturas ficam em espera até haver ligação.
                 {s.status === "pending" && " Há uma ligação iniciada que ainda não foi concluída no MindGest."}
                 {s.status === "revoked" && " A ligação anterior foi desfeita."}
               </p>
@@ -96,7 +96,7 @@ export function MindgestSettings() {
           <CardContent className="space-y-3 text-sm">
             <p className="text-muted-foreground">
               Cada tipo de cobrança é enviado ao MindGest como um serviço. O <strong className="text-foreground">imposto de cada serviço define-se no MindGest</strong> (Configurações › Plugins › MindSchool › Serviços),
-              por quem gere a empresa. Enquanto faltar algum, as facturas desses serviços ficam em espera; os pagamentos continuam a ser registados.
+              por quem gere a empresa. Enquanto faltar algum, as faturas desses serviços ficam em espera; os pagamentos continuam a ser registados.
             </p>
             {s.catalogue.items.length === 0 ? (
               <p className="text-xs text-muted-foreground">Catálogo ainda não enviado. Use «Reenviar catálogo».</p>
@@ -124,7 +124,7 @@ export function MindgestSettings() {
       <ConfirmModal
         id={DISCONNECT}
         title="Desligar do MindGest"
-        description="A escola deixa de emitir facturas pelo MindGest e a credencial desta ligação é apagada aqui. As facturas já emitidas ficam no MindGest. Pode voltar a ligar a partir do MindGest."
+        description="A escola deixa de emitir faturas pelo MindGest e a credencial desta ligação é apagada aqui. As faturas já emitidas ficam no MindGest. Pode voltar a ligar a partir do MindGest."
         destructive
         confirmLabel="Desligar"
         onConfirm={() => disconnect.mutateAsync()}

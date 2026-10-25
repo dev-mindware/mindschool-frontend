@@ -17,7 +17,7 @@ export function SchoolStatusBadge({ status, className }: SchoolStatusBadgeProps)
           variant="outline"
           className={`border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium ${className || ""}`}
         >
-          {status === "ENROLLED" ? "Matriculado" : status === "BOARDED" ? "A Bordo" : "Activo"}
+          {status === "ENROLLED" ? "Matriculado" : status === "BOARDED" ? "A Bordo" : "Ativo"}
         </Badge>
       );
     case "READY_FOR_PICKUP":

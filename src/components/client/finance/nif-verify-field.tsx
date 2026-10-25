@@ -52,7 +52,7 @@ export function NifVerifyField({ register, errors, watch, name = "nif", onResolv
           Verificar NIF
         </Button>
       </div>
-      <p className="text-[11px] text-muted-foreground">Facultativo. Serve só para a factura-recibo quando esta pessoa paga: é enviado ao MindGest, que emite o documento fiscal, e fica guardado cifrado. Sem NIF, a factura sai em nome do aluno ou, se este também não tiver, como «consumidor final». Pode ser corrigido ou apagado a pedido do titular dos dados.</p>
+      <p className="text-[11px] text-muted-foreground">Facultativo. Serve só para a fatura-recibo quando esta pessoa paga: é enviado ao MindGest, que emite o documento fiscal, e fica guardado cifrado. Sem NIF, a fatura sai em nome do aluno ou, se este também não tiver, como «consumidor final». Pode ser corrigido ou apagado a pedido do titular dos dados.</p>
       {state.kind === "found" && (
         <p className="flex flex-wrap items-center gap-2 text-xs text-emerald-700">
           <Icon name="CircleCheck" className="size-3.5" /> Contribuinte encontrado: <strong>{state.name}</strong>

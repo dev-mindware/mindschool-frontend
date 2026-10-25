@@ -24,12 +24,20 @@ import {
 import { StudentGuardianFields } from "./student-guardian-fields";
 import { validateIdDocumentByType } from "@/schemas/helps";
 import { nifError } from "@/lib/nif";
+import { useDiscardGuard } from "@/components/common/discard-guard";
 
 const studentFormSchema = z
   .object({
-    fullName: z.string().trim().min(3, "O nome deve ter pelo menos 3 caracteres"),
+    fullName: z
+      .string()
+      .trim()
+      .min(3, "O nome deve ter pelo menos 3 caracteres")
+      .regex(/^[\p{L}][\p{L}\p{M}' .-]*$/u, "O nome só pode ter letras, espaços, apóstrofo e hífen"),
     gender: z.enum(["MALE", "FEMALE"]),
-    birthDate: z.string().min(1, "Data de nascimento é obrigatória"),
+    birthDate: z
+      .string()
+      .min(1, "Data de nascimento é obrigatória")
+      .refine((v) => !v || v <= new Date().toISOString().slice(0, 10), "A data de nascimento não pode ser futura"),
     idDocumentType: z.enum(["IDENTITY_CARD", "BIRTH_CERTIFICATE", "PASSPORT"]),
     idDocumentNumber: z.string().trim().min(3, "Número de documento é obrigatório"),
     nif: z.string().trim().optional().or(z.literal("")).refine((v) => !nifError(v), { message: nifError("x") }),
@@ -118,7 +126,7 @@ export function StudentModal({
     setValue,
     watch,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<StudentFormValues>({
     resolver: zodResolver(studentFormSchema),
     mode: "onChange",
@@ -137,6 +145,7 @@ export function StudentModal({
       guardianDocument: "",
     },
   });
+  const discard = useDiscardGuard(isDirty, onClose);
 
   const selectedGender = watch("gender");
   const selectedDocType = watch("idDocumentType");
@@ -226,7 +235,8 @@ export function StudentModal({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && discard.request()}>
       <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
         <SheetHeader className="p-6 border-b shrink-0">
           <SheetTitle className="text-lg font-bold">
@@ -259,7 +269,7 @@ export function StudentModal({
         </form>
 
         <SheetFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={discard.request}>
             Cancelar
           </Button>
           <ButtonSubmit form="student-form" isLoading={isSubmitting}>
@@ -268,5 +278,7 @@ export function StudentModal({
         </SheetFooter>
       </SheetContent>
     </Sheet>
+    {discard.dialog}
+    </>
   );
 }

@@ -67,13 +67,13 @@ export function FamilyProfile() {
           <h3 className="mb-2 flex items-center gap-2 text-base font-semibold"><Icon name="ShieldCheck" className="size-4 text-primary" />Conta de acesso</h3>
           <Row label="Email de acesso" value={me.user.email} />
           <Row label="Último acesso" value={me.user.last_login_at ? formatDateTime(me.user.last_login_at) : "—"} />
-          <div className="flex items-center justify-between gap-2 py-2.5 text-sm"><span className="text-muted-foreground">Verificação em dois passos</span><Badge variant={me.user.mfa_enabled ? "success" : "secondary"} className="font-normal">{me.user.mfa_enabled ? "Activa" : "Desactivada"}</Badge></div>
+          <div className="flex items-center justify-between gap-2 py-2.5 text-sm"><span className="text-muted-foreground">Verificação em dois passos</span><Badge variant={me.user.mfa_enabled ? "success" : "secondary"} className="font-normal">{me.user.mfa_enabled ? "Ativa" : "Desativada"}</Badge></div>
           <p className="mt-2 text-xs text-muted-foreground">Palavra-passe, verificação em dois passos e sessões gerem-se na aba «Segurança».</p>
         </section>
       </div>
 
       <FormModal id={MODAL} title="Editar contactos" description="O telefone e o email de contacto são usados pela escola para os avisos e a cobrança." submitLabel="Guardar" isLoading={save.isPending} disabled={phone.trim().length < 7}
-        onSubmit={() => save.mutateAsync({ phone: phone.trim(), email: email.trim() ? email.trim() : null }).then(() => { SucessMessage("Contactos actualizados."); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar.")); throw e; })}>
+        onSubmit={() => save.mutateAsync({ phone: phone.trim(), email: email.trim() ? email.trim() : null }).then(() => { SucessMessage("Contactos atualizados."); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar.")); throw e; })}>
         <div className="sm:col-span-2"><Input label="Telefone *" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+244 923 000 000" /></div>
         <div className="sm:col-span-2"><Input label="Email de contacto" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@dominio.ao" /></div>
         <p className="sm:col-span-2 text-xs text-muted-foreground">Isto não altera o email que usa para entrar na conta.</p>

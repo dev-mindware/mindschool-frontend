@@ -310,7 +310,7 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
                   />
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Input
-                      label="Objectivos"
+                      label="Objetivos"
                       value={objectives}
                       onChange={(e) => setObjectives(e.target.value)}
                     />
@@ -471,7 +471,7 @@ export function LessonsPageContent() {
     },
     {
       key: "action",
-      header: "Acção",
+      header: "Ação",
       render: (_, x) => (
         <ButtonOnlyAction
           data={x}
@@ -574,7 +574,7 @@ export function LessonsPageContent() {
     <div className="space-y-6">
       <TitleList
         title="Aulas e Sumários"
-        suTitle="Agenda pedagógica diária do professor estilo Google Keep integrada com horário lectivo e validação de sumários."
+        suTitle="Agenda pedagógica diária do professor estilo Google Keep integrada com horário letivo e validação de sumários."
       >
         <div className="flex items-center gap-2">
           <div className="inline-flex rounded-md border bg-sidebar p-1">

@@ -60,7 +60,7 @@ export function TotpSetupBody({ secret, code, onCode, busy }: { secret: { secret
               <code className="select-all break-all rounded bg-muted px-2 py-1.5 font-mono text-xs text-foreground">{groupSecret(secret.secret)}</code>
               <Button type="button" size="icon" variant="ghost" title="Copiar a chave" onClick={() => void copy(secret.secret, "Chave")}><Icon name="Copy" className="size-4" /></Button>
             </div>
-            <a className="inline-flex items-center gap-1 underline" href={secret.otpauth_url}><Icon name="Smartphone" className="size-3.5" />Está no telemóvel? Abrir directamente na aplicação</a>
+            <a className="inline-flex items-center gap-1 underline" href={secret.otpauth_url}><Icon name="Smartphone" className="size-3.5" />Está no telemóvel? Abrir diretamente na aplicação</a>
           </div>
         </div>
       </Step>

@@ -57,7 +57,7 @@ export function BankAccountsPageContent() {
     { key: "instructions", header: "Instruções ao pagador", render: (_, a) => <span className="line-clamp-2 max-w-xs text-xs text-muted-foreground">{a.instructions || "—"}</span> },
     { key: "is_active", header: "Estado", render: (_, a) => <Badge variant={a.is_active ? "success" : "secondary"}>{a.is_active ? "Visível no portal" : "Inactiva"}</Badge> },
     {
-      key: "actions", header: "Acção",
+      key: "actions", header: "Ação",
       render: (_, a) => (
         <ButtonOnlyAction data={a} actions={[
           { permission: "bank_account:write", label: "Editar", icon: "Pencil", onClick: openEdit },

@@ -38,8 +38,8 @@ const PLAN_STRUCTURE_META: Record<string, PlanStructureMeta> = {
       "Portal do Aluno e Encarregado",
       "5 GB de armazenamento em nuvem",
       "Gestão académica e administrativa",
-      "Calendário de dias lectivos e feriados",
-      "Facturação e propinas da escola",
+      "Calendário de dias letivos e feriados",
+      "Faturação e propinas da escola",
       "Suporte técnico padrão MindSchool",
     ],
   },
@@ -73,7 +73,7 @@ const PLAN_STRUCTURE_META: Record<string, PlanStructureMeta> = {
       "50 GB de armazenamento em nuvem",
       "Multi-Escola com painel do grupo",
       "Cobrança Automatizada por E-mail",
-      "BI & Analytics com tendências por ano lectivo",
+      "BI & Analytics com tendências por ano letivo",
       "Arquivo documental com pesquisa, retenção e pacotes",
       "Gerador automático de horários",
       "Suporte Dedicado com SLA Prioritário",
@@ -240,7 +240,7 @@ export function AvailablePlans() {
 
               // Preço calculado de acordo com o switch (Mensal vs Anual)
               const monthlyPriceNum = Number(plan.monthly_price);
-              const annualPriceNum = monthlyPriceNum * 10; // 10 meses facturados em 12
+              const annualPriceNum = monthlyPriceNum * 10; // 10 meses faturados em 12
               const displayPrice = isYearly ? kz(annualPriceNum) : kz(monthlyPriceNum);
 
               // Rótulo do botão
@@ -276,7 +276,7 @@ export function AvailablePlans() {
                       )}
                       {!popular && isCurrent && (
                         <Badge variant={paid ? "default" : "secondary"} className="text-xs">
-                          {paid ? "Plano actual" : "Em teste"}
+                          {paid ? "Plano atual" : "Em teste"}
                         </Badge>
                       )}
                     </div>
@@ -306,7 +306,7 @@ export function AvailablePlans() {
                       {meta.description}
                     </p>
 
-                    {/* Botão de Acção (posicionado logo após a descrição) */}
+                    {/* Botão de Ação (posicionado logo após a descrição) */}
                     <div className="mt-6">
                       <Button
                         size="lg"
@@ -349,7 +349,7 @@ export function AvailablePlans() {
                           Garantia e Ativação Imediata
                         </p>
                         <p className="text-[11px] text-muted-foreground leading-normal">
-                          Factura oficial com NIF. Sem compromisso de fidelização.
+                          Fatura oficial com NIF. Sem compromisso de fidelização.
                         </p>
                       </div>
                     </div>

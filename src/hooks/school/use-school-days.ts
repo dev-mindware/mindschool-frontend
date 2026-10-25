@@ -8,8 +8,8 @@ import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 /**
- * Dias lectivos do mês visível (e a margem que a grelha mostra), vindos do motor da API: disponível em todos os planos.
- * Fora de qualquer ano lectivo a API não devolve dias.
+ * Dias letivos do mês visível (e a margem que a grelha mostra), vindos do motor da API: disponível em todos os planos.
+ * Fora de qualquer ano letivo a API não devolve dias.
  */
 export function useSchoolDays(month: Date) {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);

@@ -96,7 +96,7 @@ export function SubjectsList({ subjects, isLoading }: SubjectsListProps) {
               item.isActive ? "bg-emerald-500" : "bg-zinc-400"
             }`}
           />
-          {item.isActive ? "Activa" : "Inactiva"}
+          {item.isActive ? "Ativa" : "Inactiva"}
         </span>
       ),
     },
@@ -139,7 +139,7 @@ export function SubjectsList({ subjects, isLoading }: SubjectsListProps) {
         filters={[
           { key: "regime", label: "Regime", icon: "GraduationCap", options: [{ value: "quantitativa", label: "Quantitativa (0–20)" }, { value: "qualitativa", label: "Qualitativa" }, { value: "mista", label: "Mista" }], match: (s, v) => (s.gradingScale ?? "quantitativa") === v },
           { key: "tipo", label: "Tipo", icon: "Star", options: [{ value: "nuclear", label: "Nuclear" }, { value: "geral", label: "Geral" }], match: (s, v) => (v === "nuclear" ? Boolean(s.isCore) : !s.isCore) },
-          { key: "estado", label: "Estado", icon: "ToggleLeft", options: [{ value: "on", label: "Activas" }, { value: "off", label: "Inactivas" }], match: (s, v) => (v === "on" ? s.isActive : !s.isActive) },
+          { key: "estado", label: "Estado", icon: "ToggleLeft", options: [{ value: "on", label: "Ativas" }, { value: "off", label: "Inactivas" }], match: (s, v) => (v === "on" ? s.isActive : !s.isActive) },
         ]}
         sorts={[
           { value: "nome", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name, "pt") },

@@ -111,19 +111,20 @@ export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: Req
           {open && (
             <div className="space-y-3 border-t pt-3">
               <div className="flex flex-wrap gap-2">
-                {!request.assigned_to && <Button size="sm" variant="outline" onClick={() => run(assign.mutateAsync(request.id), "Pedido atribuído a si.")}>Assumir</Button>}
-                {request.status === "aberto" && <Button size="sm" variant="outline" onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "em_analise" }), "Pedido em análise.")}>Iniciar análise</Button>}
+                {!request.assigned_to && <Button type="button" size="sm" variant="outline" onClick={() => run(assign.mutateAsync(request.id), "Pedido atribuído a si.")}>Assumir</Button>}
+                {request.status === "aberto" && <Button type="button" size="sm" variant="outline" onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "em_analise" }), "Pedido em análise.")}>Iniciar análise</Button>}
               </div>
-              <FormTextarea label={unpaid ? "Motivo da isenção" : "Resolução / motivo"} value={note} onChange={setNote} rows={2} placeholder={unpaid ? "Ex: aluno bolseiro; isento por decisão da direcção." : "Ex: declaração emitida; levantar na secretaria."} />
+              <FormTextarea label={unpaid ? "Motivo da isenção" : "Resolução / motivo"} value={note} onChange={setNote} rows={2} placeholder={unpaid ? "Ex: aluno bolseiro; isento por decisão da direção." : "Ex: declaração emitida; levantar na secretaria."} />
               {unpaid ? (
                 <div className="space-y-1">
-                  <p className="text-xs text-muted-foreground">O pedido aguarda o pagamento da taxa. Só depois de paga segue para tratamento; pode isentar com motivo (a factura é anulada).</p>
-                  <Button size="sm" variant="outline" disabled={note.trim().length < 3} onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "em_analise", resolution: note.trim(), waiveFee: true }), "Taxa isenta; pedido em análise.", () => setNote(""))}>Isentar taxa e iniciar análise</Button>
+                  <p className="text-xs text-muted-foreground">O pedido aguarda o pagamento da taxa. Só depois de paga segue para tratamento; pode isentar com motivo (a fatura é anulada).</p>
+                  <Button type="button" size="sm" variant="outline" disabled={note.trim().length < 3} onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "em_analise", resolution: note.trim(), waiveFee: true }), "Taxa isenta; pedido em análise.", () => setNote(""))}>Isentar taxa e iniciar análise</Button>
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2">
                   {canIssueDoc && (
                     <Button
+                      type="button"
                       size="sm"
                       className="gap-1.5 bg-emerald-600 hover:bg-emerald-700 text-white cursor-pointer shadow-xs"
                       disabled={isIssuing}
@@ -133,18 +134,18 @@ export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: Req
                       {isIssuing ? "A emitir documento..." : "Emitir Documento Oficial com QR"}
                     </Button>
                   )}
-                  <Button size="sm" className="gap-1" onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "concluido", resolution: note.trim() || undefined }), "Pedido concluído.", () => setNote(""))}><Icon name="Check" className="size-3.5" />Concluir</Button>
-                  <Button size="sm" variant="destructive" disabled={note.trim().length < 3} onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "rejeitado", resolution: note.trim() }), "Pedido indeferido.", () => setNote(""))}>Indeferir</Button>
+                  <Button type="button" size="sm" className="gap-1" onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "concluido", resolution: note.trim() || undefined }), "Pedido concluído.", () => setNote(""))}><Icon name="Check" className="size-3.5" />Concluir</Button>
+                  <Button type="button" size="sm" variant="destructive" disabled={note.trim().length < 3} onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "rejeitado", resolution: note.trim() }), "Pedido indeferido.", () => setNote(""))}>Indeferir</Button>
                 </div>
               )}
               <div className="flex items-end gap-2">
                 <div className="flex-1"><Input label="Mensagem ao requerente" value={message} onChange={(e) => setMessage(e.target.value)} /></div>
-                <Button size="sm" variant="secondary" className="h-10" disabled={!message.trim() || comment.isPending} onClick={() => run(comment.mutateAsync({ id: request.id, message: message.trim() }), "Mensagem enviada.", () => setMessage(""))}>Enviar</Button>
+                <Button type="button" size="sm" variant="secondary" className="h-10" disabled={!message.trim() || comment.isPending} onClick={() => run(comment.mutateAsync({ id: request.id, message: message.trim() }), "Mensagem enviada.", () => setMessage(""))}>Enviar</Button>
               </div>
             </div>
           )}
 
-          <div className="flex justify-end"><Button size="sm" variant="ghost" className="gap-1.5" onClick={() => { onPrintSlip(request); openModal("request-slip"); }}><Icon name="FileDown" className="size-4" />Comprovativo (PDF)</Button></div>
+          <div className="flex justify-end"><Button type="button" size="sm" variant="ghost" className="gap-1.5" onClick={() => { onPrintSlip(request); openModal("request-slip"); }}><Icon name="FileDown" className="size-4" />Comprovativo (PDF)</Button></div>
         </div>
       )}
     </FormModal>

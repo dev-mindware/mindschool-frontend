@@ -236,7 +236,7 @@ export function PoliciesPageContent() {
     }
     const x = draft.evaluation.exception;
     if (blocks.includes("evaluation") && (x.class_level_min > x.class_level_max || x.min_mark > x.max_mark)) {
-      ErrorMessage("Na excepção, o início tem de ser menor ou igual ao fim (classes e notas).");
+      ErrorMessage("Na exceção, o início tem de ser menor ou igual ao fim (classes e notas).");
       throw new Error("invalid_exception");
     }
     if (blocks.includes("risk") && draft.risk.thresholds.moderado >= draft.risk.thresholds.elevado) {
@@ -311,7 +311,7 @@ export function PoliciesPageContent() {
       .finally(() => setSaving(false));
   }
 
-  // Cálculo da simulação de MT com base nos pesos activos
+  // Cálculo da simulação de MT com base nos pesos ativos
   const simResult = useMemo(() => {
     if (!s) return { rawMt: 0, roundedMt: 0, passed: false };
     const w = s.evaluation.mt_weights;
@@ -518,13 +518,13 @@ export function PoliciesPageContent() {
 
         <PolicyCard
           icon="Scale"
-          title="Excepção «Transita com apoio»"
+          title="Exceção «Transita com apoio»"
           hint="Quando um aluno com disciplinas negativas pode, mesmo assim, transitar com apoio pedagógico."
           impact="Aplica-se às propostas de transição geradas a partir de agora (ao fechar o último período). Decisões já confirmadas pelo Conselho não mudam."
           badge="Regime especial"
           onEdit={() => edit("policy-exception")}
           rows={[
-            ["Regime activo", yn(s.evaluation.exception.enabled)],
+            ["Regime ativo", yn(s.evaluation.exception.enabled)],
             ["Classes abrangidas", `${s.evaluation.exception.class_level_min}.ª a ${s.evaluation.exception.class_level_max}.ª`],
             ["Máx. de disciplinas negativas", `${s.evaluation.exception.max_subjects}`],
             ["Intervalo de notas admitido", `${s.evaluation.exception.min_mark} a ${s.evaluation.exception.max_mark} valores`],
@@ -558,7 +558,7 @@ export function PoliciesPageContent() {
               "Classes com Prova de Acesso",
               s.admission.entrance_exam_required_level_numbers.length
                 ? s.admission.entrance_exam_required_level_numbers.map((c) => `${c}ª Classe`).join(", ")
-                : "Todas com acesso directo",
+                : "Nenhuma obrigatória: o acesso direto faz-se em «Cadastrar Aluno»; a candidatura serve para quem presta prova",
             ],
             [
               "Nota Mínima de Entrada",
@@ -574,17 +574,17 @@ export function PoliciesPageContent() {
         <PolicyCard
           icon="CalendarDays"
           title="Calendário & Assiduidade"
-          hint="Dias lectivos de funcionamento e prazos para lançamento de sumários."
-          impact="Os dias lectivos regeneram o calendário do ano. Faltas já lançadas não são apagadas."
+          hint="Dias letivos de funcionamento e prazos para lançamento de sumários."
+          impact="Os dias letivos regeneram o calendário do ano. Faltas já lançadas não são apagadas."
           onEdit={() => edit("policy-calendar")}
           rows={[
             [
-              "Dias Lectivos Semanais",
+              "Dias Letivos Semanais",
               s.calendar.lective_weekdays.map((n) => WEEKDAYS[n - 1]).join(", "),
             ],
             ["Prazo para Registo de Sumário", `${s.calendar.summary_deadline_days} dia(s)`],
             [
-              "Bloquear presenças em dias não lectivos",
+              "Bloquear presenças em dias não letivos",
               s.calendar.enforce_lective_attendance ? "Sim (Estrito)" : "Não (Apenas aviso)",
             ],
           ]}
@@ -611,8 +611,8 @@ export function PoliciesPageContent() {
         <PolicyCard
           icon="Wallet"
           title="Regime Financeiro & Propinas"
-          hint="Prestações do ano lectivo e agendamento de cobrança. Valores, tolerância e multas definem-se em Propinas › Planos."
-          impact="Aplica-se às propinas geradas em novas matrículas. Facturas já emitidas não mudam."
+          hint="Prestações do ano letivo e agendamento de cobrança. Valores, tolerância e multas definem-se em Propinas › Planos."
+          impact="Aplica-se às propinas geradas em novas matrículas. Faturas já emitidas não mudam."
           onEdit={() => edit("policy-finance")}
           rows={[
             ["Número de Prestações", `${s.finance.installments} mensalidades`],
@@ -733,14 +733,14 @@ export function PoliciesPageContent() {
       {isOpen("policy-exception") && (
         <FormModal
           id="policy-exception"
-          title="Excepção «Transita com apoio»"
+          title="Exceção «Transita com apoio»"
           description="Regra aplicada ao propor a transição de classe, depois de fechado o último período."
           onSubmit={save(["evaluation"])}
           {...modalProps}
         >
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
             <Check
-              label="Regime activo"
+              label="Regime ativo"
               checked={ev.exception.enabled}
               onChange={(v) => setEv({ exception: { ...ev.exception, enabled: v } })}
             />
@@ -911,7 +911,7 @@ export function PoliciesPageContent() {
         >
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
             <div className="space-y-1.5">
-              <span className="text-xs font-medium text-foreground">Dias Lectivos de Funcionamento</span>
+              <span className="text-xs font-medium text-foreground">Dias Letivos de Funcionamento</span>
               <div className="flex flex-wrap gap-2">
                 {WEEKDAYS.map((w, i) => {
                   const n = i + 1;
@@ -956,7 +956,7 @@ export function PoliciesPageContent() {
               }
             />
             <Check
-              label="Bloquear registo de presenças em dias não lectivos (por omissão apenas avisa)"
+              label="Bloquear registo de presenças em dias não letivos (por omissão apenas avisa)"
               checked={d.calendar.enforce_lective_attendance}
               onChange={(v) =>
                 setDraft({
@@ -1067,13 +1067,13 @@ export function PoliciesPageContent() {
         <FormModal
           id="policy-finance"
           title="Regime Financeiro & Prestações"
-          description="Número de mensalidades e calendário base de facturação."
+          description="Número de mensalidades e calendário base de faturação."
           onSubmit={save(["finance"])}
           {...modalProps}
         >
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
             <Input
-              label="Número de Prestações no Ano Lectivo"
+              label="Número de Prestações no Ano Letivo"
               type="quantity"
               min={1}
               max={12}

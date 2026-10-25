@@ -15,7 +15,7 @@ export function FinanceReportContent() {
     <div className="space-y-8">
       <TitleList
         title="Relatório Financeiro"
-        suTitle="Indicadores de facturação, cobrança e dívida do ano lectivo, com exportação dos relatórios oficiais."
+        suTitle="Indicadores de faturação, cobrança e dívida do ano letivo, com exportação dos relatórios oficiais."
       >
         <Button
           size="sm"
@@ -32,7 +32,7 @@ export function FinanceReportContent() {
       <ApiReportsCatalog
         domains={["financeiro"]}
         title="Relatórios financeiros oficiais"
-        description="Dívidas por aluno, recebimentos por período e facturas por estado, exportáveis em Excel, PDF e CSV."
+        description="Dívidas por aluno, recebimentos por período e faturas por estado, exportáveis em Excel, PDF e CSV."
       />
 
       <FinanceReportExportModal isOpen={isExportOpen} onClose={() => setIsExportOpen(false)} />

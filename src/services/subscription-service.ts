@@ -75,7 +75,7 @@ export const subscriptionService = {
   createOrder: async (v: OrderRequest): Promise<ApiOrder> => (await api.post<ApiOrder>("/s/subscription/orders", v)).data,
   orders: async (): Promise<ApiOrder[]> => (await api.get<{ data: ApiOrder[] }>("/s/subscription/orders")).data.data,
   cancelOrder: async (id: string) => (await api.post(`/s/subscription/orders/${id}/cancel`, {})).data,
-  /** Envia o comprovativo (PDF ou PNG, ate 10 MB) para analise; nunca activa o plano por si so. */
+  /** Envia o comprovativo (PDF ou PNG, ate 10 MB) para analise; nunca ativa o plano por si so. */
   submitProof: async (orderId: string, file: File): Promise<ApiOrder> => {
     const buf = new Uint8Array(await file.arrayBuffer());
     let bin = "";

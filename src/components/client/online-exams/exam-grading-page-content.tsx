@@ -26,7 +26,7 @@ const show = (v: ApiSubmissionDetail['answers'][number]['value'], options: Array
   return label(v);
 };
 
-/** Mesa de correcção: submissões da prova (nativas e importadas do Google Forms), correcção das dissertativas e lançamento da nota na mini-pauta. */
+/** Mesa de correção: submissões da prova (nativas e importadas do Google Forms), correcção das dissertativas e lançamento da nota na mini-pauta. */
 export function ExamGradingPageContent() {
   const { id } = useParams<{ id: string }>();
   const { allExams, isLoading: examsLoading } = useOnlineExams();
@@ -51,7 +51,7 @@ export function ExamGradingPageContent() {
   return (
     <div className="space-y-6">
       <TitleList
-        title={`Mesa de Correcção: ${activeExam.title}`}
+        title={`Mesa de Correção: ${activeExam.title}`}
         suTitle="Corrija as submissões e lance as notas na mini-pauta."
       />
 
@@ -103,7 +103,7 @@ export function ExamGradingPageContent() {
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-semibold">Questão {i + 1} ({a.question.max_score} pts)</span>
                       {manual ? (
-                        <Badge variant="warning">Correcção manual</Badge>
+                        <Badge variant="warning">Correção manual</Badge>
                       ) : (
                         <span className={a.score_awarded && a.score_awarded > 0 ? 'text-emerald-600 font-semibold' : 'text-rose-600 font-semibold'}>
                           {a.score_awarded ?? 0} pts

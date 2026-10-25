@@ -38,7 +38,7 @@ export function LibraryPageContent() {
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
         <DynamicMetricCard title={`${metrics.copies}`} subtitle="Exemplares no Acervo" description={`${metrics.titles} títulos catalogados`} icon="BookMarked" />
-        <DynamicMetricCard title={`${metrics.active}`} subtitle="Empréstimos Activos" description="Em posse de alunos e docentes" icon="BookOpen" />
+        <DynamicMetricCard title={`${metrics.active}`} subtitle="Empréstimos Ativos" description="Em posse de alunos e docentes" icon="BookOpen" />
         <DynamicMetricCard title={`${metrics.overdue}`} subtitle="Devoluções Vencidas" description="Bloqueiam novos empréstimos do leitor" icon="CircleAlert" colors={metrics.overdue > 0 ? "destructive" : "default"} />
         <DynamicMetricCard title="14 dias" subtitle="Prazo de Empréstimo" description="Até 2 renovações; máximo de 3 obras por aluno" icon="Clock" />
       </div>

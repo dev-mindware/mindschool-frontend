@@ -9,6 +9,8 @@ import { StudentModal } from "./student-modal";
 import { StudentIdCardModal } from "./student-id-card-modal";
 import { InviteCredentialsModal } from "@/components/client/shared/invite-credentials-modal";
 import { useStudents } from "@/hooks/school/use-students";
+import { ErrorMessage } from "@/utils/messages";
+import { formatDate } from "@/utils/format-date";
 
 const STATUS_OPTIONS = [
   { value: "ENROLLED", label: "Matriculados" },
@@ -48,23 +50,24 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent }: 
       render: (_, s) => (
         <div className="flex flex-col">
           <button type="button" className="text-left font-medium hover:underline" onClick={() => { setSelected(s); setDetailsOpen(true); }}>{s.fullName}</button>
-          <span className="text-xs text-muted-foreground">{s.gender === "MALE" ? "Masc." : "Fem."} • {s.birthDate}</span>
+          <span className="text-xs text-muted-foreground">{s.gender === "MALE" ? "Masc." : "Fem."} • {s.birthDate ? formatDate(s.birthDate) : "—"}</span>
         </div>
       ),
     },
     { key: "idDocumentNumber", header: "Bilhete de Identidade", render: (_, s) => <span className="font-mono text-xs text-muted-foreground">{s.idDocumentNumber}</span> },
-    { key: "currentSectionName", header: "Turma Actual", render: (_, s) => <span className="text-sm font-medium">{s.currentSectionName || "Sem Turma"}</span> },
+    { key: "currentSectionName", header: "Turma Atual", render: (_, s) => <span className="text-sm font-medium">{s.currentSectionName || "Sem Turma"}</span> },
     { key: "guardianName", header: "Encarregado", render: (_, s) => (<div className="flex flex-col"><span className="text-sm">{s.guardianName}</span><span className="text-xs text-muted-foreground">{s.guardianPhone}</span></div>) },
     { key: "status", header: "Estado", render: (_, s) => <SchoolStatusBadge status={s.status} /> },
     {
-      key: "actions", header: "Acções",
+      key: "actions", header: "Ações",
       render: (_, s) => (
         <ButtonOnlyAction data={s} actions={[
           { label: "Ver ficha", icon: "Eye", onClick: (x) => { setSelected(x); setDetailsOpen(true); } },
-          { label: "Cartão de Estudante", icon: "CreditCard", onClick: (x) => { setCardStudent(x); setCardOpen(true); } },
+          { label: "Cartão de Estudante", icon: "CreditCard", onClick: (x) => { if (!x.currentSectionName) { ErrorMessage("Este aluno ainda não tem matrícula. Matricule-o antes de emitir o cartão de estudante."); return; } setCardStudent(x); setCardOpen(true); } },
           { permission: "student:write", label: "Convidar (Acesso)", icon: "Mail", onClick: (x) => setInvitingStudent(x) },
           { permission: "student:write", label: "Editar", icon: "Pencil", onClick: (x) => { setEditing(x); setEditOpen(true); } },
-          ...(onDeleteStudent ? [{ permission: "student:write", label: "Desactivar aluno", icon: "UserX" as const, variant: "destructive" as const, onClick: (x: Student) => onDeleteStudent(x.id) }] : []),
+          // só se desativa um aluno ativo: o estado dos pendentes e concluídos resulta da matrícula (a API recusa)
+          ...(onDeleteStudent && s.status === "ENROLLED" ? [{ permission: "student:write", label: "Desativar aluno", icon: "UserX" as const, variant: "destructive" as const, onClick: (x: Student) => onDeleteStudent(x.id) }] : []),
         ]} />
       ),
     },
@@ -86,7 +89,7 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent }: 
           { key: "classe", label: "Classe", icon: "GraduationCap", options: levels.map((l) => ({ value: l, label: l })), match: (s, v) => s.currentClassLevel === v },
           { key: "turma", label: "Turma", icon: "Users", options: [{ value: "__none", label: "Sem turma" }, ...sections.map((l) => ({ value: l, label: l }))], match: (s, v) => (v === "__none" ? !s.currentSectionName : s.currentSectionName === v) },
           { key: "genero", label: "Género", icon: "User", options: [{ value: "MALE", label: "Masculino" }, { value: "FEMALE", label: "Feminino" }], match: (s, v) => s.gender === v },
-          { key: "ano", label: "Ano lectivo", icon: "CalendarRange", options: years.map((l) => ({ value: l, label: l })), match: (s, v) => s.academicYear === v },
+          { key: "ano", label: "Ano letivo", icon: "CalendarRange", options: years.map((l) => ({ value: l, label: l })), match: (s, v) => s.academicYear === v },
         ]}
         dateFilters={[{ key: "registo", label: "Registo", getDate: (s) => s.createdAt }]}
         sorts={[
@@ -103,7 +106,7 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent }: 
         onClose={() => setDetailsOpen(false)}
         student={selected}
         onEdit={(s) => { setEditing(s); setEditOpen(true); }}
-        onOpenCard={(s) => { setCardStudent(s); setCardOpen(true); }}
+        onOpenCard={(s) => { if (!s.currentSectionName) { ErrorMessage("Este aluno ainda não tem matrícula. Matricule-o antes de emitir o cartão de estudante."); return; } setCardStudent(s); setCardOpen(true); }}
       />
       <StudentModal isOpen={editOpen} onClose={() => setEditOpen(false)} studentToEdit={editing} />
       <StudentIdCardModal

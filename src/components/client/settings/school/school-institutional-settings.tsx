@@ -9,6 +9,7 @@ import { useModal } from "@/stores/modal/use-modal-store";
 import { useSchoolProfile } from "@/hooks/school/use-school-profile";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { DocumentBrandingSettings } from "./document-branding-settings";
+import { nifError } from "@/lib/nif";
 
 type Profile = ReturnType<typeof useSchoolSettingsStore.getState>["profile"];
 
@@ -31,7 +32,7 @@ function InfoCard({ icon, title, badge, rows }: { icon: keyof typeof icons; titl
   );
 }
 
-/** Dados institucionais da escola (homologação MED, localização, contactos e direcção): leitura em cartões, edição em modal. */
+/** Dados institucionais da escola (homologação MED, localização, contactos e direção): leitura em cartões, edição em modal. */
 export function SchoolInstitutionalSettings() {
   const { profile, updateProfile } = useSchoolSettingsStore();
   const { save } = useSchoolProfile();
@@ -59,7 +60,7 @@ export function SchoolInstitutionalSettings() {
           ["Província", profile.province], ["Município", profile.municipality], ["Distrito / Bairro", profile.communeOrDistrict], ["Endereço", profile.fullAddress],
           ["Telefone", profile.phone], ["E-mail", profile.email], ["NIF", profile.taxNumber],
         ]} />
-        <InfoCard icon="Users" title="Direcção escolar homologada" rows={[["Director(a) Geral", profile.directorGeneralName], ["Director(a) Pedagógico(a)", profile.pedagogicDirectorName]]} />
+        <InfoCard icon="Users" title="Direção escolar homologada" rows={[["Diretor(a) Geral", profile.directorGeneralName || "Por definir (use «Editar»)"], ["Diretor(a) Pedagógico(a)", profile.pedagogicDirectorName || "Por definir (use «Editar»)"]]} />
       </div>
 
       <FormModal id="settings-institution" title="Dados institucionais" description="Estas informações aparecem em certificados, pautas e mapas oficiais." size="lg" submitLabel="Guardar alterações" isLoading={save.isPending} onSubmit={submit} disabled={!f.schoolName?.trim()}>
@@ -72,12 +73,12 @@ export function SchoolInstitutionalSettings() {
         <Input label="Província" startIcon="MapPin" value={f.province} onChange={(e) => set("province", e.target.value)} />
         <Input label="Município" value={f.municipality} onChange={(e) => set("municipality", e.target.value)} />
         <Input label="Distrito urbano / bairro" value={f.communeOrDistrict} onChange={(e) => set("communeOrDistrict", e.target.value)} />
-        <Input label="NIF da instituição" startIcon="Hash" value={f.taxNumber} onChange={(e) => set("taxNumber", e.target.value)} />
+        <Input label="NIF da instituição" startIcon="Hash" value={f.taxNumber} error={nifError(f.taxNumber)} onChange={(e) => set("taxNumber", e.target.value)} />
         <div className="sm:col-span-2"><Input label="Endereço completo" value={f.fullAddress} onChange={(e) => set("fullAddress", e.target.value)} /></div>
         <Input label="Telefone da secretaria" startIcon="Phone" value={f.phone} onChange={(e) => set("phone", e.target.value)} />
         <Input label="E-mail institucional" type="email" startIcon="Mail" value={f.email} onChange={(e) => set("email", e.target.value)} />
-        <Input label="Director(a) Geral" startIcon="User" value={f.directorGeneralName} onChange={(e) => set("directorGeneralName", e.target.value)} />
-        <Input label="Director(a) Pedagógico(a)" startIcon="User" value={f.pedagogicDirectorName} onChange={(e) => set("pedagogicDirectorName", e.target.value)} />
+        <Input label="Diretor(a) Geral" startIcon="User" value={f.directorGeneralName} onChange={(e) => set("directorGeneralName", e.target.value)} />
+        <Input label="Diretor(a) Pedagógico(a)" startIcon="User" value={f.pedagogicDirectorName} onChange={(e) => set("pedagogicDirectorName", e.target.value)} />
       </FormModal>
 
       <DocumentBrandingSettings />

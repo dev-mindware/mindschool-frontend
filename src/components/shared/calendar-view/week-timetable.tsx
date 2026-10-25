@@ -21,7 +21,7 @@ export interface TimetableSlot {
   start: string;
   end: string;
   kind: "aula" | "intervalo";
-  /** N.º do tempo lectivo (só para kind = aula). */
+  /** N.º do tempo letivo (só para kind = aula). */
   lessonNo?: number;
 }
 

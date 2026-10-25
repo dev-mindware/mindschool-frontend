@@ -46,7 +46,7 @@ export function PlanUpgradeModal() {
             ) : featureName ? (
               <>
                 O recurso <span className="font-semibold text-foreground">{featureName}</span> não
-                faz parte do seu plano actual. Actualize para o plano{" "}
+                faz parte do seu plano atual. Atualize para o plano{" "}
                 <span className="font-semibold text-primary">{planLabel}</span> para desbloquear
                 esta e outras funcionalidades.
               </>

@@ -2,7 +2,7 @@ import api from "./api";
 
 export type GroupRole = "group_viewer" | "group_finance" | "group_admin" | "direccao_grupo";
 export const GROUP_ROLE_LABEL: Record<GroupRole, string> = {
-  group_viewer: "Indicadores pedagógicos", group_finance: "Indicadores financeiros", group_admin: "Administrador do grupo", direccao_grupo: "Direcção do grupo",
+  group_viewer: "Indicadores pedagógicos", group_finance: "Indicadores financeiros", group_admin: "Administrador do grupo", direccao_grupo: "Direção do grupo",
 };
 
 /** `entitled`: alguma escola do grupo tem o multi-escola contratado (Enterprise); sem isso a vista consolidada está bloqueada. */

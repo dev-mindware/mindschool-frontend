@@ -39,7 +39,7 @@ const columns: Column<PortalExam>[] = [
     ),
   },
   { key: "is_open", header: "Estado", render: (_, e) => <Badge variant={e.is_open ? "success" : "secondary"}>{e.is_open ? "Aberta" : "Fora da janela"}</Badge> },
-  { key: "actions", header: "Acção", render: (_, e) => <Action e={e} /> },
+  { key: "actions", header: "Ação", render: (_, e) => <Action e={e} /> },
 ];
 
 /** Provas online da turma do aluno: iniciar, continuar ou ver o resultado. */

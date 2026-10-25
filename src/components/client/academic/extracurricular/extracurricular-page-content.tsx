@@ -22,17 +22,17 @@ export function ExtracurricularPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Actividades Extracurriculares" suTitle="Clubes escolares e desporto: horário, responsável, lotação e inscrições.">
+      <TitleList title="Atividades Extracurriculares" suTitle="Clubes escolares e desporto: horário, responsável, lotação e inscrições.">
         <div className="flex items-center gap-2">
           <Can permission="activity:write"><Button size="sm" variant="outline" className="gap-1.5" onClick={() => openModal("activity-enroll")}><Icon name="UserPlus" className="size-4" />Inscrever aluno</Button></Can>
-          <Can permission="activity:write"><Button size="sm" className="gap-1.5" onClick={() => openModal("activity-new")}><Icon name="Plus" className="size-4" />Nova actividade</Button></Can>
+          <Can permission="activity:write"><Button size="sm" className="gap-1.5" onClick={() => openModal("activity-new")}><Icon name="Plus" className="size-4" />Nova atividade</Button></Can>
         </div>
       </TitleList>
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
-        <DynamicMetricCard title={metrics.open} subtitle="Actividades abertas" description="Com inscrições a decorrer" icon="Trophy" />
-        <DynamicMetricCard title={metrics.enrolled} subtitle="Inscrições activas" description="Alunos inscritos" icon="Users" />
-        <DynamicMetricCard title={metrics.capacity} subtitle="Vagas totais" description="Lotação das actividades abertas" icon="Layers" />
+        <DynamicMetricCard title={metrics.open} subtitle="Atividades abertas" description="Com inscrições a decorrer" icon="Trophy" />
+        <DynamicMetricCard title={metrics.enrolled} subtitle="Inscrições ativas" description="Alunos inscritos" icon="Users" />
+        <DynamicMetricCard title={metrics.capacity} subtitle="Vagas totais" description="Lotação das atividades abertas" icon="Layers" />
         <DynamicMetricCard title={metrics.free} subtitle="Vagas livres" description="Para novas inscrições" icon="CircleCheck" />
       </div>
 

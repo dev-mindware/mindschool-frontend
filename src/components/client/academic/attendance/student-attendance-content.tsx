@@ -43,7 +43,7 @@ export function StudentAttendanceContent() {
   const { data: sections = [] } = useSections();
   const { assignments } = useTeacherAssignments();
 
-  // Estados de selecção
+  // Estados de seleção
   const [pickedClassId, setSelectedClassId] = useState("");
   const [pickedSubjectId, setSelectedSubjectId] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
@@ -69,7 +69,7 @@ export function StudentAttendanceContent() {
     return timetables.find((t) => t.status === "publicado") ?? timetables[0] ?? null;
   }, [timetables]);
 
-  // Entradas do horário activo
+  // Entradas do horário ativo
   const { data: timetableEntries = [], isLoading: isEntriesLoading } = useQuery({
     queryKey: ["timetable-entries", schoolId, activeTimetable?.id],
     queryFn: () => timetablesService.entries(activeTimetable!.id),
@@ -87,7 +87,7 @@ export function StudentAttendanceContent() {
 
   const selectedWeekdayName = WEEKDAY_NAMES[weekday] || "Dia";
 
-  // Tempos lectivos do horário estabelecido para esta turma no dia da semana seleccionado
+  // Tempos letivos do horário estabelecido para esta turma no dia da semana seleccionado
   const classTimetableEntries = useMemo(() => {
     if (!selectedClassId || !timetableEntries.length) return [];
     return timetableEntries.filter((e) => e.section.id === selectedClassId);
@@ -101,7 +101,7 @@ export function StudentAttendanceContent() {
 
   const hasTimetableLessonsToday = dayTimetableLessons.length > 0;
 
-  // Tempo do horário actualmente activo/seleccionado
+  // Tempo do horário atualmente ativo/seleccionado
   const activeTimetableLesson = useMemo(() => {
     if (selectedEntryId) {
       const found = dayTimetableLessons.find((e) => e.id === selectedEntryId);
@@ -139,7 +139,7 @@ export function StudentAttendanceContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Assiduidade & Disciplina" suTitle="Registo de presenças, faltas justificadas e ocorrências disciplinares por tempo lectivo.">
+      <TitleList title="Assiduidade & Disciplina" suTitle="Registo de presenças, faltas justificadas e ocorrências disciplinares por tempo letivo.">
         <Button
           size="sm"
           variant="outline"
@@ -158,7 +158,7 @@ export function StudentAttendanceContent() {
           { label: "A", description: "Atraso: conta como presença com atraso (pesa pouco no risco de faltas)." },
           { label: "FI", description: "Falta injustificada. É a única que se pode justificar depois, com comprovativo (separador de justificações)." },
           { label: "FJ", description: "Falta justificada (atestado ou comprovação oficial)." },
-          { label: "Regras", description: "Não se registam presenças em datas futuras. Em dias não lectivos o sistema avisa (ou recusa, se a escola tiver activado o bloqueio nas Políticas)." },
+          { label: "Regras", description: "Não se registam presenças em datas futuras. Em dias não letivos o sistema avisa (ou recusa, se a escola tiver ativado o bloqueio nas Políticas)." },
         ]}
       />
 
@@ -253,7 +253,7 @@ export function StudentAttendanceContent() {
             <div className="flex items-center gap-2">
               <Icon name="Clock" className="size-4 text-primary" />
               <h3 className="font-semibold text-sm">
-                Tempos Lectivos no Horário Estabelecido ({selectedWeekdayName})
+                Tempos Letivos no Horário Estabelecido ({selectedWeekdayName})
               </h3>
               <Badge variant="secondary" className="text-xs">
                 {dayTimetableLessons.length} {dayTimetableLessons.length === 1 ? "aula prevista" : "aulas previstas"}
@@ -261,7 +261,7 @@ export function StudentAttendanceContent() {
             </div>
             {hasTimetableLessonsToday && (
               <span className="text-xs text-muted-foreground">
-                Seleccione o tempo para efectuar a chamada correspondente
+                Seleccione o tempo para efetuar a chamada correspondente
               </span>
             )}
           </div>
@@ -317,10 +317,10 @@ export function StudentAttendanceContent() {
                 <Icon name="CalendarX2" className="size-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
                 <div className="space-y-1">
                   <p className="font-semibold text-sm text-foreground">
-                    Sem tempos lectivos no horário da turma para {selectedWeekdayName}
+                    {sections.length === 0 ? "Ainda não há turmas" : `Sem tempos letivos no horário da turma para ${selectedWeekdayName}`}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    A turma <strong className="text-foreground">{className}</strong> não tem aulas agendadas no horário semanal para {selectedWeekdayName}.
+                    {sections.length === 0 ? "Crie uma turma em Académico › Turmas para poder registar presenças." : <>A turma <strong className="text-foreground">{className}</strong> não tem aulas agendadas no horário semanal para {selectedWeekdayName}.</>}
                   </p>
                   <div className="pt-2 flex items-center gap-2">
                     <Button
@@ -376,7 +376,7 @@ export function StudentAttendanceContent() {
             <EmptyState
               icon="BookOpen"
               title="Sem disciplina seleccionada"
-              description="Seleccione um tempo lectivo no horário da turma ou uma disciplina atribuída."
+              description="Seleccione um tempo letivo no horário da turma ou uma disciplina atribuída."
             />
           )}
         </TabsContent>

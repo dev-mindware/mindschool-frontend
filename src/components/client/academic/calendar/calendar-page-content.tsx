@@ -19,7 +19,7 @@ import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 
 const STATUS: Record<string, string> = { rascunho: "Rascunho", aprovado: "Aprovado", publicado: "Publicado", cancelado: "Cancelado" };
-const EFFECT: Record<string, string> = { lectivo: "Lectivo", nao_lectivo: "Não lectivo", parcial: "Parcial" };
+const EFFECT: Record<string, string> = { lectivo: "Letivo", nao_lectivo: "Não letivo", parcial: "Parcial" };
 const VISIBILITY: Record<string, string> = { interna: "Interna", professores: "Professores", encarregados: "Encarregados", publica: "Pública" };
 const ORIGIN: Record<string, string> = { nacional: "Calendário nacional", institucional: "Institucional", google_proposta: "Proposta do Google" };
 const HOLIDAY_STATUS: Record<string, string> = { concordam: "Concordam", divergente: "Divergente", confirmado: "Confirmado", rejeitado: "Rejeitado" };
@@ -80,7 +80,7 @@ function NewEventModal() {
       <Input label="Hora de fim" type="time" value={f.endTime} onChange={(e) => set("endTime", e.target.value)} />
       <FormSelect label="Visibilidade" value={f.visibility} onValueChange={(v) => set("visibility", v as ApiEvent["visibility"])} options={Object.entries(VISIBILITY).map(([value, label]) => ({ value, label }))} />
       <Input label="Local" startIcon="MapPin" value={f.location} onChange={(e) => set("location", e.target.value)} />
-      <div className="sm:col-span-2"><Input label="Justificação (obrigatória se fecha dias lectivos)" value={f.justification} onChange={(e) => set("justification", e.target.value)} /></div>
+      <div className="sm:col-span-2"><Input label="Justificação (obrigatória se fecha dias letivos)" value={f.justification} onChange={(e) => set("justification", e.target.value)} /></div>
     </FormModal>
   );
 }
@@ -121,7 +121,7 @@ function GooglePanel() {
 
 /** Calendário escolar: vista de calendário (mês) e lista, filtros completos, feriados/pontes e ligação ao Google Calendar. */
 export function CalendarPageContent() {
-  // Sem o calendário geral (Essencial): só dias lectivos, feriados e marcas da Direcção.
+  // Sem o calendário geral (Essencial): só dias letivos, feriados e marcas da Direção.
   const full = useEntitled({ feature: "calendar_general", minPlan: "profissional" });
   return full ? <FullCalendarContent /> : <SchoolDaysView />;
 }
@@ -162,7 +162,7 @@ function FullCalendarContent() {
     { key: "visibility", header: "Visibilidade", render: (_, e) => VISIBILITY[e.visibility] },
     { key: "status", header: "Estado", render: (_, e) => <Badge variant="outline">{STATUS[e.status]}</Badge> },
     {
-      key: "action", header: "Acção",
+      key: "action", header: "Ação",
       render: (_, e) => (
         <ButtonOnlyAction data={e} actions={[
           { label: "Ver detalhe", icon: "Eye", onClick: open },
@@ -193,7 +193,7 @@ function FullCalendarContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Calendário Escolar" suTitle={c.year ? `Ano lectivo ${c.year.name}: eventos, feriados e pontes, e sincronização com o Google Calendar.` : "Não há ano lectivo activo."}>
+      <TitleList title="Calendário Escolar" suTitle={c.year ? `Ano letivo ${c.year.name}: eventos, feriados e pontes, e sincronização com o Google Calendar.` : "Não há ano letivo ativo."}>
         <div className="flex gap-2">
           <Can permission="calendar:write"><Button size="sm" variant="outline" className="gap-1.5" disabled={!c.year || c.importNational.isPending} onClick={() => c.importNational.mutateAsync("apply").then(() => SucessMessage("Calendário nacional importado.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}><Icon name="Download" className="size-4" />Importar calendário nacional</Button></Can>
           <Can permission="calendar:write"><Button size="sm" className="gap-1.5" disabled={!c.year} onClick={() => openModal("calendar-new-event")}><Icon name="Plus" className="size-4" />Novo evento</Button></Can>
@@ -204,7 +204,7 @@ function FullCalendarContent() {
         <DynamicMetricCard title={c.events.length} subtitle="Eventos no ano" icon="CalendarDays" description="Todos os estados" />
         <DynamicMetricCard title={stat("publicado")} subtitle="Publicados" icon="Send" description="Visíveis conforme a visibilidade" />
         <DynamicMetricCard title={stat("rascunho")} subtitle="Em rascunho" icon="Pencil" description="Aguardam aprovação" />
-        <DynamicMetricCard title={c.holidays.filter((h) => h.status === "divergente").length} subtitle="Feriados divergentes" icon="TriangleAlert" description="Decisão da Direcção" colors={c.holidays.some((h) => h.status === "divergente") ? "destructive" : "default"} />
+        <DynamicMetricCard title={c.holidays.filter((h) => h.status === "divergente").length} subtitle="Feriados divergentes" icon="TriangleAlert" description="Decisão da Direção" colors={c.holidays.some((h) => h.status === "divergente") ? "destructive" : "default"} />
       </div>
 
       <Tabs defaultValue="events" className="space-y-2">
@@ -224,7 +224,7 @@ function FullCalendarContent() {
             <div className="space-y-6">
               <ListFilterBar<ApiEvent> prefix="eventos" f={f} searchPlaceholder="Pesquisar eventos" filters={EVENT_FILTERS} dateFilters={EVENT_DATES} shown={filtered.length} total={c.events.length} />
               <MonthCalendar items={items} month={month} onMonthChange={setMonth} markedDays={nonLective} onSelectItem={(it) => { const e = c.events.find((x) => x.id === it.id); if (e) open(e); }} onSelectDay={(d) => openModal("calendar-new-event", { date: d })} />
-              <p className="text-xs text-muted-foreground">Dias com fundo âmbar são não lectivos. Clique num dia para criar um evento e num evento para ver o detalhe.</p>
+              <p className="text-xs text-muted-foreground">Dias com fundo âmbar são não letivos. Clique num dia para criar um evento e num evento para ver o detalhe.</p>
             </div>
           ) : (
             <DataList<ApiEvent> prefix="eventos" rows={c.events} columns={eventColumns} isLoading={c.eventsLoading} searchPlaceholder="Pesquisar eventos" searchText={eventText} filters={EVENT_FILTERS} dateFilters={EVENT_DATES} sorts={EVENT_SORTS} emptyTitle="Sem eventos" emptyDescription="Importe o calendário nacional ou crie um evento." emptyIcon="CalendarDays" />
@@ -232,7 +232,7 @@ function FullCalendarContent() {
         </TabsContent>
 
         <TabsContent value="holidays" className="space-y-2">
-          <p className="mt-4 text-xs text-muted-foreground">Compara a regra local, o calendário nacional importado{c.googleHolidays ? " e o Google" : ""}. As divergências são decididas pela Direcção; o Google é só um sinal.</p>
+          <p className="mt-4 text-xs text-muted-foreground">Compara a regra local, o calendário nacional importado{c.googleHolidays ? " e o Google" : ""}. As divergências são decididas pela Direção; o Google é só um sinal.</p>
           <DataList<ApiHolidayRow & { id: string }>
             prefix="feriados"
             rows={c.holidays.map((h) => ({ ...h, id: `${h.date}-${h.kind}` }))}

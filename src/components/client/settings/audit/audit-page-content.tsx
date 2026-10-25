@@ -22,25 +22,25 @@ const MODULES: Record<string, string> = {
   academico: "Gestão Académica",
   avaliacao: "Avaliação Pedagógica",
   pessoas: "Recursos Humanos & Alunos",
-  financeiro: "Tesouraria & Facturação",
+  financeiro: "Tesouraria & Faturação",
   documentos: "Secretaria & Arquivo",
   organizacao: "Organização Escolar",
   comunicacao: "Comunicação & Notificações",
   relatorios: "Relatórios & Mapas MED",
 };
 
-/** Acções de auditoria em conformidade com o AO1945. */
+/** Ações de auditoria em conformidade com o AO1945. */
 const ACTIONS: Record<string, string> = {
   criacao: "Criação",
-  actualizacao: "Actualização",
-  fecho: "Fecho / Homologação",
+  actualizacao: "Atualização",
+  fecho: "Fecho",
   reabertura: "Reabertura",
   anulacao: "Anulação",
 };
 
 /** Entidades institucionais traduzidas. */
 const ENTITIES: Record<string, string> = {
-  invoice: "Factura / Propina",
+  invoice: "Fatura / Propina",
   payment: "Pagamento / Recibo",
   enrollment: "Matrícula / Inscrição",
   student: "Estudante",
@@ -58,11 +58,32 @@ const ENTITIES: Record<string, string> = {
   bank_account: "Coordenada Bancária",
   school_settings: "Políticas da Escola",
   group_access: "Acesso do grupo",
+  med_snapshot: "Mapa do MED",
+  report_job: "Exportação de relatório",
+  library_loan: "Empréstimo da biblioteca",
+  library_book: "Obra da biblioteca",
+  secretary_request: "Requerimento",
+  announcement: "Comunicado",
+  tuition_submission: "Comprovativo de pagamento",
+  candidate: "Candidato",
+  admission_application: "Candidatura",
+  admission_exam_session: "Sessão da prova de acesso",
+  school: "Escola",
+  academic_year: "Ano letivo",
+  term: "Período letivo",
+  class_level: "Classe",
+  class_council: "Conselho de turma",
+  final_exam: "Exame final",
+  grade_review: "Reapreciação de nota",
+  document_issued: "Documento emitido",
+  membership: "Papel de utilizador",
+  settlement: "Liquidação",
+  fiscal_document: "Fatura-recibo",
 };
 
 const formatModule = (m: string) => MODULES[m] ?? (m.charAt(0).toUpperCase() + m.slice(1));
-const formatAction = (a: string) => ACTIONS[a] ?? (a.charAt(0).toUpperCase() + a.slice(1));
-const formatEntity = (e: string) => ENTITIES[e] ?? e;
+const formatAction = (a: string, entity?: string) => (a === "fecho" && entity === "library_loan" ? "Devolução" : (ACTIONS[a] ?? (a.charAt(0).toUpperCase() + a.slice(1))));
+const formatEntity = (e: string) => ENTITIES[e] ?? (e.charAt(0).toUpperCase() + e.slice(1).replaceAll("_", " "));
 
 type Detail = { before?: unknown; after?: unknown; reason?: string | null };
 
@@ -106,14 +127,14 @@ export function AuditPageContent() {
     },
     {
       key: "actor.full_name",
-      header: "Autor da Acção",
+      header: "Autor da Ação",
       render: (_, e) => (
         <span className="font-semibold text-foreground text-xs">{e.actor.full_name}</span>
       ),
     },
     {
       key: "action",
-      header: "Acção Realizada",
+      header: "Ação Realizada",
       render: (_, e) => {
         const isDanger = e.action === "anulacao";
         const isSuccess = e.action === "criacao" || e.action === "fecho";
@@ -128,7 +149,7 @@ export function AuditPageContent() {
                 : "border-primary/30 bg-primary/10 text-primary text-[10px]"
             }
           >
-            {formatAction(e.action)}
+            {formatAction(e.action, e.entity_type)}
           </Badge>
         );
       },
@@ -192,7 +213,7 @@ export function AuditPageContent() {
       </div>
       {groupOnly && (
         <p className="text-xs text-muted-foreground">
-          Entradas nesta escola feitas por titulares e direcções pedagógicas de outras escolas do mesmo grupo (um registo por pessoa em cada 30 minutos).
+          Entradas nesta escola feitas por titulares e direções pedagógicas de outras escolas do mesmo grupo (um registo por pessoa em cada 30 minutos).
         </p>
       )}
 
@@ -218,14 +239,14 @@ export function AuditPageContent() {
           },
           {
             key: "accao",
-            label: "Acção",
+            label: "Ação",
             icon: "Zap",
             options: Object.keys(ACTIONS).map((a) => ({ value: a, label: ACTIONS[a] })),
             match: (e, v) => e.action === v,
           },
           {
             key: "autor",
-            label: "Autor da Acção",
+            label: "Autor da Ação",
             icon: "User",
             options: actors.map(([id, name]) => ({ value: id, label: name })),
             match: (e, v) => e.actor.id === v,
@@ -277,7 +298,7 @@ export function AuditPageContent() {
         title="Detalhes do Registo de Auditoria"
         description={
           current
-            ? `${formatAction(current.action)} em ${formatEntity(current.entity_type)} por ${
+            ? `${formatAction(current.action, current.entity_type)} em ${formatEntity(current.entity_type)} por ${
                 current.actor.full_name
               } (${formatDateTime(current.occurred_at)})`
             : undefined

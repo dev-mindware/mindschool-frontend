@@ -20,7 +20,7 @@ export function DropoutRiskMetrics({ metrics }: DropoutRiskMetricsProps) {
       <DynamicMetricCard
         title={`${metrics.moderateRiskCount} Alunos`}
         subtitle="Risco Moderado"
-        description="Em vigilância activa pedagógica"
+        description="Em vigilância ativa pedagógica"
         icon="CircleAlert"
       />
       <DynamicMetricCard

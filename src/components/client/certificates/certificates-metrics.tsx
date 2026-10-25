@@ -14,7 +14,7 @@ export function CertificatesMetrics({ metrics }: CertificatesMetricsProps) {
       <DynamicMetricCard
         title={metrics.totalIssued}
         subtitle="Documentos Emitidos"
-        description="No ano lectivo corrente"
+        description="No ano letivo corrente"
         icon="FileCheck"
       />
       <DynamicMetricCard

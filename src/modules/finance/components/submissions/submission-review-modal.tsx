@@ -94,7 +94,7 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
           </dl>
 
           <div>
-            <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Facturas a liquidar</p>
+            <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Faturas a liquidar</p>
             <ul className="divide-y rounded-lg border">
               {s.items.map((i) => (
                 <li key={i.invoice_id} className="flex items-center justify-between gap-2 px-3 py-2">
@@ -113,7 +113,7 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
               <Input label="Valor confirmado (Kz)" type="number" value={confirmed} onChange={(e) => setConfirmed(e.target.value)} error={invalid ? "Entre 0 e o valor declarado" : undefined} />
               {partial && <p className="text-xs text-amber-700">Pagamento parcial: o restante continua em dívida e a família é informada do valor confirmado.</p>}
               <FormTextarea label="Motivo (obrigatório para rejeitar ou pedir novo comprovativo)" value={reason} onChange={setReason} rows={2} />
-              <p className="text-xs text-muted-foreground">Confira o valor, a data e a referência no extracto bancário antes de aprovar. Só a aprovação regista o pagamento nas facturas.</p>
+              <p className="text-xs text-muted-foreground">Confira o valor, a data e a referência no extracto bancário antes de aprovar. Só a aprovação regista o pagamento nas faturas.</p>
               <ul className="list-disc space-y-1 pl-4 text-[11px] text-muted-foreground">
                 <li><strong>Pedir novo comprovativo:</strong> o pedido continua aberto e a família pode substituir o ficheiro (ex.: foto ilegível).</li>
                 <li><strong>Rejeitar:</strong> encerra o pedido e a família vê «não validado» com o seu motivo; para pagar tem de submeter um pedido novo.</li>
