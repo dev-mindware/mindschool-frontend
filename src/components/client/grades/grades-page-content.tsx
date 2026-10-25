@@ -1,5 +1,6 @@
 "use client";
 
+import { TermsMissingBanner } from "./terms-missing-banner";
 import React, { useState, useMemo } from "react";
 import {
   TitleList,
@@ -154,6 +155,7 @@ export function GradesPageContent() {
 
   return (
     <div className="space-y-6">
+      <TermsMissingBanner />
       {/* Top Header */}
       <TitleList
         title="Lançamento de Notas (MED)"

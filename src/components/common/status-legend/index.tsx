@@ -11,7 +11,7 @@ export interface StatusLegendItem {
 }
 
 /**
- * Legenda dos estados de um fluxo (candidaturas, facturas, pautas…), recolhida por omissão:
+ * Legenda dos estados de um fluxo (candidaturas, faturas, pautas…), recolhida por omissão:
  * diz o que cada estado significa e qual é o passo seguinte.
  */
 export function StatusLegend({ title = "Legenda dos estados", items }: { title?: string; items: StatusLegendItem[] }) {

@@ -17,7 +17,7 @@ const formatIban = (iban: string) => iban.replace(/(.{4})/g, "$1 ").trim();
 const copy = (text: string, label: string) => navigator.clipboard.writeText(text).then(() => SucessMessage(`${label} copiado.`)).catch(() => ErrorMessage("Não foi possível copiar."));
 const todayIso = () => new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 
-/** Propinas no portal: situação, facturas por pagar, pagamento por comprovativo (dados bancários da escola) e acompanhamento. */
+/** Propinas no portal: situação, faturas por pagar, pagamento por comprovativo (dados bancários da escola) e acompanhamento. */
 export function PortalPayments({ studentId, studentName }: { studentId: string; studentName: string }) {
   const pay = usePortalPayments(studentId);
   const { openModal } = useModal();
@@ -92,7 +92,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
 
   const submissionColumns: Column<ApiSubmission>[] = [
     { key: "protocol", header: "Protocolo", render: (_, s) => (<div><span className="font-mono text-xs font-semibold text-primary">{s.protocol}</span><div className="text-[11px] text-muted-foreground">{s.created_at.slice(0, 10)}</div></div>) },
-    { key: "items", header: "Faturas", render: (_, s) => <span className="text-xs capitalize">{s.items.length === 1 ? s.items[0]!.description : `${s.items.length} facturas`}</span> },
+    { key: "items", header: "Faturas", render: (_, s) => <span className="text-xs capitalize">{s.items.length === 1 ? s.items[0]!.description : `${s.items.length} faturas`}</span> },
     { key: "total_amount", header: "Valor", render: (_, s) => <span className="font-semibold tabular-nums">{formatCurrency(s.confirmed_amount ?? s.total_amount)}</span> },
     { key: "method", header: "Método", render: (_, s) => <span className="text-xs">{METHOD_LABEL[s.method]}</span> },
     {
@@ -135,7 +135,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
   return (
     <div className="space-y-6">
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
-        <DynamicMetricCard title={formatCurrency(debt)} subtitle="Em dívida" icon="Wallet" colors={debt > 0 ? "destructive" : "default"} description={`${payables.length} factura(s) por pagar`} />
+        <DynamicMetricCard title={formatCurrency(debt)} subtitle="Em dívida" icon="Wallet" colors={debt > 0 ? "destructive" : "default"} description={`${payables.length} fatura(s) por pagar`} />
         <DynamicMetricCard title={formatCurrency(overdue)} subtitle="Vencido" icon="TriangleAlert" colors={overdue > 0 ? "destructive" : "default"} description={overdue > 0 ? "Regularize para evitar multa de mora" : "Nada em atraso"} />
         <DynamicMetricCard title={formatCurrency(inReview)} subtitle="Em análise" icon="Hourglass" description="À espera de validação pela escola. Ainda conta como dívida e a multa pode ser criada até ser aprovado" />
         <DynamicMetricCard title={next ? next.due_date : "—"} subtitle="Próximo vencimento" icon="CalendarClock" description={next ? `${next.description} · ${formatCurrency(next.balance)}` : "Sem faturas a vencer"} />
@@ -156,7 +156,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
           </div>
           <Button className="gap-2" disabled={chosen.length === 0 || pay.banks.length === 0} onClick={openPay}>
             <Icon name="Landmark" className="size-4" />
-            {chosen.length ? `Pagar ${chosen.length} factura(s) · ${formatCurrency(total)}` : "Pagar faturas"}
+            {chosen.length ? `Pagar ${chosen.length} fatura(s) · ${formatCurrency(total)}` : "Pagar faturas"}
           </Button>
         </div>
         {pay.banks.length === 0 && <p className="rounded-lg border border-dashed p-3 text-xs text-muted-foreground">A escola ainda não indicou os dados bancários para pagamento online. Contacte a secretaria.</p>}
@@ -211,7 +211,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
         size="3xl"
         icon={<Icon name="Landmark" className="size-5" />}
         title="Pagar propinas"
-        description={`${studentName} · ${chosen.length} factura(s)`}
+        description={`${studentName} · ${chosen.length} fatura(s)`}
         preventOutsideClose
         footer={
           <>

@@ -54,6 +54,9 @@ export function useStudents(searchQuery = "", statusFilter: StudentStatus | "ALL
   const invalidate = () => {
     queryClient.invalidateQueries({ queryKey: ["students", schoolId] });
     queryClient.invalidateQueries({ queryKey: ["guardians", schoolId] });
+    // matricular um aluno novo (Novo Ingresso) cria também a matrícula e as propinas: as listas têm de as mostrar já
+    queryClient.invalidateQueries({ queryKey: ["enrollments", schoolId] });
+    queryClient.invalidateQueries({ queryKey: ["invoices"] });
   };
   const createStudent = useMutation({ mutationFn: (input: CreateStudentInput) => studentsService.create(input), onSuccess: invalidate });
   const updateStudent = useMutation({

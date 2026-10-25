@@ -116,7 +116,7 @@ export function MultiSchoolPageContent() {
         <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
           <DynamicMetricCard title={`${t.schools}`} subtitle="Escolas do Grupo" description={t.provisional_schools ? `${t.provisional_schools} com dados provisórios` : 'Dados consolidados'} icon="Building2" />
           {hasStudents && <DynamicMetricCard title={`${t.enrolled}`} subtitle="Alunos Matriculados" description={`Aprovação ${pct(t.approval_rate)} • abandono ${pct(t.dropout_rate)}`} icon="Users" />}
-          {hasMoney && <DynamicMetricCard title={formatCurrencyCompact(t.collected)} subtitle="Cobrado" description={`de ${formatCurrencyCompact(t.invoiced)} facturados`} icon="Wallet" />}
+          {hasMoney && <DynamicMetricCard title={formatCurrencyCompact(t.collected)} subtitle="Cobrado" description={`de ${formatCurrencyCompact(t.invoiced)} faturados`} icon="Wallet" />}
           {t.collection_rate !== undefined && <DynamicMetricCard title={pct(t.collection_rate)} subtitle="Taxa de Cobrança" description={`Inadimplência ${pct(t.delinquency_rate)}`} icon="TrendingUp" />}
         </div>
       )}

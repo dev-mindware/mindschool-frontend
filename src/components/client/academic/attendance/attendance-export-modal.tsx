@@ -121,7 +121,7 @@ export function AttendanceExportModal({
 
               <div className="mt-3.5 inline-block border-y-2 border-black py-1 px-8">
                 <h2 className="text-sm font-black tracking-wider uppercase text-black">
-                  FOLHA OFICIAL DE REGISTO DE ASSIDUIDADE E PONTO LECTIVO
+                  FOLHA OFICIAL DE REGISTO DE ASSIDUIDADE E PONTO LETIVO
                 </h2>
                 <div className="text-[10px] font-bold text-black uppercase tracking-wide">
                   DIÁRIO DE CLASSE • CONTROLO DE FREQUÊNCIA E OCORRÊNCIAS
@@ -227,10 +227,10 @@ export function AttendanceExportModal({
               </table>
             </div>
 
-            {/* 4. SÍNTESE ESTATÍSTICA DO TEMPO LECTIVO */}
+            {/* 4. SÍNTESE ESTATÍSTICA DO TEMPO LETIVO */}
             <div className="mt-4 border-2 border-black bg-slate-50 p-2.5">
               <div className="text-[10px] font-bold uppercase tracking-wider text-black border-b border-black pb-1 mb-2">
-                RESUMO DE ASSIDUIDADE DO TEMPO LECTIVO
+                RESUMO DE ASSIDUIDADE DO TEMPO LETIVO
               </div>
               <div className="grid grid-cols-5 gap-2 text-center text-xs font-semibold text-black divide-x divide-black/30">
                 <div>

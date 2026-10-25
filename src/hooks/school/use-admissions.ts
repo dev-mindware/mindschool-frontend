@@ -49,6 +49,8 @@ export function useAdmissions() {
         idDocumentNumber: c.idDocumentNumber,
         guardianName: c.guardianName,
         guardianPhone: c.guardianPhone,
+        gender: c.gender,
+        guardianRelationship: c.guardianRelationship,
         previousSchoolName: c.previousSchoolName,
         desiredClassLevelName: a.desiredClassLevelName,
         entranceExamSessionId: a.entranceExamId,

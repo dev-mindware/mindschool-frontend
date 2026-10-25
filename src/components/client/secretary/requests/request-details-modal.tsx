@@ -12,7 +12,7 @@ import { REQUEST_STATUS_LABEL, REQUEST_TYPE_LABEL, type ApiRequest, type Request
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 
-const EVENT_LABEL: Record<string, string> = { criado: "Pedido aberto", atribuido: "Atribuído", estado: "Estado alterado", comentario: "Mensagem", pagamento: "Pagamento confirmado" };
+const EVENT_LABEL: Record<string, string> = { criado: "Pedido aberto", atribuido: "Atribuído", estado: "Estado alterado", comentario: "Mensagem", pagamento: "Pagamento confirmado", aberto: "Pedido aberto" };
 const REQUEST_STATUS_STYLE: Record<RequestStatus, StatusStyle> = {
   aberto: { label: REQUEST_STATUS_LABEL.aberto, variant: "info" },
   aguarda_pagamento: { label: REQUEST_STATUS_LABEL.aguarda_pagamento, variant: "secondary" },
@@ -102,7 +102,7 @@ export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: Req
             <h4 className="font-semibold">Histórico</h4>
             {(request.events ?? []).map((e) => (
               <div key={e.id} className="rounded-lg border p-2">
-                <div className="flex justify-between text-[11px] text-muted-foreground"><span>{EVENT_LABEL[e.kind] ?? e.kind}{e.to_status ? ` → ${e.to_status}` : ""}</span><span>{formatDateTime(e.created_at)}</span></div>
+                <div className="flex justify-between text-[11px] text-muted-foreground"><span>{EVENT_LABEL[e.kind] ?? e.kind}{e.to_status && e.kind !== "criado" ? ` → ${REQUEST_STATUS_LABEL[e.to_status as RequestStatus] ?? e.to_status}` : ""}</span><span>{formatDateTime(e.created_at)}</span></div>
                 {e.message && e.kind !== "atribuido" && <p className="mt-1">{e.message}</p>}
               </div>
             ))}

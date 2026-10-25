@@ -14,6 +14,8 @@ interface ApiCandidate {
   document_number: string;
   guardian_name: string;
   guardian_phone: string;
+  gender?: "masculino" | "feminino" | null;
+  guardian_relationship?: "pai" | "mae" | "tutor_legal" | "outro" | null;
   previous_school_name: string | null;
   converted_student_id: string | null;
   created_at: string;
@@ -73,14 +75,14 @@ const toCandidate = (c: ApiCandidate): Candidate => ({
   id: c.id,
   schoolId: c.school_id,
   fullName: c.full_name,
-  gender: "MALE",
+  gender: c.gender === "feminino" ? "FEMALE" : "MALE",
   birthDate: c.birth_date,
   idDocumentType: DOC_TYPE[c.document_type],
   idDocumentNumber: c.document_number,
   nationality: "",
   guardianName: c.guardian_name,
   guardianPhone: c.guardian_phone,
-  guardianRelationship: "OTHER",
+  guardianRelationship: c.guardian_relationship === "pai" ? "FATHER" : c.guardian_relationship === "mae" ? "MOTHER" : c.guardian_relationship === "tutor_legal" ? "TUTOR" : "OTHER",
   previousSchoolName: c.previous_school_name ?? undefined,
   convertedStudentId: c.converted_student_id ?? undefined,
   createdAt: c.created_at,
@@ -260,6 +262,8 @@ export const admissionsService = {
     idDocumentNumber: string;
     guardianName: string;
     guardianPhone: string;
+    gender?: "MALE" | "FEMALE";
+    guardianRelationship?: "FATHER" | "MOTHER" | "TUTOR" | "OTHER";
     previousSchoolName?: string;
     desiredClassLevelName: string;
     entranceExamSessionId?: string;
@@ -280,6 +284,8 @@ export const admissionsService = {
         document_type: DOC_TO_API[v.idDocumentType],
         document_number: v.idDocumentNumber,
         guardian_name: v.guardianName,
+        gender: v.gender === "FEMALE" ? "feminino" : "masculino",
+        guardian_relationship: v.guardianRelationship === "FATHER" ? "pai" : v.guardianRelationship === "MOTHER" ? "mae" : v.guardianRelationship === "TUTOR" ? "tutor_legal" : "outro",
         guardian_phone: v.guardianPhone.startsWith("+") ? v.guardianPhone : `+244${v.guardianPhone}`,
         ...(v.previousSchoolName ? { previous_school_name: v.previousSchoolName } : {}),
       },

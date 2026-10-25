@@ -27,7 +27,7 @@ export function ClearanceCertificateModal() {
       disabled={!cleared}
       keepOpen
       printContentId="library-clearance-print-content"
-      pdfFilename={`Declaracao_Nada_Consta_${student?.fullName || "aluno"}.pdf`}
+      pdfFilename={`Declaração_Nada_Consta_${student?.fullName || "aluno"}.pdf`}
       onSubmit={() => {}}
     >
       <div className="sm:col-span-2 print:hidden">

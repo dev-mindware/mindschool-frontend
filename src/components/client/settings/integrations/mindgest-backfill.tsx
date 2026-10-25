@@ -29,7 +29,7 @@ export function MindgestBackfill() {
   const run = useMutation({
     mutationFn: () => mindgestService.backfillRun(from, to, preview?.payments ?? 0),
     onSuccess: (r) => {
-      SucessMessage(`${r.created} factura(s) em fila para emissão${r.remaining > 0 ? `; faltam ${r.remaining} (repita a operação)` : ""}.`);
+      SucessMessage(`${r.created} fatura(s) em fila para emissão${r.remaining > 0 ? `; faltam ${r.remaining} (repita a operação)` : ""}.`);
       reset();
       void queryClient.invalidateQueries({ queryKey: ["fiscal-documents"] });
     },
@@ -79,7 +79,7 @@ export function MindgestBackfill() {
                 {preview.integration === "pausada" && <p className="text-amber-700">As emissões estão em pausa: as faturas ficam em espera até reativar.</p>}
                 {blocked && <p className="text-destructive">A escola não está ligada ao MindGest.</p>}
                 <p className="text-muted-foreground">Os pagamentos antigos já passaram o prazo legal de emissão; o MindGest decide a data da fatura.</p>
-                <Button size="sm" disabled={blocked || run.isPending} onClick={() => openModal(CONFIRM)}>Emitir {preview.will_issue} factura(s)</Button>
+                <Button size="sm" disabled={blocked || run.isPending} onClick={() => openModal(CONFIRM)}>Emitir {preview.will_issue} fatura(s)</Button>
               </>
             )}
           </div>
@@ -88,7 +88,7 @@ export function MindgestBackfill() {
       <ConfirmModal
         id={CONFIRM}
         title="Emitir faturas em atraso"
-        description={preview ? `Vão ser pedidas ${preview.will_issue} factura(s)-recibo ao MindGest (${money(preview.total)} no intervalo). A operação fica registada na auditoria e não se pode desfazer aqui: correcções fazem-se no MindGest com notas de crédito.` : ""}
+        description={preview ? `Vão ser pedidas ${preview.will_issue} fatura(s)-recibo ao MindGest (${money(preview.total)} no intervalo). A operação fica registada na auditoria e não se pode desfazer aqui: correcções fazem-se no MindGest com notas de crédito.` : ""}
         confirmLabel="Emitir"
         onConfirm={() => run.mutateAsync()}
       />

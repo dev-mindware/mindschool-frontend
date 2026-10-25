@@ -53,6 +53,8 @@ export const academicService = {
    */
   createYear: async (v: AcademicYearDraft, activate = true): Promise<ApiAcademicYear> => {
     const created = (await api.post<ApiAcademicYear>("/s/academic-years", v)).data;
+    // sem períodos não há notas, pautas nem boletins: o ano nasce com os 3 trimestres (editáveis depois)
+    await api.post(`/s/academic-years/${created.id}/terms/defaults`).catch(() => undefined);
     if (!activate) return created;
     try {
       return (await api.post<ApiAcademicYear>(`/s/academic-years/${created.id}/activate`)).data;

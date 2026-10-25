@@ -57,12 +57,15 @@ export function FinanceReportExportModal({ isOpen, onClose }: FinanceReportExpor
       map.set(fee.month, entry);
     });
 
-    const list = Array.from(map.values()).sort((a, b) => a.month - b.month);
+    // ordem do ano letivo (começa no mês de início, ex.: Setembro → Julho), não Janeiro → Dezembro
+    const startMonth = Number((calendar.yearStartDate ?? "").slice(5, 7)) || 9;
+    const order = (m: number) => (m - startMonth + 12) % 12;
+    const list = Array.from(map.values()).sort((a, b) => order(a.month) - order(b.month));
     return list.map((item) => ({
       ...item,
       rate: item.expected > 0 ? Math.round((item.collected / item.expected) * 100) : 0,
     }));
-  }, [allFees]);
+  }, [allFees, calendar.yearStartDate]);
 
   const totalExpected = summary.totalExpectedAmount || monthlyData.reduce((acc, m) => acc + m.expected, 0);
   const totalCollected = summary.totalCollectedAmount || monthlyData.reduce((acc, m) => acc + m.collected, 0);
@@ -132,7 +135,7 @@ export function FinanceReportExportModal({ isOpen, onClose }: FinanceReportExpor
                   DEMONSTRAÇÃO FINANCEIRA E BALANCETE DE PROPINAS
                 </h2>
                 <div className="text-[10px] font-bold text-black uppercase tracking-wide">
-                  EXERCÍCIO LECTIVO {displayYear} • RELATÓRIO OFICIAL DE ARRECADAÇÃO
+                  EXERCÍCIO LETIVO {displayYear} • RELATÓRIO OFICIAL DE ARRECADAÇÃO
                 </div>
               </div>
             </div>
@@ -152,7 +155,7 @@ export function FinanceReportExportModal({ isOpen, onClose }: FinanceReportExpor
                 <span className="font-bold text-black text-xs">{formatDate(new Date())}</span>
               </div>
               <div className="py-2 px-3 text-center">
-                <span className="block text-[9px] font-bold uppercase text-black/60">Total de Faturas</span>
+                <span className="block text-[9px] font-bold uppercase text-black/60">Total de Cobranças</span>
                 <span className="font-bold text-black text-xs">{allFees.length} Registos</span>
               </div>
             </div>
@@ -210,7 +213,7 @@ export function FinanceReportExportModal({ isOpen, onClose }: FinanceReportExpor
                         className={`border-b last:border-b-0 border-black ${idx % 2 === 1 ? "bg-slate-50/70" : "bg-white"}`}
                       >
                         <td className="border-r border-black py-1.5 px-1 text-center font-mono font-bold text-[10px]">
-                          {String(idx + 1).padStart(2, "0")}
+                          {String(m.month).padStart(2, "0")}
                         </td>
                         <td className="border-r border-black py-1.5 px-2 font-semibold text-[11px] text-black">
                           {m.monthLabel}

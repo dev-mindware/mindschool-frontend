@@ -36,7 +36,8 @@ export function StudentIdCardModal({
   // QR real com o n.º de processo e a escola (antes era um ícone genérico que não lia nada)
   useEffect(() => {
     if (!data?.student.studentNumber) { setQrUrl(null); return; }
-    const payload = `MINDSCHOOL|${data.school.nif ?? ""}|${data.student.studentNumber}`;
+    // o mesmo endereço de verificação que o PDF imprime, para a pré-visualização e o cartão lerem igual
+    const payload = data.verificationUrl ?? `MINDSCHOOL|${data.school.nif ?? ""}|${data.student.studentNumber}`;
     let cancelled = false;
     void QRCode.toDataURL(payload, { margin: 1, width: 192, errorCorrectionLevel: "M" }).then((url) => { if (!cancelled) setQrUrl(url); }).catch(() => { if (!cancelled) setQrUrl(null); });
     return () => { cancelled = true; };

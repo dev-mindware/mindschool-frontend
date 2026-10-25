@@ -5,7 +5,10 @@ import React, { useState } from "react";
 import { AdmissionApplication, EntranceExam } from "@/types/admission";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Can, DataList, Icon, type Column } from "@/components";
+import { Can, ConfirmModal, DataList, Icon, type Column } from "@/components";
+import { useModal } from "@/stores/modal/use-modal-store";
+import { ErrorMessage } from "@/utils/messages";
+import { getApiErrorMessage } from "@/utils/api-error";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -77,9 +80,12 @@ export function ApplicationsList({ applications, entranceExams = [] }: Applicati
   const [enrollingApp, setEnrollingApp] = useState<AdmissionApplication | null>(null);
   const [isEnrollingOpen, setIsEnrollingOpen] = useState(false);
 
-  const handleValidateDocs = async (appId: string) => {
-    await validateDocuments(appId);
-    SucessMessage("Documentos do candidato validados com sucesso!");
+  // validar documentos não é um clique às cegas: pede-se confirmação de que a foto, o documento de identificação e o certificado foram conferidos
+  const [toValidate, setToValidate] = useState<AdmissionApplication | null>(null);
+  const { openModal } = useModal();
+  const handleValidateDocs = (appId: string) => {
+    setToValidate(applications.find((a) => a.id === appId) ?? null);
+    openModal("application-validate-docs");
   };
 
   const handlePromoteWaitlist = async (appId: string) => {
@@ -365,6 +371,19 @@ export function ApplicationsList({ applications, entranceExams = [] }: Applicati
         emptyTitle="Nenhuma candidatura encontrada"
         emptyDescription="Ajuste os filtros ou registe uma nova candidatura."
         emptyIcon="GraduationCap"
+      />
+
+      <ConfirmModal
+        id="application-validate-docs"
+        title="Validar documentos do candidato"
+        description={toValidate ? `Confirma que conferiu os documentos de ${toValidate.candidateName} (${toValidate.applicationNumber})?` : ""}
+        confirmLabel="Validar documentos"
+        effects={[
+          "Foto tipo passe, cópia do documento de identificação e, se houver, o certificado da escola anterior.",
+          "A candidatura passa a «documentos validados» e pode seguir para a prova ou para o despacho.",
+          "Abra «Ver Ficha Completa» para ver os documentos antes de validar.",
+        ]}
+        onConfirm={() => (toValidate ? validateDocuments(toValidate.id).then(() => { SucessMessage("Documentos do candidato validados com sucesso!"); setToValidate(null); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível validar os documentos.")); throw e; }) : undefined)}
       />
 
       {/* Modais Integrados */}

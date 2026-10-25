@@ -6,7 +6,7 @@ export type UiPaymentMethod = keyof typeof METHOD_TO_API;
 
 // ---- Tipos (API) ----------------------------------------------------------------------------------------------------
 
-/** Estado do documento fiscal (factura-recibo) emitido no MindGest. */
+/** Estado do documento fiscal (fatura-recibo) emitido no MindGest. */
 export type FiscalDocumentStatus = "sem_ligacao" | "sem_catalogo" | "pausada" | "pendente_fiscal" | "certificada" | "rejeitada" | "erro";
 
 export interface ApiFiscalDocument {

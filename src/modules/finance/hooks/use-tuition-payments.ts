@@ -36,7 +36,7 @@ export function useTuitionSubmissions() {
   return { submissions: list.data ?? [], summary: summary.data, isLoading: list.isLoading, isError: list.isError, refetch: list.refetch, start, review };
 }
 
-/** Pagamento pelo encarregado/aluno: contas da escola, facturas por pagar e comprovativos do educando. */
+/** Pagamento pelo encarregado/aluno: contas da escola, faturas por pagar e comprovativos do educando. */
 export function usePortalPayments(studentId?: string) {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const qc = useQueryClient();

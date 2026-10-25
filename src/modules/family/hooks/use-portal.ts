@@ -7,7 +7,7 @@ import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 
 const forbidden = (e: unknown) => (e as { response?: { status?: number } } | null)?.response?.status === 403;
 
-/** Portal do encarregado/aluno: educandos, notas, avaliacoes (com reapreciacao), facturas e provas. */
+/** Portal do encarregado/aluno: educandos, notas, avaliacoes (com reapreciacao), faturas e provas. */
 export type PortalPart = "wards" | "grades" | "assessments" | "invoices" | "payments" | "timetable" | "attendance" | "documents" | "announcements" | "calendar" | "exams";
 
 /**

@@ -36,9 +36,9 @@ export function FinanceDashboard({ variant = "operations" }: FinanceDashboardPro
       {variant === "operations" && <QuickActions open={sub?.open ?? 0} />}
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" data-tour="finance-summary">
-        <DynamicMetricCard title={formatCurrency(Number(k.billed))} subtitle="Faturado no ano" icon="Receipt" description={`${k.invoices_total} facturas · ${k.students_billed} alunos`} />
+        <DynamicMetricCard title={formatCurrency(Number(k.billed))} subtitle="Faturado no ano" icon="Receipt" description={`${k.invoices_total} faturas · ${k.students_billed} alunos`} />
         <DynamicMetricCard title={formatCurrency(Number(k.collected))} subtitle="Cobrado" icon="Coins" description={k.collection_rate !== null ? `Taxa de cobrança ${k.collection_rate}%` : "Sem faturação"} />
-        <DynamicMetricCard title={formatCurrency(Number(k.overdue_amount))} subtitle="Em atraso" icon="TriangleAlert" colors={n(k.overdue_amount) > 0 ? "destructive" : "default"} description={`${k.overdue_count} facturas · ${k.students_with_debt} alunos devedores`} />
+        <DynamicMetricCard title={formatCurrency(Number(k.overdue_amount))} subtitle="Em atraso" icon="TriangleAlert" colors={n(k.overdue_amount) > 0 ? "destructive" : "default"} description={`${k.overdue_count} faturas · ${k.students_with_debt} alunos devedores`} />
         <DynamicMetricCard title={sub?.open ?? 0} subtitle="Comprovativos por validar" icon="FileCheck" description={sub?.avg_review_hours != null ? `Validação média em ${sub.avg_review_hours} h` : "Pagamentos enviados pelas famílias"} />
       </div>
 
@@ -146,7 +146,7 @@ function AgingChart({ data, overdue }: { data: FinanceOverview["aging"]; overdue
             <CartesianGrid horizontal={false} strokeDasharray="3 3" />
             <XAxis type="number" tickLine={false} axisLine={false} tickFormatter={(v: number) => formatAxisCurrency(v)} />
             <YAxis type="category" dataKey="label" tickLine={false} axisLine={false} width={78} />
-            <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel formatter={(v, _n, item) => <span className="flex w-full justify-between gap-3"><span className="text-muted-foreground">{(item?.payload as { invoices?: number })?.invoices ?? 0} facturas</span><span className="font-medium tabular-nums">{formatCurrency(Number(v))}</span></span>} />} />
+            <ChartTooltip cursor={false} content={<ChartTooltipContent hideLabel formatter={(v, _n, item) => <span className="flex w-full justify-between gap-3"><span className="text-muted-foreground">{(item?.payload as { invoices?: number })?.invoices ?? 0} faturas</span><span className="font-medium tabular-nums">{formatCurrency(Number(v))}</span></span>} />} />
             <Bar dataKey="amount" radius={4}>{rows.map((r, i) => <Cell key={r.label} fill={AGING_COLORS[i]} />)}</Bar>
           </BarChart>
         </ChartContainer>

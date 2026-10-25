@@ -49,7 +49,7 @@ export function SchoolEmailsContent() {
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
         <DynamicMetricCard title={stats?.sent ?? 0} subtitle="Enviados" icon="Send" description="Últimos 30 dias" />
         <DynamicMetricCard title={stats?.delivery_rate != null ? `${stats.delivery_rate}%` : "—"} subtitle="Taxa de entrega" icon="CircleCheck" description="Enviados sobre tentativas" />
-        <DynamicMetricCard title={stats?.failed ?? 0} subtitle="Falhas" icon="TriangleAlert" colors={(stats?.failed ?? 0) > 0 ? "destructive" : "default"} description="Reenviadas automaticamente" />
+        <DynamicMetricCard title={stats?.failed ?? 0} subtitle="Falhas" icon="TriangleAlert" colors={(stats?.failed ?? 0) > 0 ? "destructive" : "default"} description="As temporárias são reenviadas sozinhas; as permanentes pedem a correção do email" />
         <DynamicMetricCard title={stats?.skipped ?? 0} subtitle="Não enviados" icon="MailX" description="Canal de email não configurado" />
       </div>
 

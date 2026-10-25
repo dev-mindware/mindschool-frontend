@@ -125,7 +125,7 @@ export const tuitionService = {
         const finesOwed = openFines.reduce((a, f) => a + f.balance, 0);
         const baseBalance = money(i.balance);
         const owed = baseBalance + finesOwed;
-        // factura paga mas com multa por pagar: continua em divida
+        // fatura paga mas com multa por pagar: continua em divida
         const overdue = (i.is_overdue && i.status !== "paga") || (i.status === "paga" && finesOwed > 0);
         return {
           id: i.id,
@@ -153,7 +153,7 @@ export const tuitionService = {
       .sort((a, b) => a.dueDate.localeCompare(b.dueDate));
   },
 
-  /** Envia agora o lembrete de cobranca (e-mail) a cada fatura; devolve o resultado real, factura a fatura. */
+  /** Envia agora o lembrete de cobranca (e-mail) a cada fatura; devolve o resultado real, fatura a fatura. */
   sendReminders: async (invoiceIds: string[]): Promise<ReminderBatchResult> => {
     const total: ReminderBatchResult = { sent: 0, failed: 0, cancelled: 0, results: [] };
     for (let i = 0; i < invoiceIds.length; i += 200) { // a API aceita ate 200 faturas por pedido

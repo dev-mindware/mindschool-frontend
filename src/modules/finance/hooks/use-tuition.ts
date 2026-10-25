@@ -9,7 +9,7 @@ import { TuitionPlan, TuitionStatus } from "@/modules/finance/types";
 
 const ITEMS_PER_PAGE = 10;
 
-/** Propinas (facturas) da escola ativa + tabela de precos (`settings.finance`). */
+/** Propinas (faturas) da escola ativa + tabela de precos (`settings.finance`). */
 export function useTuition(searchQuery = "", statusFilter: TuitionStatus | "ALL" = "ALL", monthFilter: number | "ALL" = "ALL") {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const queryClient = useQueryClient();

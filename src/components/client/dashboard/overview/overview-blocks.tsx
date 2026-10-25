@@ -226,7 +226,7 @@ export function DebtorsCard({ debtors, collections }: { debtors: Overview["topDe
       ) : (
         <ul>{debtors.map((d) => (
           <Row key={d.student} right={<span className="font-medium tabular-nums">{formatCurrency(Number(d.balance))}</span>}>
-            <p className="truncate font-medium">{d.student}</p><p className="text-xs text-muted-foreground">{d.invoices} factura(s) · {d.days_overdue} dias</p>
+            <p className="truncate font-medium">{d.student}</p><p className="text-xs text-muted-foreground">{d.invoices} fatura(s) · {d.days_overdue} dias</p>
           </Row>
         ))}</ul>
       )}

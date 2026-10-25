@@ -7,6 +7,8 @@ import type { Student } from "@/types";
 import { useStudents } from "@/hooks/school/use-students";
 import { StudentModal } from "./student-modal";
 import { StudentsList } from "./students-list";
+import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { getApiErrorMessage } from "@/utils/api-error";
 
 export function StudentsPageContent() {
   const [addOpen, setAddOpen] = useState(false);
@@ -31,6 +33,7 @@ export function StudentsPageContent() {
         students={allStudents}
         isLoading={isLoading}
         isError={isError}
+        onReactivateStudent={(id) => { void updateStudent.mutateAsync({ id, input: { status: "activo" } }).then(() => SucessMessage("Aluno reativado.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível reativar o aluno."))); }}
         onDeleteStudent={(id) => { setToDeactivate(allStudents.find((s) => s.id === id) ?? null); openModal("student-deactivate"); }}
       />
       <StudentModal isOpen={addOpen} onClose={() => setAddOpen(false)} />
@@ -41,12 +44,12 @@ export function StudentsPageContent() {
         destructive
         confirmLabel="Desativar"
         effects={[
-          "O aluno passa a «inactivo» e deixa de aparecer nas listas de alunos ativos.",
+          "O aluno passa a «inativo» e deixa de aparecer nas listas de alunos ativos.",
           "Não apaga a ficha, as notas, as faturas nem os documentos: tudo se mantém.",
-          "Não anula a matrícula nem liberta a vaga: para isso use «Cancelar matrícula» em Matrículas.",
-          "O estado «inactivo» não é definitivo: o aluno pode voltar a «activo».",
+          "Só se desativa um aluno sem matrícula ativa: com matrícula, anule-a primeiro em Matrículas (liberta a vaga e anula as propinas por pagar).",
+          "O estado «inativo» não é definitivo: «Reativar aluno» devolve-o a «ativo».",
         ]}
-        onConfirm={() => (toDeactivate ? updateStudent.mutateAsync({ id: toDeactivate.id, input: { status: "inactivo" } }) : Promise.resolve())}
+        onConfirm={() => (toDeactivate ? updateStudent.mutateAsync({ id: toDeactivate.id, input: { status: "inactivo" } }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível desativar o aluno.")); throw e; }) : Promise.resolve())}
       />
     </div>
   );

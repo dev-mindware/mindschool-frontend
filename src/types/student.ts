@@ -15,6 +15,8 @@ export interface Student {
   idDocumentNumber: string;
   nif?: string;
   status: StudentStatus;
+  /** Estado tal como a API o devolve (distingue «inativo» de «concluído», que a interface junta em «anulado»). */
+  apiStatus?: "pre_inscrito" | "activo" | "transferido" | "concluido" | "inactivo";
   guardianId: string;
   guardianName: string;
   guardianPhone: string;

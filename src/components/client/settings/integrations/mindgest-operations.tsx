@@ -70,7 +70,7 @@ export function MindgestOperations({ s, onChange }: { s: ApiMindgestStatus; onCh
         <CardContent className="space-y-3 text-sm">
           <p className="text-muted-foreground">
             O MindSchool confere sozinho, de poucos em poucos minutos, o estado das faturas no MindGest (cobre avisos perdidos, importa notas de crédito e volta a tentar
-            facturas presas). Última sincronização: <strong className="text-foreground">{lagText(r.lag_seconds)}</strong> ({when(r.last_at)}).
+            faturas presas). Última sincronização: <strong className="text-foreground">{lagText(r.lag_seconds)}</strong> ({when(r.last_at)}).
           </p>
           {failing && (
             <p className="text-xs text-destructive">

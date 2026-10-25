@@ -1,5 +1,6 @@
 import api from "./api";
 import { fetchAllPages } from "./api-pagination";
+import { academicService } from "./academic-service";
 import type { Enrollment, EnrollmentStatus } from "@/types";
 
 interface ApiEnrollment {
@@ -24,7 +25,7 @@ const STATUS: Record<string, EnrollmentStatus> = {
   transferido: "TRANSFERRED",
 };
 
-const toEnrollment = (e: ApiEnrollment): Enrollment => ({
+const toEnrollment = (e: ApiEnrollment, yearName = ""): Enrollment => ({
   id: e.id,
   schoolId: e.school_id,
   enrollmentNumber: e.id.slice(-8).toUpperCase(),
@@ -32,7 +33,7 @@ const toEnrollment = (e: ApiEnrollment): Enrollment => ({
   studentName: e.student.full_name,
   studentNumber: "",
   academicYearId: e.academic_year_id,
-  academicYear: "",
+  academicYear: yearName,
   sectionId: e.section.id,
   sectionName: `${e.class_level.name} ${e.section.name}`,
   classLevelId: e.class_level.id,
@@ -50,7 +51,11 @@ const toEnrollment = (e: ApiEnrollment): Enrollment => ({
 });
 
 export const enrollmentsService = {
-  list: async (): Promise<Enrollment[]> => (await fetchAllPages<ApiEnrollment>("/s/enrollments")).map(toEnrollment),
+  list: async (): Promise<Enrollment[]> => {
+    const [rows, years] = await Promise.all([fetchAllPages<ApiEnrollment>("/s/enrollments"), academicService.years().catch(() => [])]);
+    const names = new Map(years.map((y) => [y.id, y.name]));
+    return rows.map((e) => toEnrollment(e, names.get(e.academic_year_id) ?? ""));
+  },
 
   /** Matricula um aluno existente (gera o plano de propinas da escola). */
   enroll: async (studentId: string, sectionId: string): Promise<Enrollment> => {

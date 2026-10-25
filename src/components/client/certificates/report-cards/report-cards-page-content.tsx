@@ -1,5 +1,6 @@
 "use client";
 
+import { TermsMissingBanner } from "@/components/client/grades/terms-missing-banner";
 import { useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { StudentSelect } from "@/components/shared/filters/student-select";
@@ -69,6 +70,7 @@ export function ReportCardsPageContent() {
 
   return (
     <div className="space-y-6">
+      <TermsMissingBanner />
       <TitleList title="Boletins de Notas" suTitle="Emissão do boletim oficial por aluno e período; só se emite com a pauta fechada.">
         <Can permission="document:issue"><Button size="sm" className="gap-2" onClick={() => openModal("boletim-issue")}><Icon name="FilePlus" className="size-4" />Emitir boletim</Button></Can>
       </TitleList>

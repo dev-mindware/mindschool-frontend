@@ -72,7 +72,7 @@ export function CancelEnrollmentModal({
       canClose
       warning
       title="Cancelar Matrícula"
-      description="Processo auditado de anulação de vaga escolar (UC-07)"
+      description="Processo auditado de anulação de vaga escolar"
       className="!max-h-[85vh] !max-w-md"
     >
       <form onSubmit={handleConfirm} className="space-y-4 pt-2">
@@ -88,7 +88,7 @@ export function CancelEnrollmentModal({
           <ul className="mt-2 list-disc space-y-0.5 pl-4">
             <li>As faturas ainda por pagar são anuladas (as já certificadas ficam a precisar de nota de crédito).</li>
             <li>A vaga é libertada e o primeiro da lista de espera da classe é promovido.</li>
-            <li>Se for a única matrícula do aluno, o aluno passa a «inactivo».</li>
+            <li>Se for a única matrícula do aluno, o aluno passa a «inativo».</li>
             <li>Depois do fim do 2.º trimestre só a Direção, com justificação documentada, pode anular.</li>
           </ul>
         </div>

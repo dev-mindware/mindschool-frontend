@@ -12,7 +12,7 @@ export interface StudentFormValues {
   birthDate: string;
   idDocumentType: "IDENTITY_CARD" | "BIRTH_CERTIFICATE" | "PASSPORT";
   idDocumentNumber: string;
-  /** NIF opcional (factura-recibo em nome do aluno quando o encarregado não tem NIF). */
+  /** NIF opcional (fatura-recibo em nome do aluno quando o encarregado não tem NIF). */
   nif?: string;
   sectionId?: string;
   guardianMode: "existing" | "new";

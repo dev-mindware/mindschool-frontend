@@ -15,7 +15,9 @@ import {
 import { useEnrollmentProof } from "./use-enrollment-proof";
 import { CancelEnrollmentModal } from "./cancel-enrollment-modal";
 import { EnrollmentDetailsModal } from "./enrollment-details-modal";
+import { formatDate } from "@/utils/format-date";
 
+const SHIFT_LABEL: Record<string, string> = { manha: "Manhã", tarde: "Tarde", noite: "Noite", diurno: "Diurno" };
 const uniq = (v: string[]) => [...new Set(v.filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt"));
 
 interface EnrollmentsListProps {
@@ -60,7 +62,7 @@ export function EnrollmentsList({ enrollments, isLoading, isError }: Enrollments
         <div className="flex flex-col">
           <span className="font-medium text-foreground">{item.studentName}</span>
           <span className="text-xs text-muted-foreground">
-            Ano Letivo: {item.academicYear}
+            Ano Letivo: {item.academicYear || "—"}
           </span>
         </div>
       ),
@@ -74,7 +76,7 @@ export function EnrollmentsList({ enrollments, isLoading, isError }: Enrollments
             {item.sectionName}
           </span>
           <span className="text-xs text-muted-foreground">
-            {item.classLevelId}
+            {SHIFT_LABEL[item.shift] ?? item.shift}
           </span>
         </div>
       ),
@@ -84,7 +86,7 @@ export function EnrollmentsList({ enrollments, isLoading, isError }: Enrollments
       header: "Data de Inscrição",
       render: (_, item) => (
         <span className="text-xs text-muted-foreground font-mono">
-          {item.enrollmentDate}
+          {formatDate(item.enrollmentDate)}
         </span>
       ),
     },

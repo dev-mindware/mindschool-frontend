@@ -71,7 +71,7 @@ export function DecisionModal({
           </div>
           <div>
             <h3 className="text-lg font-bold text-foreground">
-              Despacho de Admissão (UC-00.1)
+              Despacho de Admissão
             </h3>
             <p className="text-xs text-muted-foreground">
               Decisão formal da Direção Pedagógica para o candidato
@@ -94,7 +94,7 @@ export function DecisionModal({
           </div>
           <div className="text-muted-foreground flex flex-wrap gap-x-4 gap-y-1">
             <span>
-              <strong>Pretensão:</strong> {application.desiredClassLevelName} ({application.desiredShift})
+              <strong>Pretensão:</strong> {application.desiredClassLevelName}{application.desiredShift ? ` (${{ MORNING: "Manhã", AFTERNOON: "Tarde", EVENING: "Noite" }[application.desiredShift as "MORNING" | "AFTERNOON" | "EVENING"] ?? application.desiredShift})` : ""}
             </span>
             {application.requiresEntranceExam && (
               <span>

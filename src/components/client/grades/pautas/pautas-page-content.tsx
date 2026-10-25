@@ -1,5 +1,6 @@
 'use client';
 
+import { TermsMissingBanner } from "../terms-missing-banner";
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { TitleList, Button, Icon, EmptyState, StatusLegend } from '@/components';
@@ -63,6 +64,7 @@ export function PautasPageContent() {
 
   return (
     <div className="space-y-6">
+      <TermsMissingBanner />
       <TitleList
         title="Pautas Trimestrais & Homologação MED"
         suTitle="Consolidação de médias de disciplinas, validação de conformidade e fecho auditado pela Direção Pedagógica."

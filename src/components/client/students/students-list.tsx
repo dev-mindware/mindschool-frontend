@@ -26,10 +26,11 @@ interface StudentsListProps {
   isLoading?: boolean;
   isError?: boolean;
   onDeleteStudent?: (id: string) => void;
+  onReactivateStudent?: (id: string) => void;
 }
 
 /** Lista de alunos (padrão MindGest): filtros na URL, pesquisa, datas, ordenação e paginação. */
-export function StudentsList({ students, isLoading, isError, onDeleteStudent }: StudentsListProps) {
+export function StudentsList({ students, isLoading, isError, onDeleteStudent, onReactivateStudent }: StudentsListProps) {
   const { inviteStudent } = useStudents();
   const [selected, setSelected] = useState<Student | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
@@ -67,7 +68,8 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent }: 
           { permission: "student:write", label: "Convidar (Acesso)", icon: "Mail", onClick: (x) => setInvitingStudent(x) },
           { permission: "student:write", label: "Editar", icon: "Pencil", onClick: (x) => { setEditing(x); setEditOpen(true); } },
           // só se desativa um aluno ativo: o estado dos pendentes e concluídos resulta da matrícula (a API recusa)
-          ...(onDeleteStudent && s.status === "ENROLLED" ? [{ permission: "student:write", label: "Desativar aluno", icon: "UserX" as const, variant: "destructive" as const, onClick: (x: Student) => onDeleteStudent(x.id) }] : []),
+          ...(onDeleteStudent && s.apiStatus === "activo" && !s.currentSectionName ? [{ permission: "student:write", label: "Desativar aluno", icon: "UserX" as const, variant: "destructive" as const, onClick: (x: Student) => onDeleteStudent(x.id) }] : []),
+          ...(onReactivateStudent && s.apiStatus === "inactivo" ? [{ permission: "student:write", label: "Reativar aluno", icon: "UserCheck" as const, onClick: (x: Student) => onReactivateStudent(x.id) }] : []),
         ]} />
       ),
     },

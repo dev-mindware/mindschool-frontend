@@ -43,7 +43,7 @@ export function invoiceIdsOf(fees: StudentTuitionFee[]): string[] {
 
 /**
  * Marcar como pago (uma ou mais cobranças do mesmo aluno). Regista o pagamento do valor total em dívida e pede a
- * factura-recibo ao MindGest. O pagamento fica sempre registado; se a escola não estiver ligada, ou faltar o imposto de
+ * fatura-recibo ao MindGest. O pagamento fica sempre registado; se a escola não estiver ligada, ou faltar o imposto de
  * algum serviço, a fatura-recibo fica em espera e segue sozinha.
  */
 export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps) {
@@ -258,7 +258,7 @@ function CustomerChooser(p: {
         ))}
         <button type="button" onClick={() => p.onChoose({ kind: "consumidor_final" })}
           className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left ${p.choice?.kind === "consumidor_final" ? "border-primary bg-primary/5" : "border-border"}`}>
-          <span><span className="text-sm font-semibold">Consumidor final</span><span className="text-[11px] text-muted-foreground"> · factura sem NIF do cliente</span></span>
+          <span><span className="text-sm font-semibold">Consumidor final</span><span className="text-[11px] text-muted-foreground"> · fatura sem NIF do cliente</span></span>
         </button>
       </div>
     </div>

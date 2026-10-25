@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { ACCOUNTS, API, RUN, apiFind, apiGet, apiList, expectNoScroll, fill, findRow, login, rowAction, schoolId } from "./helpers";
+import { ACCOUNTS, API, APP_ORIGIN, RUN, apiFind, apiGet, apiList, expectNoScroll, fill, findRow, login, rowAction, schoolId } from "./helpers";
 
 /**
  * Funcionalidades pedidas depois do relatório de testes em produção: apagar turma vazia, editar sessão da prova de
@@ -111,7 +111,7 @@ test.describe("Assistente MIND no MindSchool", () => {
   test("pede o contexto da escola e mostra sugestões do papel", async ({ page }) => {
     let corpo: Record<string, unknown> = {};
     // o servidor do assistente é outra origem: a resposta simulada tem de trazer os cabeçalhos CORS
-    const cors = { "access-control-allow-origin": "http://localhost:3003", "access-control-allow-credentials": "true", "access-control-allow-methods": "POST, OPTIONS" };
+    const cors = { "access-control-allow-origin": APP_ORIGIN, "access-control-allow-credentials": "true", "access-control-allow-methods": "POST, OPTIONS" };
     await page.context().route(/chatbot\.mindware-vps\.cloud\/chat/, async (route) => {
       if (route.request().method() === "OPTIONS") return route.fulfill({ status: 204, headers: { ...cors, "access-control-allow-headers": route.request().headers()["access-control-request-headers"] ?? "content-type" } });
       corpo = route.request().postDataJSON() as Record<string, unknown>;

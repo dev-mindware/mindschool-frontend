@@ -1,5 +1,6 @@
 "use client";
 
+import { useCan } from "@/hooks/auth/use-can";
 import { useEffect, useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { Badge, Button, DataList, Icon, Input, type Column } from "@/components";
@@ -27,6 +28,8 @@ const STATUS_LABEL: Record<string, string> = { PRESENT: "Presente", ABSENT_UNJUS
 /** Folha de chamada: marcação rápida por aluno (gravada de imediato com optimistic update) com filtros por estado e género. */
 export function RollCallSheet({ classId, sectionSubjectId, className, subjectName, date, timeSlotLabel }: RollCallSheetProps) {
   const { students, save, isLoading } = useRollCall(classId, sectionSubjectId, date);
+  // a Direção Geral consulta a chamada mas não a marca (a API recusa com 403): os botões ficam desativados e explica-se porquê
+  const canWrite = useCan().can("attendance:write");
   const [notes, setNotes] = useState<Record<string, string>>({});
   type Row = (typeof students)[number];
 
@@ -65,6 +68,7 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
                 <button
                   key={b.status}
                   type="button"
+                  disabled={!canWrite}
                   title={b.title}
                   onClick={() => persist([{ enrollmentId: s.id, status: b.status, notes: notesOf(s.id) }])}
                   className={`flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-all ${
@@ -122,9 +126,10 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
             {new Date(`${date}T00:00:00`).toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} • {isLoading ? "a carregar…" : `${students.length} alunos`}
           </p>
         </div>
-        <Button size="sm" variant="outline" className="gap-1.5 text-emerald-600 hover:text-emerald-700" onClick={() => persist(students.map((s) => ({ enrollmentId: s.id, status: "PRESENT" as AttendanceStatus, notes: notesOf(s.id) })), "Todos os alunos foram marcados como presentes.")}><Icon name="CheckCheck" className="size-4" />Marcar todos presentes</Button>
+        <Button size="sm" variant="outline" disabled={!canWrite || students.length === 0} title={canWrite ? undefined : "A chamada é registada pelo professor ou pela direção pedagógica."} className="gap-1.5 text-emerald-600 hover:text-emerald-700" onClick={() => persist(students.map((s) => ({ enrollmentId: s.id, status: "PRESENT" as AttendanceStatus, notes: notesOf(s.id) })), "Todos os alunos foram marcados como presentes.")}><Icon name="CheckCheck" className="size-4" />Marcar todos presentes</Button>
       </div>
 
+      {!canWrite && <p role="note" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs">Só consulta: a chamada é registada pelo professor ou pela direção pedagógica.</p>}
       <div className="flex flex-wrap items-center gap-4 text-xs bg-muted/40 p-3 rounded-lg border border-border/40">
         <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-emerald-500" /> Presentes: <strong className="text-foreground">{count("PRESENT")}</strong></span>
         <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-rose-500" /> Faltas injustificadas: <strong className="text-rose-600 font-semibold">{count("ABSENT_UNJUSTIFIED")}</strong></span>

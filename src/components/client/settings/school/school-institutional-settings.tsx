@@ -54,7 +54,7 @@ export function SchoolInstitutionalSettings() {
       <div className="grid gap-4 lg:grid-cols-2">
         <InfoCard icon="Scale" title="Enquadramento legal" badge="Decreto Presidencial 424/25" rows={[
           ["Nome oficial", profile.schoolName], ["Código de entidade MED", profile.medRegistrationCode], ["Decreto de criação", profile.decreeNumber],
-          ["Diário da República", `${profile.gazetteSeries ?? ""} · ${profile.gazetteDate ?? ""}`], ["Ciclos ministrados", profile.subTitle],
+          ["Diário da República", [profile.gazetteSeries, profile.gazetteDate].filter(Boolean).join(" · ")], ["Ciclos ministrados", profile.subTitle],
         ]} />
         <InfoCard icon="MapPin" title="Localização e contactos" rows={[
           ["Província", profile.province], ["Município", profile.municipality], ["Distrito / Bairro", profile.communeOrDistrict], ["Endereço", profile.fullAddress],

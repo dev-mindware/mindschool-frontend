@@ -40,6 +40,13 @@ export const gradesService = {
     return year ? fetchAllPages<ApiTerm>(`/s/academic-years/${year.id}/terms`) : [];
   },
 
+  /** Cria os 3 trimestres do ano letivo ativo (só quando ainda não tem períodos). */
+  createDefaultTerms: async (): Promise<void> => {
+    const year = await academicService.activeYear();
+    if (!year) throw new Error("Não há ano letivo ativo.");
+    await api.post(`/s/academic-years/${year.id}/terms/defaults`);
+  },
+
   async resolve(sectionId: string, subjectId: string, term: AssessmentTerm) {
     const [terms, assignments] = await Promise.all([gradesService.terms(), academicService.assignments()]);
     const t = terms.find((x) => x.sequence === SEQUENCE_OF_TERM[term]);

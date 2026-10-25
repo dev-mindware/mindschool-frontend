@@ -1,3 +1,4 @@
+import { academicService } from "./academic-service";
 import { createdAtFromUuidV7 } from "@/lib/uuid7";
 import { normalizeNif } from "@/lib/nif";
 import api from "./api";
@@ -25,6 +26,7 @@ interface ApiStudent {
 interface ApiEnrollment {
   id: string;
   student: { id: string; full_name: string };
+  academic_year_id?: string;
   section: { id: string; name: string; shift: string };
   class_level: { id: string; name: string; level_number: number };
   status: string;
@@ -64,7 +66,7 @@ export const RELATIONSHIP_TO_API: Record<string, "pai" | "mae" | "tutor_legal" |
 };
 const RELATIONSHIP_FROM_API: Record<string, string> = { pai: "Pai", mae: "Mãe", tutor_legal: "Tutor Legal", outro: "Outro" };
 
-function toStudent(s: ApiStudent, enrollment?: ApiEnrollment): Student {
+function toStudent(s: ApiStudent, enrollment?: ApiEnrollment, yearName?: string): Student {
   return {
     id: s.id,
     schoolId: s.school_id,
@@ -75,6 +77,7 @@ function toStudent(s: ApiStudent, enrollment?: ApiEnrollment): Student {
     idDocumentType: DOC_FROM_API[s.document_type],
     idDocumentNumber: s.document_number,
     ...(s.nif ? { nif: s.nif } : {}),
+    apiStatus: s.status,
     status: enrollment && s.status === "activo" ? "ENROLLED" : STATUS_FROM_API[s.status],
     guardianId: s.primary_guardian?.id ?? "",
     guardianName: s.primary_guardian?.full_name ?? "",
@@ -83,7 +86,7 @@ function toStudent(s: ApiStudent, enrollment?: ApiEnrollment): Student {
     currentSectionId: enrollment?.section.id ?? "",
     currentSectionName: enrollment ? `${enrollment.class_level.name} ${enrollment.section.name}` : "",
     currentClassLevel: enrollment?.class_level.name ?? "",
-    academicYear: "",
+    academicYear: yearName ?? "",
     photoUrl: s.photo_url ?? undefined,
     email: s.email ?? undefined,
     createdAt: createdAtFromUuidV7(s.id),
@@ -108,13 +111,18 @@ export interface CreateStudentInput {
 export const studentsService = {
   /** Alunos da escola ativa, com a turma da matricula viva (juncao de `/students` e `/enrollments`). */
   list: async (search?: string): Promise<Student[]> => {
-    const [students, enrollments] = await Promise.all([
+    const [students, enrollments, years] = await Promise.all([
       fetchAllPages<ApiStudent>("/s/students", search && search.trim().length >= 2 ? { q: search.trim() } : {}),
       fetchAllPages<ApiEnrollment>("/s/enrollments"),
+      academicService.years().catch(() => []),
     ]);
     const live = new Map<string, ApiEnrollment>();
     for (const e of enrollments) if (LIVE_ENROLLMENT.includes(e.status)) live.set(e.student.id, e);
-    return students.map((s) => toStudent(s, live.get(s.id)));
+    const yearName = new Map(years.map((y) => [y.id, y.name]));
+    return students.map((s) => {
+      const e = live.get(s.id);
+      return toStudent(s, e, e ? yearName.get(e.academic_year_id ?? "") : undefined);
+    });
   },
 
   /** Cria o aluno e, se indicado, matricula-o na turma e vincula o encarregado (cada passo e um pedido da API). */

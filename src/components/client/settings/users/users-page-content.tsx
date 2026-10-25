@@ -73,7 +73,7 @@ export function UsersPageContent() {
           { label: "Direção Geral (Titular)", description: "Gestão da escola: subscrição e plano, utilizadores e papéis, definições e relatórios. Tem de haver sempre um titular ativo." },
           { label: "Direção Pedagógica", description: "Turmas, disciplinas, horários, calendário, pautas (fecha e reabre), conselhos de turma, decisão das candidaturas e dias não letivos." },
           { label: "Secretaria", description: "Candidaturas, alunos, matrículas, encarregados e documentos oficiais." },
-          { label: "Financeiro", description: "Propinas, facturas, pagamentos, comprovativos e dados bancários." },
+          { label: "Financeiro", description: "Propinas, faturas, pagamentos, comprovativos e dados bancários." },
           { label: "Professor", description: "Notas e faltas das suas turmas e disciplinas." },
           { label: "Encarregado / Aluno", description: "Só o portal da família ou do aluno (notas, horário, propinas e documentos do próprio). Liga-se ao aluno pela ficha do encarregado." },
         ]}

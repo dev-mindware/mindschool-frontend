@@ -39,7 +39,7 @@ function ChargesList() {
     <div className="space-y-6">
       <div className="flex gap-3 rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">
         <Icon name="Link" className="mt-0.5 size-4 shrink-0 text-primary" />
-        <p>Uma <strong>cobrança</strong> não é um documento fiscal: a <strong>factura-recibo</strong> é emitida no <strong>MindGest</strong> quando a cobrança é paga («Marcar como pago» em Propinas). A coluna «Fiscal» mostra o estado dessa fatura; o detalhe está no separador «Faturas».</p>
+        <p>Uma <strong>cobrança</strong> não é um documento fiscal: a <strong>fatura-recibo</strong> é emitida no <strong>MindGest</strong> quando a cobrança é paga («Marcar como pago» em Propinas). A coluna «Fiscal» mostra o estado dessa fatura; o detalhe está no separador «Faturas».</p>
       </div>
 
       <StatusLegend

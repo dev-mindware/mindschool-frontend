@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { ACCOUNTS, RUN, apiFind, apiGet, apiList, combo, dialog, expectNoScroll, fill, findRow, login, openDialog, rowAction } from "./helpers";
+import { ACCOUNTS, API, RUN, apiFind, apiGet, apiList, combo, dialog, expectNoScroll, fill, findRow, login, openDialog, rowAction, schoolId } from "./helpers";
 
 /**
  * CRUD do plano Essencial pela interface, módulo a módulo, com confirmação na API. Os testes de cada bloco são
@@ -236,7 +236,7 @@ test.describe.serial("Académico e Secretaria", () => {
     expect(g, "telefone atualizado na API").toBeTruthy();
   });
 
-  test("Aluno: editar e desativar", async ({ page }) => {
+  test("Aluno: editar; com matrícula ativa não se desativa", async ({ page }) => {
     await login(page, ACCOUNTS.secretaria);
     await page.goto("/students/list");
     await rowAction(page, await findRow(page, aluno), "Editar");
@@ -250,11 +250,14 @@ test.describe.serial("Académico e Secretaria", () => {
     expect(edited, "nome atualizado na API").toBeTruthy();
 
     await page.goto("/students/list");
-    await rowAction(page, await findRow(page, `${aluno} Editado`), "Desativar aluno");
-    const confirm = page.getByRole("alertdialog").or(page.getByRole("dialog")).last();
-    await confirm.getByRole("button", { name: /Desativar|Confirmar|Sim/ }).last().click();
-    const inactive = await apiFind<{ full_name: string; status: string }>(page, "/students", (s) => s.full_name === `${aluno} Editado` && s.status === "inactivo");
-    expect(inactive, "aluno desativado na API").toBeTruthy();
+    // com matrícula ativa o aluno não se desativa (ficava na chamada e nas propinas): a ação nem se oferece e a API recusa
+    const linha = await findRow(page, `${aluno} Editado`);
+    await linha.locator('button[aria-haspopup="menu"]').first().click();
+    await expect(page.getByText("Desativar aluno")).toHaveCount(0);
+    await page.keyboard.press("Escape");
+    const id = await schoolId(page);
+    const recusa = await page.request.patch(`${API}/schools/${id}/students/${edited!.id}`, { data: { status: "inactivo" } });
+    expect(recusa.status(), "desativar com matrícula ativa").toBe(409);
   });
 
   test("Matrícula: cancelar", async ({ page }) => {
@@ -273,5 +276,11 @@ test.describe.serial("Académico e Secretaria", () => {
     const student = await apiFind<{ id: string; full_name: string }>(page, "/students", (s) => s.full_name.startsWith(aluno));
     const enr = await apiFind<{ student: { id: string }; status: string }>(page, "/enrollments", (e) => e.student?.id === student?.id && e.status === "anulado");
     expect(enr, "matrícula cancelada na API").toBeTruthy();
+
+    // anulada a matrícula, o aluno fica inativo e pode reativar-se (o aviso dizia que não era definitivo, mas não havia como)
+    await page.goto("/students/list");
+    await rowAction(page, await findRow(page, aluno), "Reativar aluno");
+    const reativado = await apiFind<{ full_name: string; status: string }>(page, "/students", (s) => s.full_name.startsWith(aluno) && s.status === "activo");
+    expect(reativado, "aluno reativado na API").toBeTruthy();
   });
 });
