@@ -1,4 +1,5 @@
 "use client";
+import { formatIsoDay } from "@/utils/format-date";
 import { familyKeys } from "@/modules/family/query-keys";
 import { formatDateTime } from "@/utils";
 
@@ -56,7 +57,7 @@ export function FamilyProfile() {
           )}
           {me.student && !me.guardian && (
             <>
-              <Row label="Data de nascimento" value={me.student.birth_date} />
+              <Row label="Data de nascimento" value={formatIsoDay(me.student.birth_date)} />
               <Row label="Documento" value={me.student.document_number} />
             </>
           )}

@@ -49,6 +49,23 @@ test.describe.serial("Turmas: apagar só se estiver vazia", () => {
     expect(await apiFind(page, "/sections", (s) => (s as unknown as Seccao).name === nome), "a turma deixou de existir").toBeUndefined();
   });
 
+  test("uma disciplina livre apaga-se pela interface (com confirmação) e deixa de existir na API", async ({ page }) => {
+    await login(page, ACCOUNTS.direccao);
+    const id = await schoolId(page);
+    const nome = `Livre ${LETRAS}`;
+    const criada = await page.request.post(`${API}/schools/${id}/subjects`, { data: { name: nome, grading_scale: "quantitativa", is_core_subject: false } });
+    expect(criada.status(), await criada.text()).toBe(201);
+
+    await page.goto("/academic/subjects");
+    await rowAction(page, await findRow(page, nome), "Apagar Disciplina");
+    const d = page.getByRole("dialog").last();
+    await expect(d).toContainText("Apagar disciplina");
+    await d.getByRole("button", { name: "Apagar disciplina" }).click();
+    await expect(d).toBeHidden({ timeout: 20_000 });
+
+    expect(await apiFind(page, "/subjects", (s) => (s as unknown as { name: string }).name === nome), "a disciplina deixou de existir").toBeUndefined();
+  });
+
   test("uma turma com alunos não se apaga: o sistema diz porquê e a turma fica", async ({ page }) => {
     await login(page, ACCOUNTS.direccao);
     const id = await schoolId(page);

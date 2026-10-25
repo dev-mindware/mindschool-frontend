@@ -42,3 +42,9 @@ export function formatDate(date: Date | string): string {
   if (!isValid(dateObj)) return "Data inválida";
   return format(dateObj, "dd/MM/yyyy", { locale: pt });
 }
+
+/** «AAAA-MM-DD» (ou ISO completo) → «DD/MM/AAAA», sem passar por fusos horários; o que não for data volta como está. */
+export function formatIsoDay(value: string | null | undefined): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})/.exec(value ?? "");
+  return m ? `${m[3]}/${m[2]}/${m[1]}` : (value ?? "—");
+}

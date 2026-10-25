@@ -6,6 +6,7 @@ import { leaveImpersonationAction } from "@/actions/impersonation";
 import { Icon } from "@/components/common/icon";
 import { Button } from "@/components/ui/button";
 import api from "@/services/api";
+import { fetchMe } from "@/services/auth-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import type { ApiMe } from "@/utils/map-api-user";
 
@@ -16,7 +17,7 @@ const pad = (n: number) => String(n).padStart(2, "0");
  * quanto tempo resta e o botão para terminar. Ao chegar a zero termina sozinha e repõe a sessão do administrador.
  */
 export function ImpersonationBanner() {
-  const me = useQuery({ queryKey: ["me-impersonation"], queryFn: async () => (await api.get<ApiMe>("/auth/me")).data, staleTime: 60_000, refetchOnWindowFocus: false, retry: false });
+  const me = useQuery({ queryKey: ["me-impersonation"], queryFn: fetchMe, staleTime: 60_000, refetchOnWindowFocus: false, retry: false });
   const imp = me.data?.impersonation;
   const [now, setNow] = useState(() => Date.now());
   const [leaving, setLeaving] = useState(false);

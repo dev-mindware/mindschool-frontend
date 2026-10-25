@@ -1,5 +1,6 @@
 "use client";
 
+import { formatIsoDay } from "@/utils/format-date";
 import { MED_MAP_LABEL, MED_STATUS_LABEL } from "@/constants/labels";
 import { Cell, Pie, PieChart } from "recharts";
 import { Badge, ChartContainer, ChartTooltip, ChartTooltipContent, DashboardSkeleton, DynamicMetricCard, type ChartConfig } from "@/components";
@@ -45,7 +46,7 @@ export function MedAuditorDashboard() {
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" data-tour="dashboard-summary">
         <DynamicMetricCard title={published.length} subtitle="Mapas disponíveis" icon="Map" description="Aprovados, exportados ou submetidos" />
         <DynamicMetricCard title={submitted.length} subtitle="Submetidos ao MED" icon="Send" description={submitted[0]?.submission_reference ? `Último protocolo ${submitted[0].submission_reference}` : "Com protocolo de entrega"} />
-        <DynamicMetricCard title={latest ? latest.created_at.slice(0, 10) : "—"} subtitle="Último instantâneo" icon="CalendarClock" description={latest ? `${MED_MAP_LABEL[latest.map_type]} · v${latest.version}` : "Sem instantâneos"} />
+        <DynamicMetricCard title={latest ? formatIsoDay(latest.created_at) : "—"} subtitle="Último instantâneo" icon="CalendarClock" description={latest ? `${MED_MAP_LABEL[latest.map_type]} · v${latest.version}` : "Sem instantâneos"} />
         <DynamicMetricCard title={blocking} subtitle="Pendências bloqueantes" icon="TriangleAlert" colors={blocking > 0 ? "destructive" : "default"} description={blocking > 0 ? "Impedem a aprovação de mapas" : "Nenhuma verificação bloqueante"} />
       </div>
 
@@ -58,7 +59,7 @@ export function MedAuditorDashboard() {
                   <li key={s.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                     <div className="min-w-0">
                       <p className="truncate font-medium">{MED_MAP_LABEL[s.map_type]} · v{s.version}</p>
-                      <p className="text-xs text-muted-foreground">{s.created_at.slice(0, 10)} · checksum <span className="font-mono">{s.checksum.slice(0, 10)}…</span></p>
+                      <p className="text-xs text-muted-foreground">{formatIsoDay(s.created_at)} · checksum <span className="font-mono">{s.checksum.slice(0, 10)}…</span></p>
                     </div>
                     <Badge variant="outline" className="shrink-0 font-normal">{MED_STATUS_LABEL[s.status]}</Badge>
                   </li>

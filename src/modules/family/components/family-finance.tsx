@@ -1,4 +1,5 @@
 "use client";
+import { formatIsoDay } from "@/utils/format-date";
 import { familyKeys } from "@/modules/family/query-keys";
 
 import { useState } from "react";
@@ -39,7 +40,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
   ];
 
   const invoiceColumns: Column<PortalInvoice>[] = [
-    { key: "due_date", header: "Vencimento", render: (_, i) => <span className="font-mono text-xs">{i.due_date}</span> },
+    { key: "due_date", header: "Vencimento", render: (_, i) => <span className="font-mono text-xs">{formatIsoDay(i.due_date)}</span> },
     { key: "type", header: "Tipo", render: (_, i) => TYPE[i.type] ?? i.type },
     { key: "total_due", header: "Total", render: (_, i) => formatCurrency(i.total_due) },
     { key: "paid_amount", header: "Pago", render: (_, i) => formatCurrency(i.paid_amount) },
@@ -87,7 +88,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
       <TabsContent value="invoices">
         <DataList<PortalInvoice>
           prefix="facturas" rows={live.invoices} columns={invoiceColumns} pageSize={10}
-          searchPlaceholder="Pesquisar fatura" searchText={(i) => `${TYPE[i.type] ?? i.type} ${i.status} ${i.due_date}`}
+          searchPlaceholder="Pesquisar fatura" searchText={(i) => `${TYPE[i.type] ?? i.type} ${i.status} ${formatIsoDay(i.due_date)}`}
           filters={[
             { key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "paga", label: "Liquidadas" }, { value: "aberta", label: "Por pagar" }], match: (i, v) => (v === "paga" ? i.status === "paga" : i.status !== "paga") },
             { key: "vencida", label: "Vencimento", icon: "Clock", options: [{ value: "vencida", label: "Vencidas" }, { value: "emdia", label: "Em dia" }], match: (i, v) => (v === "vencida" ? i.is_overdue : !i.is_overdue) },

@@ -91,11 +91,16 @@ export function useSubjects(searchQuery = "", cycleFilter: EducationCycle | "ALL
       academicService.saveSubject(v.id, v),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["subjects", schoolId] }),
   });
+  const remove = useMutation({
+    mutationFn: (id: string) => academicService.deleteSubject(id),
+    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["subjects", schoolId] }),
+  });
   return {
     subjects: paging.paginated,
     allSubjects: subjects,
     isLoading,
     save,
+    remove,
     ...paging,
     counts: {
       total: subjects.length,

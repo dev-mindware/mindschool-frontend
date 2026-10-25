@@ -1,5 +1,6 @@
 "use client";
 
+import { formatIsoDay } from "@/utils/format-date";
 import { useCan } from "@/hooks/auth/use-can";
 import { useEffect, useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
@@ -98,7 +99,7 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
             <ul className="divide-y rounded-lg border">
               {s.items.map((i) => (
                 <li key={i.invoice_id} className="flex items-center justify-between gap-2 px-3 py-2">
-                  <span>{i.description}<span className="block text-xs text-muted-foreground">vence {i.due_date}</span></span>
+                  <span>{i.description}<span className="block text-xs text-muted-foreground">vence {formatIsoDay(i.due_date)}</span></span>
                   <span className="font-medium tabular-nums">{formatCurrency(Number(i.amount))}</span>
                 </li>
               ))}

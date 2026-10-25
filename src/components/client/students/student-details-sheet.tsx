@@ -1,5 +1,6 @@
 "use client";
 
+import { formatIsoDay } from "@/utils/format-date";
 import React from "react";
 import {
   Sheet,
@@ -71,7 +72,7 @@ export function StudentDetailsSheet({
                 </div>
                 <div className="flex justify-between py-1 border-b border-border/50 text-sm">
                   <span className="text-muted-foreground">Data de Nascimento</span>
-                  <span className="font-medium">{student.birthDate}</span>
+                  <span className="font-medium">{formatIsoDay(student.birthDate)}</span>
                 </div>
                 <div className="flex justify-between py-1 border-b border-border/50 text-sm">
                   <span className="text-muted-foreground">Documento</span>

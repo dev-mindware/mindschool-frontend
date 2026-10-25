@@ -1,4 +1,5 @@
 "use client";
+import { formatIsoDay } from "@/utils/format-date";
 import { formatCurrencyCompact, formatDate } from "@/utils";
 
 import { useState } from "react";
@@ -68,7 +69,7 @@ export function SubscriptionManager() {
         <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
           <DynamicMetricCard title={sub.plan.name} subtitle="Plano atual" icon="Crown" description={sub.message} />
           <DynamicMetricCard title={STATUS_LABEL[sub.status] ?? sub.status} subtitle="Estado" icon="CircleDot" colors={["suspended", "expired", "cancelled", "past_due"].includes(sub.status) ? "destructive" : "default"} description={sub.pending_plan ? `Mudança para ${sub.pending_plan.name} em ${sub.pending_plan.effective_at}` : undefined} />
-          <DynamicMetricCard title={sub.trial_ends_at ? sub.trial_ends_at.slice(0, 10) : (sub.period_end ?? "—")} subtitle={sub.trial_ends_at ? "Teste até" : "Pago até"} icon="CalendarClock" description={sub.cancel_at_period_end ? "Cancelamento agendado" : undefined} />
+          <DynamicMetricCard title={sub.trial_ends_at ? formatIsoDay(sub.trial_ends_at) : formatIsoDay(sub.period_end)} subtitle={sub.trial_ends_at ? "Teste até" : "Pago até"} icon="CalendarClock" description={sub.cancel_at_period_end ? "Cancelamento agendado" : undefined} />
           <DynamicMetricCard title={current?.addons.length ?? 0} subtitle="Add-ons ativos" icon="Puzzle" description={current?.addons.map((a) => a.name).join(", ") || "Nenhum"} />
         </div>
       )}

@@ -1,4 +1,5 @@
 import api from "./api";
+import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { fetchAllPages } from "./api-pagination";
 import { sectionsService } from "./sections-service";
 import type { AcademicYearDraft } from "@/lib/academic-year";
@@ -45,14 +46,27 @@ const toSubject = (s: ApiSubject): Subject => ({
   updatedAt: "",
 });
 
+let yearsShared: { school: string | null; promise: Promise<ApiAcademicYear[]> } | null = null;
+
 export const academicService = {
-  years: () => fetchAllPages<ApiAcademicYear>("/s/academic-years"),
+  /** Anos letivos: quem os pede ao mesmo tempo (matrículas, alunos, calendário) partilha um só pedido. */
+  years: (): Promise<ApiAcademicYear[]> => {
+    const school = useActiveSchoolStore.getState().schoolId;
+    if (yearsShared?.school === school) return yearsShared.promise;
+    const promise = fetchAllPages<ApiAcademicYear>("/s/academic-years");
+    const entry = { school, promise };
+    yearsShared = entry;
+    const release = () => { setTimeout(() => { if (yearsShared === entry) yearsShared = null; }, 1000); };
+    promise.then(release, () => { if (yearsShared === entry) yearsShared = null; });
+    return promise;
+  },
   /**
    * Cria um ano letivo e, por omissão, activa-o (a escola ainda não tinha nenhum). Se a ativação falhar o ano fica
    * criado como «planeado», que já serve para criar turmas: não se repete a criação.
    */
   createYear: async (v: AcademicYearDraft, activate = true): Promise<ApiAcademicYear> => {
     const created = (await api.post<ApiAcademicYear>("/s/academic-years", v)).data;
+    yearsShared = null;
     // sem períodos não há notas, pautas nem boletins: o ano nasce com os 3 trimestres (editáveis depois)
     await api.post(`/s/academic-years/${created.id}/terms/defaults`).catch(() => undefined);
     if (!activate) return created;
@@ -104,6 +118,9 @@ export const academicService = {
   // ---- disciplinas ----
   subjects: async (): Promise<Subject[]> => (await fetchAllPages<ApiSubject>("/s/subjects")).map(toSubject),
 
+  deleteSubject: async (id: string): Promise<void> => {
+    await api.delete(`/s/subjects/${id}`);
+  },
   saveSubject: async (
     id: string | undefined,
     v: { name: string; isCore: boolean; code?: string; gradingScale?: "quantitativa" | "qualitativa" | "mista" },

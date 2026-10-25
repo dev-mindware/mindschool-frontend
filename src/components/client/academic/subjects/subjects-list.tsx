@@ -1,7 +1,11 @@
 "use client";
 
 import React, { useState } from "react";
-import { Can, DataList, type Column } from "@/components";
+import { Can, ConfirmModal, DataList, type Column } from "@/components";
+import { useModal } from "@/stores/modal/use-modal-store";
+import { useSubjects } from "@/hooks/school/use-academic";
+import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { getApiErrorMessage } from "@/utils/api-error";
 import { Subject } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -22,6 +26,9 @@ interface SubjectsListProps {
 export function SubjectsList({ subjects, isLoading }: SubjectsListProps) {
   const [selectedSubject, setSelectedSubject] = useState<Subject | null>(null);
   const [isEditModalOpen, setIsEditModalOpen] = useState(false);
+  const [toDelete, setToDelete] = useState<Subject | null>(null);
+  const { openModal } = useModal();
+  const { remove } = useSubjects();
 
   const handleEdit = (subject: Subject) => {
     setSelectedSubject(subject);
@@ -96,7 +103,7 @@ export function SubjectsList({ subjects, isLoading }: SubjectsListProps) {
               item.isActive ? "bg-emerald-500" : "bg-zinc-400"
             }`}
           />
-          {item.isActive ? "Ativa" : "Inactiva"}
+          {item.isActive ? "Ativa" : "Inativa"}
         </span>
       ),
     },
@@ -119,6 +126,13 @@ export function SubjectsList({ subjects, isLoading }: SubjectsListProps) {
               <Icon name="Pencil" className="h-4 w-4" />
               Editar Disciplina
             </DropdownMenuItem>
+            <DropdownMenuItem
+              className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+              onClick={() => { setToDelete(item); openModal("subject-delete"); }}
+            >
+              <Icon name="Trash2" className="h-4 w-4" />
+              Apagar Disciplina
+            </DropdownMenuItem>
 </Can>
           </DropdownMenuContent>
         </DropdownMenu>
@@ -139,7 +153,7 @@ export function SubjectsList({ subjects, isLoading }: SubjectsListProps) {
         filters={[
           { key: "regime", label: "Regime", icon: "GraduationCap", options: [{ value: "quantitativa", label: "Quantitativa (0–20)" }, { value: "qualitativa", label: "Qualitativa" }, { value: "mista", label: "Mista" }], match: (s, v) => (s.gradingScale ?? "quantitativa") === v },
           { key: "tipo", label: "Tipo", icon: "Star", options: [{ value: "nuclear", label: "Nuclear" }, { value: "geral", label: "Geral" }], match: (s, v) => (v === "nuclear" ? Boolean(s.isCore) : !s.isCore) },
-          { key: "estado", label: "Estado", icon: "ToggleLeft", options: [{ value: "on", label: "Ativas" }, { value: "off", label: "Inactivas" }], match: (s, v) => (v === "on" ? s.isActive : !s.isActive) },
+          { key: "estado", label: "Estado", icon: "ToggleLeft", options: [{ value: "on", label: "Ativas" }, { value: "off", label: "Inativas" }], match: (s, v) => (v === "on" ? s.isActive : !s.isActive) },
         ]}
         sorts={[
           { value: "nome", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name, "pt") },
@@ -149,6 +163,25 @@ export function SubjectsList({ subjects, isLoading }: SubjectsListProps) {
         emptyTitle="Nenhuma disciplina encontrada"
         emptyDescription="Ajuste os filtros ou cadastre uma disciplina."
         emptyIcon="BookOpen"
+      />
+
+      <ConfirmModal
+        id="subject-delete"
+        title="Apagar disciplina"
+        description={toDelete ? `Apagar a disciplina «${toDelete.name}»?` : ""}
+        confirmLabel="Apagar disciplina"
+        destructive
+        irreversible
+        isLoading={remove.isPending}
+        effects={[
+          "Só se apaga uma disciplina que não está atribuída a nenhuma turma.",
+          "Se estiver em uso, o sistema recusa e diz em quantas turmas está.",
+        ]}
+        onConfirm={() =>
+          toDelete
+            ? remove.mutateAsync(toDelete.id).then(() => { SucessMessage("Disciplina apagada."); setToDelete(null); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível apagar a disciplina.")); throw e; })
+            : undefined
+        }
       />
 
       <SubjectModal

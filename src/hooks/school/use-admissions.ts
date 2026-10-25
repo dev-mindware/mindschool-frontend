@@ -16,7 +16,7 @@ export function useAdmissions() {
   const enabled = Boolean(schoolId);
 
   const apps = useQuery({ queryKey: ["admissions", schoolId], queryFn: admissionsService.applications, enabled, staleTime: 30 * 1000 });
-  const exams = useQuery({ queryKey: ["admission-sessions", schoolId], queryFn: admissionsService.sessions, enabled, staleTime: 30 * 1000 });
+  const exams = useQuery({ queryKey: ["admission-sessions", schoolId, "exams"], queryFn: admissionsService.sessions, enabled, staleTime: 30 * 1000 });
 
   const raw = apps.data ?? [];
   const applications = useMemo(() => admissionsService.mapApplications(raw), [raw]);

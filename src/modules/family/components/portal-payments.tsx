@@ -1,5 +1,6 @@
 "use client";
 
+import { formatIsoDay } from "@/utils/format-date";
 import { useMemo, useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { Badge, Button, ButtonOnlyAction, Checkbox, ConfirmModal, DataList, DynamicMetricCard, EmptyState, FileUpload, FormModal, FormSelect, GlobalModal, Icon, Input, FormTextarea, PROOF_ACCEPT, type Column } from "@/components";
@@ -75,7 +76,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
   const payableColumns: Column<ApiPayable>[] = [
     { key: "select", header: "", render: (_, p) => <Checkbox checked={Boolean(selected[p.id])} disabled={Number(p.available) <= 0} onCheckedChange={(v) => toggle(p.id, v === true)} aria-label={`Seleccionar ${p.description}`} /> },
     { key: "description", header: "Fatura", render: (_, p) => (<div><span className="font-medium capitalize">{p.description}</span><div className="font-mono text-[11px] text-muted-foreground">Ref. {p.payment_reference}</div></div>) },
-    { key: "due_date", header: "Vencimento", render: (_, p) => <span className="text-xs">{p.due_date}</span> },
+    { key: "due_date", header: "Vencimento", render: (_, p) => <span className="text-xs">{formatIsoDay(p.due_date)}</span> },
     { key: "balance", header: "Em dívida", render: (_, p) => <span className="font-semibold tabular-nums">{formatCurrency(p.balance)}</span> },
     {
       key: "state", header: "Estado",

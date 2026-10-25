@@ -1,4 +1,5 @@
 "use client";
+import { formatIsoDay } from "@/utils/format-date";
 import { formatDateTime } from "@/utils";
 
 import { useEffect, useState } from "react";
@@ -122,7 +123,7 @@ function CouncilModal({ id }: { id: string | null }) {
           <section className="space-y-3 border-t pt-4">
             {closed ? (
               <div className="flex items-center justify-between">
-                <p className="text-muted-foreground">Conselho encerrado em {council.closed_at?.slice(0, 10)}.</p>
+                <p className="text-muted-foreground">Conselho encerrado em {formatIsoDay(council.closed_at)}.</p>
                 <Button size="sm" variant="outline" className="gap-1.5" onClick={() => void openMinutes()}><Icon name="FileText" className="size-4" />Abrir acta (PDF)</Button>
               </div>
             ) : (

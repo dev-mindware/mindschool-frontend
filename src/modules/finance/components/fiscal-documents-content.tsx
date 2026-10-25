@@ -1,5 +1,6 @@
 "use client";
 
+import { formatIsoDay } from "@/utils/format-date";
 import React, { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Badge, Button, DataList, DynamicMetricCard, FeatureGate, Icon, StatusLegend, type Column } from "@/components";
@@ -83,7 +84,7 @@ export function FiscalDocumentsContent() {
       render: (_, d) => (
         <ul className="space-y-0.5 text-[11px] text-muted-foreground">
           {d.invoices.map((i) => (
-            <li key={i.id}>{i.description ?? TYPE[i.type] ?? i.type} · {i.due_date} · {formatCurrency(Number(i.amount))}</li>
+            <li key={i.id}>{i.description ?? TYPE[i.type] ?? i.type} · {formatIsoDay(i.due_date)} · {formatCurrency(Number(i.amount))}</li>
           ))}
           {d.method && <li className="text-foreground/70">{METHOD[d.method] ?? d.method}{d.paid_at ? ` · ${d.paid_at.slice(0, 10)}` : ""}</li>}
         </ul>

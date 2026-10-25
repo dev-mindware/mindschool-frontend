@@ -3,11 +3,22 @@ import { ApiMe, ApiSubscription, mapApiSubscription, mapApiUser } from "@/utils/
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import api from "./api";
 
+let meInFlight: Promise<ApiMe> | null = null;
+
+/** `GET /auth/me` partilhado: vários componentes que o pedem ao mesmo tempo (menu, faixa, segurança) fazem um só pedido. */
+export function fetchMe(): Promise<ApiMe> {
+  meInFlight ??= api
+    .get<ApiMe>("/auth/me")
+    .then((r) => r.data)
+    .finally(() => { setTimeout(() => { meInFlight = null; }, 1500); });
+  return meInFlight;
+}
+
 export const authService = {
   /** Utilizador atual + escolas a que pertence (`GET /auth/me`); sincroniza a escola ativa. */
   getMe: async (): Promise<User | null> => {
     try {
-      const response = await api.get<ApiMe>("/auth/me");
+      const response = { data: await fetchMe() };
       const store = useActiveSchoolStore.getState();
       store.setMemberships(
         response.data.memberships.map((m) => ({ schoolId: m.school_id, schoolName: m.school_name, roles: m.roles, permissions: m.permissions, viaGroup: m.via_group === true })),

@@ -1,4 +1,5 @@
 "use client";
+import { formatIsoDay } from "@/utils/format-date";
 import { formatDateTime } from "@/utils";
 
 import { useMemo, useState } from "react";
@@ -156,7 +157,7 @@ function FullCalendarContent() {
   };
 
   const eventColumns: Column<ApiEvent>[] = [
-    { key: "start_date", header: "Data", render: (_, e) => <span className="font-mono text-xs whitespace-nowrap">{e.start_date}{e.end_date !== e.start_date ? ` → ${e.end_date}` : ""}</span> },
+    { key: "start_date", header: "Data", render: (_, e) => <span className="font-mono text-xs whitespace-nowrap">{formatIsoDay(e.start_date)}{e.end_date !== e.start_date ? ` → ${formatIsoDay(e.end_date)}` : ""}</span> },
     { key: "title", header: "Evento", render: (_, e) => (<div className="flex flex-col"><span className="font-medium">{e.title}</span><span className="text-xs text-muted-foreground">{EVENT_TYPE_LABEL[e.type] ?? e.type}{e.origin === "google_proposta" ? " • proposta do Google" : ""}</span></div>) },
     { key: "effect", header: "Efeito", render: (_, e) => EFFECT[e.effect] },
     { key: "visibility", header: "Visibilidade", render: (_, e) => VISIBILITY[e.visibility] },
@@ -259,7 +260,7 @@ function FullCalendarContent() {
         {selected && (
           <div className="sm:col-span-2 space-y-3 text-sm">
             <dl className="grid grid-cols-2 gap-3">
-              <div><dt className="text-[11px] uppercase text-muted-foreground">Data</dt><dd className="font-mono">{selected.start_date}{selected.end_date !== selected.start_date ? ` → ${selected.end_date}` : ""}</dd></div>
+              <div><dt className="text-[11px] uppercase text-muted-foreground">Data</dt><dd className="font-mono">{formatIsoDay(selected.start_date)}{selected.end_date !== selected.start_date ? ` → ${formatIsoDay(selected.end_date)}` : ""}</dd></div>
               <div><dt className="text-[11px] uppercase text-muted-foreground">Horário</dt><dd className="font-mono">{selected.start_time ? `${selected.start_time.slice(0, 5)}–${selected.end_time?.slice(0, 5) ?? ""}` : "Dia inteiro"}</dd></div>
               <div><dt className="text-[11px] uppercase text-muted-foreground">Efeito</dt><dd>{EFFECT[selected.effect]}</dd></div>
               <div><dt className="text-[11px] uppercase text-muted-foreground">Visibilidade</dt><dd>{VISIBILITY[selected.visibility]}</dd></div>

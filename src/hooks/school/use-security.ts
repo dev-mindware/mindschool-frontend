@@ -2,13 +2,14 @@
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { securityService } from "@/services/security-service";
+import { fetchMe } from "@/services/auth-service";
 
 /** Sessoes, segundo factor (TOTP e passkeys) e codigos de recuperacao do utilizador autenticado. */
 export function useSecurity() {
   const qc = useQueryClient();
   const sessions = useQuery({ queryKey: ["auth-sessions"], queryFn: securityService.sessions, staleTime: 15 * 1000 });
   const passkeys = useQuery({ queryKey: ["auth-passkeys"], queryFn: securityService.passkeys, staleTime: 15 * 1000 });
-  const me = useQuery({ queryKey: ["auth-me-mfa"], queryFn: async () => (await (await import("@/services/api")).default.get<{ mfa_enabled?: boolean; mfa_enrollment_required?: boolean; user?: { mfa_enabled?: boolean } }>("/auth/me")).data, staleTime: 15 * 1000 });
+  const me = useQuery({ queryKey: ["auth-me-mfa"], queryFn: async () => (await fetchMe()) as { mfa_enabled?: boolean; mfa_enrollment_required?: boolean; user?: { mfa_enabled?: boolean } }, staleTime: 15 * 1000 });
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["auth-sessions"] });
     qc.invalidateQueries({ queryKey: ["auth-passkeys"] });

@@ -1,4 +1,5 @@
 "use client";
+import { formatIsoDay } from "@/utils/format-date";
 import { financeKeys } from "@/modules/finance/query-keys";
 
 import { useQuery } from "@tanstack/react-query";
@@ -28,7 +29,7 @@ function ChargesList() {
   const columns: Column<ApiInvoice>[] = [
     { key: "student", header: "Aluno", render: (_, i) => (<div><span className="font-medium">{i.student.full_name}</span><div className="font-mono text-[11px] text-muted-foreground">Ref. {i.payment_reference}</div></div>) },
     { key: "type", header: "Tipo", render: (_, i) => <span className="text-xs">{TYPE[i.type]}</span> },
-    { key: "due_date", header: "Vencimento", render: (_, i) => <span className="text-xs">{i.due_date}</span> },
+    { key: "due_date", header: "Vencimento", render: (_, i) => <span className="text-xs">{formatIsoDay(i.due_date)}</span> },
     { key: "total_due", header: "Total", render: (_, i) => <span className="tabular-nums">{formatCurrency(Number(i.total_due))}</span> },
     { key: "balance", header: "Em dívida", render: (_, i) => <span className={`font-semibold tabular-nums ${i.is_overdue ? "text-destructive" : ""}`}>{formatCurrency(Number(i.balance))}</span> },
     { key: "status", header: "Estado", render: (_, i) => <StatusBadge status={i.status} map={STATUS} /> },
