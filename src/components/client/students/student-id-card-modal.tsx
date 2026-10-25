@@ -164,7 +164,8 @@ export function StudentIdCardModal({
               {/* ========================================================= */}
               {/* TEXTURA GEOMÉTRICA DO CANTO SUPERIOR ESQUERDO             */}
               {/* ========================================================= */}
-              <div className="absolute top-0 left-0 w-28 h-28 pointer-events-none z-10">
+              {/* no verso as texturas encolhem para os cantos: o nome da escola, o NIF e o rodapé ficam livres */}
+              <div className={`absolute top-0 left-0 w-28 h-28 pointer-events-none z-10 origin-top-left ${activeSide === "back" ? "scale-[0.42]" : ""}`}>
                 {/* Bloco 1: Pastel suave */}
                 <div
                   className="absolute top-0 left-0 w-[88px] h-[60px]"
@@ -205,7 +206,7 @@ export function StudentIdCardModal({
               {/* ========================================================= */}
               {/* TEXTURA GEOMÉTRICA DO CANTO INFERIOR DIREITO              */}
               {/* ========================================================= */}
-              <div className="absolute bottom-0 right-0 w-28 h-32 pointer-events-none z-10">
+              <div className={`absolute bottom-0 right-0 w-28 h-32 pointer-events-none z-10 origin-bottom-right ${activeSide === "back" ? "scale-[0.42]" : ""}`}>
                 {/* Bloco 1: Escuro lateral direita */}
                 <div
                   className="absolute bottom-0 right-0 w-[70px] h-[122px]"
@@ -415,7 +416,7 @@ export function StudentIdCardModal({
                 /* ========================================================= */
                 /* CONTEÚDO: VERSO DO CARTÃO (TERMOS E CONTACTOS)            */
                 /* ========================================================= */
-                <div className="relative w-full h-full p-4 flex flex-col z-20">
+                <div className="relative w-full h-full px-4 pt-12 pb-16 flex flex-col z-20">
                   {/* Cabeçalho do Verso */}
                   <div className="text-center pt-2">
                     <h3
