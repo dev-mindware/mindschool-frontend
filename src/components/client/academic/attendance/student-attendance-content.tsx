@@ -403,7 +403,7 @@ export function StudentAttendanceContent() {
         students={rollCall.map((r, i) => ({
           studentId: r.id,
           name: r.name,
-          studentNumber: r.number || `P-${1000 + i + 1}`,
+          studentNumber: r.number || "",
           status: r.status,
           note: r.notes,
         }))}

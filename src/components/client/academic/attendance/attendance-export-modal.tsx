@@ -60,7 +60,7 @@ export function AttendanceExportModal({
   const [isDownloading, setIsDownloading] = useState(false);
 
   const displayYear = calendar.academicYear || "";
-  const horarioLabel = lessonStart && lessonEnd ? `${lessonStart} – ${lessonEnd}` : "Tempo Normal";
+  const horarioLabel = lessonStart && lessonEnd ? `${lessonStart} – ${lessonEnd}` : "—";
 
   const handleDownload = async () => {
     try {
@@ -156,11 +156,11 @@ export function AttendanceExportModal({
               </div>
               <div className="py-1.5 px-3 text-center">
                 <span className="text-[9px] font-bold uppercase text-black/60 mr-1.5">Sala:</span>
-                <span className="font-mono text-black text-xs">{roomCode || "Sala 04"}</span>
+                <span className="font-mono text-black text-xs">{roomCode || "—"}</span>
               </div>
               <div className="py-1.5 px-3 text-center">
                 <span className="text-[9px] font-bold uppercase text-black/60 mr-1.5">Docente Regente:</span>
-                <span className="text-black text-xs">{teacherName || "Corpo Docente"}</span>
+                <span className="text-black text-xs">{teacherName || "—"}</span>
               </div>
             </div>
 
@@ -194,7 +194,7 @@ export function AttendanceExportModal({
                           {idx + 1}
                         </td>
                         <td className="border-r border-black py-1.5 px-1 text-center font-mono text-[10px] text-black/80">
-                          {student.studentNumber || `P-${1000 + idx + 1}`}
+                          {student.studentNumber || "—"}
                         </td>
                         <td className="border-r border-black py-1.5 px-2 font-semibold text-[11px] uppercase tracking-tight text-black">
                           {student.name}

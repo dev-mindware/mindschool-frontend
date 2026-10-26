@@ -155,3 +155,20 @@ test.describe("Assistente MIND no MindSchool", () => {
     expect(corpo.storeId).toBeNull();
   });
 });
+
+test.describe("Relatório 6: o que cada papel pode fazer", () => {
+  test("a Direção Geral vê as notas só em consulta (a API recusava ao gravar) e o trimestre inicial é o em curso", async ({ page }) => {
+    await login(page, ACCOUNTS.titular);
+    await page.goto("/grades/entry");
+    await expect(page.getByText(/Só consulta: as notas são lançadas pelo professor/)).toBeVisible({ timeout: 20_000 });
+    await expect(page.locator('tbody tr').first().locator('input[type="number"]').first()).toBeDisabled();
+    // outubro: o trimestre por omissão é o 1.º (antes era sempre o 2.º)
+    await expect(page.getByRole("combobox", { name: "Trimestre de Avaliação" })).toContainText("1.º Trimestre");
+  });
+
+  test("a grelha de tempos mostra «Só consulta» à Direção Geral em vez de um botão que dá 403", async ({ page }) => {
+    await login(page, ACCOUNTS.titular);
+    await page.goto("/academic/timetables");
+    await expect(page.getByRole("button", { name: "Criar grelha de tempos" })).toHaveCount(0);
+  });
+});

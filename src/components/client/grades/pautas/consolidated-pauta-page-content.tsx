@@ -82,7 +82,7 @@ export function ConsolidatedPautaPageContent() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-lg border bg-muted/20 text-xs">
         <div>
           <span className="text-muted-foreground">Média Geral da Turma:</span>
-          <p className="text-base font-bold text-foreground">{pauta.averageClassScore.toFixed(1)} / 20</p>
+          <p className="text-base font-bold text-foreground">{pauta.students.some((s) => Object.keys(s.subjects).length) ? `${pauta.averageClassScore.toFixed(1)} / 20` : "—"}</p>
         </div>
         <div>
           <span className="text-muted-foreground">Taxa de Aproveitamento:</span>
@@ -131,7 +131,7 @@ export function ConsolidatedPautaPageContent() {
             </p>
           </div>
           <div className="text-right text-xs">
-            <div className="text-muted-foreground">Média Geral da Turma: <span className="font-bold text-foreground">{(pauta.averageClassScore ?? 0).toFixed(1)}/20</span></div>
+            <div className="text-muted-foreground">Média Geral da Turma: <span className="font-bold text-foreground">{pauta.students.some((s) => Object.keys(s.subjects).length) ? `${(pauta.averageClassScore ?? 0).toFixed(1)}/20` : "—"}</span></div>
             <div className="text-muted-foreground">Taxa de Aproveitamento: <span className="font-bold text-foreground">{(pauta.approvalRate ?? 0).toFixed(1)}%</span></div>
           </div>
         </div>

@@ -1,7 +1,8 @@
 "use client";
 
+import { formatIsoDay } from "@/utils/format-date";
 import { useEffect, useState } from "react";
-import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { SucessMessage, ErrorMessage, InfoMessage } from "@/utils/messages";
 import { Can, Badge, Button, ButtonOnlyAction, Checkbox, ConfirmModal, DataList, EmptyState, FormModal, FormSelect, Icon, Input, StatusLegend, TitleList, type Column } from "@/components";
 import { useFinalExam, useFinalExams } from "@/hooks/school/use-phase6";
 import { CALL_LABEL, type ExamCall, type ExamResultInput } from "@/services/phase6-service";
@@ -72,7 +73,7 @@ function ExamModal({ id }: { id: string | null }) {
           )}
           {!closed && (
             <div className="flex flex-wrap gap-2">
-              <Can permission="final_exam:write"><Button size="sm" variant="outline" disabled={enroll.isPending} onClick={() => enroll.mutateAsync(undefined).then((r) => SucessMessage(`${r.enrolled} aluno(s) inscrito(s).`)).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Inscrever todos os elegíveis</Button></Can>
+              <Can permission="final_exam:write"><Button size="sm" variant="outline" disabled={enroll.isPending} onClick={() => enroll.mutateAsync(undefined).then((r) => (r.enrolled > 0 ? SucessMessage(`${r.enrolled} aluno(s) inscrito(s).`) : InfoMessage("Nenhum aluno foi inscrito: só se inscreve quem já tem a média final das disciplinas (pautas dos três trimestres fechadas) e cumpre as regras desta chamada."))).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Inscrever todos os elegíveis</Button></Can>
               <Can permission="final_exam:results"><Button size="sm" onClick={save} disabled={putResults.isPending || enrolled.length === 0}>Gravar resultados</Button></Can>
               <Can permission="final_exam:write"><Button size="sm" variant="secondary" disabled={close.isPending} onClick={() => openModal("final-exam-close-confirm")}>Encerrar chamada</Button></Can>
               <ConfirmModal
@@ -131,7 +132,7 @@ export function FinalExamsPageContent() {
     { key: "subject.name", header: "Disciplina", render: (_, e) => (<div className="flex items-center gap-2"><span className="font-medium">{e.subject.name}</span>{e.national && <Badge variant="secondary">Nacional</Badge>}</div>) },
     { key: "section", header: "Turma", render: (_, e) => `${e.section.class_level} ${e.section.name}` },
     { key: "call", header: "Chamada", render: (_, e) => CALL_LABEL[e.call] },
-    { key: "scheduled_date", header: "Data", render: (_, e) => <span className="font-mono text-xs">{e.scheduled_date}</span> },
+    { key: "scheduled_date", header: "Data", render: (_, e) => <span className="font-mono text-xs">{formatIsoDay(e.scheduled_date)}</span> },
     { key: "status", header: "Estado", render: (_, e) => <Badge variant="outline">{STATUS_LABEL[e.status]}</Badge> },
     { key: "action", header: "Ação", render: (_, e) => <ButtonOnlyAction data={e} actions={[{ label: "Abrir chamada", icon: "Eye", onClick: (x) => { setOpenId(x.id); openModal("final-exam-detail"); } }]} /> },
   ];

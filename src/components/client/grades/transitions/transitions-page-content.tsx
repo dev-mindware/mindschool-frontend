@@ -1,5 +1,6 @@
 "use client";
 
+import { useCouncils } from "@/hooks/school/use-phase6";
 import React, { useState, useMemo } from "react";
 import {
   TitleList,
@@ -23,6 +24,9 @@ export function TransitionsPageContent() {
   const [pickedSectionId, setSelectedSectionId] = useState<string>("");
   const selectedSectionId = pickedSectionId || sections[0]?.id || "";
   const [isExportOpen, setIsExportOpen] = useState(false);
+  const { councils } = useCouncils();
+  // a ata só relata uma reunião que aconteceu: exige o conselho final da turma já encerrado
+  const finalCouncil = councils.find((c) => c.section.id === selectedSectionId && c.kind === "final" && c.status === "encerrado");
 
   const selectedSection = useMemo(
     () => sections.find((s) => s.id === selectedSectionId),
@@ -116,7 +120,7 @@ export function TransitionsPageContent() {
               : "text-amber-700 dark:text-amber-400"
           }`}
         >
-          {item.termAverageTotal.toFixed(1)} / 20
+          {Object.keys(item.subjects).length ? `${item.termAverageTotal.toFixed(1)} / 20` : "—"}
         </span>
       ),
     },
@@ -124,6 +128,7 @@ export function TransitionsPageContent() {
       key: "failedSubjectsCount",
       header: "Disciplinas Não Concluídas",
       render: (_, item) => {
+        if (item.failedSubjectsCount === 0 && Object.keys(item.subjects).length === 0) return <span className="text-xs text-muted-foreground">—</span>;
         if (item.failedSubjectsCount === 0) {
           return (
             <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
@@ -179,7 +184,7 @@ export function TransitionsPageContent() {
       header: "Fundamentação & Observação",
       render: (_, item) => (
         <span className="text-xs text-muted-foreground truncate max-w-[240px] block" title={item.exceptionApplied}>
-          {item.exceptionApplied || "Aprovação curricular regular conforme Decreto Executivo n.º 424/25."}
+          {item.exceptionApplied || (Object.keys(item.subjects).length ? "Aprovação curricular regular conforme Decreto Executivo n.º 424/25." : "Sem notas lançadas.")}
         </span>
       ),
     },
@@ -207,6 +212,8 @@ export function TransitionsPageContent() {
           <Button
             size="sm"
             variant="outline"
+            disabled={!finalCouncil}
+            title={finalCouncil ? undefined : "A ata só se emite depois de encerrado o conselho final da turma (Avaliação › Conselhos de Turma)."}
             onClick={() => setIsExportOpen(true)}
             className="gap-2"
           >
@@ -301,6 +308,7 @@ export function TransitionsPageContent() {
         sectionName={selectedSection?.name || "Turma"}
         classLevel={selectedSection?.classLevel || "7.ª Classe"}
         shift={selectedSection?.shift || "Manhã"}
+        councilDate={finalCouncil?.closed_at ?? finalCouncil?.scheduled_at}
         students={studentsList}
         stats={stats}
       />

@@ -3,11 +3,12 @@ import { ApiPauta, ApiPautaRow, ApiTerm, SEQUENCE_OF_TERM, gradesService, num } 
 import type { AssessmentTerm, ConsolidatedPauta, ConsolidatedStudentRow } from "@/types/grade";
 
 interface ApiPautaFull extends ApiPauta {
-  section: { id: string; name: string; class_level: { id: string; name: string } };
-  subjects: Array<{ section_subject_id: string; subject: { id: string; name: string } }>;
+  section: { id: string; name: string; shift?: string; class_level: { id: string; name: string } };
+  academic_year_name?: string;
+  subjects: Array<{ section_subject_id: string; subject: { id: string; name: string; code?: string | null } }>;
   closed_at: string | null;
   closed_by: string | null;
-  rows: Array<ApiPautaRow & { student: { id: string; full_name: string }; complete: boolean }>;
+  rows: Array<ApiPautaRow & { student: { id: string; full_name: string; process_number?: string | null }; complete: boolean }>;
 }
 
 async function termId(term: AssessmentTerm): Promise<string> {
@@ -36,7 +37,7 @@ export const pautasService = {
         id: r.enrollment_id,
         studentId: r.student.id,
         studentName: r.student.full_name,
-        studentNumber: "",
+        studentNumber: r.student.process_number ?? "",
         subjects,
         termAverageTotal: mts.length ? Number((mts.reduce((a, b) => a + b, 0) / mts.length).toFixed(1)) : 0,
         failedSubjectsCount: mts.filter((v) => v < 10).length,
@@ -50,9 +51,9 @@ export const pautasService = {
       sectionId,
       sectionName: p.section.name,
       classLevel: p.section.class_level.name,
-      shift: "",
+      shift: p.section.shift ?? "",
       term,
-      academicYear: "",
+      academicYear: p.academic_year_name ?? "",
       isClosed: p.status === "fechada",
       closedAt: p.closed_at ?? undefined,
       closedBy: p.closed_by ?? undefined,
@@ -62,7 +63,7 @@ export const pautasService = {
       approvalRate: students.length
         ? Number(((students.filter((s) => s.termAverageTotal >= 10 && s.failedSubjectsCount === 0).length / students.length) * 100).toFixed(1))
         : 0,
-      subjects: p.subjects.map((s) => ({ id: s.subject.id, name: s.subject.name, sectionSubjectId: s.section_subject_id })),
+      subjects: p.subjects.map((s) => ({ id: s.subject.id, name: s.subject.name, code: s.subject.code ?? undefined, sectionSubjectId: s.section_subject_id })),
     };
   },
 

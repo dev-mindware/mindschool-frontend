@@ -3,7 +3,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { useAuthStore } from "@/stores";
-import { authService } from "@/services/auth-service";
+import { authService, TemporaryServerError } from "@/services/auth-service";
 import { User } from "@/types";
 import { clearLocalSession } from "@/actions/auth";
 
@@ -24,7 +24,9 @@ export function useFetchUser({ enabled = true }: UseFetchUserOptions = {}) {
     queryKey: ["user"],
     queryFn: fetchCurrentUser,
     enabled: enabled && process.env.NEXT_PUBLIC_BYPASS_AUTH !== "true",
-    retry: false, // ✅ FIX: não retry para evitar múltiplos requests em loop
+    // só repete quando o servidor não responde (5xx / sem rede); uma sessão inválida não se repete
+    retry: (count, error) => error instanceof TemporaryServerError && count < 4,
+    retryDelay: (count) => Math.min(1000 * 2 ** count, 8000),
     staleTime: 5 * 60 * 1000,
   });
 
@@ -78,9 +80,17 @@ export function useFetchUser({ enabled = true }: UseFetchUserOptions = {}) {
     if (query.isError) {
       // Falha em buscar user → sessão inválida → limpa tudo
       (async () => {
-        await clearLocalSession();
-        setUser(null);
-        setIsAuthenticating(false);
+        try {
+          await clearLocalSession();
+        } catch {
+          // com a sessão já expirada a própria chamada ao servidor pode falhar: não pode deixar o ecrã de carregamento preso
+        } finally {
+          setUser(null);
+          setIsAuthenticating(false);
+          if (typeof window !== "undefined" && !window.location.pathname.startsWith("/auth/")) {
+            window.location.replace("/auth/login");
+          }
+        }
       })();
     }
   }, [

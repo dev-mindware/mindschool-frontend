@@ -16,7 +16,7 @@ export type DashboardPeriodFilter =
   | "ANNUAL";
 
 /**
- * Educational cycles under the Angolan General Education System (Decreto Presidencial 424/25)
+ * Educational cycles under the Angolan General Education System (Decreto Executivo n.º 424/25)
  */
 export type AcademicCycle = "PRIMARY" | "CYCLE_1" | "CYCLE_2";
 

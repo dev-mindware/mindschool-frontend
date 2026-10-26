@@ -65,7 +65,7 @@ export interface AcademicCalendarConfig {
 }
 
 /**
- * Evaluation policy thresholds under Decreto Presidencial 424/25
+ * Evaluation policy thresholds under Decreto Executivo n.º 424/25
  */
 export interface EvaluationPolicyConfig {
   minimumPassingGrade: number; // 10.0

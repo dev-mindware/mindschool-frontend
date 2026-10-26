@@ -86,6 +86,7 @@ export interface FinanceOverview {
 export interface ApiEmailLog {
   id: string;
   template_code: string;
+  template_name?: string | null;
   recipient: string;
   subject: string;
   status: "pendente" | "enviado" | "falhou" | "ignorado";

@@ -38,7 +38,7 @@ export function SelectField({
         onValueChange={onValueChange}
         disabled={disabled}
       >
-        <SelectTrigger>
+        <SelectTrigger aria-label={typeof label === "string" ? label.replace(/\s*\*\s*$/, "") : undefined}>
           <SelectValue placeholder={placeholder} />
         </SelectTrigger>
         <SelectContent>

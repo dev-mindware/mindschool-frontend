@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle, ChartContain
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/common/icon";
 import { useTuition } from "@/modules/finance/hooks/use-tuition";
+import { useSchoolSettingsStore } from "@/stores/school/school-settings-store";
 import { formatCurrency } from "@/utils/format-currency";
 import { formatAxisCurrency } from "@/utils/format-currency";
 
@@ -20,6 +21,10 @@ interface MonthlyReportRow {
 
 export function TuitionReportsContent() {
   const { allFees } = useTuition();
+  const { calendar } = useSchoolSettingsStore();
+  // ordem do ano letivo (Setembro → Julho), não Janeiro → Dezembro
+  const startMonth = Number((calendar.yearStartDate ?? "").slice(5, 7)) || 9;
+  const yearOrder = (m: number) => (m - startMonth + 12) % 12;
 
   const feesByMonth: MonthlyReportRow[] = useMemo(() => {
     const map = new Map<number, MonthlyReportRow>();
@@ -43,8 +48,8 @@ export function TuitionReportsContent() {
       map.set(fee.month, entry);
     });
 
-    return Array.from(map.values()).sort((a, b) => a.month - b.month);
-  }, [allFees]);
+    return Array.from(map.values()).sort((a, b) => yearOrder(a.month) - yearOrder(b.month));
+  }, [allFees, startMonth]);
 
   function handleExportReport() {
     const rows = [["Mês", "Alunos com propina", "Previsto (Kz)", "Arrecadado (Kz)", "Saldo (Kz)"], ...feesByMonth.map((r) => [r.monthLabel, String(r.count), String(r.expected), String(r.collected), String(r.expected - r.collected)])];
@@ -164,7 +169,7 @@ export function TuitionReportsContent() {
           { key: "saldo", label: "Saldo", icon: "Coins", options: [{ value: "pendente", label: "Com saldo pendente" }, { value: "liquidado", label: "Totalmente liquidado" }], match: (r, v) => (v === "pendente" ? r.expected - r.collected > 0 : r.expected - r.collected <= 0) },
         ]}
         sorts={[
-          { value: "mes", label: "Mês", compare: (a, b) => a.month - b.month },
+          { value: "mes", label: "Mês", compare: (a, b) => yearOrder(a.month) - yearOrder(b.month) },
           { value: "previsto", label: "Previsto", compare: (a, b) => a.expected - b.expected },
           { value: "arrecadado", label: "Arrecadado", compare: (a, b) => a.collected - b.collected },
         ]}

@@ -1,4 +1,5 @@
 "use client";
+import { useCan } from "@/hooks/auth/use-can";
 import { ScoreCell } from "./score-cell";
 import { formatDate } from "@/utils";
 
@@ -28,7 +29,8 @@ export function GradeEntryTable({
   onUpdateGrade,
   onSetStatus,
 }: GradeEntryTableProps) {
-  const isReadOnly = sheet.isLocked || isPautaClosed;
+  const canWrite = useCan().can("assessment:write", "grade:write");
+  const isReadOnly = sheet.isLocked || isPautaClosed || !canWrite;
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const settings = useQuery({ queryKey: ["settings-raw", schoolId], queryFn: readRawSettings, enabled: Boolean(schoolId), staleTime: 60 * 1000 });
   const passMark = Number((settings.data?.["evaluation"] as { pass_mark?: number } | undefined)?.pass_mark ?? 10);
@@ -79,6 +81,7 @@ export function GradeEntryTable({
 
   return (
     <div className="space-y-4">
+      {!canWrite && <p role="note" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs">Só consulta: as notas são lançadas pelo professor da disciplina ou pela direção pedagógica.</p>}
       {/* Banner de Estado da Mini-Pauta */}
       <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-lg border bg-card text-xs">
         <div className="flex items-center gap-3">

@@ -1,5 +1,6 @@
 "use client";
 
+import { useCan } from "@/hooks/auth/use-can";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
@@ -194,9 +195,11 @@ function TimetableGuide({ hasBells, hasRooms, roomsEnabled, hasYear, creating, o
               </div>
               <p className="text-xs text-muted-foreground">{st.text}</p>
               {st.action && st.run && (
+                <Can permission="timetable:write" fallback={<p className="text-[11px] text-muted-foreground">Só consulta: este passo é feito pela direção pedagógica.</p>}>
                 <Button size="sm" variant={st.primary ? "default" : "outline"} className="mt-1 h-7 text-xs" disabled={!hasYear || (st.primary && creating)} onClick={st.run}>
                   {st.action}
                 </Button>
+                </Can>
               )}
             </div>
           </li>
@@ -219,7 +222,8 @@ export function TimetablesPageContent() {
   }, [timetables, timetableId]);
 
   const current = timetables.find((t) => t.id === timetableId);
-  const editable = current?.status === "rascunho" || current?.status === "validado";
+  const canWriteTimetable = useCan().can("timetable:write");
+  const editable = canWriteTimetable && (current?.status === "rascunho" || current?.status === "validado");
   const [slotTarget, setSlotTarget] = useState<{
     sectionId: string;
     weekday: number;
@@ -394,7 +398,7 @@ export function TimetablesPageContent() {
                   <AlertTitle>Sem grelha de tempos para o turno desta turma</AlertTitle>
                   <AlertDescription className="text-amber-800/90 dark:text-amber-300/90 flex flex-wrap items-center justify-between gap-3 mt-1">
                     <span>O turno <strong>{SHIFT_LABEL[SHIFT_OF[section.shift] ?? "manha"]}</strong> ainda não possui tempos de aula configurados.</span>
-                    <Button
+                    <Can permission="timetable:write"><Button
                       size="sm"
                       variant="outline"
                       className="h-7 text-xs border-amber-500/40 bg-background hover:bg-amber-500/15"
@@ -402,7 +406,7 @@ export function TimetablesPageContent() {
                     >
                       <Icon name="Plus" className="size-3.5 mr-1" />
                       Criar grelha para {SHIFT_LABEL[SHIFT_OF[section.shift] ?? "manha"]}
-                    </Button>
+                    </Button></Can>
                   </AlertDescription>
                 </Alert>
               )}

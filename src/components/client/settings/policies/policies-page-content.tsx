@@ -611,7 +611,7 @@ export function PoliciesPageContent() {
         <PolicyCard
           icon="Wallet"
           title="Regime Financeiro & Propinas"
-          hint="Prestações do ano letivo e agendamento de cobrança. Valores, tolerância e multas definem-se em Propinas › Planos."
+          hint="Prestações do ano letivo e agendamento de cobrança. Valores, tolerância e multas definem-se em Propinas › Tabelas de Preço."
           impact="Aplica-se às propinas geradas em novas matrículas. Faturas já emitidas não mudam."
           onEdit={() => edit("policy-finance")}
           rows={[

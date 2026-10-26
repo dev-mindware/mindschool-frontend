@@ -3,6 +3,14 @@ import { ApiMe, ApiSubscription, mapApiSubscription, mapApiUser } from "@/utils/
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import api from "./api";
 
+/** A API não respondeu (5xx ou sem rede): o utilizador pode continuar com sessão válida. */
+export class TemporaryServerError extends Error {
+  constructor() {
+    super("O servidor não respondeu.");
+    this.name = "TemporaryServerError";
+  }
+}
+
 let meInFlight: Promise<ApiMe> | null = null;
 
 /** `GET /auth/me` partilhado: vários componentes que o pedem ao mesmo tempo (menu, faixa, segurança) fazem um só pedido. */
@@ -31,6 +39,9 @@ export const authService = {
       return mapApiUser(response.data, schoolId, sub);
     } catch (error) {
       console.error("Erro ao obter o utilizador atual:", error);
+      // a API em baixo (5xx) ou sem rede não é uma sessão inválida: quem chama tenta de novo em vez de terminar a sessão
+      const status = (error as { response?: { status?: number } })?.response?.status;
+      if (status === undefined || status >= 500) throw new TemporaryServerError();
       return null;
     }
   },

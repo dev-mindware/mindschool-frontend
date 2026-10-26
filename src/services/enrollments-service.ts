@@ -6,7 +6,7 @@ import type { Enrollment, EnrollmentStatus } from "@/types";
 interface ApiEnrollment {
   id: string;
   school_id: string;
-  student: { id: string; full_name: string };
+  student: { id: string; full_name: string; process_number?: string | null };
   academic_year_id: string;
   section: { id: string; name: string; shift: string };
   class_level: { id: string; name: string; level_number: number };
@@ -31,7 +31,7 @@ const toEnrollment = (e: ApiEnrollment, yearName = ""): Enrollment => ({
   enrollmentNumber: e.id.slice(-8).toUpperCase(),
   studentId: e.student.id,
   studentName: e.student.full_name,
-  studentNumber: "",
+  studentNumber: e.student.process_number ?? "",
   academicYearId: e.academic_year_id,
   academicYear: yearName,
   sectionId: e.section.id,

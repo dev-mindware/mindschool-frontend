@@ -15,7 +15,7 @@ export function useTuition(searchQuery = "", statusFilter: TuitionStatus | "ALL"
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
 
-  const { data: fees = [], isLoading } = useQuery({
+  const { data: fees = [], isLoading, isError, refetch } = useQuery({
     queryKey: financeKeys.fees(schoolId),
     queryFn: () => tuitionService.fees(),
     enabled: Boolean(schoolId),
@@ -61,6 +61,8 @@ export function useTuition(searchQuery = "", statusFilter: TuitionStatus | "ALL"
     fees: paginated,
     allFees: filtered,
     isLoading,
+    isError,
+    refetch,
     summary,
     total,
     totalPages,

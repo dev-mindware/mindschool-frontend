@@ -13,7 +13,7 @@ interface PautasTableProps {
   onReopenPauta: (pauta: ConsolidatedPauta) => void;
 }
 
-const SHIFT_PT: Record<string, string> = { MORNING: 'Manhã', AFTERNOON: 'Tarde', EVENING: 'Noite', DIURNO: 'Diurno' };
+const SHIFT_PT: Record<string, string> = { MORNING: 'Manhã', AFTERNOON: 'Tarde', EVENING: 'Noite', DIURNO: 'Diurno', manha: 'Manhã', tarde: 'Tarde', noite: 'Noite', integral: 'Integral' };
 const uniq = (v: string[]) => [...new Set(v.filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt'));
 
 export function PautasTable({ pautas, toolbar, onViewPauta, onLockPauta, onReopenPauta }: PautasTableProps) {
@@ -55,7 +55,7 @@ export function PautasTable({ pautas, toolbar, onViewPauta, onLockPauta, onReope
                 : 'text-warning'
             }
           >
-            {item.averageClassScore.toFixed(1)}
+            {item.students.some((s) => Object.keys(s.subjects).length) ? item.averageClassScore.toFixed(1) : '—'}
           </span>
           <span className="text-[10px] text-muted-foreground font-normal">/ 20</span>
         </div>

@@ -280,6 +280,10 @@ test.describe.serial("Académico e Secretaria", () => {
     // anulada a matrícula, o aluno fica inativo e pode reativar-se (o aviso dizia que não era definitivo, mas não havia como)
     await page.goto("/students/list");
     await rowAction(page, await findRow(page, aluno), "Reativar aluno");
+    // reativar pede confirmação (antes agia logo)
+    const confirmar = page.getByRole("dialog").last();
+    await expect(confirmar).toContainText("Reativar aluno");
+    await confirmar.getByRole("button", { name: "Reativar", exact: true }).click();
     const reativado = await apiFind<{ full_name: string; status: string }>(page, "/students", (s) => s.full_name.startsWith(aluno) && s.status === "activo");
     expect(reativado, "aluno reativado na API").toBeTruthy();
   });

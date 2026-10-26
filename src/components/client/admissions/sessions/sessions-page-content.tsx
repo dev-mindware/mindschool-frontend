@@ -213,6 +213,8 @@ function EditSessionModal({ session }: { session: SessionRow | null }) {
 }
 
 type Row = { status: "presente" | "ausente"; score: string };
+/** Depois da decisão (aprovada, matriculada...) a nota da prova fica fechada: a API só aceita notas enquanto a candidatura está em avaliação. */
+const canEditScore = (applicationStatus?: string) => !applicationStatus || ["documentos_validados", "em_avaliacao"].includes(applicationStatus);
 
 function SessionModal({ id }: { id: string | null }) {
   const { session, register, putResults, accessToken } = useAdmissionSession(id ?? undefined);
@@ -292,7 +294,7 @@ function SessionModal({ id }: { id: string | null }) {
       score?: number;
     }>((r) => {
       const d = rows[r.application_id];
-      if (!d || r.status === "cancelado") return [];
+      if (!d || r.status === "cancelado" || !canEditScore(r.application_status)) return [];
       if (d.status === "ausente") return [{ application_id: r.application_id, status: "ausente" as const }];
       return d.score === "" ? [] : [{ application_id: r.application_id, status: "presente" as const, score: Number(d.score) }];
     });
@@ -502,7 +504,7 @@ function SessionModal({ id }: { id: string | null }) {
                                 min={0}
                                 max={20}
                                 step={0.5}
-                                disabled={cancelled}
+                                disabled={cancelled || !canEditScore(r.application_status)}
                                 placeholder="Ex: 14.5"
                                 value={d.score}
                                 onChange={(e) => {

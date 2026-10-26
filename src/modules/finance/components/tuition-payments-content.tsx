@@ -37,7 +37,7 @@ export function TuitionPaymentsContent() {
   // Propinas escolhidas para «Marcar como pago» (uma liquidação, uma fatura-recibo; têm de ser do mesmo aluno).
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [settling, setSettling] = useState<StudentTuitionFee[]>([]);
-  const { allFees, summary, isLoading, counts } = useTuition();
+  const { allFees, summary, isLoading, counts, isError } = useTuition();
 
   const { sendReminders } = useTuitionBilling();
   // Cobrança por e-mail é do Enterprise (ou add-on): no Essencial o botão nem aparece (a API responderia 402).
@@ -81,7 +81,7 @@ export function TuitionPaymentsContent() {
       render: (_, item) => (
         <div>
           <p className="font-semibold text-foreground text-xs">{item.studentName}</p>
-          <p className="text-[11px] text-muted-foreground">Enc: {item.guardianName}</p>
+          {item.guardianName && item.guardianName !== "—" ? <p className="text-[11px] text-muted-foreground">Enc: {item.guardianName}</p> : <p className="text-[11px] text-muted-foreground">Sem encarregado</p>}
         </div>
       ),
     },
@@ -310,8 +310,8 @@ export function TuitionPaymentsContent() {
           { value: "aluno", label: "Aluno", compare: (a, b) => a.studentName.localeCompare(b.studentName, "pt") },
           { value: "total", label: "Valor total", compare: (a, b) => a.totalAmount - b.totalAmount },
         ]}
-        emptyTitle="Nenhuma mensalidade encontrada"
-        emptyDescription="Ajuste os filtros para ver outras mensalidades."
+        emptyTitle={isError ? "Não foi possível carregar as mensalidades" : "Nenhuma mensalidade encontrada"}
+        emptyDescription={isError ? "Houve um erro no servidor, por isso os valores abaixo não são fiáveis. Atualize a página para tentar novamente." : "Ajuste os filtros para ver outras mensalidades."}
         emptyIcon="Wallet"
       />
 

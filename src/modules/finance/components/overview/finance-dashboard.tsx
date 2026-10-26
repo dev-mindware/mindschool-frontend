@@ -22,10 +22,14 @@ interface FinanceDashboardProps {
 
 /** Painel financeiro (padrão MindGest): métricas, gráficos e cartões de secção, alimentado por `/finance/overview`. */
 export function FinanceDashboard({ variant = "operations" }: FinanceDashboardProps) {
-  const { data, isLoading, isError } = useFinanceOverview();
+  const { data, isLoading, isError, error, refetch, isRefetching } = useFinanceOverview();
 
   if (isLoading) return <DashboardSkeleton />;
-  if (isError) return <EmptyState icon="Lock" title="Sem acesso aos indicadores" description="O seu perfil não pode consultar os indicadores financeiros." />;
+  if (isError) {
+    // 403 é do perfil; qualquer outra falha (503, rede) é do servidor e não se deve atribuir ao perfil
+    if ((error as { response?: { status?: number } } | null)?.response?.status === 403) return <EmptyState icon="Lock" title="Sem acesso aos indicadores" description="O seu perfil não pode consultar os indicadores financeiros." />;
+    return <EmptyState icon="TriangleAlert" title="Não foi possível carregar os indicadores" description="Houve um erro no servidor. Tente novamente dentro de instantes."><Button size="sm" variant="outline" disabled={isRefetching} onClick={() => void refetch()}>Tentar novamente</Button></EmptyState>;
+  }
   if (!data?.kpis) return <EmptyState icon="Wallet" title="Ainda sem dados financeiros" description="Quando houver faturas no ano letivo ativo, os indicadores aparecem aqui." />;
 
   const k = data.kpis;
@@ -36,7 +40,7 @@ export function FinanceDashboard({ variant = "operations" }: FinanceDashboardPro
       {variant === "operations" && <QuickActions open={sub?.open ?? 0} />}
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" data-tour="finance-summary">
-        <DynamicMetricCard title={formatCurrency(Number(k.billed))} subtitle="Faturado no ano" icon="Receipt" description={`${k.invoices_total} faturas · ${k.students_billed} alunos`} />
+        <DynamicMetricCard title={formatCurrency(Number(k.billed))} subtitle="Faturado no ano" icon="Receipt" description={`${k.invoices_total} cobranças · ${k.students_billed} alunos`} />
         <DynamicMetricCard title={formatCurrency(Number(k.collected))} subtitle="Cobrado" icon="Coins" description={k.collection_rate !== null ? `Taxa de cobrança ${k.collection_rate}%` : "Sem faturação"} />
         <DynamicMetricCard title={formatCurrency(Number(k.overdue_amount))} subtitle="Em atraso" icon="TriangleAlert" colors={n(k.overdue_amount) > 0 ? "destructive" : "default"} description={`${k.overdue_count} faturas · ${k.students_with_debt} alunos devedores`} />
         <DynamicMetricCard title={sub?.open ?? 0} subtitle="Comprovativos por validar" icon="FileCheck" description={sub?.avg_review_hours != null ? `Validação média em ${sub.avg_review_hours} h` : "Pagamentos enviados pelas famílias"} />

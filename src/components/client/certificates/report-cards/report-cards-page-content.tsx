@@ -2,6 +2,7 @@
 
 import { TermsMissingBanner } from "@/components/client/grades/terms-missing-banner";
 import { useState } from "react";
+import { useSearchParams } from "next/navigation";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { StudentSelect } from "@/components/shared/filters/student-select";
 import { Can, Badge, Button, ButtonOnlyAction, DataList, FormModal, FormSelect, Icon, TitleList, type Column } from "@/components";
@@ -14,11 +15,11 @@ import { lastTerm } from "@/lib/terms";
 
 type Doc = ReturnType<typeof useCertificates>["documents"][number];
 
-function IssueBoletimModal() {
+function IssueBoletimModal({ initialStudentId = "" }: { initialStudentId?: string }) {
   const { students } = useStudents("");
   const { data: terms = [] } = useGradeTerms();
   const { issue } = useCertificates();
-  const [studentId, setStudentId] = useState("");
+  const [studentId, setStudentId] = useState(initialStudentId);
   const [termId, setTermId] = useState("last");
 
   return (
@@ -36,7 +37,9 @@ function IssueBoletimModal() {
 export function ReportCardsPageContent() {
   const { documents } = useCertificates();
   const { openModal } = useModal();
-  const boletins = documents.filter((d) => d.documentType === "DECLARATION_WITH_GRADES");
+  // vindo de Transições › Ver Boletim: lista só os boletins desse aluno e pré-seleciona-o ao emitir
+  const studentFilter = useSearchParams().get("studentId") ?? "";
+  const boletins = documents.filter((d) => d.documentType === "DECLARATION_WITH_GRADES" && (!studentFilter || d.studentId === studentFilter));
 
   const columns: Column<Doc>[] = [
     { key: "documentNumber", header: "N.º", render: (_, d) => <Badge variant="outline" className="font-mono">{d.documentNumber}</Badge> },
@@ -71,6 +74,7 @@ export function ReportCardsPageContent() {
   return (
     <div className="space-y-6">
       <TermsMissingBanner />
+      {studentFilter && <p role="note" className="rounded-lg border bg-muted/40 p-2.5 text-xs">A mostrar só os boletins de um aluno. <a className="underline" href="/certificates/report-cards">Ver todos</a></p>}
       <TitleList title="Boletins de Notas" suTitle="Emissão do boletim oficial por aluno e período; só se emite com a pauta fechada.">
         <Can permission="document:issue"><Button size="sm" className="gap-2" onClick={() => openModal("boletim-issue")}><Icon name="FilePlus" className="size-4" />Emitir boletim</Button></Can>
       </TitleList>
@@ -88,7 +92,7 @@ export function ReportCardsPageContent() {
         emptyIcon="FileText"
       />
 
-      <IssueBoletimModal />
+      <IssueBoletimModal initialStudentId={studentFilter} />
     </div>
   );
 }

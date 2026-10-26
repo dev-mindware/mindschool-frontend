@@ -52,7 +52,6 @@ export async function downloadElementAsPdf(
     },
   });
 
-  const imgData = canvas.toDataURL("image/png");
   const pdf = new jsPDF(orientation === "landscape" ? "l" : "p", "mm", options.format || "a4");
 
   const pageWidth = orientation === "landscape" ? 297 : 210;
@@ -63,18 +62,25 @@ export async function downloadElementAsPdf(
   const targetHeight = (canvas.height * targetWidth) / canvas.width;
   const availableHeight = pageHeight - margin * 2;
 
+  // JPEG (e não PNG) e uma fatia da imagem por página: antes cada página repetia a imagem inteira e o ficheiro chegava a 12 MB
+  const JPEG_QUALITY = 0.9;
   if (targetHeight <= availableHeight) {
-    pdf.addImage(imgData, "PNG", margin, margin, targetWidth, targetHeight);
+    pdf.addImage(canvas.toDataURL("image/jpeg", JPEG_QUALITY), "JPEG", margin, margin, targetWidth, targetHeight, undefined, "FAST");
   } else {
-    let position = 0;
-    let remainingHeight = targetHeight;
-    while (remainingHeight > 0) {
-      if (position > 0) {
-        pdf.addPage(options.format || "a4", orientation === "landscape" ? "l" : "p");
-      }
-      pdf.addImage(imgData, "PNG", margin, margin - position, targetWidth, targetHeight);
-      position += availableHeight;
-      remainingHeight -= availableHeight;
+    const pxPerMm = canvas.width / targetWidth;
+    const slicePx = Math.floor(availableHeight * pxPerMm);
+    for (let offsetPx = 0, page = 0; offsetPx < canvas.height; offsetPx += slicePx, page += 1) {
+      const heightPx = Math.min(slicePx, canvas.height - offsetPx);
+      const slice = document.createElement("canvas");
+      slice.width = canvas.width;
+      slice.height = heightPx;
+      const ctx = slice.getContext("2d");
+      if (!ctx) throw new Error("Não foi possível preparar a página do PDF.");
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, slice.width, slice.height);
+      ctx.drawImage(canvas, 0, offsetPx, canvas.width, heightPx, 0, 0, canvas.width, heightPx);
+      if (page > 0) pdf.addPage(options.format || "a4", orientation === "landscape" ? "l" : "p");
+      pdf.addImage(slice.toDataURL("image/jpeg", JPEG_QUALITY), "JPEG", margin, margin, targetWidth, heightPx / pxPerMm, undefined, "FAST");
     }
   }
 

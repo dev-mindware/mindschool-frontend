@@ -15,6 +15,8 @@ interface TransitionsExportModalProps {
   sectionName: string;
   classLevel: string;
   shift: string;
+  /** Data do conselho final encerrado a que a ata se refere. */
+  councilDate?: string;
   students: ConsolidatedStudentRow[];
   stats: {
     directApproval: number;
@@ -29,6 +31,7 @@ export function TransitionsExportModal({
   sectionName,
   classLevel,
   shift,
+  councilDate,
   students,
   stats,
 }: TransitionsExportModalProps) {
@@ -127,7 +130,7 @@ export function TransitionsExportModal({
 
             {/* 3. TERMO DE REUNIÃO FORMAL */}
             <div className="mt-3.5 text-justify text-[11px] leading-relaxed text-black indent-6">
-              Aos {formatDate(new Date())}, nas instalações da instituição escolar <strong>{profile.schoolName || "Colégio Privado MindSchool"}</strong>, reuniu-se em plenário extraordinário o Conselho de Docentes e Equipa Pedagógica da turma <strong>{sectionName}</strong>, sob a presidência da Direção Geral. A sessão teve como finalidade exclusiva a verificação minuciosa do rendimento académico final, a conferência das médias globais e a deliberação soberana sobre a transição de classe dos estudantes, aplicando com total rigor os critérios estabelecidos pelo <strong>Decreto Executivo n.º 424/25</strong> e as faculdades concedidas pelo regime de exceções do Artigo 24.º para o ensino secundário geral.
+              Aos {formatDate(councilDate ?? new Date())}, nas instalações da instituição escolar <strong>{profile.schoolName || "Colégio Privado MindSchool"}</strong>, reuniu-se o Conselho de Docentes e Equipa Pedagógica da turma <strong>{sectionName}</strong>, sob a presidência da Direção Geral. A sessão teve como finalidade exclusiva a verificação minuciosa do rendimento académico final, a conferência das médias globais e a deliberação soberana sobre a transição de classe dos estudantes, aplicando com total rigor os critérios estabelecidos pelo <strong>Decreto Executivo n.º 424/25</strong> e as faculdades concedidas pelo regime de exceções do Artigo 24.º para o ensino secundário geral.
             </div>
 
             {/* 4. TABELA FORMAL DE DELIBERAÇÕES */}
@@ -160,7 +163,7 @@ export function TransitionsExportModal({
                           {idx + 1}
                         </td>
                         <td className="border-r border-black py-1 px-1 text-center font-mono text-[10px] text-black/80">
-                          {student.studentNumber || `P-${1000 + idx + 1}`}
+                          {student.studentNumber || "—"}
                         </td>
                         <td className="border-r border-black py-1 px-2 font-semibold text-[11px] uppercase tracking-tight text-black">
                           {student.studentName}

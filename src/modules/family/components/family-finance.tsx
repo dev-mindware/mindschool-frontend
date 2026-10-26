@@ -105,7 +105,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
         {!st ? <p className="text-sm text-muted-foreground">{statement.isLoading ? "A carregar…" : "Sem dados para este ano."}</p> : (
           <>
             <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
-              <DynamicMetricCard title={formatCurrency(st.billed)} subtitle="Faturado" icon="FileText" description={`${st.invoices} faturas em ${st.year}`} />
+              <DynamicMetricCard title={formatCurrency(st.billed)} subtitle="Faturado" icon="FileText" description={`${st.invoices} cobranças em ${st.year}`} />
               <DynamicMetricCard title={formatCurrency(st.paid)} subtitle="Pago" icon="CircleCheck" description="Recebido pela escola" />
               <DynamicMetricCard title={formatCurrency(st.outstanding)} subtitle="Em dívida" icon="TriangleAlert" colors={Number(st.outstanding) > 0 ? "destructive" : "default"} description="Por liquidar" />
               <DynamicMetricCard title={formatCurrency(st.late_fees)} subtitle="Multas de mora" icon="Clock" description="Incluídas no faturado" />

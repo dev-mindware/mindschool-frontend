@@ -1,6 +1,8 @@
 "use client";
 
+import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { currentTerm } from "@/lib/current-term";
 import { GradeField, GradeState, gradesService } from "@/services/grades-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { AssessmentTerm } from "@/types/grade";
@@ -40,4 +42,10 @@ export function useGradeSheet(sectionId?: string, subjectId?: string, term?: Ass
 export function useGradeTerms() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   return useQuery({ queryKey: ["terms", schoolId], queryFn: () => gradesService.terms(), enabled: Boolean(schoolId), staleTime: 5 * 60 * 1000 });
+}
+
+/** Trimestre em curso, usado como valor inicial dos seletores de notas e pautas. */
+export function useCurrentTerm(): AssessmentTerm {
+  const { data: terms = [] } = useGradeTerms();
+  return useMemo(() => currentTerm(terms), [terms]);
 }

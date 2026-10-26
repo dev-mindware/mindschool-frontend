@@ -74,6 +74,7 @@ export const gradesService = {
     const marks = new Map(pauta.rows.map((r) => [r.enrollment_id, r.marks[assignment.id]]));
     const enrollments = (await enrollmentsService.list()).filter((e) => e.sectionId === sectionId && e.status === "ACTIVE");
     const roster = enrollments.map((e) => [e.id, { full_name: e.studentName }] as const);
+    const numbers = new Map(enrollments.map((e) => [e.id, e.studentNumber] as const));
 
     const entries: StudentGradeEntry[] = roster.map(([enrollmentId, st]) => {
       const m = marks.get(enrollmentId);
@@ -81,7 +82,7 @@ export const gradesService = {
         id: enrollmentId,
         studentId: enrollmentId, // as notas identificam-se pela MATRICULA
         studentName: st.full_name,
-        studentNumber: "",
+        studentNumber: numbers.get(enrollmentId) ?? "",
         continuousAssessment: num(grades.get("continuousAssessment")?.get(enrollmentId)?.numeric_value),
         teacherTest: num(grades.get("teacherTest")?.get(enrollmentId)?.numeric_value),
         termExam: num(grades.get("termExam")?.get(enrollmentId)?.numeric_value),

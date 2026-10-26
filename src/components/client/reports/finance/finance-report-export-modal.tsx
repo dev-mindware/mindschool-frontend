@@ -67,9 +67,10 @@ export function FinanceReportExportModal({ isOpen, onClose }: FinanceReportExpor
     }));
   }, [allFees, calendar.yearStartDate]);
 
-  const totalExpected = summary.totalExpectedAmount || monthlyData.reduce((acc, m) => acc + m.expected, 0);
-  const totalCollected = summary.totalCollectedAmount || monthlyData.reduce((acc, m) => acc + m.collected, 0);
-  const totalPending = summary.totalPendingAmount || totalExpected - totalCollected;
+  // os totais saem das mesmas linhas que o quadro mostra: o resumo da API não conta as mensalidades em atraso como pendentes
+  const totalExpected = monthlyData.reduce((acc, m) => acc + m.expected, 0) || summary.totalExpectedAmount;
+  const totalCollected = monthlyData.reduce((acc, m) => acc + m.collected, 0) || summary.totalCollectedAmount;
+  const totalPending = totalExpected - totalCollected;
   const collectionRate = summary.collectionRatePercent || (totalExpected > 0 ? Math.round((totalCollected / totalExpected) * 100) : 0);
 
   const handleDownload = async () => {

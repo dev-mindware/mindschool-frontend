@@ -81,7 +81,7 @@ export interface ConsolidatedPauta {
   missingGradesCount: number;
   averageClassScore: number;
   approvalRate: number; // percentage
-  subjects?: Array<{ id: string; name: string; sectionSubjectId: string }>;
+  subjects?: Array<{ id: string; name: string; code?: string; sectionSubjectId: string }>;
 }
 
 export interface PautaAuditEntry {

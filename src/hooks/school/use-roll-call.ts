@@ -7,7 +7,7 @@ import type { AttendanceStatus } from "@/types";
 
 interface ApiRow {
   enrollment_id: string;
-  student: { id: string; full_name: string; gender?: "M" | "F" | null };
+  student: { id: string; full_name: string; gender?: "M" | "F" | null; process_number?: string | null };
   attendance_id: string | null;
   status: "presente" | "atraso" | "falta_justificada" | "falta_injustificada" | null;
   justification: string | null;
@@ -48,7 +48,7 @@ export function useRollCall(sectionId: string, sectionSubjectId: string | undefi
       (await api.get<{ data: ApiRow[] }>(url)).data.data.map((r, i) => ({
         id: r.enrollment_id,
         name: r.student.full_name,
-        number: String(i + 1).padStart(2, "0"),
+        number: r.student.process_number ?? "",
         gender: r.student.gender === "F" ? "F" : "M",
         status: r.status ? FROM_API[r.status] : undefined,
         notes: r.justification ?? undefined,

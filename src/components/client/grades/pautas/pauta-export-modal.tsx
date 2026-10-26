@@ -28,7 +28,7 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
   const displayYear = pauta.academicYear || calendar.academicYear || "";
   const displayClassLevel = pauta.classLevel || "7.ª Classe";
   const displaySection = pauta.sectionName || "Turma A";
-  const displayShift = pauta.shift || "Manhã";
+  const displayShift = ({ manha: "Manhã", tarde: "Tarde", noite: "Noite", integral: "Integral" } as Record<string, string>)[pauta.shift] ?? (pauta.shift || "—");
   const termName = TERM_LABEL[pauta.term] || "Período Letivo";
 
   // Estatísticas oficiais
@@ -165,7 +165,7 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
                           title={subj.name}
                         >
                           <div className="truncate max-w-[65px] mx-auto text-[10px]">
-                            {subj.name.slice(0, 4).toUpperCase()}
+                            {(subj.code ?? subj.name.slice(0, 4)).toUpperCase()}
                           </div>
                         </th>
                       ))
@@ -213,7 +213,7 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
 
                         {/* N.º Processo */}
                         <td className="border-r border-black py-1.5 px-1 text-center font-mono text-[10px] text-black/80">
-                          {student.studentNumber || `P-${1000 + idx + 1}`}
+                          {student.studentNumber || "—"}
                         </td>
 
                         {/* Nome do Estudante */}
@@ -239,7 +239,7 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
 
                         {/* Média MT */}
                         <td className="border-r border-black py-1.5 px-1 text-center font-mono font-bold text-[11px] bg-slate-100/60">
-                          {student.termAverageTotal.toFixed(1)}
+                          {Object.keys(student.subjects).length ? student.termAverageTotal.toFixed(1) : "—"}
                         </td>
 
                         {/* Deficiências */}
@@ -309,7 +309,7 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
                 </div>
                 <div>
                   <span className="block text-[9px] text-black/70 uppercase">Média da Turma</span>
-                  <span className="font-black text-sm">{(pauta.averageClassScore ?? 0).toFixed(1)} / 20</span>
+                  <span className="font-black text-sm">{pauta.students.some((s) => Object.keys(s.subjects).length) ? `${(pauta.averageClassScore ?? 0).toFixed(1)} / 20` : "—"}</span>
                 </div>
               </div>
             </div>

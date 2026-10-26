@@ -6,6 +6,7 @@ import { Icon } from "@/components/common/icon";
 import { GlobalModal } from "@/components/modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { cn } from "@/lib/utils";
 
@@ -57,14 +58,19 @@ export function FormModal({
 }: FormModalProps) {
   const { open, closeModal } = useModal();
   const formId = useId();
+  // «Cancelar» num formulário já mexido pede confirmação (os dados perdiam-se sem aviso)
+  const [dirty, setDirty] = useState(false);
+  const [askDiscard, setAskDiscard] = useState(false);
   if (!open[id]) return null;
 
-  const close = () => { onClose?.(); closeModal(id); };
+  const close = () => { setDirty(false); setAskDiscard(false); onClose?.(); closeModal(id); };
+  const cancel = () => (dirty && !readOnly ? setAskDiscard(true) : close());
   const submit = async (e?: FormEvent) => {
     e?.preventDefault();
     try {
       await onSubmit();
-      if (!keepOpen) close();
+      // um modal só de leitura não "submete": os botões de ação lá dentro não o fecham (e não apagam o que se escreveu)
+      if (!keepOpen && !readOnly) close();
     } catch {
       /* o erro já é mostrado pela mutação (toast); o modal mantém-se aberto */
     }
@@ -86,7 +92,7 @@ export function FormModal({
       size={SIZE[size]}
       footer={
         <>
-          <Button type="button" variant="outline" className="w-max" onClick={close}>{readOnly ? "Fechar" : "Cancelar"}</Button>
+          <Button type="button" variant="outline" className="w-max" onClick={cancel}>{readOnly ? "Fechar" : "Cancelar"}</Button>
           {!readOnly && (
             isPdfDownloadModal ? (
               <PrintDownloadDropdown
@@ -104,7 +110,19 @@ export function FormModal({
         </>
       }
     >
-      <form id={formId} onSubmit={submit} className="grid gap-4 sm:grid-cols-2">{children}</form>
+      <form id={formId} onSubmit={submit} onInput={() => setDirty(true)} className="grid gap-4 sm:grid-cols-2">{children}</form>
+      <AlertDialog open={askDiscard} onOpenChange={setAskDiscard}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Descartar os dados preenchidos?</AlertDialogTitle>
+            <AlertDialogDescription>Os dados que já escreveu neste formulário perdem-se.</AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Continuar a preencher</AlertDialogCancel>
+            <AlertDialogAction onClick={close}>Descartar</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </GlobalModal>
   );
 }
@@ -126,7 +144,7 @@ export function FormSelect({ label, value, onValueChange, options, placeholder =
     <div className={cn("flex flex-col gap-1.5", className)}>
       <label className="text-sm font-medium">{label}</label>
       <Select value={value ?? ""} onValueChange={onValueChange} disabled={disabled}>
-        <SelectTrigger className="h-10 w-full"><SelectValue placeholder={placeholder} /></SelectTrigger>
+        <SelectTrigger className="h-10 w-full" aria-label={label || placeholder}><SelectValue placeholder={placeholder} /></SelectTrigger>
         <SelectContent>
           {options.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
         </SelectContent>

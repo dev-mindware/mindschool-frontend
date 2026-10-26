@@ -1,5 +1,6 @@
 'use client';
 
+import { useCurrentTerm } from '@/hooks/school/use-grades';
 import { TermsMissingBanner } from "../terms-missing-banner";
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
@@ -22,7 +23,9 @@ const TERMS: { value: AssessmentTerm; label: string }[] = [
 
 export function PautasPageContent() {
   const { isTeacher, mySections: sections, isLoading: isScopeLoading } = useTeachingScope();
-  const [selectedTerm, setSelectedTerm] = useState<AssessmentTerm>('TRIMESTER_2');
+  const currentTermNow = useCurrentTerm();
+  const [pickedTerm, setSelectedTerm] = useState<AssessmentTerm | null>(null);
+  const selectedTerm = pickedTerm ?? currentTermNow;
   const sectionIds = useMemo(() => sections.map((s) => s.id), [sections]);
   const { pautas: allPautas } = usePautas(selectedTerm, sectionIds);
   // O livro de auditoria vem da API de auditoria (ainda nao ligada nesta vista).

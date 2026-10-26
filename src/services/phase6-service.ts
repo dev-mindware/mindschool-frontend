@@ -103,7 +103,7 @@ export interface ApiSessionSummary {
 }
 
 export interface ApiSessionDetail extends ApiSessionSummary {
-  registrations: Array<{ application_id: string; candidate: string; document_number: string; status: string; registered_via: string; score: number | null }>;
+  registrations: Array<{ application_id: string; candidate: string; document_number: string; status: string; registered_via: string; score: number | null; application_status?: string }>;
 }
 
 export const phase6Service = {

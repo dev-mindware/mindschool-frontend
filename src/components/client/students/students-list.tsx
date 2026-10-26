@@ -64,7 +64,7 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent, on
       render: (_, s) => (
         <ButtonOnlyAction data={s} actions={[
           { label: "Ver ficha", icon: "Eye", onClick: (x) => { setSelected(x); setDetailsOpen(true); } },
-          { label: "Cartão de Estudante", icon: "CreditCard", onClick: (x) => { if (!x.currentSectionName) { ErrorMessage("Este aluno ainda não tem matrícula. Matricule-o antes de emitir o cartão de estudante."); return; } setCardStudent(x); setCardOpen(true); } },
+          { label: "Cartão de Estudante", icon: "CreditCard", onClick: (x) => { if (x.apiStatus === "inactivo") { ErrorMessage("Este aluno está inativo: reative-o antes de emitir o cartão de estudante."); return; } if (!x.currentSectionName) { ErrorMessage("Este aluno ainda não tem matrícula. Matricule-o antes de emitir o cartão de estudante."); return; } setCardStudent(x); setCardOpen(true); } },
           { permission: "student:write", label: "Convidar (Acesso)", icon: "Mail", onClick: (x) => setInvitingStudent(x) },
           { permission: "student:write", label: "Editar", icon: "Pencil", onClick: (x) => { setEditing(x); setEditOpen(true); } },
           // só se desativa um aluno ativo: o estado dos pendentes e concluídos resulta da matrícula (a API recusa)
@@ -108,7 +108,7 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent, on
         onClose={() => setDetailsOpen(false)}
         student={selected}
         onEdit={(s) => { setEditing(s); setEditOpen(true); }}
-        onOpenCard={(s) => { if (!s.currentSectionName) { ErrorMessage("Este aluno ainda não tem matrícula. Matricule-o antes de emitir o cartão de estudante."); return; } setCardStudent(s); setCardOpen(true); }}
+        onOpenCard={(s) => { if (s.apiStatus === "inactivo") { ErrorMessage("Este aluno está inativo: reative-o antes de emitir o cartão de estudante."); return; } if (!s.currentSectionName) { ErrorMessage("Este aluno ainda não tem matrícula. Matricule-o antes de emitir o cartão de estudante."); return; } setCardStudent(s); setCardOpen(true); }}
       />
       <StudentModal isOpen={editOpen} onClose={() => setEditOpen(false)} studentToEdit={editing} />
       <StudentIdCardModal

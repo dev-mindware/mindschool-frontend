@@ -12,7 +12,7 @@ import {
   EmptyState,
 } from "@/components";
 import { useTeachingScope } from "@/hooks/school/use-teaching-scope";
-import { useGradeSheet } from "@/hooks/school/use-grades";
+import { useGradeSheet, useCurrentTerm } from "@/hooks/school/use-grades";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { useQuery } from "@tanstack/react-query";
 import { readRawSettings } from "@/services/school-settings-service";
@@ -32,7 +32,9 @@ export function GradesPageContent() {
 
   const [pickedSectionId, setSelectedSectionId] = useState<string>("");
   const [pickedSubjectId, setSelectedSubjectId] = useState<string>("");
-  const [selectedTerm, setSelectedTerm] = useState<AssessmentTerm>("TRIMESTER_2");
+  const currentTermNow = useCurrentTerm();
+  const [pickedTerm, setSelectedTerm] = useState<AssessmentTerm | null>(null);
+  const selectedTerm = pickedTerm ?? currentTermNow;
 
   const selectedSectionId = useMemo(() => {
     if (pickedSectionId && sections.some((s) => s.id === pickedSectionId)) {
