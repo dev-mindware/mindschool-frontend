@@ -5,7 +5,7 @@ import { familyKeys } from "@/modules/family/query-keys";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ErrorMessage } from "@/utils/messages";
-import { Badge, ButtonOnlyAction, DataList, DynamicMetricCard, EmptyState, FormSelect, SimpleTable, Tabs, TabsContent, TabsList, TabsTrigger, type Column } from "@/components";
+import { Badge, ButtonOnlyAction, DataList, DynamicMetricCard, EmptyState, FormSelect, GenericTable, Tabs, TabsContent, TabsList, TabsTrigger, type Column } from "@/components";
 import { PortalPayments } from "@/modules/family/components/portal-payments";
 import { METHOD_LABEL } from "@/modules/finance/components/submissions/submission-status";
 import { usePortal } from "@/modules/family/hooks/use-portal";
@@ -111,14 +111,13 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
               <DynamicMetricCard title={formatCurrency(st.late_fees)} subtitle="Multas de mora" icon="Clock" description="Incluídas no faturado" />
             </div>
             {st.months.length === 0 ? <EmptyState icon="FileText" title="Sem movimentos" description={`Não há faturas com vencimento em ${st.year}.`} /> : (
-              <SimpleTable
-                rows={st.months}
-                rowKey={(m) => m.month}
+              <GenericTable
+                data={st.months.map((m) => ({ ...m, id: m.month }))}
                 columns={[
-                  { header: "Mês", className: "capitalize", render: (m) => month(m.month) },
-                  { header: "Faturado", align: "right", className: "tabular-nums", render: (m) => formatCurrency(m.billed) },
-                  { header: "Pago", align: "right", className: "tabular-nums", render: (m) => formatCurrency(m.paid) },
-                  { header: "Em dívida", align: "right", className: "font-semibold tabular-nums", render: (m) => <span className={Number(m.outstanding) > 0 ? "text-destructive" : ""}>{formatCurrency(m.outstanding)}</span> },
+                  { key: "month", header: "Mês", className: "capitalize", render: (_, m) => month(m.month) },
+                  { key: "billed", header: "Faturado", className: "text-right tabular-nums", render: (_, m) => formatCurrency(m.billed) },
+                  { key: "paid", header: "Pago", className: "text-right tabular-nums", render: (_, m) => formatCurrency(m.paid) },
+                  { key: "outstanding", header: "Em dívida", className: "text-right font-semibold tabular-nums", render: (_, m) => <span className={Number(m.outstanding) > 0 ? "text-destructive" : ""}>{formatCurrency(m.outstanding)}</span> },
                 ]}
               />
             )}

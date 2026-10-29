@@ -28,7 +28,7 @@ export function TermsMissingBanner() {
 
   if (!year.data || terms.isLoading || (terms.data?.length ?? 0) > 0) return null;
   return (
-    <div role="alert" className="flex flex-wrap items-center gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
+    <div role="alert" className="flex flex-wrap items-center gap-3 rounded-xs border border-amber-500/40 bg-amber-500/10 p-3 text-sm">
       <Icon name="TriangleAlert" className="size-5 shrink-0 text-amber-600" />
       <p className="min-w-0 flex-1">
         <strong>O ano letivo {year.data.name} ainda não tem trimestres.</strong> Sem eles não se lançam notas, pautas nem boletins.

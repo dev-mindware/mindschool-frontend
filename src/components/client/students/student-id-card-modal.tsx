@@ -1,15 +1,8 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-} from "@/components/ui/dialog";
+import { GlobalModal, Icon, Skeleton, Tabs, TabsList, TabsTrigger } from "@/components";
 import { Button } from "@/components/ui/button";
-import { Icon } from "@/components";
 import { studentsService, type StudentCardPreviewData } from "@/services/students-service";
 import { toast } from "sonner";
 import QRCode from "qrcode";
@@ -82,67 +75,81 @@ export function StudentIdCardModal({
   };
 
   const palette = data?.palette ?? {
-    primary: "#4f46e5",
-    dark: "#1e1b4b",
-    medium: "#4338ca",
-    light: "#c7d2fe",
-    pastel: "#e0e7ff",
-    accent: "#6366f1",
+    primary: "#9956f6",
+    dark: "#3b1768",
+    medium: "#7c3aed",
+    light: "#ddd6fe",
+    pastel: "#f3e8ff",
+    accent: "#9956f6",
     textDark: "#111827",
     textMuted: "#6b7280",
     cardBg: "#ffffff",
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-[440px] p-0 overflow-hidden bg-background border shadow-2xl rounded-2xl">
-        <DialogHeader className="p-4 pb-2 border-b">
-          <div className="flex items-center justify-between">
-            <DialogTitle className="text-base font-semibold flex items-center gap-2">
-              <Icon name="CreditCard" className="w-4 h-4 text-primary" />
-              Cartão de Estudante
-            </DialogTitle>
-            {data?.school.primaryColor && (
-              <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border bg-muted/40">
-                <span
-                  className="w-2.5 h-2.5 rounded-full border border-black/10 inline-block"
-                  style={{ backgroundColor: data.school.primaryColor }}
-                />
-                <span className="font-mono text-muted-foreground">{data.school.primaryColor}</span>
-              </div>
+    <GlobalModal
+      isOpen={isOpen}
+      onClose={onClose}
+      canClose
+      size="xl"
+      title={
+        <span className="flex items-center gap-2">
+          <Icon name="CreditCard" className="w-4 h-4 text-primary" />
+          Cartão de Estudante
+        </span>
+      }
+      description={`${studentName} • ${data?.school.name || "MindSchool"}`}
+      headerExtra={
+        data?.school.primaryColor ? (
+          <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border bg-muted/40">
+            <span
+              className="w-2.5 h-2.5 rounded-full border border-black/10 inline-block"
+              style={{ backgroundColor: data.school.primaryColor }}
+            />
+            <span className="font-mono text-muted-foreground">{data.school.primaryColor}</span>
+          </div>
+        ) : undefined
+      }
+      footer={
+        <>
+          <Button variant="outline" size="sm" onClick={onClose} disabled={downloading}>
+            Fechar
+          </Button>
+          <Button
+            size="sm"
+            onClick={handleDownloadPdf}
+            disabled={loading || downloading}
+            className="gap-2"
+            style={{ backgroundColor: palette.primary || "var(--primary)" }}
+          >
+            {downloading ? (
+              <>
+                <Icon name="Loader2" className="w-4 h-4 animate-spin" />
+                A descarregar...
+              </>
+            ) : (
+              <>
+                <Icon name="Download" className="w-4 h-4" />
+                Descarregar PDF Oficial
+              </>
             )}
-          </div>
-          <DialogDescription className="text-xs text-muted-foreground">
-            {studentName} • {data?.school.name || "MindSchool"}
-          </DialogDescription>
-        </DialogHeader>
-
+          </Button>
+        </>
+      }
+    >
+      <div className="space-y-4">
         {/* Alternador de Face: Frente / Verso */}
-        <div className="px-4 pt-3 flex items-center justify-between">
-          <div className="inline-flex rounded-lg border bg-muted/30 p-0.5 text-xs">
-            <button
-              type="button"
-              onClick={() => setActiveSide("front")}
-              className={`px-3 py-1 rounded-md font-medium transition-all ${
-                activeSide === "front"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Frente
-            </button>
-            <button
-              type="button"
-              onClick={() => setActiveSide("back")}
-              className={`px-3 py-1 rounded-md font-medium transition-all ${
-                activeSide === "back"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              }`}
-            >
-              Verso
-            </button>
-          </div>
+        <div className="flex items-center justify-between">
+          <Tabs value={activeSide} onValueChange={(v) => setActiveSide(v as "front" | "back")}>
+            <TabsList className="h-8">
+              <TabsTrigger value="front" className="text-xs px-3">
+                Frente
+              </TabsTrigger>
+              <TabsTrigger value="back" className="text-xs px-3">
+                Verso
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
           <div className="text-[11px] text-muted-foreground flex items-center gap-1">
             <Icon name="Sparkles" className="w-3 h-3 text-amber-500" />
@@ -151,15 +158,22 @@ export function StudentIdCardModal({
         </div>
 
         {/* Área do Cartão com aspecto CR80 (280x443px) */}
-        <div className="p-4 flex items-center justify-center bg-slate-50/60 dark:bg-zinc-950/40">
+        <div className="p-4 flex items-center justify-center rounded-xs bg-muted/30">
           {loading ? (
-            <div className="w-[280px] h-[443px] flex flex-col items-center justify-center gap-2 rounded-xl border bg-white shadow-md animate-pulse">
-              <Icon name="Loader2" className="w-6 h-6 animate-spin text-muted-foreground" />
-              <span className="text-xs text-muted-foreground font-medium">A compor cartão...</span>
+            <div className="w-[280px] h-[443px] flex flex-col items-center justify-center gap-3 rounded-xs border border-border bg-card shadow-md p-6">
+              <Skeleton className="size-16 rounded-full" />
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-3 w-20" />
+              <div className="w-full space-y-2 pt-6">
+                <Skeleton className="h-3 w-full" />
+                <Skeleton className="h-3 w-4/5" />
+                <Skeleton className="h-3 w-2/3" />
+              </div>
+              <Skeleton className="size-16 rounded-xs mt-auto" />
             </div>
           ) : (
             <div
-              className="relative w-[280px] h-[443px] rounded-xl overflow-hidden border border-slate-200 shadow-xl select-none"
+              className="relative w-[280px] h-[443px] rounded-xs overflow-hidden border border-slate-200 shadow-xl select-none"
               style={{ backgroundColor: palette.cardBg }}
             >
               {/* ========================================================= */}
@@ -283,7 +297,7 @@ export function StudentIdCardModal({
                   <div className="mt-3 flex items-center justify-center gap-3 pl-3">
                     {/* Moldura da Foto */}
                     <div
-                      className="w-[112px] h-[138px] rounded-md overflow-hidden border shadow-sm flex items-center justify-center bg-white"
+                      className="w-[112px] h-[138px] rounded-xs overflow-hidden border shadow-sm flex items-center justify-center bg-white"
                       style={{ borderColor: palette.light }}
                     >
                       {data?.student.photoUrl ? (
@@ -443,7 +457,7 @@ export function StudentIdCardModal({
                   {/* QR Code de Validação */}
                   <div className="flex flex-col items-center justify-center my-auto py-2">
                     <div
-                      className="w-24 h-24 p-1.5 rounded-lg border bg-white shadow-sm flex items-center justify-center"
+                      className="w-24 h-24 p-1.5 rounded-xs border bg-white shadow-sm flex items-center justify-center"
                       style={{ borderColor: palette.light }}
                     >
                       {qrUrl ? (
@@ -495,34 +509,7 @@ export function StudentIdCardModal({
             </div>
           )}
         </div>
-
-        {/* Rodapé com Ações */}
-        <div className="p-4 border-t bg-card/60 flex items-center justify-between gap-2">
-          <Button variant="outline" size="sm" onClick={onClose} disabled={downloading}>
-            Fechar
-          </Button>
-
-          <Button
-            size="sm"
-            onClick={handleDownloadPdf}
-            disabled={loading || downloading}
-            className="gap-2 shadow-sm"
-            style={{ backgroundColor: palette.primary }}
-          >
-            {downloading ? (
-              <>
-                <Icon name="Loader2" className="w-4 h-4 animate-spin" />
-                A descarregar...
-              </>
-            ) : (
-              <>
-                <Icon name="Download" className="w-4 h-4" />
-                Descarregar PDF Oficial
-              </>
-            )}
-          </Button>
-        </div>
-      </DialogContent>
-    </Dialog>
+      </div>
+    </GlobalModal>
   );
 }

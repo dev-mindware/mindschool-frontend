@@ -3,9 +3,10 @@ import { useCan } from "@/hooks/auth/use-can";
 import { ScoreCell } from "./score-cell";
 import { formatDate } from "@/utils";
 
-import React, { useState } from "react";
+import React, { useMemo } from "react";
 import { ClassSubjectGradeSheet, StudentGradeEntry } from "@/types/grade";
 import { Badge } from "@/components/ui/badge";
+import { GenericTable, type Column } from "@/components/common/generic-table";
 import { HelpHint, Icon } from "@/components";
 import { useQuery } from "@tanstack/react-query";
 import { readRawSettings } from "@/services/school-settings-service";
@@ -22,6 +23,8 @@ interface GradeEntryTableProps {
   ) => void;
   onSetStatus?: (studentId: string, field: "continuousAssessment" | "teacherTest" | "termExam", status: "avaliado" | "ausente" | "dispensado" | "nao_avaliado") => void;
 }
+
+type GradeRow = StudentGradeEntry & { index: number };
 
 export function GradeEntryTable({
   sheet,
@@ -61,32 +64,157 @@ export function GradeEntryTable({
   const getScoreBadge = (score?: number) => {
     if (score === undefined) {
       return (
-        <span className="text-xs text-muted-foreground italic">Pendente</span>
+        <Badge variant="warning">Pendente</Badge>
       );
     }
-    // positiva a partir da nota mínima da escola (Políticas); o regime de exceção só se aplica na transição, não aqui
     if (score >= passMark) {
       return (
-        <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-success-border bg-success-muted text-success">
+        <Badge variant="success">
           {score.toFixed(1)} ✓ positiva
-        </span>
+        </Badge>
       );
     }
     return (
-      <span className="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium border border-destructive-border bg-destructive-muted text-destructive">
+      <Badge variant="destructive">
         {score.toFixed(1)} ✗ negativa
-      </span>
+      </Badge>
     );
   };
 
+  const students: GradeRow[] = useMemo(
+    () => sheet.entries.map((entry, index) => ({ ...entry, id: entry.id || entry.studentId, index: index + 1 })),
+    [sheet.entries]
+  );
+
+  const columns: Column<GradeRow>[] = [
+    {
+      key: "index",
+      header: "N.º",
+      className: "w-10 text-center",
+      render: (_, entry) => <span className="font-mono text-muted-foreground">{entry.index}</span>,
+    },
+    {
+      key: "studentName",
+      header: "Nome do Estudante",
+      className: "min-w-[200px]",
+      render: (_, entry) => (
+        <div>
+          <div className="font-medium text-foreground text-sm">{entry.studentName}</div>
+          <div className="text-[10px] font-mono text-muted-foreground">{entry.studentNumber}</div>
+        </div>
+      ),
+    },
+    {
+      key: "continuousAssessment",
+      header: (
+        <div className="flex flex-col items-center">
+          <div className="flex items-center justify-center gap-1 font-medium text-foreground">MAC <HelpHint term="mac" /></div>
+          <span className="text-[9px] font-normal text-muted-foreground normal-case">Avaliação contínua</span>
+        </div>
+      ),
+      className: "text-center w-28",
+      render: (_, entry) => (
+        <ScoreCell
+          value={entry.continuousAssessment}
+          status={entry.statuses?.continuousAssessment}
+          readOnly={isReadOnly}
+          label={`${entry.studentName} — MAC (avaliação contínua)`}
+          onValueChange={(raw) => handleInputChange(entry.studentId, "continuousAssessment", raw)}
+          onStatusChange={onSetStatus ? (s) => onSetStatus(entry.studentId, "continuousAssessment", s) : undefined}
+        />
+      ),
+    },
+    {
+      key: "teacherTest",
+      header: (
+        <div className="flex flex-col items-center">
+          <div className="flex items-center justify-center gap-1 font-medium text-foreground">NPP <HelpHint term="npp" /></div>
+          <span className="text-[9px] font-normal text-muted-foreground normal-case">Avaliação sistemática</span>
+        </div>
+      ),
+      className: "text-center w-28",
+      render: (_, entry) => (
+        <ScoreCell
+          value={entry.teacherTest}
+          status={entry.statuses?.teacherTest}
+          readOnly={isReadOnly}
+          label={`${entry.studentName} — NPP (prova do professor)`}
+          onValueChange={(raw) => handleInputChange(entry.studentId, "teacherTest", raw)}
+          onStatusChange={onSetStatus ? (s) => onSetStatus(entry.studentId, "teacherTest", s) : undefined}
+        />
+      ),
+    },
+    {
+      key: "systematicAverage",
+      header: (
+        <div className="flex flex-col items-center">
+          <div className="flex items-center justify-center gap-1 font-medium text-primary">MAS <HelpHint term="mas" /></div>
+          <span className="text-[9px] font-normal text-muted-foreground normal-case">Média das sistemáticas</span>
+        </div>
+      ),
+      className: "text-center w-24",
+      render: (_, entry) => (
+        <span className="font-medium text-foreground">
+          {entry.systematicAverage !== undefined ? entry.systematicAverage.toFixed(1) : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "termExam",
+      header: (
+        <div className="flex flex-col items-center">
+          <div className="flex items-center justify-center gap-1 font-medium text-foreground">NPT <HelpHint term="npt" /></div>
+          <span className="text-[9px] font-normal text-muted-foreground normal-case">Prova trimestral</span>
+        </div>
+      ),
+      className: "text-center w-28",
+      render: (_, entry) => (
+        <ScoreCell
+          value={entry.termExam}
+          status={entry.statuses?.termExam}
+          readOnly={isReadOnly}
+          label={`${entry.studentName} — NPT (prova trimestral)`}
+          onValueChange={(raw) => handleInputChange(entry.studentId, "termExam", raw)}
+          onStatusChange={onSetStatus ? (s) => onSetStatus(entry.studentId, "termExam", s) : undefined}
+        />
+      ),
+    },
+    {
+      key: "termAverage",
+      header: (
+        <div className="flex flex-col items-center">
+          <div className="flex items-center justify-center gap-1 font-medium text-primary">MT <HelpHint term="mt" /></div>
+          <span className="text-[9px] font-normal text-muted-foreground normal-case">Média ponderada</span>
+        </div>
+      ),
+      className: "text-center w-24",
+      render: (_, entry) => (
+        <span className="font-medium text-foreground">
+          {entry.termAverage !== undefined ? entry.termAverage.toFixed(1) : "—"}
+        </span>
+      ),
+    },
+    {
+      key: "status",
+      header: "Resultado",
+      className: "text-center w-28",
+      render: (_, entry) => getScoreBadge(entry.termAverage),
+    },
+  ];
+
   return (
     <div className="space-y-4">
-      {!canWrite && <p role="note" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs">Só consulta: as notas são lançadas pelo professor da disciplina ou pela direção pedagógica.</p>}
+      {!canWrite && (
+        <div role="note" className="flex items-center gap-2">
+          <Badge variant="warning">Só consulta</Badge>
+          <span className="text-xs text-muted-foreground">As notas são lançadas pelo professor da disciplina ou pela direção pedagógica.</span>
+        </div>
+      )}
       {/* Banner de Estado da Mini-Pauta */}
-      <div className="flex flex-wrap items-center justify-between gap-3 p-3.5 rounded-lg border bg-card text-xs">
+      <div className="flex flex-wrap items-center justify-between gap-3 py-2 text-xs">
         <div className="flex items-center gap-3">
           <div
-            className={`h-9 w-9 rounded-lg flex items-center justify-center shrink-0 ${
+            className={`h-9 w-9 rounded-xs flex items-center justify-center shrink-0 ${
               isPautaClosed
                 ? "bg-primary/10 text-primary border border-primary/20"
                 : sheet.isLocked
@@ -105,7 +233,7 @@ export function GradeEntryTable({
                 {sheet.subjectName} — {sheet.sectionName}
               </span>
               <Badge
-                variant={isPautaClosed ? "default" : sheet.isLocked ? "secondary" : "outline"}
+                variant={isPautaClosed ? "default" : sheet.isLocked ? "warning" : "success"}
                 className="text-[11px]"
               >
                 {isPautaClosed
@@ -144,121 +272,7 @@ export function GradeEntryTable({
       </div>
 
       {/* Grid de Lançamento Conforme Decreto 424/25 */}
-      <div className="rounded-lg border bg-card overflow-x-auto shadow-sm">
-        <table className="w-full text-xs text-left border-collapse">
-          <thead>
-            <tr className="border-b bg-muted/50 text-muted-foreground uppercase text-[10px] tracking-wider">
-              <th className="py-3 px-3 w-10 text-center">N.º</th>
-              <th className="py-3 px-3 min-w-[200px]">Nome do Estudante</th>
-              <th className="py-3 px-3 text-center w-28 bg-info-muted/30">
-                <div className="flex items-center justify-center gap-1 font-medium text-foreground">MAC <HelpHint term="mac" /></div>
-                <span className="text-[9px] font-normal text-muted-foreground">
-                  Avaliação contínua
-                </span>
-              </th>
-              <th className="py-3 px-3 text-center w-28 bg-info-muted/30">
-                <div className="flex items-center justify-center gap-1 font-medium text-foreground">NPP <HelpHint term="npp" /></div>
-                <span className="text-[9px] font-normal text-muted-foreground">
-                  Avaliação sistemática
-                </span>
-              </th>
-              <th className="py-3 px-3 text-center w-24 bg-muted/60">
-                <div className="flex items-center justify-center gap-1 font-medium text-primary">MAS <HelpHint term="mas" /></div>
-                <span className="text-[9px] font-normal text-muted-foreground">
-                  Média das sistemáticas
-                </span>
-              </th>
-              <th className="py-3 px-3 text-center w-28 bg-primary/5">
-                <div className="flex items-center justify-center gap-1 font-medium text-foreground">NPT <HelpHint term="npt" /></div>
-                <span className="text-[9px] font-normal text-muted-foreground">
-                  Prova trimestral
-                </span>
-              </th>
-              <th className="py-3 px-3 text-center w-24 bg-muted/60">
-                <div className="flex items-center justify-center gap-1 font-medium text-primary">MT <HelpHint term="mt" /></div>
-                <span className="text-[9px] font-normal text-muted-foreground">
-                  Média ponderada
-                </span>
-              </th>
-              <th className="py-3 px-3 text-center w-28">Resultado</th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {sheet.entries.map((entry, index) => {
-              return (
-                <tr
-                  key={entry.id}
-                  className="hover:bg-muted/30 transition-colors"
-                >
-                  <td className="py-2.5 px-3 text-center font-mono text-muted-foreground">
-                    {index + 1}
-                  </td>
-                  <td className="py-2.5 px-3">
-                    <div className="font-medium text-foreground text-sm">
-                      {entry.studentName}
-                    </div>
-                    <div className="text-[10px] font-mono text-muted-foreground">
-                      {entry.studentNumber}
-                    </div>
-                  </td>
-
-                  {/* Input MAC */}
-                  <ScoreCell
-                    value={entry.continuousAssessment}
-                    status={entry.statuses?.continuousAssessment}
-                    readOnly={isReadOnly}
-                    tone="bg-info-muted/15"
-                    label={`${entry.studentName} — MAC (avaliação contínua)`}
-                    onValueChange={(raw) => handleInputChange(entry.studentId, "continuousAssessment", raw)}
-                    onStatusChange={onSetStatus ? (s) => onSetStatus(entry.studentId, "continuousAssessment", s) : undefined}
-                  />
-
-                  {/* Input NPP */}
-                  <ScoreCell
-                    value={entry.teacherTest}
-                    status={entry.statuses?.teacherTest}
-                    readOnly={isReadOnly}
-                    tone="bg-info-muted/15"
-                    label={`${entry.studentName} — NPP (prova do professor)`}
-                    onValueChange={(raw) => handleInputChange(entry.studentId, "teacherTest", raw)}
-                    onStatusChange={onSetStatus ? (s) => onSetStatus(entry.studentId, "teacherTest", s) : undefined}
-                  />
-
-                  {/* MAS Calculado */}
-                  <td className="py-2.5 px-3 text-center font-medium text-foreground bg-muted/30">
-                    {entry.systematicAverage !== undefined
-                      ? entry.systematicAverage.toFixed(1)
-                      : "—"}
-                  </td>
-
-                  {/* Input NPT */}
-                  <ScoreCell
-                    value={entry.termExam}
-                    status={entry.statuses?.termExam}
-                    readOnly={isReadOnly}
-                    tone="bg-primary/5"
-                    label={`${entry.studentName} — NPT (prova trimestral)`}
-                    onValueChange={(raw) => handleInputChange(entry.studentId, "termExam", raw)}
-                    onStatusChange={onSetStatus ? (s) => onSetStatus(entry.studentId, "termExam", s) : undefined}
-                  />
-
-                  {/* MT Calculado Oficial */}
-                  <td className="py-2.5 px-3 text-center font-medium text-foreground bg-muted/30">
-                    {entry.termAverage !== undefined
-                      ? entry.termAverage.toFixed(1)
-                      : "—"}
-                  </td>
-
-                  {/* Badge de Estado */}
-                  <td className="py-2.5 px-3 text-center">
-                    {getScoreBadge(entry.termAverage)}
-                  </td>
-                </tr>
-              );
-            })}
-          </tbody>
-        </table>
-      </div>
+      <GenericTable data={students} columns={columns} />
 
       {/* Nota de Rodapé Legal MED */}
       <div className="flex items-center gap-2 text-[11px] text-muted-foreground px-1">

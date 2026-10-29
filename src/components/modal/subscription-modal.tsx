@@ -48,7 +48,7 @@ export function SubscriptionModal() {
           </div>
         </div>
       }
-      className="p-8 bg-card rounded-2xl border shadow-[0_4px_24px_rgba(0,0,0,0.06)] outline-none border-none sm:max-w-md [&>button]:hidden text-center"
+      className="p-8 bg-card rounded-xs border shadow-[0_4px_24px_rgba(0,0,0,0.06)] outline-none border-none sm:max-w-md [&>button]:hidden text-center"
     >
       <div className="flex flex-col items-center text-center space-y-6">
         <div className="flex flex-col gap-3 pt-4 w-full mt-2">

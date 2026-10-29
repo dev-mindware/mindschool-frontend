@@ -3,7 +3,7 @@
 import { useState, type MouseEvent } from "react";
 import { useSearchParams } from "next/navigation";
 import { useMutation, useQuery } from "@tanstack/react-query";
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Icon } from "@/components";
+import { Badge, Button, Card, CardContent, CardHeader, CardTitle, Icon, Label, RadioGroup, RadioGroupItem } from "@/components";
 import { declineUrl, parseConsentParams } from "@/lib/mindgest-consent";
 import { mindgestService } from "@/services/mindgest-service";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -49,27 +49,50 @@ export function MindgestConsent() {
       </CardHeader>
       <CardContent className="space-y-4 text-sm">
         {schools.length === 0 ? (
-          <p className="rounded-md border border-warning-border bg-warning-muted p-3">
+          <p className="rounded-xs border border-warning-border bg-warning-muted p-3">
             Só o <strong>titular</strong> da escola pode autorizar esta ligação, e a sua conta não é titular de nenhuma escola. Peça ao titular para a fazer.
           </p>
         ) : (
           <>
             <fieldset className="space-y-2">
               <legend className="mb-1 font-medium">Escolha a escola</legend>
-              {schools.map((s) => (
-                <label key={s.id} className={`flex cursor-pointer items-start gap-3 rounded-md border p-3 ${s.already_connected ? "opacity-60" : "hover:bg-muted"}`}>
-                  <input type="radio" name="school" className="mt-1" disabled={s.already_connected} checked={schoolId === s.id} onChange={() => setSchoolId(s.id)} />
-                  <span>
-                    <span className="font-medium">{s.name}</span> <span className="text-xs text-muted-foreground">NIF {s.nif}</span>
-                    {s.already_connected && <Badge variant="secondary" className="ml-2">Já ligada a {s.connected_company ?? "uma empresa"}</Badge>}
-                  </span>
-                </label>
-              ))}
+              <RadioGroup
+                value={schoolId ?? ""}
+                onValueChange={setSchoolId}
+                className="space-y-2"
+              >
+                {schools.map((s) => {
+                  const radioId = `consent-school-${s.id}`;
+                  return (
+                    <Label
+                      key={s.id}
+                      htmlFor={radioId}
+                      className={`flex cursor-pointer items-start gap-3 rounded-xs border p-3 ${s.already_connected ? "opacity-60 cursor-not-allowed" : "hover:bg-muted"}`}
+                    >
+                      <RadioGroupItem
+                        id={radioId}
+                        value={s.id}
+                        disabled={s.already_connected}
+                        className="mt-0.5"
+                      />
+                      <span className="font-normal">
+                        <span className="font-medium">{s.name}</span>{" "}
+                        <span className="text-xs text-muted-foreground">NIF {s.nif}</span>
+                        {s.already_connected && (
+                          <Badge variant="secondary" className="ml-2">
+                            Já ligada a {s.connected_company ?? "uma empresa"}
+                          </Badge>
+                        )}
+                      </span>
+                    </Label>
+                  );
+                })}
+              </RadioGroup>
               {free.length === 0 && <p className="text-xs text-muted-foreground">Todas as suas escolas já estão ligadas. Para ligar outra empresa, desligue primeiro em Definições › Integrações.</p>}
             </fieldset>
 
             <div className="grid gap-3 sm:grid-cols-2">
-              <div className="rounded-md bg-muted/50 p-3">
+              <div className="rounded-xs bg-muted/50 p-3">
                 <p className="mb-1 font-medium">O MindGest poderá</p>
                 <ul className="list-disc space-y-1 pl-4 text-muted-foreground">
                   <li>Receber o catálogo de emolumentos da escola.</li>
@@ -77,7 +100,7 @@ export function MindgestConsent() {
                   <li>Consultar essas faturas e o seu estado.</li>
                 </ul>
               </div>
-              <div className="rounded-md bg-muted/50 p-3">
+              <div className="rounded-xs bg-muted/50 p-3">
                 <p className="mb-1 font-medium">O MindGest não poderá</p>
                 <ul className="list-disc space-y-1 pl-4 text-muted-foreground">
                   <li>Ver alunos, notas ou dados pessoais.</li>

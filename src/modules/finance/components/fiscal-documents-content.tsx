@@ -145,7 +145,7 @@ export function FiscalDocumentsContent() {
   return (
     <div className="space-y-6">
       {mindgest.data && mindgest.data.status !== "active" && (
-        <div className="flex gap-3 rounded-lg border border-amber-500/40 bg-amber-500/10 p-3 text-xs" role="status">
+        <div className="flex gap-3 rounded-xs border border-amber-500/40 bg-amber-500/10 p-3 text-xs" role="status">
           <Icon name="TriangleAlert" className="mt-0.5 size-4 shrink-0 text-amber-600" />
           <p>
             <strong>O MindGest não está ligado a esta escola.</strong> Os pagamentos ficam registados e as faturas-recibo esperam, em «Sem ligação»; seguem sozinhas
@@ -153,7 +153,7 @@ export function FiscalDocumentsContent() {
           </p>
         </div>
       )}
-      <div className="flex gap-3 rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">
+      <div className="flex gap-3 rounded-xs border bg-muted/30 p-3 text-xs text-muted-foreground">
         <Icon name="Info" className="mt-0.5 size-4 shrink-0 text-primary" />
         <div className="space-y-1">
           <p><strong>Cobrança</strong> é o que a família deve (propina, matrícula, multa). <strong>Pagamento</strong> é o dinheiro recebido: regista-se ao «Marcar como pago». <strong>Fatura</strong> é a fatura-recibo, o documento fiscal, emitida no <strong>MindGest</strong> por cada acto de pagamento (pode incluir várias cobranças).</p>

@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
-import { Icon } from "@/components";
+import { Badge, Button, Icon, Progress } from "@/components";
 import { useAuth } from "@/hooks/auth/use-auth";
 import { academicService } from "@/services/academic-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
@@ -41,23 +41,30 @@ export function SetupGuide({ studentsTotal, enrolled }: { studentsTotal: number;
   const next = steps.find((s) => !s.done);
   if (!next) return null;
   const doneCount = steps.filter((s) => s.done).length;
+  const progressValue = Math.round((doneCount / steps.length) * 100);
 
   return (
-    <section aria-label="Primeiros passos" className="rounded-xl border border-primary/30 bg-primary/5 p-4">
+    <section aria-label="Primeiros passos" className="rounded-xs border border-primary/30 bg-primary/5 p-4 space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
-        <div>
-          <h2 className="text-sm font-semibold">Primeiros passos da escola</h2>
-          <p className="text-xs text-muted-foreground">{doneCount} de {steps.length} concluídos. Próximo: <strong className="text-foreground">{next.title}</strong>.</p>
+        <div className="space-y-1">
+          <div className="flex items-center gap-2">
+            <h2 className="text-sm font-semibold">Primeiros passos da escola</h2>
+            <Badge variant="info">{doneCount}/{steps.length}</Badge>
+          </div>
+          <p className="text-xs text-muted-foreground">Próximo: <strong className="text-foreground">{next.title}</strong>.</p>
         </div>
-        <Link href={next.href} className="inline-flex h-8 items-center gap-1.5 rounded-md bg-primary px-3 text-xs font-semibold text-primary-foreground hover:opacity-90">
-          {next.title} <Icon name="ArrowRight" className="size-3.5" />
-        </Link>
+        <Button asChild size="sm" className="gap-1.5">
+          <Link href={next.href}>
+            {next.title} <Icon name="ArrowRight" className="size-3.5" />
+          </Link>
+        </Button>
       </div>
-      <ol className="mt-3 grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
+      <Progress value={progressValue} className="h-2 w-full" />
+      <ol className="grid gap-2 sm:grid-cols-2 lg:grid-cols-5">
         {steps.map((s, i) => (
-          <li key={s.key} className={cn("rounded-lg border p-2.5 text-xs", s.done ? "border-emerald-500/30 bg-emerald-500/5" : s.key === next.key ? "border-primary/50 bg-background" : "bg-background/60 opacity-80")}>
+          <li key={s.key} className={cn("rounded-xs border p-2.5 text-xs", s.done ? "border-success-border bg-success-muted" : s.key === next.key ? "border-primary/50 bg-background" : "bg-background/60 opacity-80")}>
             <div className="flex items-center gap-1.5 font-semibold">
-              <Icon name={s.done ? "CircleCheck" : "Circle"} className={cn("size-3.5", s.done ? "text-emerald-600" : "text-muted-foreground")} />
+              <Icon name={s.done ? "CircleCheck" : "Circle"} className={cn("size-3.5", s.done ? "text-success" : "text-muted-foreground")} />
               {i + 1}. {s.title}
             </div>
             <p className="mt-1 text-muted-foreground">{s.text}</p>

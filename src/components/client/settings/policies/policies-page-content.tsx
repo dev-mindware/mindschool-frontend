@@ -6,10 +6,6 @@ import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import {
   Can,
   Button,
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
   Checkbox,
   EmptyState,
   FormModal,
@@ -17,7 +13,9 @@ import {
   HelpHint,
   Icon,
   Input,
+  Label,
   PercInput,
+  Separator,
   TitleList,
   Badge,
 } from "@/components";
@@ -124,10 +122,10 @@ function Check({
   onChange: (v: boolean) => void;
 }) {
   return (
-    <label className="flex items-center gap-2 text-sm sm:col-span-2 cursor-pointer">
+    <Label className="flex items-center gap-2 text-sm sm:col-span-2 cursor-pointer">
       <Checkbox checked={checked} onCheckedChange={(v) => onChange(Boolean(v))} />
       <span className="text-xs font-medium text-foreground">{label}</span>
-    </label>
+    </Label>
   );
 }
 
@@ -150,14 +148,14 @@ function PolicyCard({
   onEdit: () => void;
 }) {
   return (
-    <Card className="h-full gap-0 py-4 border-border/70 hover:border-border transition-all">
-      <CardHeader className="flex flex-row items-start justify-between gap-2 px-4 pb-3">
+    <section className="space-y-3">
+      <div className="flex flex-row items-start justify-between gap-2">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <span className="flex size-8 items-center justify-center rounded-xs bg-primary/10 text-primary">
               <Icon name={icon} className="size-4" />
             </span>
-            <CardTitle className="text-base font-semibold">{title}</CardTitle>
+            <h3 className="text-base font-semibold">{title}</h3>
             {badge && (
               <Badge variant="secondary" className="text-[10px] font-mono px-1.5 py-0 h-4">
                 {badge}
@@ -178,20 +176,18 @@ function PolicyCard({
             Configurar
           </Button>
         </Can>
-      </CardHeader>
-      <CardContent className="px-4">
-        <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
-          {rows.map(([k, v]) => (
-            <div key={k} className="flex flex-col">
-              <dt className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
-                {k}
-              </dt>
-              <dd className="font-semibold text-foreground text-xs mt-0.5">{v}</dd>
-            </div>
-          ))}
-        </dl>
-      </CardContent>
-    </Card>
+      </div>
+      <dl className="grid grid-cols-2 gap-x-4 gap-y-2.5 text-sm">
+        {rows.map(([k, v]) => (
+          <div key={k} className="flex flex-col">
+            <dt className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">
+              {k}
+            </dt>
+            <dd className="font-semibold text-foreground text-xs mt-0.5">{v}</dd>
+          </div>
+        ))}
+      </dl>
+    </section>
   );
 }
 
@@ -349,14 +345,14 @@ export function PoliciesPageContent() {
     <div className="space-y-6">
       <TitleList
         title="Políticas da Escola"
-        suTitle="Parâmetros regulamentares de avaliação contínua, exames finais, provas de acesso, assiduidade e risco de abandono escolar alinhados com o Ministério da Educação (MED)."
+        suTitle="Regras de arredondamento, aprovação, assiduidade e propinas."
       />
 
       {/* Barra de Presets Rápidos Recomendados */}
-      <div className="rounded-xl border border-border/60 bg-gradient-to-r from-muted/40 via-card to-muted/30 p-4 space-y-2.5">
+      <div className="rounded-xs border border-border/60 bg-muted/30 p-4 space-y-2.5">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2">
-            <span className="flex size-7 items-center justify-center rounded-md bg-primary/10 text-primary">
+            <span className="flex size-7 items-center justify-center rounded-xs bg-primary/10 text-primary">
               <Icon name="Sparkles" className="size-4" />
             </span>
             <div>
@@ -403,7 +399,7 @@ export function PoliciesPageContent() {
       </div>
 
       {/* Simulador Interativo Didático da Média Trimestral (MT) */}
-      <div className="rounded-xl border border-primary/20 bg-primary/[0.02] p-4 sm:p-5 space-y-3">
+      <div className="rounded-xs border border-primary/20 bg-primary/[0.02] p-4 sm:p-5 space-y-3">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Icon name="Calculator" className="size-4 text-primary" />
@@ -429,7 +425,7 @@ export function PoliciesPageContent() {
 
         <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-1 items-end">
           <div className="space-y-1">
-            <label className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">MAC (Contínua) <HelpHint term="mac" /></label>
+            <Label className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">MAC (Contínua) <HelpHint term="mac" /></Label>
             <Input
               type="quantity"
               min={0}
@@ -441,7 +437,7 @@ export function PoliciesPageContent() {
             />
           </div>
           <div className="space-y-1">
-            <label className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">MAS (Sistemática) <HelpHint term="mas" /></label>
+            <Label className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">MAS (Sistemática) <HelpHint term="mas" /></Label>
             <Input
               type="quantity"
               min={0}
@@ -453,7 +449,7 @@ export function PoliciesPageContent() {
             />
           </div>
           <div className="space-y-1">
-            <label className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">PP (Prova Periódica) <HelpHint term="pp" /></label>
+            <Label className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground">PP (Prova Periódica) <HelpHint term="pp" /></Label>
             <Input
               type="quantity"
               min={0}
@@ -464,7 +460,7 @@ export function PoliciesPageContent() {
               className="h-8 text-xs font-semibold"
             />
           </div>
-          <div className="rounded-lg bg-card border p-2 text-center space-y-0.5">
+          <div className="rounded-xs bg-card border p-2 text-center space-y-0.5">
             <p className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground uppercase font-bold">Resultado MT <HelpHint term="mt" /></p>
             <p className="text-sm font-bold text-foreground">
               {simResult.roundedMt} valores{" "}
@@ -473,12 +469,8 @@ export function PoliciesPageContent() {
               </span>
             </p>
             <Badge
-              variant="outline"
-              className={
-                simResult.passed
-                  ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 text-[9px] py-0 h-4"
-                  : "border-destructive/30 bg-destructive/10 text-destructive text-[9px] py-0 h-4"
-              }
+              variant={simResult.passed ? "success" : "destructive"}
+              className="text-[9px] py-0 h-4"
             >
               {simResult.passed ? "MT positiva" : "MT negativa"}
             </Badge>
@@ -486,8 +478,10 @@ export function PoliciesPageContent() {
         </div>
       </div>
 
-      {/* Grid de Cartões de Políticas */}
-      <div className="grid gap-4 lg:grid-cols-2">
+      <Separator />
+
+      {/* Secções Limpas de Políticas */}
+      <div className="space-y-6">
         <PolicyCard
           icon="ClipboardCheck"
           title="Avaliação Pedagógica"
@@ -516,6 +510,8 @@ export function PoliciesPageContent() {
           ]}
         />
 
+        <Separator />
+
         <PolicyCard
           icon="Scale"
           title="Exceção «Transita com apoio»"
@@ -530,6 +526,8 @@ export function PoliciesPageContent() {
             ["Intervalo de notas admitido", `${s.evaluation.exception.min_mark} a ${s.evaluation.exception.max_mark} valores`],
           ]}
         />
+
+        <Separator />
 
         <PolicyCard
           icon="GraduationCap"
@@ -546,6 +544,8 @@ export function PoliciesPageContent() {
             ["Exame de Melhoria de Nota", yn(s.evaluation.final_exam.melhoria_enabled)],
           ]}
         />
+
+        <Separator />
 
         <PolicyCard
           icon="UserPlus"
@@ -571,6 +571,8 @@ export function PoliciesPageContent() {
           ]}
         />
 
+        <Separator />
+
         <PolicyCard
           icon="CalendarDays"
           title="Calendário & Assiduidade"
@@ -590,6 +592,8 @@ export function PoliciesPageContent() {
           ]}
         />
 
+        <Separator />
+
         <PolicyCard
           icon="TriangleAlert"
           title="Risco de Abandono Escolar"
@@ -607,6 +611,8 @@ export function PoliciesPageContent() {
             ["Atraso Financeiro com Impacto", `${s.risk.overdue_days} dias`],
           ]}
         />
+
+        <Separator />
 
         <PolicyCard
           icon="Wallet"

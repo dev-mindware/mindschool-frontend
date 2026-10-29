@@ -1,9 +1,7 @@
 "use client";
 
-import { useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
 import { Icon } from "@/components";
 import { icons } from "lucide-react";
 import { Appearance } from "./contents/appearance";
@@ -35,7 +33,6 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
   const { user } = useAuth();
   const { can } = useCan();
   const isMobile = useIsMobile();
-  const [isSidebarCollapsed, setIsSidebarCollapsed] = useState(false);
   const role = user?.role ?? "";
   // O administrador de sistema opera a plataforma, não uma escola: só vê as definições da conta (sem «Ambiente Escolar» nem Subscrição).
   const isManager = ["DIRECTOR_GENERAL", "PEDAGOGIC_DIRECTOR", "OWNER", "MANAGER", "ADMIN"].includes(role);
@@ -141,8 +138,8 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
     isDesktop: boolean = true,
   ) => {
     const baseClasses = isDesktop
-      ? "hover:bg-accent hover:text-foreground data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent relative w-full justify-start after:absolute after:inset-y-0 after:start-0 after:-ms-1 after:w-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none cursor-pointer"
-      : "data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none border py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e cursor-pointer";
+      ? "hover:bg-accent hover:text-foreground data-[state=active]:after:bg-primary data-[state=active]:hover:bg-accent relative w-full justify-start after:absolute after:inset-y-0 after:start-0 after:-ms-1 after:w-0.5 data-[state=active]:bg-transparent data-[state=active]:shadow-none"
+      : "data-[state=active]:bg-muted data-[state=active]:after:bg-primary relative overflow-hidden rounded-none border py-2 after:pointer-events-none after:absolute after:inset-x-0 after:bottom-0 after:h-0.5 first:rounded-s last:rounded-e";
 
     return (
       <TabsTrigger
@@ -159,7 +156,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
         />
         {isDesktop && (
           <p
-            className={`font-normal ${activeTab === tab.id ? "text-primary font-medium" : ""}`}
+            className={`font-normal ${activeTab === tab.id ? "text-primary" : ""}`}
           >
             {tab.label}
           </p>
@@ -169,93 +166,51 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
   };
 
   return (
-    <div data-tour="setup-layout" className="space-y-4">
-      {/* Desktop Layout - 2 Colunas com Sidebar Fixa e Toggle Full-Width */}
+    <div data-tour="setup-layout">
+      <h1 className="text-2xl font-semibold">Definições da Conta</h1>
       <div className="hidden md:block">
         <Tabs
           value={activeTab}
-          className="flex flex-row w-full gap-6 items-start"
+          className="flex-row w-full mt-5"
           onValueChange={handleTabChange}
         >
-          {/* Mini Sidebar e Título Fixos na Posição Inicial */}
-          {!isSidebarCollapsed && (
-            <div className="sticky top-4 self-start space-y-4 shrink-0 w-72">
-              <h1 className="text-2xl font-semibold">Definições da Conta</h1>
-              <div className="h-fit min-h-[500px] max-h-[calc(100vh-6rem)] overflow-y-auto bg-sidebar rounded-md border border-border/50">
-                <TabsList className="flex-col gap-1 px-1 font-normal bg-transparent rounded-none w-full text-foreground">
-                  <div className="p-4 space-y-5 w-full">
-                    {generalTabs.length > 0 && (
-                      <>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide px-1">
-                          Gerais
-                        </p>
-                        <div data-tour="setup-general-tabs" className="space-y-1">
-                          {generalTabs.map((tab) => renderTabTrigger(tab, true))}
-                        </div>
-                      </>
-                    )}
-                    {generalTabs.length > 0 && workplaceTabs.length > 0 && (
-                      <div className="h-px bg-border my-2" />
-                    )}
-                    {workplaceTabs.length > 0 && (
-                      <>
-                        <p className="text-xs text-muted-foreground uppercase tracking-wide px-1">
-                          Ambiente Escolar
-                        </p>
-                        <div data-tour="setup-workplace-tabs" className="space-y-1">
-                          {workplaceTabs.map((tab) => renderTabTrigger(tab, true))}
-                        </div>
-                      </>
-                    )}
-                  </div>
-                </TabsList>
+          <div className="h-screen bg-sidebar rounded-xs">
+            <TabsList className="sticky top-0 flex-col gap-1 px-1 font-normal bg-transparent rounded-none w-75 text-foreground">
+              <div className="p-4 space-y-5">
+                {generalTabs.length > 0 && (
+                  <>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                      Gerais
+                    </p>
+                    <div data-tour="setup-general-tabs">
+                      {generalTabs.map((tab) => renderTabTrigger(tab, true))}
+                    </div>
+                  </>
+                )}
+                {generalTabs.length > 0 && workplaceTabs.length > 0 && (
+                  <div className="h-px bg-border" />
+                )}
+                {workplaceTabs.length > 0 && (
+                  <>
+                    <p className="text-xs text-muted-foreground uppercase tracking-wide">
+                      Ambiente Escolar
+                    </p>
+                    <div data-tour="setup-workplace-tabs">
+                      {workplaceTabs.map((tab) => renderTabTrigger(tab, true))}
+                    </div>
+                  </>
+                )}
               </div>
-            </div>
-          )}
+            </TabsList>
+          </div>
 
-          {/* Painel de Conteúdo Expansível (Full-Width quando recolhido) */}
           <div
-            className="border rounded-md grow min-w-0 text-start bg-card shadow-xs transition-all duration-300"
+            className="border rounded-xs grow min-w-0 text-start"
             data-tour="setup-active-content"
           >
-            {/* Barra de Controlo do Ecrã */}
-            <div className="flex items-center justify-between px-4 sm:px-6 py-2.5 border-b border-border/40 bg-muted/20">
-              <div className="flex items-center gap-2">
-                {isSidebarCollapsed && (
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={() => setIsSidebarCollapsed(false)}
-                    className="h-8 gap-1.5 text-xs font-medium"
-                    title="Mostrar menu lateral das definições"
-                  >
-                    <Icon name="PanelLeftOpen" className="size-4 text-primary" />
-                    <span>Definições da Conta</span>
-                  </Button>
-                )}
-                <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-                  {enabledTabs.find((t) => t.id === activeTab)?.label ?? "Configurações"}
-                </span>
-              </div>
-
-              <Button
-                type="button"
-                variant="ghost"
-                size="sm"
-                onClick={() => setIsSidebarCollapsed(!isSidebarCollapsed)}
-                className="h-8 gap-1.5 text-xs text-muted-foreground hover:text-foreground"
-                title={isSidebarCollapsed ? "Restaurar menu lateral" : "Expandir conteúdo a ecrã inteiro"}
-              >
-                <Icon name={isSidebarCollapsed ? "Minimize2" : "Maximize2"} className="size-3.5" />
-                <span>{isSidebarCollapsed ? "Restaurar menu" : "Expandir ecrã"}</span>
-              </Button>
-            </div>
-
-            {/* Conteúdo da Tab Ativa */}
             {!isMobile &&
               enabledTabs.map((tab) => (
-                <TabsContent key={tab.id} value={tab.id} className="!py-4 sm:p-6 mt-0">
+                <TabsContent key={tab.id} value={tab.id} className="py-4 sm:p-6">
                   {tab.component}
                 </TabsContent>
               ))}
@@ -263,9 +218,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
         </Tabs>
       </div>
 
-      {/* Mobile Layout - Carrossel Horizontal no padrão MindGest */}
       <div className="block mt-6 sm:mt-8 md:mt-10 md:hidden">
-        <h1 className="text-2xl font-semibold mb-4">Definições da Conta</h1>
         <Tabs
           value={activeTab}
           className="w-full"
@@ -286,7 +239,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
                 <TabsContent
                   key={tab.id}
                   value={tab.id}
-                  className="focus-visible:outline-none focus-visible:ring-0 mt-0"
+                  className="focus-visible:outline-none focus-visible:ring-0"
                 >
                   {tab.component}
                 </TabsContent>

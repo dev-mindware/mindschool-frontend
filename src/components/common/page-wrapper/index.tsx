@@ -125,7 +125,7 @@ export function PageWrapper({
               <Button
                 variant="ghost"
                 size="icon"
-                className="relative rounded-xl border border-border/60 bg-card/80 hover:bg-accent"
+                className="relative rounded-xs border border-border/60 bg-card/80 hover:bg-accent"
                 aria-label="Menu de Ações Rápidas"
               >
                 <Icon name="SlidersHorizontal" className="h-4 w-4 text-foreground" />
@@ -133,7 +133,7 @@ export function PageWrapper({
             </DropdownMenuTrigger>
             <DropdownMenuContent
               align="end"
-              className="w-64 p-2 rounded-2xl shadow-xl border-border/80 bg-card/95 backdrop-blur-xl space-y-1 z-50"
+              className="w-64 p-2 rounded-xs shadow-lg border-border/80 bg-card/95 backdrop-blur-xl space-y-1 z-50"
               sideOffset={8}
             >
               <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground px-2.5 py-1">
@@ -141,21 +141,21 @@ export function PageWrapper({
               </div>
               <DropdownMenuSeparator className="my-1" />
 
-              <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-muted/60 transition-colors">
+              <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xs hover:bg-muted/60 transition-colors">
                 <span className="text-xs font-medium text-foreground flex items-center gap-2">
                   <Icon name="Bell" className="w-4 h-4 text-primary" /> Notificações
                 </span>
                 <NotificationDropdown />
               </div>
 
-              <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-muted/60 transition-colors">
+              <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xs hover:bg-muted/60 transition-colors">
                 <span className="text-xs font-medium text-foreground flex items-center gap-2">
                   <Icon name="Sparkles" className="w-4 h-4 text-primary" /> Assistente MIND
                 </span>
                 <ChatbotSheet />
               </div>
 
-              <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-muted/60 transition-colors">
+              <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xs hover:bg-muted/60 transition-colors">
                 <span className="text-xs font-medium text-foreground flex items-center gap-2">
                   <Icon name="Video" className="w-4 h-4 text-primary" /> Tutoriais
                 </span>
@@ -163,7 +163,7 @@ export function PageWrapper({
               </div>
 
               {onboardingTourId && (
-                <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xl hover:bg-muted/60 transition-colors">
+                <div className="flex items-center justify-between px-2.5 py-1.5 rounded-xs hover:bg-muted/60 transition-colors">
                   <span className="text-xs font-medium text-foreground flex items-center gap-2">
                     <Icon name="CircleHelp" className="w-4 h-4 text-primary" /> Tour Guiado
                   </span>

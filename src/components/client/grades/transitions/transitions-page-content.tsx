@@ -11,6 +11,7 @@ import {
   Button,
   Icon,
 } from "@/components";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { useSections } from "@/hooks/school/use-sections";
 import { useTransitions } from "@/hooks/school/use-transitions";
@@ -93,9 +94,9 @@ export function TransitionsPageContent() {
       header: "Estudante",
       render: (_, item) => (
         <div className="flex items-center gap-2.5">
-          <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs shrink-0">
-            {item.studentName.charAt(0)}
-          </div>
+          <Avatar className="size-8">
+            <AvatarFallback>{item.studentName.charAt(0)}</AvatarFallback>
+          </Avatar>
           <div className="flex flex-col">
             <span className="font-semibold text-foreground text-sm">
               {item.studentName}
@@ -114,10 +115,10 @@ export function TransitionsPageContent() {
         <span
           className={`font-medium text-sm ${
             item.termAverageTotal >= 12
-              ? "text-emerald-700 dark:text-emerald-400"
+              ? "text-success"
               : item.termAverageTotal >= 10
-              ? "text-blue-700 dark:text-blue-400"
-              : "text-amber-700 dark:text-amber-400"
+              ? "text-info"
+              : "text-warning"
           }`}
         >
           {Object.keys(item.subjects).length ? `${item.termAverageTotal.toFixed(1)} / 20` : "—"}
@@ -131,17 +132,17 @@ export function TransitionsPageContent() {
         if (item.failedSubjectsCount === 0 && Object.keys(item.subjects).length === 0) return <span className="text-xs text-muted-foreground">—</span>;
         if (item.failedSubjectsCount === 0) {
           return (
-            <span className="text-xs text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1">
+            <Badge variant="success">
               <Icon name="CircleCheck" className="h-3.5 w-3.5" />
               Nenhuma
-            </span>
+            </Badge>
           );
         }
         return (
-          <span className="text-xs text-red-600 dark:text-red-400 font-medium flex items-center gap-1">
+          <Badge variant="destructive">
             <Icon name="CircleAlert" className="h-3.5 w-3.5" />
             {item.failedSubjectsCount} disciplina{item.failedSubjectsCount > 1 ? "s" : ""}
-          </span>
+          </Badge>
         );
       },
     },
@@ -152,24 +153,21 @@ export function TransitionsPageContent() {
         switch (item.transitionStatus) {
           case "APPROVED":
             return (
-              <Badge variant="default" className="text-xs bg-emerald-600 text-white hover:bg-emerald-600">
+              <Badge variant="success">
                 <Icon name="CircleCheck" className="h-3 w-3 mr-1" />
                 Transita Direto
               </Badge>
             );
           case "APPROVED_WITH_CONDITIONS":
             return (
-              <Badge
-                variant="outline"
-                className="text-xs border-blue-400 text-blue-700 bg-blue-50 dark:bg-blue-950/30"
-              >
+              <Badge variant="warning">
                 <Icon name="Scale" className="h-3 w-3 mr-1" />
                 Exceção Legal 7ª/8ª
               </Badge>
             );
           case "FAILED":
             return (
-              <Badge variant="destructive" className="text-xs">
+              <Badge variant="destructive">
                 <Icon name="CircleX" className="h-3 w-3 mr-1" />
                 Não transita (proposta)
               </Badge>
@@ -202,11 +200,11 @@ export function TransitionsPageContent() {
     },
   ];
 
-    return (
+  return (
     <div className="space-y-6">
       <TitleList
         title="Motor de Transição de Classe (Conselho de Notas)"
-        suTitle="Aplicação automatizada das regras do Decreto Executivo n.º 424/25 e regime de exceções da 7.ª e 8.ª classe."
+        suTitle="Apuramento anual de transições, retenções e recursos."
       >
         <div className="flex items-center gap-2">
           <Button
@@ -246,8 +244,8 @@ export function TransitionsPageContent() {
       </div>
 
       {/* Banner Informativo Legal do MED */}
-      <div className="p-4 rounded-lg border border-blue-200 bg-blue-50/50 dark:border-blue-900/40 dark:bg-blue-950/20 text-xs text-blue-950 dark:text-blue-200 space-y-1.5">
-        <div className="font-bold flex items-center gap-2 text-sm text-blue-800 dark:text-blue-300">
+      <div className="p-4 rounded-xs border border-info-border bg-info-muted text-xs text-foreground space-y-1.5">
+        <div className="font-bold flex items-center gap-2 text-sm text-info">
           <Icon name="BookOpen" className="h-4 w-4" />
           Regulamento de Avaliação do Ensino Geral — Decreto Executivo n.º 424/25
         </div>

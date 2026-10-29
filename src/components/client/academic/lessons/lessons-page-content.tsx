@@ -146,7 +146,7 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
             {/* Tab: Registo & Sumário Oficial da Escola */}
             <TabsContent value="official" className="space-y-4">
               {lesson.status === "prevista" && (
-                <section className="space-y-3 rounded-lg border p-3.5 bg-card">
+                <section className="space-y-3 rounded-xs border p-3.5 bg-card">
                   <h4 className="font-semibold text-xs flex items-center gap-1.5">
                     <Icon name="CheckCircle2" className="w-4 h-4 text-primary" />
                     Registar a Realização da Aula
@@ -193,7 +193,7 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
               )}
 
               {lesson.status === "prevista" && (
-                <section className="space-y-3 rounded-lg border p-3.5 bg-card">
+                <section className="space-y-3 rounded-xs border p-3.5 bg-card">
                   <h4 className="font-semibold text-xs flex items-center gap-1.5">
                     <Icon name="CalendarSync" className="w-4 h-4 text-primary" />
                     Gestão da Aula (Coordenação)
@@ -286,7 +286,7 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
               )}
 
               {given && (
-                <section className="space-y-3 rounded-lg border p-3.5 bg-card">
+                <section className="space-y-3 rounded-xs border p-3.5 bg-card">
                   <h4 className="font-semibold text-xs flex items-center justify-between">
                     <span>
                       Sumário Escolar{" "}
@@ -574,27 +574,15 @@ export function LessonsPageContent() {
     <div className="space-y-6">
       <TitleList
         title="Aulas e Sumários"
-        suTitle="Agenda pedagógica diária do professor estilo Google Keep integrada com horário letivo e validação de sumários."
+        suTitle="Registo de lições, sumários e conteúdos programáticos."
       >
         <div className="flex items-center gap-2">
-          <div className="inline-flex rounded-md border bg-sidebar p-1">
-            <Button
-              size="sm"
-              variant={scope === "mine" ? "default" : "ghost"}
-              className="h-8"
-              onClick={() => setScope("mine")}
-            >
-              As minhas aulas
-            </Button>
-            <Button
-              size="sm"
-              variant={scope === "all" ? "default" : "ghost"}
-              className="h-8"
-              onClick={() => setScope("all")}
-            >
-              Todas
-            </Button>
-          </div>
+          <Tabs value={scope} onValueChange={(v) => setScope(v as "mine" | "all")}>
+            <TabsList>
+              <TabsTrigger value="mine">As minhas aulas</TabsTrigger>
+              <TabsTrigger value="all">Todas</TabsTrigger>
+            </TabsList>
+          </Tabs>
           <Can permission="lesson:manage">
             <Button
               size="sm"

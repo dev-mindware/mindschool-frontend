@@ -7,7 +7,7 @@ import { z } from "zod";
 import { Student } from "@/types";
 import { useStudents } from "@/hooks/school/use-students";
 import { getApiErrorMessage } from "@/utils/api-error";
-import { Button, ButtonSubmit } from "@/components";
+import { Button, ButtonSubmit, Separator } from "@/components";
 import {
   Sheet,
   SheetContent,
@@ -256,6 +256,8 @@ export function StudentModal({
             setValue={setValue}
             watch={watch}
           />
+
+          <Separator />
 
           <StudentGuardianFields
             register={register}

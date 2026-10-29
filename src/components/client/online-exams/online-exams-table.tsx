@@ -50,9 +50,9 @@ export function OnlineExamsTable({ exams, isLoading, onOpenQuestions, onOpenGoog
       header: 'Realização',
       render: (_, e) =>
         e.delivery === 'google_forms' ? (
-          <Badge variant="outline" className="gap-1 border-emerald-500/30 bg-emerald-500/10 text-xs font-normal text-emerald-700"><Icon name="Link" className="size-3" />Google Forms</Badge>
+          <Badge variant="success" className="gap-1 text-xs font-normal"><Icon name="Link" className="size-3" />Google Forms</Badge>
         ) : (
-          <Badge variant="outline" className="text-xs font-normal">Plataforma</Badge>
+          <Badge variant="secondary" className="text-xs font-normal">Plataforma</Badge>
         ),
     },
     { key: 'status', header: 'Estado', render: (_, e) => <StatusBadge status={e.status} map={EXAM_STATUS_STYLE} className="text-xs font-normal" /> },

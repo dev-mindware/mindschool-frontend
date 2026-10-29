@@ -13,19 +13,13 @@ export function SchoolStatusBadge({ status, className }: SchoolStatusBadgeProps)
     case "ACTIVE":
     case "BOARDED":
       return (
-        <Badge
-          variant="outline"
-          className={`border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium ${className || ""}`}
-        >
+        <Badge variant="success" className={className}>
           {status === "ENROLLED" ? "Matriculado" : status === "BOARDED" ? "A Bordo" : "Ativo"}
         </Badge>
       );
     case "READY_FOR_PICKUP":
       return (
-        <Badge
-          variant="outline"
-          className={`border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 font-medium ${className || ""}`}
-        >
+        <Badge variant="success" className={className}>
           Pronto para Entrega
         </Badge>
       );
@@ -34,10 +28,7 @@ export function SchoolStatusBadge({ status, className }: SchoolStatusBadgeProps)
     case "WAITLIST":
     case "ABSENT_NOTIFIED":
       return (
-        <Badge
-          variant="outline"
-          className={`border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium ${className || ""}`}
-        >
+        <Badge variant="warning" className={className}>
           {status === "PENDING_DIRECTOR"
             ? "Aguardando Despacho"
             : status === "WAITLIST"
@@ -50,17 +41,14 @@ export function SchoolStatusBadge({ status, className }: SchoolStatusBadgeProps)
     case "UNDER_REVIEW":
     case "APPROVED":
       return (
-        <Badge
-          variant="outline"
-          className={`border-primary/30 bg-primary/10 text-primary font-medium ${className || ""}`}
-        >
+        <Badge variant="info" className={className}>
           {status === "APPROVED" ? "Deferido" : "Em Análise"}
         </Badge>
       );
     case "COMPLETED":
     case "DROPPED_OFF":
       return (
-        <Badge variant="secondary" className={`font-normal text-muted-foreground ${className || ""}`}>
+        <Badge variant="secondary" className={className}>
           {status === "DROPPED_OFF" ? "Desembarcado" : "Concluído"}
         </Badge>
       );
@@ -68,25 +56,19 @@ export function SchoolStatusBadge({ status, className }: SchoolStatusBadgeProps)
     case "REJECTED":
     case "NO_SHOW":
       return (
-        <Badge
-          variant="outline"
-          className={`border-rose-500/30 bg-rose-500/10 text-rose-700 dark:text-rose-400 font-medium ${className || ""}`}
-        >
+        <Badge variant="destructive" className={className}>
           {status === "REJECTED" ? "Indeferido" : status === "NO_SHOW" ? "Não Compareceu" : "Anulado"}
         </Badge>
       );
     case "TRANSFERRED":
       return (
-        <Badge
-          variant="outline"
-          className={`border-border bg-muted/50 text-muted-foreground font-medium ${className || ""}`}
-        >
+        <Badge variant="secondary" className={className}>
           Transferido
         </Badge>
       );
     case "SUBMITTED":
       return (
-        <Badge variant="outline" className={`font-normal ${className || ""}`}>
+        <Badge variant="outline" className={className}>
           Submetido
         </Badge>
       );

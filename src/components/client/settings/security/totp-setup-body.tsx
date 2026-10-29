@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from "react";
 import QRCode from "qrcode";
-import { Button, Icon } from "@/components";
+import { Button, Icon, Input, Label } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 
 export const TOTP_DIGITS = 6;
@@ -52,7 +52,7 @@ export function TotpSetupBody({ secret, code, onCode, busy }: { secret: { secret
 
       <Step n={2} title="Leia o código QR com a aplicação">
         <div className="flex flex-wrap items-start gap-4">
-          <div className="rounded-lg border bg-white p-2"><canvas ref={canvas} aria-label="Código QR para o autenticador" /></div>
+          <div className="rounded-xs border bg-white p-2"><canvas ref={canvas} aria-label="Código QR para o autenticador" /></div>
           <div className="min-w-0 flex-1 space-y-2 text-xs text-muted-foreground">
             <p>Na aplicação, escolha «Adicionar conta» e depois «Ler código QR».</p>
             <p>Não consegue ler? Escreva a chave à mão:</p>
@@ -66,18 +66,22 @@ export function TotpSetupBody({ secret, code, onCode, busy }: { secret: { secret
       </Step>
 
       <Step n={3} title="Escreva o código de 6 dígitos que a aplicação mostra">
-        <input
-          ref={input}
-          value={code}
-          onChange={(e) => change(e.target.value)}
-          inputMode="numeric"
-          autoComplete="one-time-code"
-          autoFocus
-          maxLength={TOTP_DIGITS + 3}
-          placeholder="000000"
-          aria-label="Código de 6 dígitos"
-          className="w-full rounded-md border bg-background px-3 py-2 text-center font-mono text-2xl tracking-[0.5em] outline-none focus:ring-2 focus:ring-primary/40"
-        />
+        <div className="space-y-1.5">
+          <Label htmlFor="totp-code" className="sr-only">Código de 6 dígitos</Label>
+          <Input
+            id="totp-code"
+            ref={input}
+            value={code}
+            onChange={(e) => change(e.target.value)}
+            inputMode="numeric"
+            autoComplete="one-time-code"
+            autoFocus
+            maxLength={TOTP_DIGITS + 3}
+            placeholder="000000"
+            aria-label="Código de 6 dígitos"
+            className="h-12 text-center font-mono text-2xl tracking-[0.5em]"
+          />
+        </div>
         <p className="text-xs text-muted-foreground">O código muda a cada 30 segundos. Confirma sozinho ao escrever o 6.º dígito.</p>
       </Step>
     </ol>

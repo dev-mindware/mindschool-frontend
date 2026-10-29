@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, ConfirmModal, Icon } from "@/components";
+import { Badge, Button, ConfirmModal, GenericTable, Icon, Separator, type Column } from "@/components";
 import { mindgestService, type ApiMindgestDiscrepancy, type ApiMindgestStatus } from "@/services/mindgest-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -39,7 +39,7 @@ export function MindgestOperations({ s, onChange }: { s: ApiMindgestStatus; onCh
   const sync = useMutation({
     mutationFn: mindgestService.reconcile,
     onSuccess: (r) => {
-      if (r.ok) SucessMessage(r.applied > 0 ? `Sincronizado: ${r.applied} documento(s) actualizado(s).` : "Sincronizado: está tudo em dia.");
+      if (r.ok) SucessMessage(r.applied > 0 ? `Sincronizado: ${r.applied} documento(s) atualizado(s).` : "Sincronizado: está tudo em dia.");
       else ErrorMessage("Não foi possível sincronizar com o MindGest. Teste a ligação e tente de novo.");
       refresh();
     },
@@ -56,56 +56,69 @@ export function MindgestOperations({ s, onChange }: { s: ApiMindgestStatus; onCh
   const r = s.reconciliation;
   const failing = r.consecutive_failures >= 3;
 
+  const discrepancyColumns: Column<ApiMindgestDiscrepancy>[] = [
+    {
+      key: "kind",
+      header: "Divergência",
+      render: (_, d) => <span className="font-medium text-xs">{DISCREPANCY[d.kind]}</span>,
+    },
+    {
+      key: "detail",
+      header: "Detalhe",
+      render: (_, d) => <span className="text-xs text-muted-foreground">{d.detail}</span>,
+    },
+    {
+      key: "detected_at",
+      header: "Detectada em",
+      render: (_, d) => <span className="font-mono text-xs text-muted-foreground">{when(d.detected_at)}</span>,
+    },
+  ];
+
   return (
-    <>
-      <Card>
-        <CardHeader className="flex-row items-center justify-between gap-3 space-y-0 pb-3">
-          <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+    <div className="space-y-6">
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="flex items-center gap-2 text-sm font-semibold">
             <Icon name="RefreshCcw" className="size-4 text-primary" />Sincronização com o MindGest
-          </CardTitle>
+          </h3>
           <Badge variant={failing ? "destructive" : r.discrepancies.length > 0 ? "warning" : "success"}>
             {failing ? "A falhar" : r.discrepancies.length > 0 ? `${r.discrepancies.length} divergência(s)` : "Em dia"}
           </Badge>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
+        </div>
+        <div className="space-y-3 text-sm">
           <p className="text-muted-foreground">
             O MindSchool confere sozinho, de poucos em poucos minutos, o estado das faturas no MindGest (cobre avisos perdidos, importa notas de crédito e volta a tentar
             faturas presas). Última sincronização: <strong className="text-foreground">{lagText(r.lag_seconds)}</strong> ({when(r.last_at)}).
           </p>
           {failing && (
             <p className="text-xs text-destructive">
-              A sincronização falhou {r.consecutive_failures} vezes seguidas. Os pagamentos continuam a registar-se, mas o estado das faturas pode estar desactualizado.
+              A sincronização falhou {r.consecutive_failures} vezes seguidas. Os pagamentos continuam a registar-se, mas o estado das faturas pode estar desatualizado.
               Use «Testar ligação»; se persistir, desligue e volte a ligar a partir do MindGest.
             </p>
           )}
           {r.discrepancies.length > 0 && (
             <div className="space-y-2">
               <p className="text-xs font-medium">Divergências por rever</p>
-              <ul className="divide-y rounded-md border">
-                {r.discrepancies.map((d) => (
-                  <li key={d.id} className="px-3 py-2 text-xs">
-                    <span className="font-medium">{DISCREPANCY[d.kind]}</span>
-                    <div className="text-muted-foreground">{d.detail} Detectada em {when(d.detected_at)}.</div>
-                  </li>
-                ))}
-              </ul>
+              <GenericTable<ApiMindgestDiscrepancy> data={r.discrepancies} columns={discrepancyColumns} />
               <p className="text-[11px] text-muted-foreground">Fecham-se sozinhas quando o MindGest e o MindSchool voltam a coincidir. Correções de faturas fazem-se no MindGest.</p>
             </div>
           )}
           <Button size="sm" variant="outline" className="gap-1.5" disabled={sync.isPending} onClick={() => sync.mutate()}>
             <Icon name="RefreshCcw" className={sync.isPending ? "size-4 animate-spin" : "size-4"} />Sincronizar agora
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader className="flex-row items-center justify-between gap-3 space-y-0 pb-3">
-          <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+      <Separator />
+
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="flex items-center gap-2 text-sm font-semibold">
             <Icon name="ShieldAlert" className="size-4 text-primary" />Emissão de faturas
-          </CardTitle>
+          </h3>
           <Badge variant={s.paused ? "warning" : "success"}>{s.paused ? "Em pausa" : "Ativa"}</Badge>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
+        </div>
+        <div className="space-y-3 text-sm">
           <p className="text-muted-foreground">
             {s.paused
               ? `As emissões estão em pausa desde ${when(s.paused_at)}. A ligação mantém-se e os pagamentos continuam a registar-se; as faturas-recibo ficam em espera e seguem ao reativar. Atenção ao prazo legal de emissão (5.º dia útil após o pagamento).`
@@ -116,23 +129,23 @@ export function MindgestOperations({ s, onChange }: { s: ApiMindgestStatus; onCh
           ) : (
             <Button size="sm" variant="outline" className="gap-1.5" disabled={pause.isPending} onClick={() => openModal(PAUSE)}><Icon name="Pause" className="size-4" />Pausar emissões</Button>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-            <Icon name="KeyRound" className="size-4 text-primary" />Segredo do webhook
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
+      <Separator />
+
+      <section className="space-y-3">
+        <h3 className="flex items-center gap-2 text-sm font-semibold">
+          <Icon name="KeyRound" className="size-4 text-primary" />Segredo do webhook
+        </h3>
+        <div className="space-y-3 text-sm">
           <p className="text-muted-foreground">
             O segredo assina os avisos que o MindGest envia ao MindSchool. Pode roda-lo se suspeitar que foi exposto: o segredo anterior continua a valer durante 24 horas,
             para não se perder nenhum aviso enquanto o MindGest passa a usar o novo.
           </p>
           {s.secret_rotation && <p className="text-xs text-amber-700">Rotação em curso: o segredo anterior ainda é aceite até {when(s.secret_rotation.previous_valid_until)}.</p>}
           {secret && (
-            <div className="space-y-2 rounded-md border border-amber-500/40 bg-amber-500/10 p-3">
+            <div className="space-y-2 rounded-xs border border-amber-500/40 bg-amber-500/10 p-3">
               <p className="text-xs font-medium text-amber-900">Novo segredo (só é mostrado agora; guarde-o num local seguro):</p>
               <code className="block break-all rounded bg-background px-2 py-1 text-xs">{secret.value}</code>
               <p className="text-[11px] text-amber-900">O segredo anterior vale até {when(secret.until)}. O MindGest tem de passar a assinar com o novo antes dessa hora.</p>
@@ -143,8 +156,8 @@ export function MindgestOperations({ s, onChange }: { s: ApiMindgestStatus; onCh
             </div>
           )}
           <Button size="sm" variant="outline" className="gap-1.5" disabled={rotate.isPending} onClick={() => openModal(ROTATE)}><Icon name="RefreshCw" className="size-4" />Rodar segredo</Button>
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       <ConfirmModal
         id={PAUSE}
@@ -160,6 +173,6 @@ export function MindgestOperations({ s, onChange }: { s: ApiMindgestStatus; onCh
         confirmLabel="Rodar segredo"
         onConfirm={() => rotate.mutateAsync()}
       />
-    </>
+    </div>
   );
 }

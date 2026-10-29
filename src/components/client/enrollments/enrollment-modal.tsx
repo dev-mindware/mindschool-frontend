@@ -11,6 +11,9 @@ import {
   Button,
   ButtonSubmit,
   PaginatedSelect,
+  Tabs,
+  TabsList,
+  TabsTrigger,
 } from "@/components";
 import {
   Sheet,
@@ -170,130 +173,119 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
           </SheetDescription>
         </SheetHeader>
 
-      <form id="enrollment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
-        {/* Toggle de Aluno Existente vs Novo Ingresso */}
-        <div className="flex gap-2 p-1 bg-muted/60 rounded-lg">
-          <Button
-            type="button"
-            variant={studentMode === "existing" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setStudentMode("existing")}
-            className="flex-1 text-xs"
-          >
-            Aluno Existente na Base
-          </Button>
-          <Button
-            type="button"
-            variant={studentMode === "new" ? "default" : "ghost"}
-            size="sm"
-            onClick={() => setStudentMode("new")}
-            className="flex-1 text-xs"
-          >
-            Novo Ingresso (Sem Registo Prévio)
-          </Button>
-        </div>
+        <form id="enrollment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
+          {/* Toggle de Aluno Existente vs Novo Ingresso */}
+          <Tabs value={studentMode} onValueChange={(v) => setStudentMode(v as "existing" | "new")}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="existing" className="text-xs">
+                Aluno Existente na Base
+              </TabsTrigger>
+              <TabsTrigger value="new" className="text-xs">
+                Novo Ingresso (Sem Registo Prévio)
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
 
-        {studentMode === "existing" ? (
-          <div className="space-y-4">
-            <PaginatedSelect
-              label="Seleccionar Estudante (com pesquisa e paginação) *"
-              value={selectedStudentId}
-              onChange={setSelectedStudentId}
-              placeholder="Pesquise por nome do aluno ou nº de processo..."
-              searchPlaceholder="Digite o nome ou número..."
-              searchValue={studentSearch}
-              onSearchChange={handleStudentSearch}
-              pagination={{ page: studentPage, totalPages }}
-              onPageChange={setStudentPage}
-              options={studentOptions}
-              fullWidth
-            />
-          </div>
-        ) : (
-          <div className="space-y-3 p-3 bg-muted/30 rounded-xl border">
+          {studentMode === "existing" ? (
+            <div className="space-y-4">
+              <PaginatedSelect
+                label="Seleccionar Estudante (com pesquisa e paginação) *"
+                value={selectedStudentId}
+                onChange={setSelectedStudentId}
+                placeholder="Pesquise por nome do aluno ou nº de processo..."
+                searchPlaceholder="Digite o nome ou número..."
+                searchValue={studentSearch}
+                onSearchChange={handleStudentSearch}
+                pagination={{ page: studentPage, totalPages }}
+                onPageChange={setStudentPage}
+                options={studentOptions}
+                fullWidth
+              />
+            </div>
+          ) : (
+            <div className="space-y-3 p-3 bg-muted/30 rounded-xs border">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Dados do Novo Ingresso
+              </h4>
+              <p className="text-xs text-muted-foreground" role="note">
+                Este atalho não pede encarregado. Associe-o depois em Secretaria › Encarregados; para registar o aluno já com encarregado, use «Cadastrar Aluno».
+              </p>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="sm:col-span-2">
+                  <Input
+                    label="Nome Completo *"
+                    startIcon="User"
+                    placeholder="Ex: Ana Sofia de Carvalho"
+                    value={newFullName}
+                    onChange={(e) => setNewFullName(e.target.value)}
+                  />
+                </div>
+
+                <SelectField
+                  label="Género"
+                  value={newGender}
+                  options={genderOptions}
+                  onValueChange={(val) => setNewGender(val as "MALE" | "FEMALE")}
+                />
+
+                <Input
+                  type="date"
+                  label="Data de Nascimento"
+                  startIcon="Calendar"
+                  value={newBirthDate}
+                  onChange={(e) => setNewBirthDate(e.target.value)}
+                />
+
+                <Input
+                  label="Número de BI / Cédula"
+                  startIcon="CreditCard"
+                  placeholder="Ex: 004928172LA041"
+                  value={newIdNumber}
+                  onChange={(e) => setNewIdNumber(e.target.value)}
+                />
+
+                <p className="sm:col-span-2 text-xs text-muted-foreground">
+                  O encarregado não se regista aqui: depois de matricular, ligue-o na ficha do aluno ou em Secretaria › Encarregados.
+                  Sem encarregado, o aluno não tem quem receba avisos nem veja as propinas no portal.
+                </p>
+              </div>
+            </div>
+          )}
+
+          {/* Destino Letivo */}
+          <div className="space-y-3">
             <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Dados do Novo Ingresso
+              Alocação Letiva & Turma
             </h4>
-            <p className="text-xs text-muted-foreground" role="note">
-              Este atalho não pede encarregado. Associe-o depois em Secretaria › Encarregados; para registar o aluno já com encarregado, use «Cadastrar Aluno».
-            </p>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <div className="sm:col-span-2">
-                <Input
-                  label="Nome Completo *"
-                  startIcon="User"
-                  placeholder="Ex: Ana Sofia de Carvalho"
-                  value={newFullName}
-                  onChange={(e) => setNewFullName(e.target.value)}
+                <SelectField
+                  label="Turma de Destino *"
+                  value={selectedSectionId}
+                  options={sectionOptions}
+                  placeholder={sectionOptions.length === 0 ? "Ainda não há turmas" : "Selecione a turma..."}
+                  onValueChange={setSelectedSectionId}
+                  disabled={sectionOptions.length === 0}
                 />
+                {sectionOptions.length === 0 && (
+                  <p className="mt-1.5 text-xs text-muted-foreground" role="status">
+                    Ainda não há turmas para matricular. Crie primeiro uma turma em <a className="font-medium text-primary underline" href="/academic/classes">Académico › Turmas</a>.
+                  </p>
+                )}
               </div>
 
-              <SelectField
-                label="Género"
-                value={newGender}
-                options={genderOptions}
-                onValueChange={(val) => setNewGender(val as "MALE" | "FEMALE")}
-              />
-
               <Input
-                type="date"
-                label="Data de Nascimento"
+                label="Ano Letivo (o da turma)"
                 startIcon="Calendar"
-                value={newBirthDate}
-                onChange={(e) => setNewBirthDate(e.target.value)}
+                value={selectedSection?.academicYear ?? "Escolha a turma"}
+                disabled
               />
-
-              <Input
-                label="Número de BI / Cédula"
-                startIcon="CreditCard"
-                placeholder="Ex: 004928172LA041"
-                value={newIdNumber}
-                onChange={(e) => setNewIdNumber(e.target.value)}
-              />
-
-              <p className="sm:col-span-2 text-xs text-muted-foreground">
-                O encarregado não se regista aqui: depois de matricular, ligue-o na ficha do aluno ou em Secretaria › Encarregados.
-                Sem encarregado, o aluno não tem quem receba avisos nem veja as propinas no portal.
+              <p className="text-xs text-muted-foreground sm:self-end">
+                Ao matricular, o sistema gera a matrícula e as propinas do ano segundo o plano da escola.
               </p>
             </div>
           </div>
-        )}
-
-        {/* Destino Letivo */}
-        <div className="space-y-3">
-          <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Alocação Letiva & Turma
-          </h4>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            <div className="sm:col-span-2">
-              <SelectField
-                label="Turma de Destino *"
-                value={selectedSectionId}
-                options={sectionOptions}
-                placeholder={sectionOptions.length === 0 ? "Ainda não há turmas" : "Selecione a turma..."}
-                onValueChange={setSelectedSectionId}
-                disabled={sectionOptions.length === 0}
-              />
-              {sectionOptions.length === 0 && (
-                <p className="mt-1.5 text-xs text-muted-foreground" role="status">
-                  Ainda não há turmas para matricular. Crie primeiro uma turma em <a className="font-medium text-primary underline" href="/academic/classes">Académico › Turmas</a>.
-                </p>
-              )}
-            </div>
-
-            <Input
-              label="Ano Letivo (o da turma)"
-              startIcon="Calendar"
-              value={selectedSection?.academicYear ?? "Escolha a turma"}
-              disabled
-            />
-            <p className="text-xs text-muted-foreground sm:self-end">
-              Ao matricular, o sistema gera a matrícula e as propinas do ano segundo o plano da escola.
-            </p>
-          </div>
-        </div>
-
-      </form>
+        </form>
 
         <SheetFooter>
           <Button type="button" variant="outline" onClick={onClose}>

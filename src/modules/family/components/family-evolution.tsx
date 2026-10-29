@@ -4,7 +4,7 @@ import { familyKeys } from "@/modules/family/query-keys";
 import { useQuery } from "@tanstack/react-query";
 import { ErrorMessage } from "@/utils/messages";
 import { CartesianGrid, Line, LineChart, ReferenceLine, XAxis, YAxis } from "recharts";
-import { Badge, Button, ChartContainer, ChartTooltip, ChartTooltipContent, EmptyState, Icon, SimpleTable, type ChartConfig } from "@/components";
+import { Badge, Button, ChartContainer, ChartTooltip, ChartTooltipContent, EmptyState, GenericTable, Icon, type ChartConfig } from "@/components";
 import { ChartCard, ChartEmpty } from "@/components/shared/chart-card";
 import { portalService, type PortalPerformanceTerm } from "@/modules/family/services/portal-service";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -56,15 +56,14 @@ export function FamilyEvolution({ studentId }: { studentId: string }) {
             </div>
             <Button size="sm" variant="outline" className="gap-2" onClick={() => openReport(t)}><Icon name="FileDown" className="size-4" />Boletim informativo</Button>
           </div>
-          <SimpleTable
-            rows={t.subjects}
-            rowKey={(s) => s.subject}
+          <GenericTable
+            data={t.subjects.map((s) => ({ ...s, id: s.subject }))}
             columns={[
-              { header: "Disciplina", className: "font-medium", render: (s) => s.subject },
-              { header: "MT", align: "right", className: "font-mono font-semibold", render: (s) => <span className={s.passed === false ? "text-destructive" : ""}>{f1(s.mt)}</span> },
-              { header: "Média da turma", align: "right", className: "font-mono text-muted-foreground", render: (s) => f1(s.class_avg) },
-              { header: "Mín. – Máx.", align: "right", className: "font-mono text-xs text-muted-foreground", render: (s) => (s.class_min === null ? "—" : `${f1(s.class_min)} – ${f1(s.class_max)}`) },
-              { header: "Posição", render: (s) => (s.quartile ? <Badge variant={QUARTILE[s.quartile]!.variant} className="font-normal">{QUARTILE[s.quartile]!.label}</Badge> : <span className="text-xs text-muted-foreground">—</span>) },
+              { key: "subject", header: "Disciplina", className: "font-medium", render: (_, s) => s.subject },
+              { key: "mt", header: "MT", className: "text-right font-mono font-semibold", render: (_, s) => <span className={s.passed === false ? "text-destructive" : ""}>{f1(s.mt)}</span> },
+              { key: "class_avg", header: "Média da turma", className: "text-right font-mono text-muted-foreground", render: (_, s) => f1(s.class_avg) },
+              { key: "range", header: "Mín. – Máx.", className: "text-right font-mono text-xs text-muted-foreground", render: (_, s) => (s.class_min === null ? "—" : `${f1(s.class_min)} – ${f1(s.class_max)}`) },
+              { key: "quartile", header: "Posição", render: (_, s) => (s.quartile ? <Badge variant={QUARTILE[s.quartile]!.variant} className="font-normal">{QUARTILE[s.quartile]!.label}</Badge> : <span className="text-xs text-muted-foreground">—</span>) },
             ]}
           />
         </section>

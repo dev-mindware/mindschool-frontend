@@ -137,7 +137,7 @@ function AddonsModal() {
     >
       <div className="space-y-3">
         {(catalog?.addons ?? []).map((a) => (
-          <div key={a.code} className="rounded-lg border p-3">
+          <div key={a.code} className="rounded-xs border p-3">
             <div className="flex items-center justify-between gap-3">
               <p className="font-medium">{a.name}</p>
               <Badge variant="outline">+{kz(a.monthly_price)}/mês</Badge>
@@ -203,15 +203,15 @@ export function AvailablePlans() {
             onClick={() => setIsYearly(true)}
           >
             Anual
-            <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-xs font-semibold text-emerald-700 dark:bg-emerald-950/60 dark:text-emerald-400">
+            <Badge variant="success" className="text-xs font-semibold">
               2 meses grátis
-            </span>
+            </Badge>
           </span>
         </div>
       </div>
 
       {sub && STATE_NOTICE[sub.status] && (
-        <div className="mx-auto mb-8 flex max-w-2xl items-start gap-3 rounded-lg border bg-muted/40 p-3 text-sm">
+        <div className="mx-auto mb-8 flex max-w-2xl items-start gap-3 rounded-xs border bg-muted/40 p-3 text-sm">
           <Icon name="Info" className="mt-0.5 size-4 shrink-0 text-primary" />
           <p>{STATE_NOTICE[sub.status]}</p>
         </div>
@@ -225,7 +225,7 @@ export function AvailablePlans() {
         <>
           {/* Contentor estrutural dos 3 cartões */}
           <div
-            className="grid grid-cols-1 items-stretch gap-6 rounded-3xl border border-border/60 bg-muted/20 p-4 sm:p-6 lg:grid-cols-3"
+            className="grid grid-cols-1 items-stretch gap-6 rounded-xs border border-border/60 bg-muted/20 p-4 sm:p-6 lg:grid-cols-3"
             data-tour="plans-grid"
           >
             {catalog.plans.map((plan, index) => {
@@ -255,7 +255,7 @@ export function AvailablePlans() {
                 <Card
                   key={plan.code}
                   className={cn(
-                    "relative flex flex-col justify-between rounded-2xl p-6 sm:p-8 transition-all duration-200 bg-card",
+                    "relative flex flex-col justify-between rounded-xs p-6 sm:p-8 transition-all duration-200 bg-card",
                     popular
                       ? "border-2 border-primary shadow-lg ring-1 ring-primary/20"
                       : "border border-border/80 shadow-xs"

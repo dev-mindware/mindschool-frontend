@@ -8,6 +8,7 @@ import {
   Input,
   Button,
   ButtonSubmit,
+  FormTextarea,
   Icon,
 } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
@@ -86,7 +87,7 @@ export function GradeExamModal({
       size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4 pt-2">
-        <div className="p-3.5 rounded-lg border bg-muted/40 text-xs space-y-1">
+        <div className="p-3.5 rounded-xs border bg-muted/40 text-xs space-y-1">
           <div className="flex justify-between">
             <span className="font-semibold text-foreground">
               Prova: {application.entranceExamTitle || "Exame de Admissão"}
@@ -115,18 +116,13 @@ export function GradeExamModal({
             required
           />
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Parecer / Observações do Professor Corretor
-            </label>
-            <textarea
-              rows={3}
-              value={feedback}
-              onChange={(e) => setFeedback(e.target.value)}
-              placeholder="Ex: Bom domínio de compreensão de texto e raciocínio lógico..."
-              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-            />
-          </div>
+          <FormTextarea
+            label="Parecer / Observações do Professor Corretor"
+            rows={3}
+            value={feedback}
+            onChange={setFeedback}
+            placeholder="Ex: Bom domínio de compreensão de texto e raciocínio lógico..."
+          />
         </div>
 
         <div className="flex items-center justify-end gap-3 pt-4 border-t">

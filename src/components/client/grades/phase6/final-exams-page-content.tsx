@@ -4,6 +4,8 @@ import { formatIsoDay } from "@/utils/format-date";
 import { useEffect, useState } from "react";
 import { SucessMessage, ErrorMessage, InfoMessage } from "@/utils/messages";
 import { Can, Badge, Button, ButtonOnlyAction, Checkbox, ConfirmModal, DataList, EmptyState, FormModal, FormSelect, Icon, Input, StatusLegend, TitleList, type Column } from "@/components";
+import { GenericTable } from "@/components/common/generic-table";
+import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useFinalExam, useFinalExams } from "@/hooks/school/use-phase6";
 import { CALL_LABEL, type ExamCall, type ExamResultInput } from "@/services/phase6-service";
 import { useModal } from "@/stores/modal/use-modal-store";
@@ -32,10 +34,12 @@ function NewExamModal() {
 }
 
 type Draft = { status: ExamResultInput["status"]; value: string };
+type ExamStudentRow = NonNullable<ReturnType<typeof useFinalExam>["exam"]>["students"][number] & { id: string };
 
 function ExamModal({ id }: { id: string | null }) {
   const { exam, enroll, putResults, close } = useFinalExam(id ?? undefined);
-  const { openModal } = useModal();
+  const { open, openModal, closeModal } = useModal();
+  const isOpen = Boolean(open["final-exam-detail"]);
   // Motivo comum das ausências justificadas e anulações desta gravação (a API guarda-o como prova).
   const [justification, setJustification] = useState("");
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
@@ -59,62 +63,100 @@ function ExamModal({ id }: { id: string | null }) {
     void putResults.mutateAsync(results).then(() => SucessMessage("Resultados gravados.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
   };
 
-  return (
-    <FormModal id="final-exam-detail" title={exam ? `${exam.subject.name} — ${exam.section.class_level} ${exam.section.name} (${CALL_LABEL[exam.call]})` : "Chamada de exame"} description={exam ? STATUS_LABEL[exam.status] : undefined} size="xl" readOnly onSubmit={() => undefined}>
-      {exam && (
-        <div className="sm:col-span-2 space-y-4 text-sm">
-          {!closed && (
-            <p className="text-xs text-muted-foreground">
-              «Inscrever todos os elegíveis» inscreve só quem cumpre as regras desta chamada (ver a legenda na página) e pode repetir-se. Os resultados gravam-se antes de encerrar.
-            </p>
-          )}
-          {!closed && (
-            <Input label="Motivo das ausências justificadas e anulações (fica registado como prova)" value={justification} onChange={(e) => setJustification(e.target.value)} placeholder="Ex.: atestado médico entregue a 12/11" />
-          )}
-          {!closed && (
-            <div className="flex flex-wrap gap-2">
-              <Can permission="final_exam:write"><Button size="sm" variant="outline" disabled={enroll.isPending} onClick={() => enroll.mutateAsync(undefined).then((r) => (r.enrolled > 0 ? SucessMessage(`${r.enrolled} aluno(s) inscrito(s).`) : InfoMessage("Nenhum aluno foi inscrito: só se inscreve quem já tem a média final das disciplinas (pautas dos três trimestres fechadas) e cumpre as regras desta chamada."))).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Inscrever todos os elegíveis</Button></Can>
-              <Can permission="final_exam:results"><Button size="sm" onClick={save} disabled={putResults.isPending || enrolled.length === 0}>Gravar resultados</Button></Can>
-              <Can permission="final_exam:write"><Button size="sm" variant="secondary" disabled={close.isPending} onClick={() => openModal("final-exam-close-confirm")}>Encerrar chamada</Button></Can>
-              <ConfirmModal
-                id="final-exam-close-confirm"
-                title="Encerrar a chamada"
-                description="Fecha esta chamada de exame."
-                confirmLabel="Encerrar chamada"
-                irreversible
-                isLoading={close.isPending}
-                effects={[
-                  "Os resultados lançados ficam definitivos: já não se inscrevem alunos nem se alteram notas desta chamada.",
-                  "A classificação final (MFD e exame, pelos pesos das Políticas) passa a contar na proposta de transição dos alunos.",
-                  "Quem faltou sem justificação fica sem classificação nesta chamada.",
-                ]}
-                onConfirm={() => close.mutateAsync().then(() => SucessMessage("Chamada encerrada.")).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; })}
-              />
-            </div>
-          )}
-          <div className="space-y-2">
-            {exam.students.map((s) => {
-              const d = drafts[s.enrollment_id];
-              return (
-                <div key={s.enrollment_id} className="grid items-center gap-3 rounded-lg border p-3 sm:grid-cols-[1fr_90px_1.2fr_100px]">
-                  <div><p className="font-medium">{s.student.full_name}</p><p className="text-xs text-muted-foreground">{s.result ? "Inscrito" : s.eligibility?.eligible ? <span className="text-emerald-700">Elegível</span> : (s.eligibility?.message ?? "—")}</p></div>
-                  <div className="text-center"><p className="text-[11px] uppercase text-muted-foreground">MFD</p><p className="font-mono">{s.mfd ?? "—"}</p></div>
-                  <div>
-                    {s.result && d ? (
-                      <div className="flex gap-2">
-                        <FormSelect label="" value={d.status} onValueChange={(v) => setDrafts((c) => ({ ...c, [s.enrollment_id]: { ...d, status: v as Draft["status"] } }))} options={RESULT_OPTIONS} disabled={closed} className="flex-1" />
-                        {d.status === "avaliado" && <div className="w-24"><Input label="" type="quantity" min={0} max={20} step={0.1} disabled={closed} value={d.value} onChange={(e) => setDrafts((c) => ({ ...c, [s.enrollment_id]: { ...d, value: e.target.value } }))} /></div>}
-                      </div>
-                    ) : <span className="text-muted-foreground">—</span>}
-                  </div>
-                  <div className="text-center"><p className="text-[11px] uppercase text-muted-foreground">Classificação</p><p className="font-mono font-semibold">{s.effective_classification ?? s.result?.classification ?? "—"}</p></div>
-                </div>
-              );
-            })}
-          </div>
+  const studentRows: ExamStudentRow[] = (exam?.students ?? []).map((s) => ({ ...s, id: s.enrollment_id }));
+  const studentColumns: Column<ExamStudentRow>[] = [
+    {
+      key: "student",
+      header: "Estudante",
+      render: (_, s) => (
+        <div>
+          <p className="font-medium">{s.student.full_name}</p>
+          <p className="text-xs text-muted-foreground">
+            {s.result ? "Inscrito" : s.eligibility?.eligible ? <Badge variant="success">Elegível</Badge> : (s.eligibility?.message ?? "—")}
+          </p>
         </div>
-      )}
-    </FormModal>
+      ),
+    },
+    {
+      key: "mfd",
+      header: "MFD",
+      className: "text-center w-20",
+      render: (_, s) => <span className="font-mono">{s.mfd ?? "—"}</span>,
+    },
+    {
+      key: "result",
+      header: "Resultado",
+      render: (_, s) => {
+        const d = drafts[s.enrollment_id];
+        if (!s.result || !d) return <span className="text-muted-foreground">—</span>;
+        return (
+          <div className="flex gap-2">
+            <FormSelect label="" value={d.status} onValueChange={(v) => setDrafts((c) => ({ ...c, [s.enrollment_id]: { ...d, status: v as Draft["status"] } }))} options={RESULT_OPTIONS} disabled={closed} className="flex-1" />
+            {d.status === "avaliado" && (
+              <div className="w-24">
+                <Input label="" type="quantity" min={0} max={20} step={0.1} disabled={closed} value={d.value} onChange={(e) => setDrafts((c) => ({ ...c, [s.enrollment_id]: { ...d, value: e.target.value } }))} />
+              </div>
+            )}
+          </div>
+        );
+      },
+    },
+    {
+      key: "classification",
+      header: "Classificação",
+      className: "text-center w-28",
+      render: (_, s) => <span className="font-mono font-semibold">{s.effective_classification ?? s.result?.classification ?? "—"}</span>,
+    },
+  ];
+
+  return (
+    <Sheet open={isOpen} onOpenChange={(next) => { if (!next) closeModal("final-exam-detail"); }}>
+      <SheetContent className="flex flex-col gap-6 overflow-y-auto p-6 sm:max-w-2xl">
+        <SheetHeader className="p-0">
+          <SheetTitle>{exam ? `${exam.subject.name} — ${exam.section.class_level} ${exam.section.name} (${CALL_LABEL[exam.call]})` : "Chamada de exame"}</SheetTitle>
+          {exam && <SheetDescription>{STATUS_LABEL[exam.status]}</SheetDescription>}
+        </SheetHeader>
+
+        {exam && (
+          <div className="space-y-4 text-sm">
+            {!closed && (
+              <p className="text-xs text-muted-foreground">
+                «Inscrever todos os elegíveis» inscreve só quem cumpre as regras desta chamada (ver a legenda na página) e pode repetir-se. Os resultados gravam-se antes de encerrar.
+              </p>
+            )}
+            {!closed && (
+              <Input label="Motivo das ausências justificadas e anulações (fica registado como prova)" value={justification} onChange={(e) => setJustification(e.target.value)} placeholder="Ex.: atestado médico entregue a 12/11" />
+            )}
+            {!closed && (
+              <div className="flex flex-wrap gap-2">
+                <Can permission="final_exam:write"><Button size="sm" variant="outline" disabled={enroll.isPending} onClick={() => enroll.mutateAsync(undefined).then((r) => (r.enrolled > 0 ? SucessMessage(`${r.enrolled} aluno(s) inscrito(s).`) : InfoMessage("Nenhum aluno foi inscrito: só se inscreve quem já tem a média final das disciplinas (pautas dos três trimestres fechadas) e cumpre as regras desta chamada."))).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Inscrever todos os elegíveis</Button></Can>
+                <Can permission="final_exam:results"><Button size="sm" onClick={save} disabled={putResults.isPending || enrolled.length === 0}>Gravar resultados</Button></Can>
+                <Can permission="final_exam:write"><Button size="sm" variant="secondary" disabled={close.isPending} onClick={() => openModal("final-exam-close-confirm")}>Encerrar chamada</Button></Can>
+                <ConfirmModal
+                  id="final-exam-close-confirm"
+                  title="Encerrar a chamada"
+                  description="Fecha esta chamada de exame."
+                  confirmLabel="Encerrar chamada"
+                  irreversible
+                  isLoading={close.isPending}
+                  effects={[
+                    "Os resultados lançados ficam definitivos: já não se inscrevem alunos nem se alteram notas desta chamada.",
+                    "A classificação final (MFD e exame, pelos pesos das Políticas) passa a contar na proposta de transição dos alunos.",
+                    "Quem faltou sem justificação fica sem classificação nesta chamada.",
+                  ]}
+                  onConfirm={() => close.mutateAsync().then(() => SucessMessage("Chamada encerrada.")).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; })}
+                />
+              </div>
+            )}
+            <GenericTable data={studentRows} columns={studentColumns} />
+          </div>
+        )}
+
+        <SheetFooter className="p-0 pt-4">
+          <Button type="button" variant="outline" onClick={() => closeModal("final-exam-detail")}>Fechar</Button>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }
 
@@ -139,7 +181,7 @@ export function FinalExamsPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Exames Finais" suTitle="Chamadas por disciplina e turma; a classificação final substitui a MFD na proposta de transição.">
+      <TitleList title="Exames Finais" suTitle="Registo de exames finais, recurso e melhoria de nota.">
         <Can permission="final_exam:write"><Button size="sm" className="gap-1.5" onClick={() => openModal("final-exam-new")}><Icon name="Plus" className="size-4" />Nova chamada</Button></Can>
       </TitleList>
 

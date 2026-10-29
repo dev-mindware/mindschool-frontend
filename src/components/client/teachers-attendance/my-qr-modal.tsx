@@ -39,11 +39,11 @@ export function MyQrModal({ isOpen, onClose }: MyQrModalProps) {
   }, [isOpen]);
 
   return (
-    <GlobalModal isOpen={isOpen} onClose={onClose} title="O meu QR de ponto" className="!w-[95vw] sm:!max-w-sm">
+    <GlobalModal isOpen={isOpen} onClose={onClose} title="O meu QR de ponto" size="md">
       <div className="flex flex-col items-center gap-3 py-2">
-        {error ? <p className="text-sm text-rose-600 text-center">{error}</p> : <canvas ref={canvas} className="rounded-lg border" />}
+        {error ? <p className="text-center text-sm text-destructive">{error}</p> : <canvas ref={canvas} className="rounded-xs border" />}
         {expires && !error && <p className="text-[11px] text-muted-foreground">Renova automaticamente (válido até {new Date(expires).toLocaleTimeString("pt-AO")}).</p>}
-        <p className="text-[11px] text-muted-foreground text-center">Mostre este código no leitor do portão ou do balcão para registar a entrada ou a saída.</p>
+        <p className="text-center text-[11px] text-muted-foreground">Mostre este código no leitor do portão ou do balcão para registar a entrada ou a saída.</p>
       </div>
     </GlobalModal>
   );

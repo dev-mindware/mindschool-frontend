@@ -63,8 +63,8 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
 
   return (
     <Sheet open={Boolean(open[SUBMISSION_REVIEW_MODAL])} onOpenChange={(next) => !next && closeModal(SUBMISSION_REVIEW_MODAL)}>
-      <SheetContent className="w-full sm:max-w-4xl flex flex-col p-0 gap-0">
-        <SheetHeader className="p-6 border-b shrink-0">
+      <SheetContent className="flex flex-col gap-6 overflow-y-auto p-6 sm:max-w-4xl">
+        <SheetHeader>
           <SheetTitle className="flex items-center gap-2 text-lg font-bold">
             <Icon name="FileCheck" className="size-5" />
             {`Comprovativo ${s.protocol}`}
@@ -73,63 +73,61 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
           <div><SubmissionBadge status={s.status} /></div>
         </SheetHeader>
 
-      <div className="flex-1 overflow-y-auto p-6">
-      <div className="grid gap-5 lg:grid-cols-2">
-        <div className="min-h-[320px] overflow-hidden rounded-lg border bg-muted/30">
-          {previewError && <p className="p-6 text-center text-sm text-muted-foreground">Não foi possível carregar o ficheiro.</p>}
-          {!preview && !previewError && <p className="p-6 text-center text-sm text-muted-foreground">A carregar comprovativo…</p>}
-          {preview && (preview.mime.startsWith("image/")
-            // eslint-disable-next-line @next/next/no-img-element
-            ? <img src={preview.url} alt="Comprovativo" className="max-h-[460px] w-full object-contain" />
-            : <iframe src={preview.url} title="Comprovativo" className="h-[460px] w-full" />)}
-        </div>
-
-        <div className="space-y-4 text-sm">
-          <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 rounded-lg border p-3">
-            <dt className="text-muted-foreground">Valor declarado</dt><dd className="text-right font-semibold">{formatCurrency(Number(s.total_amount))}</dd>
-            <dt className="text-muted-foreground">Método</dt><dd className="text-right">{METHOD_LABEL[s.method]}</dd>
-            <dt className="text-muted-foreground">Data do pagamento</dt><dd className="text-right">{s.paid_on}</dd>
-            <dt className="text-muted-foreground">Referência</dt><dd className="text-right font-mono text-xs">{s.reference ?? "—"}</dd>
-            <dt className="text-muted-foreground">Ordenante</dt><dd className="text-right">{s.payer_name ?? "—"}</dd>
-            <dt className="text-muted-foreground">Conta de destino</dt><dd className="text-right">{s.bank_account?.bank_name ?? "—"}</dd>
-          </dl>
-
-          <div>
-            <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Faturas a liquidar</p>
-            <ul className="divide-y rounded-lg border">
-              {s.items.map((i) => (
-                <li key={i.invoice_id} className="flex items-center justify-between gap-2 px-3 py-2">
-                  <span>{i.description}<span className="block text-xs text-muted-foreground">vence {formatIsoDay(i.due_date)}</span></span>
-                  <span className="font-medium tabular-nums">{formatCurrency(Number(i.amount))}</span>
-                </li>
-              ))}
-            </ul>
+        <div className="grid gap-5 lg:grid-cols-2">
+          <div className="min-h-[320px] overflow-hidden rounded-xs border bg-muted/30">
+            {previewError && <p className="p-6 text-center text-sm text-muted-foreground">Não foi possível carregar o ficheiro.</p>}
+            {!preview && !previewError && <p className="p-6 text-center text-sm text-muted-foreground">A carregar comprovativo…</p>}
+            {preview && (preview.mime.startsWith("image/")
+              // eslint-disable-next-line @next/next/no-img-element
+              ? <img src={preview.url} alt="Comprovativo" className="max-h-[460px] w-full object-contain" />
+              : <iframe src={preview.url} title="Comprovativo" className="h-[460px] w-full" />)}
           </div>
 
-          {s.notes && <p className="rounded-lg bg-muted/40 p-3 text-xs"><span className="font-medium">Nota da família: </span>{s.notes}</p>}
+          <div className="space-y-4 text-sm">
+            <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1.5 rounded-xs border p-3">
+              <dt className="text-muted-foreground">Valor declarado</dt><dd className="text-right font-semibold">{formatCurrency(Number(s.total_amount))}</dd>
+              <dt className="text-muted-foreground">Método</dt><dd className="text-right">{METHOD_LABEL[s.method]}</dd>
+              <dt className="text-muted-foreground">Data do pagamento</dt><dd className="text-right">{s.paid_on}</dd>
+              <dt className="text-muted-foreground">Referência</dt><dd className="text-right font-mono text-xs">{s.reference ?? "—"}</dd>
+              <dt className="text-muted-foreground">Ordenante</dt><dd className="text-right">{s.payer_name ?? "—"}</dd>
+              <dt className="text-muted-foreground">Conta de destino</dt><dd className="text-right">{s.bank_account?.bank_name ?? "—"}</dd>
+            </dl>
 
-          {actionable ? (
-            <div className="space-y-3">
-              {s.status === "submetido" && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => start.mutateAsync(s.id).catch((e) => ErrorMessage(getApiErrorMessage(e, "Falhou.")))}>Marcar como em análise</Button>}
-              <Input label="Valor confirmado (Kz)" type="number" value={confirmed} onChange={(e) => setConfirmed(e.target.value)} error={invalid ? "Entre 0 e o valor declarado" : undefined} />
-              {partial && <p className="text-xs text-amber-700">Pagamento parcial: o restante continua em dívida e a família é informada do valor confirmado.</p>}
-              <FormTextarea label="Motivo (obrigatório para rejeitar ou pedir novo comprovativo)" value={reason} onChange={setReason} rows={2} />
-              <p className="text-xs text-muted-foreground">Confira o valor, a data e a referência no extracto bancário antes de aprovar. Só a aprovação regista o pagamento nas faturas.</p>
-              <ul className="list-disc space-y-1 pl-4 text-[11px] text-muted-foreground">
-                <li><strong>Pedir novo comprovativo:</strong> o pedido continua aberto e a família pode substituir o ficheiro (ex.: foto ilegível).</li>
-                <li><strong>Rejeitar:</strong> encerra o pedido e a família vê «não validado» com o seu motivo; para pagar tem de submeter um pedido novo.</li>
-                <li>Enquanto não aprova, a dívida continua a contar e a multa de mora pode ser criada, porque só os pagamentos registados contam.</li>
+            <div>
+              <p className="mb-1.5 text-xs font-medium uppercase tracking-wide text-muted-foreground">Faturas a liquidar</p>
+              <ul className="divide-y rounded-xs border">
+                {s.items.map((i) => (
+                  <li key={i.invoice_id} className="flex items-center justify-between gap-2 px-3 py-2">
+                    <span>{i.description}<span className="block text-xs text-muted-foreground">vence {formatIsoDay(i.due_date)}</span></span>
+                    <span className="font-medium tabular-nums">{formatCurrency(Number(i.amount))}</span>
+                  </li>
+                ))}
               </ul>
             </div>
-          ) : (
-            s.review_reason && <p className="rounded-lg bg-muted/40 p-3 text-xs"><span className="font-medium">Decisão: </span>{s.review_reason}</p>
-          )}
-          {!OPEN_SUBMISSION.includes(s.status) && s.confirmed_amount && <p className="text-xs text-muted-foreground">Valor confirmado: {formatCurrency(Number(s.confirmed_amount))}{s.reviewed_by ? ` · por ${s.reviewed_by.full_name}` : ""}</p>}
-        </div>
-      </div>
-      </div>
 
-        <SheetFooter>
+            {s.notes && <p className="rounded-xs bg-muted/40 p-3 text-xs"><span className="font-medium">Nota da família: </span>{s.notes}</p>}
+
+            {actionable ? (
+              <div className="space-y-3">
+                {s.status === "submetido" && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => start.mutateAsync(s.id).catch((e) => ErrorMessage(getApiErrorMessage(e, "Falhou.")))}>Marcar como em análise</Button>}
+                <Input label="Valor confirmado (Kz)" type="number" value={confirmed} onChange={(e) => setConfirmed(e.target.value)} error={invalid ? "Entre 0 e o valor declarado" : undefined} />
+                {partial && <p className="text-xs text-amber-700">Pagamento parcial: o restante continua em dívida e a família é informada do valor confirmado.</p>}
+                <FormTextarea label="Motivo (obrigatório para rejeitar ou pedir novo comprovativo)" value={reason} onChange={setReason} rows={2} />
+                <p className="text-xs text-muted-foreground">Confira o valor, a data e a referência no extracto bancário antes de aprovar. Só a aprovação regista o pagamento nas faturas.</p>
+                <ul className="list-disc space-y-1 pl-4 text-[11px] text-muted-foreground">
+                  <li><strong>Pedir novo comprovativo:</strong> o pedido continua aberto e a família pode substituir o ficheiro (ex.: foto ilegível).</li>
+                  <li><strong>Rejeitar:</strong> encerra o pedido e a família vê «não validado» com o seu motivo; para pagar tem de submeter um pedido novo.</li>
+                  <li>Enquanto não aprova, a dívida continua a contar e a multa de mora pode ser criada, porque só os pagamentos registados contam.</li>
+                </ul>
+              </div>
+            ) : (
+              s.review_reason && <p className="rounded-xs bg-muted/40 p-3 text-xs"><span className="font-medium">Decisão: </span>{s.review_reason}</p>
+            )}
+            {!OPEN_SUBMISSION.includes(s.status) && s.confirmed_amount && <p className="text-xs text-muted-foreground">Valor confirmado: {formatCurrency(Number(s.confirmed_amount))}{s.reviewed_by ? ` · por ${s.reviewed_by.full_name}` : ""}</p>}
+          </div>
+        </div>
+
+        <SheetFooter className="mt-auto">
           {actionable ? (
             <>
               <Button type="button" variant="outline" disabled={busy || reason.trim().length < 5} onClick={() => decide("replacement_required")}>Pedir novo comprovativo</Button>

@@ -1,7 +1,8 @@
 "use client";
 
-import { createContext, useCallback, useContext, useMemo, type ReactNode } from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from "react";
 import { useSchoolProfile } from "@/hooks/school/use-school-profile";
+import { applyPrimary } from "@/lib/appearance";
 import { useActiveSchoolStore, type SchoolMembership } from "@/stores/school/active-school-store";
 
 interface SchoolContextValue {
@@ -19,10 +20,17 @@ const SchoolContext = createContext<SchoolContextValue | undefined>(undefined);
 
 /** Escola ativa e troca de escola (multi-escola): o switcher da sidebar e o painel Multi-Escola usam o mesmo ponto. */
 export function SchoolProvider({ children }: { children: ReactNode }) {
-  useSchoolProfile(); // hidrata o perfil institucional com os dados reais da escola ativa
+  const { school } = useSchoolProfile(); // hidrata o perfil institucional com os dados reais da escola ativa
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const memberships = useActiveSchoolStore((s) => s.memberships);
   const selectSchool = useActiveSchoolStore((s) => s.selectSchool);
+
+  useEffect(() => {
+    const brandColor = school?.settings?.branding?.primary_color;
+    if (brandColor) {
+      applyPrimary(brandColor);
+    }
+  }, [school?.settings?.branding?.primary_color]);
 
   const switchSchool = useCallback(
     (id: string) => {

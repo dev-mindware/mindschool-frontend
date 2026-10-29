@@ -29,7 +29,7 @@ function ChartCard({ title, icon, description, children }: { title: string; icon
     <Card className="flex h-full flex-col gap-0 py-4">
       <CardHeader className="px-4 pb-3">
         <CardTitle className="flex items-center gap-2 text-base font-semibold">
-          <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+          <span className="flex size-8 items-center justify-center rounded-xs bg-primary/10 text-primary">
             <Icon name={icon} className="size-4" />
           </span>
           {title}
@@ -264,7 +264,7 @@ export function QuickLinks({ items }: { items: Array<{ label: string; href: stri
     <OverviewSectionCard title="Acesso rápido" icon="Zap">
       <div className="grid grid-cols-2 gap-2">
         {visible.map((i) => (
-          <Link key={i.href} href={i.href} className="flex items-center gap-2 rounded-lg border p-3 text-sm font-medium transition-colors hover:bg-muted/50">
+          <Link key={i.href} href={i.href} className="flex items-center gap-2 rounded-xs border p-3 text-sm font-medium transition-colors hover:bg-muted/50">
             <Icon name={i.icon} className="size-4 text-primary" />{i.label}
           </Link>
         ))}

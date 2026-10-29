@@ -4,12 +4,19 @@ import { formatDateTime } from "@/utils";
 import { useState } from "react";
 import {
   Badge,
-  Button,
   ButtonOnlyAction,
   DataList,
   EmptyState,
-  FormModal,
   Icon,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
   TitleList,
   type Column,
 } from "@/components";
@@ -131,12 +138,14 @@ const formatEntity = (e: string) => ENTITIES[e] ?? (e.charAt(0).toUpperCase() + 
 
 type Detail = { before?: unknown; after?: unknown; reason?: string | null };
 
+const DETAIL_MODAL_ID = "settings-audit-detail";
+
 /** Registo imutável de auditoria da escola em português de Angola (AO1945). */
 export function AuditPageContent() {
   // «Acessos do grupo»: quem entrou nesta escola a partir de outra do grupo (titular/direcção pedagógica).
   const [groupOnly, setGroupOnly] = useState(false);
   const { events, hasMore, isLoading, forbidden } = useAudit(groupOnly ? { entity_type: "group_access" } : {});
-  const { openModal } = useModal();
+  const { open: modalState, openModal, closeModal } = useModal();
   const [current, setCurrent] = useState<ApiAuditEvent | null>(null);
   const [detail, setDetail] = useState<Detail | null>(null);
 
@@ -149,10 +158,10 @@ export function AuditPageContent() {
       />
     );
 
-  const open = (e: ApiAuditEvent) => {
+  const openDetail = (e: ApiAuditEvent) => {
     setCurrent(e);
     setDetail(null);
-    openModal("settings-audit-detail");
+    openModal(DETAIL_MODAL_ID);
     void adminSchoolService.auditEvent(e.id).then(setDetail);
   };
 
@@ -184,14 +193,8 @@ export function AuditPageContent() {
         const isSuccess = e.action === "criacao" || e.action === "fecho";
         return (
           <Badge
-            variant="outline"
-            className={
-              isDanger
-                ? "border-destructive/30 bg-destructive/10 text-destructive text-[10px]"
-                : isSuccess
-                ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700 dark:text-emerald-400 text-[10px]"
-                : "border-primary/30 bg-primary/10 text-primary text-[10px]"
-            }
+            variant={isDanger ? "destructive" : isSuccess ? "success" : "outline"}
+            className={!isDanger && !isSuccess ? "border-primary/30 bg-primary/10 text-primary text-[10px]" : "text-[10px]"}
           >
             {formatAction(e.action, e.entity_type)}
           </Badge>
@@ -234,32 +237,44 @@ export function AuditPageContent() {
       render: (_, e) => (
         <ButtonOnlyAction
           data={e}
-          actions={[{ label: "Consultar Registo", icon: "Eye", onClick: open }]}
+          actions={[{ label: "Consultar Registo", icon: "Eye", onClick: openDetail }]}
         />
       ),
     },
   ];
 
+  const isSheetOpen = Boolean(modalState[DETAIL_MODAL_ID]);
+
   return (
     <div className="space-y-6">
       <TitleList
         title="Livro de Auditoria e Rastreabilidade"
-        suTitle="Quem fez o quê e quando. Cada registo fica encadeado ao anterior e não se altera nem se apaga. Mostra os registos mais recentes; use os filtros para chegar aos mais antigos."
+        suTitle="Registo cronológico de acções e alterações no sistema."
       />
 
-      <div className="inline-flex rounded-md border bg-sidebar p-1" role="tablist" aria-label="Tipo de registo">
-        <Button size="sm" variant={groupOnly ? "ghost" : "default"} className="h-8 gap-1.5" onClick={() => setGroupOnly(false)}>
-          <Icon name="ScrollText" className="size-4" />Todos os registos
-        </Button>
-        <Button size="sm" variant={groupOnly ? "default" : "ghost"} className="h-8 gap-1.5" onClick={() => setGroupOnly(true)}>
-          <Icon name="Building2" className="size-4" />Acessos do grupo
-        </Button>
-      </div>
-      {groupOnly && (
-        <p className="text-xs text-muted-foreground">
-          Entradas nesta escola feitas por titulares e direções pedagógicas de outras escolas do mesmo grupo (um registo por pessoa em cada 30 minutos).
-        </p>
-      )}
+      <Tabs
+        value={groupOnly ? "group" : "all"}
+        onValueChange={(v) => setGroupOnly(v === "group")}
+        className="space-y-4"
+      >
+        <TabsList>
+          <TabsTrigger value="all" className="gap-1.5">
+            <Icon name="ScrollText" className="size-4" />
+            Todos os registos
+          </TabsTrigger>
+          <TabsTrigger value="group" className="gap-1.5">
+            <Icon name="Building2" className="size-4" />
+            Acessos do grupo
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="group" className="mt-0">
+          <p className="text-xs text-muted-foreground mb-4">
+            Entradas nesta escola feitas por titulares e direções pedagógicas de outras escolas do mesmo grupo (um registo por pessoa em cada 30 minutos).
+          </p>
+        </TabsContent>
+        <TabsContent value="all" className="mt-0" />
+      </Tabs>
 
       <DataList<ApiAuditEvent>
         prefix="auditoria"
@@ -336,56 +351,55 @@ export function AuditPageContent() {
         </p>
       )}
 
-      {/* Modal de Detalhe de Auditoria (Padrão MindGest w-max, sem bordas internas) */}
-      <FormModal
-        id="settings-audit-detail"
-        title="Detalhes do Registo de Auditoria"
-        description={
-          current
-            ? `${formatAction(current.action, current.entity_type)} em ${formatEntity(current.entity_type)} por ${
-                current.actor.full_name
-              } (${formatDateTime(current.occurred_at)})`
-            : undefined
-        }
-        size="lg"
-        readOnly
-        onSubmit={() => undefined}
-      >
-        <div className="sm:col-span-2 space-y-4 text-xs">
-          {current?.reason && (
-            <div className="rounded-lg bg-amber-500/10 border border-amber-500/20 p-3 text-amber-900 dark:text-amber-200">
-              <span className="font-semibold">Justificação Formal: </span>
-              <span>{current.reason}</span>
-            </div>
-          )}
+      <Sheet open={isSheetOpen} onOpenChange={(v) => !v && closeModal(DETAIL_MODAL_ID)}>
+        <SheetContent className="flex flex-col gap-6 overflow-y-auto p-6 sm:max-w-xl">
+          <SheetHeader className="p-0">
+            <SheetTitle>Detalhes do Registo de Auditoria</SheetTitle>
+            {current && (
+              <SheetDescription>
+                {`${formatAction(current.action, current.entity_type)} em ${formatEntity(current.entity_type)} por ${
+                  current.actor.full_name
+                } (${formatDateTime(current.occurred_at)})`}
+              </SheetDescription>
+            )}
+          </SheetHeader>
 
-          {!detail && <p className="text-muted-foreground p-4">A carregar detalhes da operação…</p>}
-
-          {detail && (
-            <div className="grid gap-3 md:grid-cols-2">
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between pb-1">
-                  <span className="font-semibold text-foreground">Estado Anterior</span>
-                  <Badge variant="outline" className="text-[10px]">Antes</Badge>
-                </div>
-                <pre className="max-h-80 overflow-auto rounded-lg border border-border/50 bg-muted/40 p-3 font-mono text-[11px] leading-relaxed">
-                  {JSON.stringify(detail.before ?? "Nenhum estado prévio registado", null, 2)}
-                </pre>
+          <div className="space-y-4 text-xs">
+            {current?.reason && (
+              <div className="rounded-xs bg-amber-500/10 border border-amber-500/20 p-3 text-amber-900 dark:text-amber-200">
+                <span className="font-semibold">Justificação Formal: </span>
+                <span>{current.reason}</span>
               </div>
+            )}
 
-              <div className="space-y-1.5">
-                <div className="flex items-center justify-between pb-1">
-                  <span className="font-semibold text-foreground">Estado Gravado</span>
-                  <Badge variant="outline" className="border-primary/40 text-primary text-[10px]">Depois</Badge>
+            {!detail && <p className="text-muted-foreground p-4">A carregar detalhes da operação…</p>}
+
+            {detail && (
+              <div className="grid gap-4">
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between pb-1">
+                    <span className="font-semibold text-foreground">Estado Anterior</span>
+                    <Badge variant="outline" className="text-[10px]">Antes</Badge>
+                  </div>
+                  <pre className="max-h-80 overflow-auto rounded-xs border border-border/50 bg-muted/40 p-3 font-mono text-[11px] leading-relaxed">
+                    {JSON.stringify(detail.before ?? "Nenhum estado prévio registado", null, 2)}
+                  </pre>
                 </div>
-                <pre className="max-h-80 overflow-auto rounded-lg border border-border/50 bg-muted/40 p-3 font-mono text-[11px] leading-relaxed">
-                  {JSON.stringify(detail.after ?? "Sem alterações gravadas", null, 2)}
-                </pre>
+
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between pb-1">
+                    <span className="font-semibold text-foreground">Estado Gravado</span>
+                    <Badge variant="outline" className="border-primary/40 text-primary text-[10px]">Depois</Badge>
+                  </div>
+                  <pre className="max-h-80 overflow-auto rounded-xs border border-border/50 bg-muted/40 p-3 font-mono text-[11px] leading-relaxed">
+                    {JSON.stringify(detail.after ?? "Sem alterações gravadas", null, 2)}
+                  </pre>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </FormModal>
+            )}
+          </div>
+        </SheetContent>
+      </Sheet>
     </div>
   );
 }

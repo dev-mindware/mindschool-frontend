@@ -9,6 +9,7 @@ import {
   Badge, 
   Icon 
 } from '@/components';
+import { Progress } from '@/components/ui/progress';
 import { useDropoutRisk } from "@/hooks/school/use-dropout-risk";
 import { DropoutRiskAlert, RiskLevel, AlertStatus, ActionType } from '@/types/dropout-risk';
 import { DropoutRiskMetrics } from './dropout-risk-metrics';
@@ -65,7 +66,7 @@ export function DropoutRiskPageContent() {
       case 'HIGH':
         return <Badge variant="destructive" className="font-medium text-xs">Risco Alto</Badge>;
       case 'MODERATE':
-        return <Badge className="bg-amber-100 text-amber-800 font-medium text-xs border-amber-300">Risco Moderado</Badge>;
+        return <Badge variant="warning" className="font-medium text-xs">Risco Moderado</Badge>;
       case 'LOW':
         return <Badge variant="secondary" className="font-medium text-xs">Risco Baixo</Badge>;
       default:
@@ -78,9 +79,9 @@ export function DropoutRiskPageContent() {
       case 'OPEN':
         return <Badge variant="destructive" className="font-medium text-xs">Pendente</Badge>;
       case 'IN_PROGRESS':
-        return <Badge className="bg-blue-100 text-blue-800 font-medium text-xs border-blue-300">Em Acompanhamento</Badge>;
+        return <Badge variant="info" className="font-medium text-xs">Em Acompanhamento</Badge>;
       case 'RESOLVED':
-        return <Badge className="bg-emerald-100 text-emerald-800 font-medium text-xs border-emerald-300">Resolvido</Badge>;
+        return <Badge variant="success" className="font-medium text-xs">Resolvido</Badge>;
       case 'DROPPED_OUT':
         return <Badge variant="outline" className="text-muted-foreground font-medium text-xs">Abandono</Badge>;
       default:
@@ -106,14 +107,17 @@ export function DropoutRiskPageContent() {
       render: (_, item) => (
         <div className="flex flex-col gap-1">
           {getRiskBadge(item.riskLevel)}
-          <div className="w-24 bg-muted h-1.5 rounded-full overflow-hidden">
-            <div 
-              className={`h-full rounded-full ${
-                item.riskLevel === 'HIGH' ? 'bg-rose-500' : item.riskLevel === 'MODERATE' ? 'bg-amber-500' : 'bg-emerald-500'
-              }`}
-              style={{ width: `${item.compositeRiskScore}%` }}
-            />
-          </div>
+          <Progress
+            value={item.compositeRiskScore}
+            className="w-24 h-1.5"
+            indicatorClassName={
+              item.riskLevel === 'HIGH'
+                ? 'bg-rose-500'
+                : item.riskLevel === 'MODERATE'
+                  ? 'bg-amber-500'
+                  : 'bg-emerald-500'
+            }
+          />
         </div>
       ),
     },
@@ -186,7 +190,7 @@ export function DropoutRiskPageContent() {
       {/* Top Header */}
       <TitleList
         title="Prevenção de Abandono Escolar"
-        suTitle="Semáforo de alerta precoce e gestão de intervenções pedagógicas integradas (Presenças, Notas e Encarregados)."
+        suTitle="Monitorização preventiva e intervenção no risco de abandono."
       />
 
       {/* Cartões de Métricas */}

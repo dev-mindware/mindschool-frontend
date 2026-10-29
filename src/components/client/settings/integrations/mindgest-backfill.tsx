@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import { Button, Card, CardContent, CardHeader, CardTitle, ConfirmModal, Icon, Input } from "@/components";
+import { Button, ConfirmModal, Icon, Input, Label } from "@/components";
 import { mindgestService, type ApiBackfillPreview } from "@/services/mindgest-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -40,32 +40,30 @@ export function MindgestBackfill() {
   const blocked = preview?.integration === "sem_ligacao";
 
   return (
-    <Card>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-sm font-semibold">
-          <Icon name="History" className="size-4 text-primary" />Emitir faturas em atraso
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-3 text-sm">
+    <section className="space-y-3">
+      <h3 className="flex items-center gap-2 text-sm font-semibold">
+        <Icon name="History" className="size-4 text-primary" />Emitir faturas em atraso
+      </h3>
+      <div className="space-y-3 text-sm">
         <p className="text-muted-foreground">
           Ligar a escola ao MindGest <strong className="text-foreground">não emite faturas</strong> dos pagamentos anteriores. Se precisar de as emitir, escolha o intervalo de datas dos pagamentos.
           Verá primeiro o resumo e só depois confirma. Cada pagamento gera uma fatura-recibo (repetir a operação não duplica nada).
         </p>
         <div className="flex flex-wrap items-end gap-3">
-          <label className="space-y-1 text-xs">
-            <span className="font-medium">Pagamentos desde</span>
-            <Input type="date" value={from} onChange={(e) => { setFrom(e.target.value); reset(); }} />
-          </label>
-          <label className="space-y-1 text-xs">
-            <span className="font-medium">até</span>
-            <Input type="date" value={to} onChange={(e) => { setTo(e.target.value); reset(); }} />
-          </label>
+          <div className="space-y-1 text-xs">
+            <Label htmlFor="backfill-from" className="text-xs font-medium">Pagamentos desde</Label>
+            <Input id="backfill-from" type="date" value={from} onChange={(e) => { setFrom(e.target.value); reset(); }} />
+          </div>
+          <div className="space-y-1 text-xs">
+            <Label htmlFor="backfill-to" className="text-xs font-medium">até</Label>
+            <Input id="backfill-to" type="date" value={to} onChange={(e) => { setTo(e.target.value); reset(); }} />
+          </div>
           <Button size="sm" variant="outline" disabled={!range || look.isPending} onClick={() => look.mutate()}>Pré-visualizar</Button>
         </div>
         <p className="text-[11px] text-muted-foreground">Máximo de 12 meses por intervalo e 500 faturas por execução.</p>
 
         {preview && (
-          <div className="space-y-2 rounded-md border bg-muted/30 p-3 text-xs">
+          <div className="space-y-2 rounded-xs border bg-muted/30 p-3 text-xs">
             {preview.payments === 0 ? (
               <p>Não há pagamentos sem fatura entre {fmt(preview.from)} e {fmt(preview.to)}.</p>
             ) : (
@@ -84,7 +82,7 @@ export function MindgestBackfill() {
             )}
           </div>
         )}
-      </CardContent>
+      </div>
       <ConfirmModal
         id={CONFIRM}
         title="Emitir faturas em atraso"
@@ -92,6 +90,6 @@ export function MindgestBackfill() {
         confirmLabel="Emitir"
         onConfirm={() => run.mutateAsync()}
       />
-    </Card>
+    </section>
   );
 }

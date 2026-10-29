@@ -98,13 +98,13 @@ export function FinanceReportExportModal({ isOpen, onClose }: FinanceReportExpor
       isOpen={isOpen}
       onClose={onClose}
       canClose
+      size="5xl"
       title="Exportar Balancete Financeiro Oficial (PDF)"
       description="Demonstração financeira institucional e apuramento consolidado de propinas para arquivo."
-      className="w-full sm:max-w-5xl"
     >
       <div className="space-y-4">
         {/* Folha Oficial A4 Retrato */}
-        <div className="overflow-x-auto rounded-xl border border-border bg-slate-200/70 p-2 sm:p-5 dark:bg-slate-950/80 shadow-inner">
+        <div className="overflow-x-auto rounded-xs border border-border bg-slate-200/70 p-2 sm:p-5 dark:bg-slate-950/80 shadow-inner">
           <div
             id="finance-official-print-sheet"
             className="mx-auto w-full max-w-[850px] bg-white p-8 text-black shadow-md font-sans"
@@ -302,7 +302,7 @@ export function FinanceReportExportModal({ isOpen, onClose }: FinanceReportExpor
               type="button"
               onClick={handleDownload}
               disabled={isDownloading}
-              className="gap-2 bg-primary text-primary-foreground"
+              className="gap-2"
             >
               {isDownloading ? (
                 <Icon name="Loader2" className="w-4 h-4 animate-spin" />

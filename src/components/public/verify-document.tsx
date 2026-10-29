@@ -57,10 +57,10 @@ export function VerifyDocument({ number }: { number?: string }) {
           </form>
 
           {state === "loading" && <p className="text-sm text-muted-foreground">A verificar…</p>}
-          {state === "notfound" && <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">Documento não encontrado. Confirme o número impresso no documento.</p>}
-          {state === "error" && <p role="alert" className="rounded-md border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">Não foi possível verificar agora. Tente novamente dentro de instantes.</p>}
+          {state === "notfound" && <p role="alert" className="rounded-xs border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">Documento não encontrado. Confirme o número impresso no documento.</p>}
+          {state === "error" && <p role="alert" className="rounded-xs border border-destructive/40 bg-destructive/5 p-3 text-sm text-destructive">Não foi possível verificar agora. Tente novamente dentro de instantes.</p>}
           {state === "ok" && result && (
-            <div role="status" className="space-y-2 rounded-md border border-emerald-500/40 bg-emerald-500/5 p-4 text-sm">
+            <div role="status" className="space-y-2 rounded-xs border border-emerald-500/40 bg-emerald-500/5 p-4 text-sm">
               <p className="flex items-center gap-2 font-semibold text-emerald-700 dark:text-emerald-400"><Icon name="BadgeCheck" className="size-4" />Documento autêntico</p>
               <dl className="grid grid-cols-[auto_1fr] gap-x-4 gap-y-1">
                 <dt className="text-muted-foreground">Número</dt><dd className="font-medium">{result.document_number}</dd>

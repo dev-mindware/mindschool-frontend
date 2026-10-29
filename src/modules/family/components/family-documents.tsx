@@ -77,7 +77,7 @@ export function FamilyDocuments({ studentId, ward }: FamilyContext) {
   return (
     <>
       {awaiting.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-sm">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xs border border-amber-500/30 bg-amber-500/5 p-3 text-sm">
           <div className="flex items-center gap-2"><Icon name="Clock" className="size-4 text-amber-600" />{awaiting.length === 1 ? "Tem 1 pedido a aguardar o pagamento da taxa." : `Tem ${awaiting.length} pedidos a aguardar o pagamento da taxa.`}</div>
           <Button size="sm" asChild><Link href={payHref}>Pagar agora</Link></Button>
         </div>
@@ -94,9 +94,9 @@ export function FamilyDocuments({ studentId, ward }: FamilyContext) {
           <p className="text-xs text-muted-foreground">Escolha o documento. Quando tem taxa, é gerada automaticamente uma fatura e a secretaria trata do pedido depois do pagamento.</p>
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 @5xl/main:grid-cols-3">
             {TYPES.map((t) => (
-              <div key={t} className="flex flex-col justify-between gap-3 rounded-xl border bg-card p-4">
+              <div key={t} className="flex flex-col justify-between gap-3 rounded-xs border bg-card p-4">
                 <div className="flex items-start gap-3">
-                  <div className="rounded-lg bg-primary/10 p-2 text-primary"><Icon name={ICON[t] as never} className="size-5" /></div>
+                  <div className="rounded-xs bg-primary/10 p-2 text-primary"><Icon name={ICON[t] as never} className="size-5" /></div>
                   <div>
                     <p className="font-medium">{REQUEST_TYPE_LABEL[t]}</p>
                     <p className="mt-0.5 text-xs text-muted-foreground">{fee(t) > 0 ? `Taxa: ${formatCurrency(fee(t))}` : "Gratuito"}</p>
@@ -135,7 +135,7 @@ export function FamilyDocuments({ studentId, ward }: FamilyContext) {
       </Tabs>
 
       <FormModal id={NEW_MODAL} title={REQUEST_TYPE_LABEL[type]} description={`Para ${ward.student.full_name}`} submitLabel={fee(type) > 0 ? "Pedir e gerar fatura" : "Enviar pedido"} isLoading={requests.create.isPending} disabled={subject.trim().length < 3} onSubmit={send}>
-        <div className="sm:col-span-2 rounded-lg border bg-muted/30 p-3 text-sm">
+        <div className="sm:col-span-2 rounded-xs border bg-muted/30 p-3 text-sm">
           {fee(type) > 0
             ? <p>Taxa deste documento: <strong>{formatCurrency(fee(type))}</strong>. Será gerada uma fatura com referência de pagamento; depois de paga, a secretaria trata do pedido.</p>
             : <p>Este documento é <strong>gratuito</strong>: o pedido segue diretamente para a secretaria.</p>}

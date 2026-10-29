@@ -40,7 +40,7 @@ export function HistoryTab({ sessions, openSession }: HistoryTabProps) {
                                 <button
                                     key={session.id}
                                     onClick={() => openSession(session)}
-                                    className="flex items-start gap-4 p-3 rounded-xl hover:bg-muted/50 transition-colors text-left group border border-transparent hover:border-border/60"
+                                    className="flex items-start gap-4 p-3 rounded-xs hover:bg-muted/50 transition-colors text-left group border border-transparent hover:border-border/60"
                                 >
                                     <div className="flex-shrink-0 w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center mt-1">
                                         <Icon name="Sparkles" className="h-5 w-5 text-primary" />
@@ -63,7 +63,7 @@ export function HistoryTab({ sessions, openSession }: HistoryTabProps) {
                         })}
                     </div>
                 ) : (
-                    <div className="flex flex-col items-center justify-center py-10 text-center gap-2 border border-dashed border-border/60 rounded-xl mt-4">
+                    <div className="flex flex-col items-center justify-center py-10 text-center gap-2 border border-dashed border-border/60 rounded-xs mt-4">
                         <Icon name="MessageSquare" className="h-8 w-8 text-muted-foreground/30 mb-2" />
                         <p className="text-sm text-muted-foreground font-medium">Nenhuma conversa encontrada</p>
                         <p className="text-xs text-muted-foreground/60 max-w-[200px]">As suas conversas dos últimos 7 dias aparecerão aqui.</p>

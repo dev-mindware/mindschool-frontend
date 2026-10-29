@@ -31,7 +31,7 @@ export function GradeReviewsPageContent() {
     { key: "assessment", header: "Avaliação", render: (_, r) => (<div className="flex flex-col"><span>{r.assessment.subject}</span><span className="text-xs text-muted-foreground">{TYPE[r.assessment.type] ?? r.assessment.type} · {r.assessment.date}</span></div>) },
     { key: "grade", header: "Nota", render: (_, r) => <span className="font-mono">{val(r.grade)}{r.new_grade ? ` → ${val(r.new_grade)}` : ""}</span> },
     { key: "created_at", header: "Pedido em", render: (_, r) => <span className="font-mono text-xs">{r.created_at.slice(0, 10)}</span> },
-    { key: "status", header: "Estado", render: (_, r) => <Badge variant={r.status === "deferido" ? "default" : r.status === "indeferido" ? "destructive" : "outline"}>{REVIEW_STATUS_LABEL[r.status]}</Badge> },
+    { key: "status", header: "Estado", render: (_, r) => <Badge variant={r.status === "deferido" ? "success" : r.status === "indeferido" ? "destructive" : "outline"}>{REVIEW_STATUS_LABEL[r.status]}</Badge> },
     { key: "action", header: "Ação", render: (_, r) => <ButtonOnlyAction data={r} actions={[{ label: ["pedido", "em_revisao"].includes(r.status) ? "Rever / decidir" : "Ver detalhe", icon: "Eye", onClick: open }]} /> },
   ];
 
@@ -39,7 +39,7 @@ export function GradeReviewsPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Reapreciação de Notas" suTitle="Pedidos dos encarregados/alunos sobre notas de pautas fechadas: revisão pelo professor e decisão da Direção." />
+      <TitleList title="Reapreciação de Notas" suTitle="Pedidos de revisão de prova e recálculo de médias." />
 
       <DataList<ApiReview>
         prefix="reapreciacoes"
@@ -68,9 +68,9 @@ export function GradeReviewsPageContent() {
         {active && (
           <div className="sm:col-span-2 space-y-3 text-sm">
             <p><span className="text-muted-foreground">Nota atual:</span> <strong className="font-mono">{val(active.grade)}</strong> (v{active.grade?.version ?? "—"})</p>
-            <p className="rounded-lg border p-2"><span className="text-muted-foreground">Motivo do pedido:</span> {active.reason}</p>
-            {active.review_note && <p className="rounded-lg border p-2"><span className="text-muted-foreground">Revisão:</span> {active.review_note}</p>}
-            {active.decision_note && <p className="rounded-lg border p-2"><span className="text-muted-foreground">Decisão:</span> {active.decision_note}</p>}
+            <p className="rounded-xs border p-2"><span className="text-muted-foreground">Motivo do pedido:</span> {active.reason}</p>
+            {active.review_note && <p className="rounded-xs border p-2"><span className="text-muted-foreground">Revisão:</span> {active.review_note}</p>}
+            {active.decision_note && <p className="rounded-xs border p-2"><span className="text-muted-foreground">Decisão:</span> {active.decision_note}</p>}
             {actionable && (
               <div className="grid gap-3 border-t pt-3 sm:grid-cols-2">
                 <FormTextarea label="Parecer / fundamentação (mín. 10 caracteres para decidir)" value={note} onChange={setNote} />

@@ -21,52 +21,52 @@ export function TeacherCredentialModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Cartão Institucional Docente (Para Impressão)"
-      className="!w-[95vw] sm:!max-w-md"
+      size="md"
     >
       <div className="space-y-6 text-center">
         {/* Design do Cartão PVC Simulado */}
-        <div id="teacher-qr-card-sheet" className="w-80 mx-auto rounded-2xl bg-gradient-to-br from-slate-900 via-slate-800 to-indigo-950 text-white p-6 shadow-xl border border-slate-700 relative overflow-hidden text-left">
+        <div id="teacher-qr-card-sheet" className="relative mx-auto w-80 overflow-hidden rounded-xs border border-primary/40 bg-primary p-6 text-left text-primary-foreground shadow-sm">
           {/* Marca d'água */}
-          <div className="absolute -right-8 -bottom-8 opacity-10 pointer-events-none">
-            <Icon name="GraduationCap" className="w-48 h-48 text-white" />
+          <div className="pointer-events-none absolute -bottom-8 -right-8 opacity-10">
+            <Icon name="GraduationCap" className="size-48 text-primary-foreground" />
           </div>
 
           {/* Cabeçalho do Cartão */}
-          <div className="flex items-center justify-between border-b border-slate-700/60 pb-3">
+          <div className="flex items-center justify-between border-b border-primary-foreground/20 pb-3">
             <div>
-              <span className="text-[10px] uppercase font-semibold tracking-wider text-primary">República de Angola</span>
-              <h4 className="font-bold text-sm tracking-tight text-white">MINDSCHOOL ANGOLA</h4>
+              <span className="text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/80">República de Angola</span>
+              <h4 className="text-sm font-bold tracking-tight text-primary-foreground">MINDSCHOOL ANGOLA</h4>
             </div>
-            <div className="w-8 h-8 rounded-lg bg-primary/20 flex items-center justify-center text-primary font-semibold text-xs border border-primary/40">
+            <div className="flex size-8 items-center justify-center rounded-xs border border-primary-foreground/30 bg-primary-foreground/15 text-xs font-semibold text-primary-foreground">
               MS
             </div>
           </div>
 
           {/* Informações do Docente */}
-          <div className="my-4 flex gap-4 items-center">
-            <div className="w-16 h-16 rounded-xl bg-slate-800 border border-slate-600 flex items-center justify-center text-slate-400">
-              <Icon name="User" className="w-8 h-8" />
+          <div className="my-4 flex items-center gap-4">
+            <div className="flex size-16 items-center justify-center rounded-xs border border-primary-foreground/20 bg-primary-foreground/10 text-primary-foreground">
+              <Icon name="User" className="size-8" />
             </div>
             <div>
-              <h5 className="font-semibold text-sm text-white leading-tight">{credential.teacherName}</h5>
-              <p className="text-xs text-primary font-medium mt-0.5">Corpo Docente</p>
-              <p className="text-[11px] font-mono text-slate-400 mt-0.5">{credential.teacherCode}</p>
+              <h5 className="text-sm font-semibold leading-tight text-primary-foreground">{credential.teacherName}</h5>
+              <p className="mt-0.5 text-xs font-medium text-primary-foreground/80">Corpo Docente</p>
+              <p className="mt-0.5 font-mono text-[11px] text-primary-foreground/70">{credential.teacherCode}</p>
             </div>
           </div>
 
           {/* QR Code de Ponto Físico */}
-          <div className="bg-white p-3 rounded-xl flex items-center justify-center max-w-[140px] mx-auto shadow-md">
+          <div className="mx-auto flex max-w-[140px] items-center justify-center rounded-xs bg-white p-3 shadow-xs">
             <div className="text-center">
-              <div className="w-24 h-24 bg-slate-950 p-1 flex items-center justify-center rounded">
-                <Icon name="QrCode" className="w-20 h-20 text-white" />
+              <div className="flex size-24 items-center justify-center rounded bg-slate-950 p-1">
+                <Icon name="QrCode" className="size-20 text-white" />
               </div>
-              <span className="text-[9px] font-mono text-slate-900 block mt-1 font-semibold">
+              <span className="mt-1 block font-mono text-[9px] font-semibold text-slate-900">
                 {credential.teacherCode}
               </span>
             </div>
           </div>
 
-          <p className="text-[9px] text-center text-slate-400 mt-4">
+          <p className="mt-4 text-center text-[9px] text-primary-foreground/70">
             Cartão oficial para registo de assiduidade diária nas instalações escolares.
           </p>
         </div>

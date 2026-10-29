@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Button, FormModal, FormTextarea, Input } from "@/components";
+import { Button, EmptyState, FormModal, FormTextarea, Input } from "@/components";
 import { useHealth, usePsychoCase } from "@/hooks/school/use-health";
 import { CASE_CATEGORY_LABEL, CASE_STATUS_LABEL } from "@/services/health-service";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -20,11 +20,18 @@ export function PsychopedagogicalPlanCard({ caseId }: { caseId: string | null })
     <FormModal id="health-case" title={data ? (nameOf.get(data.student_id) ?? "Caso") : "Caso"} description={data ? `${CASE_CATEGORY_LABEL[data.category]} • ${CASE_STATUS_LABEL[data.status]}` : undefined} size="lg" readOnly onSubmit={() => undefined}>
       {data && (
         <div className="sm:col-span-2 space-y-4 text-sm">
-          <p className="rounded-lg border p-3">{data.summary}</p>
+          <p className="rounded-xs border p-3">{data.summary}</p>
           <div className="space-y-2">
             <h4 className="font-semibold">Sessões ({data.sessions.length})</h4>
-            {data.sessions.length === 0 && <p className="text-muted-foreground">Ainda sem sessões.</p>}
-            {data.sessions.map((s) => (<div key={s.id} className="rounded-lg border p-2"><p className="font-mono text-xs text-muted-foreground">{s.session_date}</p><p>{s.notes}</p></div>))}
+            {data.sessions.length === 0 && (
+              <EmptyState
+                icon="CalendarOff"
+                title="Ainda sem sessões"
+                description="Registe a primeira sessão no formulário abaixo."
+                className="py-4 my-2"
+              />
+            )}
+            {data.sessions.map((s) => (<div key={s.id} className="rounded-xs border p-2"><p className="font-mono text-xs text-muted-foreground">{s.session_date}</p><p>{s.notes}</p></div>))}
           </div>
           {!closed && (
             <div className="space-y-3 border-t pt-3">

@@ -9,10 +9,15 @@ import { useAdmissionSessions } from "@/hooks/school/use-phase6";
 import { useGuardians } from "@/hooks/school/use-guardians";
 import {
   Input,
+  Label,
   SelectField,
   Icon,
   FileUpload,
   PROOF_ACCEPT,
+  Separator,
+  Tabs,
+  TabsList,
+  TabsTrigger,
 } from "@/components";
 import { PassportPhotoCropper, type PassportPhotoValue } from "./passport-photo-cropper";
 import type { ApplicationDocuments } from "@/services/admissions-service";
@@ -27,7 +32,6 @@ import {
 import { Button } from "@/components/ui/button";
 import { ButtonSubmit } from "@/components/ui/button-submit";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { cn } from "@/lib/utils";
 
 interface CandidateApplicationDrawerProps {
   isOpen: boolean;
@@ -409,7 +413,7 @@ export function CandidateApplicationDrawer({
         >
           {/* O aviso vem logo ao abrir: antes só aparecia a meio do formulário, depois de o utilizador o preencher */}
           {availableExams.length === 0 && (
-            <div role="status" className="flex gap-2 rounded-lg border border-amber-300/80 bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-950/20 dark:text-amber-300">
+            <div role="status" className="flex gap-2 rounded-xs border border-amber-300/80 bg-amber-50 p-3 text-xs text-amber-800 dark:bg-amber-950/20 dark:text-amber-300">
               <Icon name="AlertTriangle" className="mt-0.5 h-4 w-4 shrink-0" />
               <p>
                 <strong>Não existem Provas de Acesso agendadas.</strong> Crie primeiro uma sessão em Secretaria › Sessões da Prova de Acesso; sem ela a candidatura não pode ser submetida.
@@ -419,7 +423,7 @@ export function CandidateApplicationDrawer({
 
           {/* Secção 1: Dados do Candidato */}
           <div className="space-y-4">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 pb-1 border-b">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Icon name="User" className="h-4 w-4 text-primary" />
               1. Dados Pessoais do Candidato (Pré-Aluno)
             </h4>
@@ -492,42 +496,28 @@ export function CandidateApplicationDrawer({
             </div>
           </div>
 
+          <Separator />
+
           {/* Secção 2: Encarregado de Educação */}
           <div className="space-y-4">
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-1 border-b">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Icon name="Users" className="h-4 w-4 text-primary" />
                 2. Encarregado de Educação Responsável
               </h4>
 
-              <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-lg self-start sm:self-auto border border-border/50">
-                <button
-                  type="button"
-                  onClick={() => handleModeChange("existing")}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
-                    guardianMode === "existing"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Icon name="Users" className="w-3.5 h-3.5" />
-                  <span>Selecionar Existente</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleModeChange("new")}
-                  className={cn(
-                    "flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
-                    guardianMode === "new"
-                      ? "bg-background text-foreground shadow-sm"
-                      : "text-muted-foreground hover:text-foreground"
-                  )}
-                >
-                  <Icon name="UserPlus" className="w-3.5 h-3.5" />
-                  <span>Cadastrar Novo</span>
-                </button>
-              </div>
+              <Tabs value={guardianMode} onValueChange={(v) => handleModeChange(v as "existing" | "new")}>
+                <TabsList className="h-8">
+                  <TabsTrigger value="existing" className="gap-1.5 text-xs">
+                    <Icon name="Users" className="w-3.5 h-3.5" />
+                    <span>Selecionar Existente</span>
+                  </TabsTrigger>
+                  <TabsTrigger value="new" className="gap-1.5 text-xs">
+                    <Icon name="UserPlus" className="w-3.5 h-3.5" />
+                    <span>Cadastrar Novo</span>
+                  </TabsTrigger>
+                </TabsList>
+              </Tabs>
             </div>
 
             {guardianMode === "existing" ? (
@@ -535,18 +525,20 @@ export function CandidateApplicationDrawer({
                 {isLoadingGuardians ? (
                   <p className="text-xs text-muted-foreground">A carregar encarregados registados...</p>
                 ) : allGuardians.length === 0 ? (
-                  <div className="rounded-lg border border-dashed border-border p-4 text-center space-y-2">
+                  <div className="rounded-xs border border-dashed border-border p-4 text-center space-y-2">
                     <p className="text-xs text-muted-foreground">
                       Ainda não há encarregados registados nesta escola.
                     </p>
-                    <button
+                    <Button
                       type="button"
+                      variant="link"
+                      size="sm"
                       onClick={() => handleModeChange("new")}
-                      className="text-xs text-primary font-medium hover:underline inline-flex items-center gap-1 cursor-pointer"
+                      className="text-xs text-primary font-medium gap-1 h-auto p-0"
                     >
                       <Icon name="UserPlus" className="w-3.5 h-3.5" />
                       Cadastrar encarregado manualmente
-                    </button>
+                    </Button>
                   </div>
                 ) : (
                   <div className="space-y-3">
@@ -560,7 +552,7 @@ export function CandidateApplicationDrawer({
                     <FieldError message={submitErrors.guardian} />
 
                     {selectedGuardian && (
-                      <div className="rounded-lg border border-border/70 bg-muted/30 p-3 space-y-1.5 text-xs animate-in fade-in-50 duration-200">
+                      <div className="rounded-xs bg-muted/30 p-3 space-y-1.5 text-xs animate-in fade-in-50 duration-200">
                         <div className="flex items-center justify-between font-medium text-foreground">
                           <span className="flex items-center gap-1.5">
                             <Icon name="User" className="w-3.5 h-3.5 text-primary" />
@@ -651,9 +643,11 @@ export function CandidateApplicationDrawer({
             )}
           </div>
 
+          <Separator />
+
           {/* Secção 3: Pretensão Escolar (Ciclo + Classe) & Prova de Acesso Obrigatória */}
           <div className="space-y-4">
-            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5 pb-1 border-b">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Icon name="BookOpen" className="h-4 w-4 text-primary" />
               3. Pretensão Escolar & Prova de Acesso Designada
             </h4>
@@ -699,7 +693,7 @@ export function CandidateApplicationDrawer({
               {/* Seleção Obrigatória da Prova de Acesso */}
               <div className="sm:col-span-2 space-y-2">
                 {availableExams.length === 0 ? (
-                  <div className="rounded-lg border border-amber-300/80 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-2">
+                  <div className="rounded-xs border border-amber-300/80 bg-amber-50 dark:bg-amber-950/20 p-4 space-y-2">
                     <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-medium text-xs">
                       <Icon name="AlertTriangle" className="h-4 w-4" />
                       Não existem Provas de Acesso agendadas nesta escola.
@@ -732,9 +726,11 @@ export function CandidateApplicationDrawer({
             </div>
           </div>
 
+          <Separator />
+
           {/* Secção 4: Documentos do Candidato (Foto Tipo Passe com Recorte, Cópia do BI, Certificado Escolar) */}
           <div className="space-y-4">
-            <div className="flex items-center justify-between pb-1 border-b">
+            <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Icon name="Paperclip" className="h-4 w-4 text-primary" />
                 4. Documentos Obrigatórios do Candidato
@@ -753,10 +749,10 @@ export function CandidateApplicationDrawer({
               {/* 2. Cópia do Documento de Identificação (BI / Cédula) */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                     <Icon name="FileCheck" className="h-4 w-4 text-primary" />
                     Cópia do Documento de Identificação (BI / Cédula) *
-                  </label>
+                  </Label>
                   <span className="text-[10px] text-muted-foreground">PDF, PNG ou JPEG · máx. 1000 KB</span>
                 </div>
                 <FileUpload
@@ -773,10 +769,10 @@ export function CandidateApplicationDrawer({
               {/* 3. Certificado da escola passada (opcional) */}
               <div className="space-y-1.5">
                 <div className="flex items-center justify-between">
-                  <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                  <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
                     <Icon name="GraduationCap" className="h-4 w-4 text-muted-foreground" />
                     Certificado / Declaração da Escola Anterior (Opcional)
-                  </label>
+                  </Label>
                   <span className="text-[10px] text-muted-foreground">PDF, PNG ou JPEG · máx. 1000 KB</span>
                 </div>
                 <FileUpload
@@ -792,7 +788,7 @@ export function CandidateApplicationDrawer({
           </div>
         </form>
 
-        <SheetFooter className="p-4 border-t flex flex-wrap items-center justify-between gap-2 bg-background shrink-0">
+        <SheetFooter>
           <Button
             type="button"
             variant="outline"

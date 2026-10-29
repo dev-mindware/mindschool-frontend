@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import { SucessMessage, ErrorMessage } from '@/utils/messages';
-import { GlobalModal, Button, Badge, FormSelect, Icon } from '@/components';
+import { GlobalModal, Button, Badge, FormSelect, Icon, Label } from '@/components';
 import { useGoogleForm } from '@/hooks/school/use-online-exams';
 import { SKIP_REASON, type ApiExam, type ApiFormSync } from '@/services/exams-service';
 import { getApiErrorMessage } from '@/utils/api-error';
@@ -33,7 +33,7 @@ export function GoogleFormModal({ isOpen, onClose, activeExam }: GoogleFormModal
   const ready = googleConnected && formsScopeGranted;
 
   return (
-    <GlobalModal isOpen={isOpen} onClose={onClose} title={activeExam ? `Google Forms: ${activeExam.title}` : 'Google Forms'} className="!w-[95vw] sm:!max-w-2xl">
+    <GlobalModal isOpen={isOpen} onClose={onClose} title={activeExam ? `Google Forms: ${activeExam.title}` : 'Google Forms'} size="md">
       {activeExam && (
         <div className="space-y-4 text-sm">
           {isLoading && <p className="text-xs text-muted-foreground">A carregar…</p>}
@@ -45,7 +45,7 @@ export function GoogleFormModal({ isOpen, onClose, activeExam }: GoogleFormModal
                 importadas, identificadas pelo e-mail da conta, corrigidas automaticamente e a nota segue para a mini-pauta após a sua confirmação.
               </p>
               {!ready && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 space-y-2">
+                <div className="rounded-xs border border-amber-200 bg-amber-50 p-3 text-xs text-amber-800 space-y-2">
                   <p>
                     {!googleConnected
                       ? 'A escola ainda não ligou a conta Google.'
@@ -58,7 +58,7 @@ export function GoogleFormModal({ isOpen, onClose, activeExam }: GoogleFormModal
                 </div>
               )}
               <div className="flex flex-wrap items-center gap-3">
-                <label className="text-xs font-medium">Identificação do aluno</label>
+                <Label className="text-xs font-medium">Identificação do aluno</Label>
                 <div className="w-72"><FormSelect label="" value={emailMode} onValueChange={(v) => setEmailMode(v as 'verified' | 'responder_input')} options={[{ value: 'verified', label: 'E-mail verificado (Google) — recomendado' }, { value: 'responder_input', label: 'E-mail escrito pelo aluno' }]} /></div>
                 <Button size="sm" className="gap-1.5" disabled={link.isPending || activeExam.questions.length === 0} onClick={() => run(link.mutateAsync(emailMode), 'Google Form criado.')}>
                   <Icon name="Link" className="size-4" />
@@ -71,7 +71,7 @@ export function GoogleFormModal({ isOpen, onClose, activeExam }: GoogleFormModal
 
           {status?.linked && (
             <>
-              <div className="rounded-lg border border-emerald-200 bg-emerald-50 p-3 text-xs space-y-1.5">
+              <div className="rounded-xs border border-emerald-200 bg-emerald-50 p-3 text-xs space-y-1.5">
                 <p className="font-semibold text-emerald-800">Formulário ligado</p>
                 <p>
                   Ligação para os alunos:{' '}
@@ -99,7 +99,7 @@ export function GoogleFormModal({ isOpen, onClose, activeExam }: GoogleFormModal
           )}
 
           {result && (
-            <div className="rounded-lg border border-border p-3 text-xs space-y-2">
+            <div className="rounded-xs border border-border p-3 text-xs space-y-2">
               <div className="flex flex-wrap gap-2">
                 <Badge variant="outline">{result.total_responses} no Google</Badge>
                 <Badge variant="default">{result.imported} importadas</Badge>

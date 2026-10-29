@@ -22,7 +22,7 @@ export function ProtocolSlipModal({ request }: { request: ApiRequest | null }) {
       onSubmit={() => {}}
     >
       {request && (
-        <div id="request-slip-print-content" className="sm:col-span-2 space-y-5 rounded-lg border bg-white p-6 font-sans text-slate-900 print:border-0">
+        <div id="request-slip-print-content" className="sm:col-span-2 space-y-5 rounded-xs border bg-white p-6 font-sans text-slate-900 print:border-0">
           <div className="space-y-1 border-b border-slate-300 pb-4 text-center">
             <div className="text-[10px] font-bold uppercase tracking-widest text-slate-600">República de Angola • Ministério da Educação</div>
             <div className="text-sm font-black uppercase">{profile.schoolName}</div>

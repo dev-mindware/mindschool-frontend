@@ -134,7 +134,7 @@ export function GlobalModal({
                 {sucess && <IconCheckSucessfull />}
                 {warning && <IconWarning />}
                 {icon && !sucess && !warning && (
-                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">{icon}</div>
+                  <div className="flex size-10 shrink-0 items-center justify-center rounded-xs bg-primary/10 text-primary">{icon}</div>
                 )}
                 <div className={cn("min-w-0 space-y-0.5 text-left", { "text-center": sucess })}>
                   {title && <DialogTitle className="break-words p-0 text-lg font-semibold tracking-tight">{title}</DialogTitle>}

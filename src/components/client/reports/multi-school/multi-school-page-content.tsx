@@ -99,7 +99,7 @@ export function MultiSchoolPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Painel Multi-Escola" suTitle="Indicadores consolidados do grupo, lidos de uma vista agregada (sem dados nominais de alunos).">
+      <TitleList title="Painel Multi-Escola" suTitle="Visão consolidada das unidades escolares do grupo.">
         <div className="flex items-end gap-2">
           {first.groups.length > 1 && <div className="w-56"><FormSelect label="Grupo" value={active} onValueChange={setGroupId} options={first.groups.map((x) => ({ value: x.id, label: x.name }))} /></div>}
           {g.canRefresh && (

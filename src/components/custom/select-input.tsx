@@ -29,7 +29,7 @@ export function QuizSelect({
           type="button"
           onClick={() => onChange?.(option.value)}
           className={cn(
-            "w-full flex items-center gap-3 px-4 py-3 rounded-md border transition-all text-left",
+            "w-full flex items-center gap-3 px-4 py-3 rounded-xs border transition-all text-left",
             value === option.value
               ? "border-primary bg-background"
               : "border-transparent bg-sidebar",

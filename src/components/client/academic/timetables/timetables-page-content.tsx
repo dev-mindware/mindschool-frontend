@@ -184,7 +184,7 @@ function TimetableGuide({ hasBells, hasRooms, roomsEnabled, hasYear, creating, o
     <EmptyState icon="CalendarRange" title="Ainda não há horário escolar" description={hasYear ? "Siga os passos abaixo para configurar os turnos, salas e montar a grade semanal das turmas." : "Não há ano letivo ativo. Crie o ano letivo em Configurações antes de montar o horário."}>
       <ol className="mt-2 grid w-full max-w-3xl gap-3 text-left sm:grid-cols-2">
         {steps.map((st, i) => (
-          <li key={st.title} className={"flex gap-3 rounded-lg border bg-background/80 p-3.5 transition-colors " + (st.done ? "border-emerald-500/40 bg-emerald-500/[0.04]" : "border-border") + (st.isFinal ? " sm:col-span-2" : "")}>
+          <li key={st.title} className={"flex gap-3 rounded-xs border bg-background/80 p-3.5 transition-colors " + (st.done ? "border-emerald-500/40 bg-emerald-500/[0.04]" : "border-border") + (st.isFinal ? " sm:col-span-2" : "")}>
             <span className={"flex size-7 shrink-0 items-center justify-center rounded-full text-xs font-semibold " + (st.done ? "bg-emerald-500/15 text-emerald-700 dark:text-emerald-400" : "bg-primary/10 text-primary")}>
               {st.done ? <Icon name="Check" className="size-4" /> : i + 1}
             </span>
@@ -255,7 +255,7 @@ export function TimetablesPageContent() {
     { key: "code", header: "Código", render: (_, r) => <span className="font-mono text-xs font-semibold">{r.code}</span> },
     { key: "name", header: "Sala" },
     { key: "capacity", header: "Lotação", render: (_, r) => r.capacity ?? "—" },
-    { key: "is_active", header: "Estado", render: (_, r) => (r.is_active ? <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">Ativa</Badge> : <Badge variant="secondary">Inactiva</Badge>) },
+    { key: "is_active", header: "Estado", render: (_, r) => (r.is_active ? <Badge variant="success">Ativa</Badge> : <Badge variant="secondary">Inactiva</Badge>) },
     { key: "action", header: "Ação", render: (_, r) => <ButtonOnlyAction data={r} actions={[{ permission: "timetable:write", label: r.is_active ? "Desativar" : "Ativar", icon: "CirclePower", onClick: (x) => void tt.setRoomActive.mutateAsync({ id: x.id, isActive: !x.is_active }).then(() => SucessMessage(x.is_active ? "Sala desativada." : "Sala ativada.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."))) }]} /> },
   ];
   const changeColumns: Column<ApiChange>[] = [
@@ -275,7 +275,7 @@ export function TimetablesPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Horários Escolares" suTitle="Versões do horário (rascunho → validado → publicado), vista semanal por turma e por professor. O sistema impede choques de professor, turma e sala.">
+      <TitleList title="Horários Escolares" suTitle="Gestão de horários por turma, sala e professor.">
         <div className="flex flex-wrap items-center gap-2">
           <Button
             size="sm"

@@ -4,10 +4,11 @@ import React, { useMemo, useState } from "react";
 import {
   GlobalModal,
   Button,
+  Checkbox,
   FormSelect,
   Icon,
   Input,
-  Badge,
+  Label,
   type TimetableSlot,
 } from "@/components";
 import { useSchoolSettingsStore } from "@/stores/school/school-settings-store";
@@ -15,7 +16,6 @@ import type { AcademicSection } from "@/types";
 import type { ApiEntry } from "@/services/timetables-service";
 import { downloadElementAsPdf } from "@/utils/export-pdf";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { cn } from "@/lib/utils";
 
 interface TimetableExportModalProps {
   isOpen: boolean;
@@ -60,7 +60,6 @@ export function TimetableExportModal({
   const [periodLabel, setPeriodLabel] = useState<string>("1º Semestre");
   const [courseSubtitle, setCourseSubtitle] = useState<string>("");
 
-  // Sincronizar turma ativa se mudar
   React.useEffect(() => {
     if (activeSectionId) {
       setSelectedSectionId(activeSectionId);
@@ -72,7 +71,6 @@ export function TimetableExportModal({
     [sections, selectedSectionId],
   );
 
-  // Inicializar subtítulo do curso baseado na turma
   React.useEffect(() => {
     if (currentSection) {
       const isHigherOrTechnical =
@@ -84,22 +82,18 @@ export function TimetableExportModal({
     }
   }, [currentSection]);
 
-  // Aulas da turma seleccionada
   const sectionEntries = useMemo(() => {
     if (!currentSection) return [];
     return entries.filter((e) => e.section.id === currentSection.id);
   }, [entries, currentSection]);
 
-  // Dias da semana visíveis (Segunda a Sexta ou Segunda a Sábado)
   const visibleDays = useMemo(() => {
     return includeSaturday ? WEEKDAY_NAMES : WEEKDAY_NAMES.slice(0, 5);
   }, [includeSaturday]);
 
-  // Construir a grelha de intervalos de tempo ordenados
   const timeIntervals = useMemo(() => {
     const intervalsMap = new Map<string, { start: string; end: string; startMin: number; endMin: number }>();
 
-    // 1. Tempos da grelha padrão
     slots
       .filter((s) => s.kind === "aula")
       .forEach((s) => {
@@ -112,7 +106,6 @@ export function TimetableExportModal({
         });
       });
 
-    // 2. Horários das aulas já cadastradas (caso haja aulas dinâmicas ou livres)
     sectionEntries.forEach((e) => {
       const key = `${e.start}-${e.end}`;
       if (!intervalsMap.has(key)) {
@@ -130,18 +123,15 @@ export function TimetableExportModal({
     return list;
   }, [slots, sectionEntries]);
 
-  // Mapear cada célula [intervalo x dia] com a aula correspondente
   const findEntryForCell = (interval: { start: string; end: string; startMin: number; endMin: number }, weekday: number) => {
     return sectionEntries.find((e) => {
       if (e.weekday !== weekday) return false;
       const eStart = toMinutes(e.start);
       const eEnd = toMinutes(e.end);
-      // Coincide exato ou sobrepõe maioritariamente o intervalo
       return (e.start === interval.start && e.end === interval.end) || (eStart <= interval.startMin && eEnd >= interval.endMin);
     });
   };
 
-  // Mapear lista única de disciplinas e professores para a legenda
   const legendItems = useMemo(() => {
     const map = new Map<string, { subject: string; teacher: string }>();
     sectionEntries.forEach((e) => {
@@ -155,7 +145,6 @@ export function TimetableExportModal({
     return Array.from(map.values()).sort((a, b) => a.subject.localeCompare(b.subject));
   }, [sectionEntries]);
 
-  // Dividir legenda em 2 colunas equilibradas
   const legendColumns = useMemo(() => {
     const mid = Math.ceil(legendItems.length / 2);
     return {
@@ -192,11 +181,11 @@ export function TimetableExportModal({
       canClose
       title="Exportar Horário Semanal (PDF)"
       description="Pré-visualize e transfira o horário semanal formatado no padrão institucional"
-      className="w-full sm:max-w-5xl"
+      size="5xl"
     >
       <div className="space-y-4">
         {/* Barra de Configurações do Exportador */}
-        <div className="p-3 rounded-xl border bg-muted/30 grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+        <div className="grid grid-cols-1 items-end gap-3 rounded-xs border bg-muted/30 p-3 sm:grid-cols-4">
           <div className="sm:col-span-1">
             <FormSelect
               label="Turma"
@@ -227,38 +216,36 @@ export function TimetableExportModal({
             />
           </div>
 
-          <div className="flex items-center gap-2">
-            <label className="flex items-center gap-2 text-xs font-medium cursor-pointer select-none">
-              <input
-                type="checkbox"
+          <div className="flex items-center gap-2 pb-2">
+            <Label className="flex cursor-pointer select-none items-center gap-2 text-xs font-medium">
+              <Checkbox
                 checked={includeSaturday}
-                onChange={(e) => setIncludeSaturday(e.target.checked)}
-                className="rounded border-input text-primary focus:ring-primary w-4 h-4"
+                onCheckedChange={(v) => setIncludeSaturday(v === true)}
               />
               <span>Incluir Sábado</span>
-            </label>
+            </Label>
           </div>
         </div>
 
         {/* Pré-visualização da Folha Imprimível (A4 Paisagem) */}
-        <div className="overflow-x-auto rounded-xl border border-border bg-slate-100 p-2 sm:p-4 dark:bg-slate-900/60">
+        <div className="overflow-x-auto rounded-xs border border-border bg-slate-100 p-2 sm:p-4 dark:bg-slate-900/60">
           <div
             id="timetable-print-sheet"
-            className="mx-auto w-full max-w-[960px] bg-white p-6 text-black shadow-sm font-sans"
+            className="mx-auto w-full max-w-[960px] bg-white p-6 font-sans text-black shadow-sm"
             style={{ minHeight: "560px" }}
           >
             {/* 1. CABEÇALHO INSTITUCIONAL */}
-            <div className="flex items-center justify-between pb-4 border-b border-black/20">
+            <div className="flex items-center justify-between border-b border-black/20 pb-4">
               {/* Logotipo à Esquerda */}
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded bg-black text-white flex items-center justify-center font-black text-xl tracking-tighter shrink-0">
+                <div className="flex size-12 shrink-0 items-center justify-center rounded bg-black text-xl font-black tracking-tighter text-white">
                   {profile.schoolName?.substring(0, 4).toUpperCase() || "ISAF"}
                 </div>
                 <div className="leading-tight">
-                  <div className="font-bold text-sm tracking-tight text-black">
+                  <div className="text-sm font-bold tracking-tight text-black">
                     {profile.schoolName?.substring(0, 4).toUpperCase() || "ISAF"}
                   </div>
-                  <div className="text-[10px] uppercase text-black/70 font-semibold tracking-wide">
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-black/70">
                     {profile.schoolName || "Instituto Superior de Administração e Finanças"}
                   </div>
                 </div>
@@ -266,17 +253,17 @@ export function TimetableExportModal({
 
               {/* Título Central / Direita */}
               <div className="text-right leading-snug">
-                <h1 className="text-base font-bold text-black uppercase tracking-tight">
+                <h1 className="text-base font-bold uppercase tracking-tight text-black">
                   {profile.schoolName || "Instituto Superior de Administração e Finanças"}
                 </h1>
-                <p className="text-xs font-semibold text-black/80 mt-0.5">
+                <p className="mt-0.5 text-xs font-semibold text-black/80">
                   {courseSubtitle || "Licenciatura: Informática de Gestão Financeira"}
                 </p>
               </div>
             </div>
 
             {/* 2. BARRA DE METADADOS */}
-            <div className="flex items-center justify-between text-xs font-bold text-black py-2.5 px-1 border-b border-black">
+            <div className="flex items-center justify-between border-b border-black px-1 py-2.5 text-xs font-bold text-black">
               <div>
                 <span>Ano Académico: </span>
                 <span className="font-normal">{displayYear}</span>
@@ -291,16 +278,16 @@ export function TimetableExportModal({
 
             {/* 3. GRELHA HORÁRIA PRINCIPAL (ESTILO TABELA RÍGIDA COM BORDAS PRETAS) */}
             <div className="mt-3 overflow-hidden border-2 border-black">
-              <table className="w-full border-collapse text-black text-center text-xs">
+              <table className="w-full border-collapse text-center text-xs text-black">
                 <thead>
-                  <tr className="bg-slate-100/60 font-bold border-b border-black">
-                    <th className="w-20 border-r border-black p-1 text-[11px] text-center font-semibold">
+                  <tr className="border-b border-black bg-slate-100/60 font-bold">
+                    <th className="w-20 border-r border-black p-1 text-center text-[11px] font-semibold">
                       Horas
                     </th>
                     {visibleDays.map((d) => (
                       <th
                         key={d.value}
-                        className="border-r last:border-r-0 border-black p-1.5 text-center font-bold text-xs"
+                        className="border-r border-black p-1.5 text-center text-xs font-bold last:border-r-0"
                       >
                         {d.label}
                       </th>
@@ -312,36 +299,32 @@ export function TimetableExportModal({
                     <tr>
                       <td
                         colSpan={visibleDays.length + 1}
-                        className="p-8 text-center text-black/60 italic text-xs"
+                        className="p-8 text-center text-xs italic text-black/60"
                       >
                         Sem tempos de aula configurados nesta turma.
                       </td>
                     </tr>
                   ) : (
                     timeIntervals.map((interval, idx) => (
-                      <tr key={idx} className="border-b last:border-b-0 border-black">
-                        {/* Coluna de Horas: Horário inicial e final empilhados */}
-                        <td className="w-20 border-r border-black py-1.5 px-1 font-mono font-bold text-xs leading-tight bg-slate-50/50">
+                      <tr key={idx} className="border-b border-black last:border-b-0">
+                        <td className="w-20 border-r border-black bg-slate-50/50 px-1 py-1.5 font-mono text-xs font-bold leading-tight">
                           <div>{interval.start}</div>
                           <div className="text-[11px] text-black/80">{interval.end}</div>
                         </td>
 
-                        {/* Células por Dia da Semana */}
                         {visibleDays.map((day) => {
                           const entry = findEntryForCell(interval, day.value);
                           return (
                             <td
                               key={day.value}
-                              className="border-r last:border-r-0 border-black p-0 align-top h-14"
+                              className="h-14 border-r border-black p-0 align-top last:border-r-0"
                             >
                               {entry ? (
-                                <div className="h-full flex flex-col justify-between">
-                                  {/* Disciplina */}
-                                  <div className="p-1 font-bold text-xs text-black leading-tight flex-1 flex items-center justify-center">
+                                <div className="flex h-full flex-col justify-between">
+                                  <div className="flex flex-1 items-center justify-center p-1 text-xs font-bold leading-tight text-black">
                                     {entry.subject.name}
                                   </div>
-                                  {/* Linha separadora e Código da Sala */}
-                                  <div className="border-t border-black text-[10px] font-semibold py-0.5 bg-slate-50/80 text-black">
+                                  <div className="border-t border-black bg-slate-50/80 py-0.5 text-[10px] font-semibold text-black">
                                     {entry.room?.code || entry.location_label || "—"}
                                   </div>
                                 </div>
@@ -360,24 +343,22 @@ export function TimetableExportModal({
 
             {/* 4. LEGENDA DE DISCIPLINAS E PROFESSORES (RODAPÉ) */}
             {legendItems.length > 0 && (
-              <div className="mt-4 pt-3 border-t border-black/40 text-[11px] text-black">
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-8 gap-y-1">
-                  {/* Coluna Esquerda */}
+              <div className="mt-4 border-t border-black/40 pt-3 text-[11px] text-black">
+                <div className="grid grid-cols-1 gap-x-8 gap-y-1 sm:grid-cols-2">
                   <div className="space-y-1">
                     {legendColumns.left.map((item, i) => (
-                      <div key={i} className="flex justify-between items-baseline gap-2">
+                      <div key={i} className="flex items-baseline justify-between gap-2">
                         <span className="font-semibold text-black">{item.subject}</span>
-                        <span className="text-black/90 font-medium text-right">{item.teacher}</span>
+                        <span className="text-right font-medium text-black/90">{item.teacher}</span>
                       </div>
                     ))}
                   </div>
 
-                  {/* Coluna Direita */}
                   <div className="space-y-1">
                     {legendColumns.right.map((item, i) => (
-                      <div key={i} className="flex justify-between items-baseline gap-2">
+                      <div key={i} className="flex items-baseline justify-between gap-2">
                         <span className="font-semibold text-black">{item.subject}</span>
-                        <span className="text-black/90 font-medium text-right">{item.teacher}</span>
+                        <span className="text-right font-medium text-black/90">{item.teacher}</span>
                       </div>
                     ))}
                   </div>
@@ -389,8 +370,8 @@ export function TimetableExportModal({
 
         {/* Botões de Ação */}
         <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-          <div className="text-xs text-muted-foreground flex items-center gap-1.5">
-            <Icon name="Info" className="w-4 h-4 text-primary" />
+          <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+            <Icon name="Info" className="size-4 text-primary" />
             <span>
               O horário semanal será gerado e transferido diretamente em formato PDF (A4 Paisagem).
             </span>
@@ -404,12 +385,12 @@ export function TimetableExportModal({
               type="button"
               onClick={handleDownloadPdf}
               disabled={isDownloading}
-              className="gap-2 bg-primary text-primary-foreground"
+              className="gap-1.5"
             >
               {isDownloading ? (
-                <Icon name="Loader2" className="w-4 h-4 animate-spin" />
+                <Icon name="Loader2" className="size-4 animate-spin" />
               ) : (
-                <Icon name="Download" className="w-4 h-4" />
+                <Icon name="Download" className="size-4" />
               )}
               <span>Baixar PDF</span>
             </Button>
@@ -417,7 +398,6 @@ export function TimetableExportModal({
         </div>
       </div>
 
-      {/* Regras de Impressão Global para A4 Paisagem Estrito */}
       <style jsx global>{`
         @media print {
           body * {

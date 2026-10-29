@@ -70,7 +70,7 @@ export function CertificatesPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Certificados & Declarações" suTitle="Emissão de documentos timbrados com código QR, numeração sequencial e assinatura digital.">
+      <TitleList title="Certificados & Declarações" suTitle="Emissão e controlo de declarações, certificados e diplomas.">
         <Can permission="document:issue"><Button size="sm" onClick={() => openModal(ISSUE_DOCUMENT_MODAL_ID)} className="gap-2 shadow-xs">
           <Icon name="Plus" className="size-4" />
           Emitir Documento

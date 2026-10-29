@@ -28,7 +28,7 @@ export function ProfileSettings() {
         <h2 className="text-2xl font-bold tracking-tight text-foreground">Perfil</h2>
         <p className="mt-1 text-xs text-muted-foreground">Os seus dados na plataforma. Palavra-passe e email de acesso alteram-se na aba «Segurança».</p>
       </div>
-      <section className="max-w-xl rounded-xl border bg-card p-5">
+      <section className="max-w-xl rounded-xs border bg-card p-5">
         <h3 className="mb-2 flex items-center gap-2 text-base font-semibold"><Icon name="User" className="size-4 text-primary" />Dados da conta</h3>
         {rows.map(([label, value]) => (
           <div key={label} className="flex flex-wrap items-baseline justify-between gap-2 border-b py-2.5 text-sm last:border-0">

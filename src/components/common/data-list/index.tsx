@@ -9,6 +9,7 @@ import { Icon } from "@/components/common/icon";
 import { RequestError } from "@/components/common/request-error";
 import { SearchHandlerWrapper } from "@/components/common/search-handler-wrapper";
 import { ListSkeleton } from "@/components/common/skeletons/list-skeleton";
+import { FilterBarSkeleton } from "@/components/common/skeletons/filter-bar-skeleton";
 import { FilterPopover } from "@/components/shared/filters/filter-popover";
 import { useListFilters, type ListFiltersState } from "@/hooks/common/use-list-filters";
 import { normalize } from "@/utils/normalize-string";
@@ -142,6 +143,9 @@ interface DataListProps<T extends { id: string }> {
   /** Rota de detalhe ao duplo clique. */
   route?: string;
   skeletonCols?: number;
+  selectable?: boolean;
+  selectedIds?: string[];
+  onSelectChange?: (selectedIds: string[]) => void;
 }
 
 /**
@@ -151,7 +155,7 @@ interface DataListProps<T extends { id: string }> {
 export function DataList<T extends { id: string }>({
   prefix, rows, columns, isLoading, isError, refetch, searchPlaceholder = "Pesquisar...", searchText,
   filters = [], dateFilters = [], sorts = [], pageSize = 10, emptyTitle = "Sem resultados", emptyDescription = "Não existem registos para os filtros aplicados.",
-  emptyIcon = "Inbox", toolbar, route, skeletonCols,
+  emptyIcon = "Inbox", toolbar, route, skeletonCols, selectable, selectedIds, onSelectChange,
 }: DataListProps<T>) {
   const keys = useMemo(() => filterKeysOf(filters, dateFilters), [filters, dateFilters]);
   const f = useListFilters(prefix, keys, pageSize);
@@ -165,7 +169,10 @@ export function DataList<T extends { id: string }>({
   if (isLoading) {
     return (
       <div className="mt-6 space-y-6">
-        <div className="h-10 w-full animate-pulse rounded-md bg-muted" />
+        <FilterBarSkeleton
+          filterCount={Math.min(Math.max(filters.length, 1), 4)}
+          hasSort={sorts.length > 0}
+        />
         <ListSkeleton cols={skeletonCols ?? Math.min(columns.length, 6)} rows={5} />
       </div>
     );
@@ -190,6 +197,9 @@ export function DataList<T extends { id: string }>({
           goToNextPage={() => f.setPage(Math.min(page + 1, totalPages))}
           goToPreviousPage={() => f.setPage(Math.max(page - 1, 1))}
           emptyMessage={emptyTitle}
+          selectable={selectable}
+          selectedIds={selectedIds}
+          onSelectChange={onSelectChange}
           {...(route ? { route } : {})}
         />
       ) : (

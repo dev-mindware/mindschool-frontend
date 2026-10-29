@@ -14,7 +14,7 @@ export interface Precondition {
 export function PreconditionChecklist({ title = "Antes de começar", items }: { title?: string; items: Precondition[] }) {
   if (items.every((i) => i.done)) return null;
   return (
-    <div className="rounded-lg border border-amber-300/60 bg-amber-50/50 p-3 text-xs dark:border-amber-900/50 dark:bg-amber-950/20">
+    <div className="rounded-xs border border-amber-300/60 bg-amber-50/50 p-3 text-xs dark:border-amber-900/50 dark:bg-amber-950/20">
       <p className="mb-1.5 font-semibold text-foreground">{title}</p>
       <ul className="space-y-1">
         {items.map((i) => (

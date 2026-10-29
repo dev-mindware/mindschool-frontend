@@ -53,7 +53,7 @@ export function DynamicMetricCard({
                             </h2>
                             {icon && (
                                 <div className={cn(
-                                    "p-2 rounded-md shrink-0",
+                                    "p-2 rounded-xs shrink-0",
                                     variant === "action"
                                         ? (isDestructive ? "bg-destructive/10 text-destructive" : "bg-primary/10 text-primary")
                                         : "bg-muted text-muted-foreground"

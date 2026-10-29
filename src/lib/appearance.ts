@@ -39,13 +39,20 @@ export function readPrimary(): string {
   try { return localStorage.getItem(COLOR_KEY) ?? DEFAULT_PRIMARY; } catch { return DEFAULT_PRIMARY; }
 }
 
-export function savePrimary(hex: string): void {
+export function applyPrimary(hex: string): void {
   document.documentElement.style.setProperty("--primary", hex);
+  document.documentElement.style.setProperty("--ring", hex);
+  document.documentElement.style.setProperty("--sidebar-primary", hex);
+  document.documentElement.style.setProperty("--sidebar-ring", hex);
+}
+
+export function savePrimary(hex: string): void {
+  applyPrimary(hex);
   try { localStorage.setItem(COLOR_KEY, hex); } catch { /* idem */ }
 }
 
 export function resetAppearance(): void {
   applyFont(DEFAULT_FONT);
-  document.documentElement.style.setProperty("--primary", DEFAULT_PRIMARY);
+  applyPrimary(DEFAULT_PRIMARY);
   try { localStorage.removeItem(FONT_KEY); localStorage.removeItem(COLOR_KEY); } catch { /* idem */ }
 }

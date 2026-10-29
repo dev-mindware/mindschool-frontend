@@ -18,22 +18,20 @@ interface RollCallSheetProps {
 }
 
 const STATUS_BUTTONS: Array<{ status: AttendanceStatus; label: string; title: string; icon: "Check" | "X" | "FileText" | "Clock"; on: string }> = [
-  { status: "PRESENT", label: "P", title: "Presente", icon: "Check", on: "bg-emerald-600 text-white border-emerald-700 ring-1 ring-emerald-500" },
-  { status: "ABSENT_UNJUSTIFIED", label: "FI", title: "Falta injustificada", icon: "X", on: "bg-rose-600 text-white border-rose-700 ring-1 ring-rose-500" },
-  { status: "ABSENT_JUSTIFIED", label: "FJ", title: "Falta justificada (atestado)", icon: "FileText", on: "bg-blue-600 text-white border-blue-700 ring-1 ring-blue-500" },
-  { status: "LATE", label: "A", title: "Atraso", icon: "Clock", on: "bg-amber-600 text-white border-amber-700 ring-1 ring-amber-500" },
+  { status: "PRESENT", label: "P", title: "Presente", icon: "Check", on: "bg-emerald-600 text-white border-emerald-700 hover:bg-emerald-700 hover:text-white" },
+  { status: "ABSENT_UNJUSTIFIED", label: "FI", title: "Falta injustificada", icon: "X", on: "bg-rose-600 text-white border-rose-700 hover:bg-rose-700 hover:text-white" },
+  { status: "ABSENT_JUSTIFIED", label: "FJ", title: "Falta justificada (atestado)", icon: "FileText", on: "bg-blue-600 text-white border-blue-700 hover:bg-blue-700 hover:text-white" },
+  { status: "LATE", label: "A", title: "Atraso", icon: "Clock", on: "bg-amber-600 text-white border-amber-700 hover:bg-amber-700 hover:text-white" },
 ];
 const STATUS_LABEL: Record<string, string> = { PRESENT: "Presente", ABSENT_UNJUSTIFIED: "Falta injustificada", ABSENT_JUSTIFIED: "Falta justificada", LATE: "Atraso" };
 
 /** Folha de chamada: marcação rápida por aluno (gravada de imediato com optimistic update) com filtros por estado e género. */
 export function RollCallSheet({ classId, sectionSubjectId, className, subjectName, date, timeSlotLabel }: RollCallSheetProps) {
   const { students, save, isLoading } = useRollCall(classId, sectionSubjectId, date);
-  // a Direção Geral consulta a chamada mas não a marca (a API recusa com 403): os botões ficam desativados e explica-se porquê
   const canWrite = useCan().can("attendance:write");
   const [notes, setNotes] = useState<Record<string, string>>({});
   type Row = (typeof students)[number];
 
-  // Limpa as anotações locais quando a turma, disciplina ou data mudam (evita vazamento entre dias/aulas)
   useEffect(() => {
     setNotes({});
   }, [classId, sectionSubjectId, date]);
@@ -65,23 +63,25 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
             {STATUS_BUTTONS.map((b) => {
               const active = cur === b.status;
               return (
-                <button
+                <Button
                   key={b.status}
                   type="button"
+                  size="sm"
+                  variant="outline"
                   disabled={!canWrite}
                   title={b.title}
                   onClick={() => persist([{ enrollmentId: s.id, status: b.status, notes: notesOf(s.id) }])}
-                  className={`flex items-center gap-1 rounded-md border px-2.5 py-1 text-xs font-medium transition-all ${
-                    active ? b.on : "border-border bg-muted/30 text-muted-foreground hover:bg-muted hover:text-foreground"
+                  className={`h-7 gap-1 px-2.5 text-xs ${
+                    active ? b.on : "text-muted-foreground"
                   }`}
                 >
                   <Icon name={b.icon} className="size-3" />
                   {b.label}
-                </button>
+                </Button>
               );
             })}
             {!cur && (
-              <span className="text-[10px] text-muted-foreground/70 italic ml-1">Pendente</span>
+              <span className="ml-1 text-[10px] italic text-muted-foreground/70">Pendente</span>
             )}
           </div>
         );
@@ -114,31 +114,31 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div>
           <div className="flex items-center gap-2">
-            <p className="font-semibold text-base">{className} • {subjectName}</p>
+            <p className="text-base font-semibold">{className} • {subjectName}</p>
             {timeSlotLabel && (
-              <Badge variant="outline" className="font-mono text-xs font-semibold bg-primary/10 text-primary border-primary/30">
-                <Icon name="Clock" className="size-3 mr-1" />
+              <Badge variant="default" className="font-mono text-xs font-semibold">
+                <Icon name="Clock" className="mr-1 size-3" />
                 {timeSlotLabel}
               </Badge>
             )}
           </div>
-          <p className="text-xs text-muted-foreground mt-0.5">
+          <p className="mt-0.5 text-xs text-muted-foreground">
             {new Date(`${date}T00:00:00`).toLocaleDateString("pt-PT", { weekday: "long", day: "numeric", month: "long", year: "numeric" })} • {isLoading ? "a carregar…" : `${students.length} alunos`}
           </p>
         </div>
-        <Button size="sm" variant="outline" disabled={!canWrite || students.length === 0} title={canWrite ? undefined : "A chamada é registada pelo professor ou pela direção pedagógica."} className="gap-1.5 text-emerald-600 hover:text-emerald-700" onClick={() => persist(students.map((s) => ({ enrollmentId: s.id, status: "PRESENT" as AttendanceStatus, notes: notesOf(s.id) })), "Todos os alunos foram marcados como presentes.")}><Icon name="CheckCheck" className="size-4" />Marcar todos presentes</Button>
+        <Button size="sm" variant="outline" disabled={!canWrite || students.length === 0} title={canWrite ? undefined : "A chamada é registada pelo professor ou pela direção pedagógica."} className="gap-1.5" onClick={() => persist(students.map((s) => ({ enrollmentId: s.id, status: "PRESENT" as AttendanceStatus, notes: notesOf(s.id) })), "Todos os alunos foram marcados como presentes.")}><Icon name="CheckCheck" className="size-4" />Marcar todos presentes</Button>
       </div>
 
-      {!canWrite && <p role="note" className="rounded-lg border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs">Só consulta: a chamada é registada pelo professor ou pela direção pedagógica.</p>}
-      <div className="flex flex-wrap items-center gap-4 text-xs bg-muted/40 p-3 rounded-lg border border-border/40">
+      {!canWrite && <p role="note" className="rounded-xs border border-amber-500/30 bg-amber-500/10 p-2.5 text-xs">Só consulta: a chamada é registada pelo professor ou pela direção pedagógica.</p>}
+      <div className="flex flex-wrap items-center gap-4 rounded-xs border border-border/40 bg-muted/40 p-3 text-xs">
         <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-emerald-500" /> Presentes: <strong className="text-foreground">{count("PRESENT")}</strong></span>
-        <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-rose-500" /> Faltas injustificadas: <strong className="text-rose-600 font-semibold">{count("ABSENT_UNJUSTIFIED")}</strong></span>
-        <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-blue-500" /> Faltas justificadas: <strong className="text-blue-600 font-semibold">{count("ABSENT_JUSTIFIED")}</strong></span>
-        <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-amber-500" /> Atrasos: <strong className="text-amber-600 font-semibold">{count("LATE")}</strong></span>
+        <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-rose-500" /> Faltas injustificadas: <strong className="font-semibold text-rose-600">{count("ABSENT_UNJUSTIFIED")}</strong></span>
+        <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-blue-500" /> Faltas justificadas: <strong className="font-semibold text-blue-600">{count("ABSENT_JUSTIFIED")}</strong></span>
+        <span className="flex items-center gap-1.5"><span className="size-2 rounded-full bg-amber-500" /> Atrasos: <strong className="font-semibold text-amber-600">{count("LATE")}</strong></span>
         {unmarkedCount > 0 ? (
-          <span className="flex items-center gap-1.5 sm:ml-auto text-amber-500 font-medium"><Icon name="Clock" className="size-3.5" /> Pendentes de chamada: <strong>{unmarkedCount}</strong></span>
+          <span className="flex items-center gap-1.5 font-medium text-amber-500 sm:ml-auto"><Icon name="Clock" className="size-3.5" /> Pendentes de chamada: <strong>{unmarkedCount}</strong></span>
         ) : (
-          <span className="flex items-center gap-1.5 sm:ml-auto text-emerald-600 font-medium"><Icon name="CheckCircle2" className="size-3.5" /> Chamada concluída ({students.length})</span>
+          <span className="flex items-center gap-1.5 font-medium text-emerald-600 sm:ml-auto"><Icon name="CheckCircle2" className="size-3.5" /> Chamada concluída ({students.length})</span>
         )}
       </div>
 

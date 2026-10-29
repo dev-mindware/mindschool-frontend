@@ -26,7 +26,7 @@ export function SearchHandlerWrapper({
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder={placeholder ?? "Pesquisar..."}
-            className="w-full h-10 text-sm border rounded-md ps-10 pe-10 border-input bg-background"
+            className="w-full h-10 text-sm border rounded-xs ps-10 pe-10 border-input bg-background"
           />
           <div className="absolute inset-y-0 flex items-center pointer-events-none start-0 ps-3 text-muted-foreground">
             <Icon name="Search" size={16} />

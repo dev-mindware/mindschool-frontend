@@ -4,7 +4,7 @@ import { useCurrentTerm } from '@/hooks/school/use-grades';
 import { TermsMissingBanner } from "../terms-missing-banner";
 import React, { useState, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
-import { TitleList, Button, Icon, EmptyState, StatusLegend } from '@/components';
+import { TitleList, EmptyState, StatusLegend } from '@/components';
 import { FilterPopover } from '@/components/shared/filters/filter-popover';
 import { useTeachingScope } from '@/hooks/school/use-teaching-scope';
 import { usePautas } from '@/hooks/school/use-pautas';
@@ -54,7 +54,7 @@ export function PautasPageContent() {
       <div className="space-y-6">
         <TitleList
           title="Pautas Trimestrais & Homologação MED"
-          suTitle="Consolidação de médias de disciplinas, validação de conformidade e fecho auditado pela Direção Pedagógica."
+          suTitle="Controlo, fecho e publicação de pautas trimestrais."
         />
         <EmptyState
           icon="Table"
@@ -70,7 +70,7 @@ export function PautasPageContent() {
       <TermsMissingBanner />
       <TitleList
         title="Pautas Trimestrais & Homologação MED"
-        suTitle="Consolidação de médias de disciplinas, validação de conformidade e fecho auditado pela Direção Pedagógica."
+        suTitle="Controlo, fecho e publicação de pautas trimestrais."
       />
 
       {/* Metrics */}

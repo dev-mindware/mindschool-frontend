@@ -3,7 +3,7 @@ import { icons } from "lucide-react";
 import { Icon } from "../icon";
 import { cn } from "@/lib/utils";
 
-interface EmptyStateProps {
+export interface EmptyStateProps {
   title?: string;
   description?: string;
   icon: keyof typeof icons;
@@ -21,7 +21,7 @@ export function EmptyState({
   children,
 }: EmptyStateProps) {
   return (
-    <div className={cn("mt-4 flex w-full flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/50 p-8 text-center", className)}>
+    <div className={cn("mt-4 flex w-full flex-col items-center justify-center rounded-xs border border-dashed border-border bg-card/50 p-8 text-center", className)}>
       <div className="mb-4 flex size-14 items-center justify-center rounded-full bg-primary/10 text-primary">
         <Icon name={icon} className="size-7" />
       </div>
@@ -31,3 +31,6 @@ export function EmptyState({
     </div>
   );
 }
+
+export * from "./chart-empty";
+export * from "./block-empty-state";

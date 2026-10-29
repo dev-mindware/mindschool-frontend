@@ -42,7 +42,7 @@ export function FamilyProfile() {
         <p className="mt-1 text-xs text-muted-foreground">Os seus dados na escola e os contactos que ela usa para os avisos.</p>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <section className="rounded-xl border bg-card p-5">
+        <section className="rounded-xs border bg-card p-5">
           <div className="mb-2 flex items-center justify-between gap-2">
             <h3 className="flex items-center gap-2 text-base font-semibold"><Icon name="User" className="size-4 text-primary" />Dados pessoais</h3>
             {canEdit && <Button size="sm" variant="outline" className="gap-1.5" onClick={edit}><Icon name="Pencil" className="size-3.5" />Editar contactos</Button>}
@@ -64,7 +64,7 @@ export function FamilyProfile() {
           <p className="mt-3 text-xs text-muted-foreground">Para corrigir o nome, o documento ou outros dados da escola, faça um pedido em «Documentos e Pedidos» (tipo «Outro requerimento»).</p>
         </section>
 
-        <section className="rounded-xl border bg-card p-5">
+        <section className="rounded-xs border bg-card p-5">
           <h3 className="mb-2 flex items-center gap-2 text-base font-semibold"><Icon name="ShieldCheck" className="size-4 text-primary" />Conta de acesso</h3>
           <Row label="Email de acesso" value={me.user.email} />
           <Row label="Último acesso" value={me.user.last_login_at ? formatDateTime(me.user.last_login_at) : "—"} />

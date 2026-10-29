@@ -2,13 +2,12 @@
 
 import React, { useMemo } from "react";
 import { Bar, BarChart, CartesianGrid, XAxis, YAxis } from "recharts";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle, ChartContainer, ChartTooltip, ChartTooltipContent, DataList, type ChartConfig, type Column } from "@/components";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle, ChartContainer, ChartTooltip, ChartTooltipContent, DataList, Progress, TitleList, type ChartConfig, type Column } from "@/components";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/common/icon";
 import { useTuition } from "@/modules/finance/hooks/use-tuition";
 import { useSchoolSettingsStore } from "@/stores/school/school-settings-store";
-import { formatCurrency } from "@/utils/format-currency";
-import { formatAxisCurrency } from "@/utils/format-currency";
+import { formatCurrency, formatAxisCurrency } from "@/utils/format-currency";
 
 interface MonthlyReportRow {
   id: string;
@@ -100,14 +99,7 @@ export function TuitionReportsContent() {
         const rate = item.expected > 0 ? Math.round((item.collected / item.expected) * 100) : 0;
         return (
           <div className="flex items-center gap-2">
-            <div className="w-16 h-2 rounded-full bg-muted overflow-hidden">
-              <div
-                className={`h-full rounded-full ${
-                  rate >= 90 ? "bg-emerald-500" : rate >= 70 ? "bg-amber-500" : "bg-destructive"
-                }`}
-                style={{ width: `${rate}%` }}
-              />
-            </div>
+            <Progress value={rate} className="w-16" />
             <span className="font-semibold text-xs text-foreground">{rate}%</span>
           </div>
         );
@@ -130,13 +122,15 @@ export function TuitionReportsContent() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between gap-3">
-        <div>
-          <h3 className="text-base font-semibold">Balancete mensal de propinas</h3>
-          <p className="text-xs text-muted-foreground">Previsto vs arrecadado por mês de competência</p>
-        </div>
-        <Button onClick={handleExportReport} variant="outline" size="sm" className="gap-2"><Icon name="Download" className="size-4" />Exportar balancete (CSV)</Button>
-      </div>
+      <TitleList
+        title="Balancete mensal de propinas"
+        suTitle="Previsto vs arrecadado por mês de competência."
+      >
+        <Button onClick={handleExportReport} variant="outline" size="sm" className="gap-2">
+          <Icon name="Download" className="size-4" />
+          Exportar balancete (CSV)
+        </Button>
+      </TitleList>
 
       <Card className="gap-0 py-4">
         <CardHeader className="px-4 pb-3">

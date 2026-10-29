@@ -49,11 +49,11 @@ export const KEEP_COLOR_MAP: Record<
     dot: "bg-emerald-400",
   },
   violet: {
-    bg: "bg-violet-50 dark:bg-violet-950/20",
-    border: "border-violet-200 dark:border-violet-800/40",
-    text: "text-violet-900 dark:text-violet-200",
-    label: "Violeta",
-    dot: "bg-violet-400",
+    bg: "bg-primary/5",
+    border: "border-primary/30",
+    text: "text-primary",
+    label: "Destaque",
+    dot: "bg-primary",
   },
   rose: {
     bg: "bg-rose-50 dark:bg-rose-950/20",
@@ -103,7 +103,7 @@ export function useLessonKeep(lessonId?: string) {
 
   useEffect(() => {
     reload();
-    function onStorage(e: StorageEvent | CustomEvent) {
+    function onStorage() {
       reload();
     }
     window.addEventListener("storage", onStorage as EventListener);

@@ -75,7 +75,7 @@ export function ModularSidebar({ model, active, pathname }: Props) {
             {/* pílula flutuante: no claro, a cor primária ofuscada; no escuro, quase preto */}
             <nav
               aria-label="Módulos"
-              className="flex h-full flex-col items-center justify-between rounded-xl bg-[color-mix(in_oklab,var(--primary)_62%,black)] py-4 text-white shadow-lg dark:bg-black/45"
+              className="flex h-full flex-col items-center justify-between rounded-xs bg-[color-mix(in_oklab,var(--primary)_62%,black)] py-4 text-white shadow-lg dark:bg-black/45"
             >
               <div className="flex flex-col items-center gap-2">
                 <div className="mb-6"><SchoolRailButton /></div>
@@ -128,7 +128,7 @@ function RailButton({ module, active, onClick }: { module: NavModule; active: bo
           aria-label={module.label}
           aria-current={active ? "page" : undefined}
           className={cn(
-            "flex size-11 items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+            "flex size-11 items-center justify-center rounded-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
             active ? "bg-white/20 text-white shadow-sm ring-1 ring-white/25" : "text-white/70 hover:bg-white/10 hover:text-white",
           )}
         >
@@ -144,7 +144,7 @@ function PanelLink({ link, current, onNavigate }: { link: NavLink; current: bool
   return (
     <SidebarMenuItem>
       <SidebarMenuButton asChild tooltip={link.name} isActive={current} onClick={onNavigate}
-        className={cn("h-10 gap-3 rounded-lg px-3 text-sm transition-colors", current ? "bg-sidebar-accent font-medium text-foreground" : "text-sidebar-foreground/85 hover:bg-sidebar-accent/60")}>
+        className={cn("h-10 gap-3 rounded-xs px-3 text-sm transition-colors", current ? "bg-sidebar-accent font-medium text-foreground" : "text-sidebar-foreground/85 hover:bg-sidebar-accent/60")}>
         <Link href={link.url} aria-label={link.name} aria-current={current ? "page" : undefined}>
           <Icon name={link.icon} className={cn("size-[18px]", current && "text-primary")} />
           <span className="truncate">{link.name}</span>

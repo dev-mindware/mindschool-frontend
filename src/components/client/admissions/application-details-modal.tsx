@@ -9,6 +9,7 @@ import {
   Badge,
   DetailRow,
   Icon,
+  Separator,
 } from "@/components";
 import {
   Sheet,
@@ -105,7 +106,7 @@ export function ApplicationDetailsModal({
         <SheetHeader className="p-6 border-b shrink-0">
           <div className="flex items-center gap-3 pr-6">
             {application.passportPhotoUrl ? (
-              <div className="h-14 w-11 rounded-md overflow-hidden border border-border shrink-0 shadow-xs bg-muted">
+              <div className="h-14 w-11 rounded-xs overflow-hidden border border-border shrink-0 shadow-xs bg-muted">
                 {/* eslint-disable-next-line @next/next/no-img-element */}
                 <img
                   src={application.passportPhotoUrl}
@@ -139,7 +140,7 @@ export function ApplicationDetailsModal({
         <div className="flex-1 overflow-y-auto p-6 space-y-6">
           {/* Banner de Validação Documental se Pendente */}
           {application.status === "SUBMITTED" && onValidateDocs && (
-            <div className="rounded-lg border border-amber-300/80 bg-amber-50 dark:bg-amber-950/20 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
+            <div className="rounded-xs border border-amber-300/80 bg-amber-50 dark:bg-amber-950/20 p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-xs">
               <div className="space-y-1">
                 <div className="flex items-center gap-2 text-amber-800 dark:text-amber-300 font-semibold text-xs">
                   <Icon name="AlertCircle" className="h-4 w-4" />
@@ -151,7 +152,8 @@ export function ApplicationDetailsModal({
               </div>
               <Button
                 size="sm"
-                className="gap-1.5 shrink-0 bg-amber-600 hover:bg-amber-700 text-white border-0 shadow-xs cursor-pointer"
+                variant="default"
+                className="gap-1.5 shrink-0"
                 onClick={() => {
                   onValidateDocs(application.id);
                   onClose();
@@ -164,7 +166,7 @@ export function ApplicationDetailsModal({
           )}
 
           {/* Bloco 1: Dados Pessoais do Candidato */}
-          <div className="rounded-lg border bg-card p-4 space-y-3">
+          <div className="rounded-xs bg-muted/30 p-3 space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Icon name="User" className="h-4 w-4 text-primary" />
               Dados do Candidato
@@ -192,8 +194,10 @@ export function ApplicationDetailsModal({
             </div>
           </div>
 
+          <Separator />
+
           {/* Bloco: Documentos Submetidos do Candidato (Foto tipo passe, cópia BI, certificado) */}
-          <div className="rounded-lg border bg-card p-4 space-y-3">
+          <div className="rounded-xs bg-muted/30 p-3 space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Icon name="Paperclip" className="h-4 w-4 text-primary" />
@@ -203,7 +207,7 @@ export function ApplicationDetailsModal({
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Foto Tipo Passe */}
-              <div className="rounded-lg border p-3 flex flex-col items-center justify-center text-center gap-2 bg-muted/20">
+              <div className="rounded-xs border p-3 flex flex-col items-center justify-center text-center gap-2 bg-muted/20">
                 {application.passportPhotoUrl ? (
                   <div className="relative h-24 w-18 overflow-hidden rounded border shadow-xs bg-muted">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
@@ -228,7 +232,7 @@ export function ApplicationDetailsModal({
               </div>
 
               {/* Cópia do BI */}
-              <div className="rounded-lg border p-3 flex flex-col justify-between gap-2 bg-muted/20">
+              <div className="rounded-xs border p-3 flex flex-col justify-between gap-2 bg-muted/20">
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5 text-primary">
                     <Icon name="FileCheck" className="h-4 w-4" />
@@ -253,7 +257,7 @@ export function ApplicationDetailsModal({
               </div>
 
               {/* Certificado da Escola Passada */}
-              <div className="rounded-lg border p-3 flex flex-col justify-between gap-2 bg-muted/20">
+              <div className="rounded-xs border p-3 flex flex-col justify-between gap-2 bg-muted/20">
                 <div className="space-y-1">
                   <div className="flex items-center gap-1.5 text-muted-foreground">
                     <Icon name="GraduationCap" className="h-4 w-4" />
@@ -279,8 +283,10 @@ export function ApplicationDetailsModal({
             </div>
           </div>
 
+          <Separator />
+
           {/* Bloco 2: Pretensão Académica & Inscrição */}
-          <div className="rounded-lg border bg-card p-4 space-y-3">
+          <div className="rounded-xs bg-muted/30 p-3 space-y-3">
             <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
               <Icon name="BookOpen" className="h-4 w-4 text-primary" />
               Pretensão Escolar & Inscrição
@@ -300,11 +306,11 @@ export function ApplicationDetailsModal({
                 label="Exame de Acesso"
                 value={
                   application.requiresEntranceExam ? (
-                    <Badge variant="outline" className="border-blue-500 text-blue-600 bg-blue-50 dark:bg-blue-950/20">
+                    <Badge variant="info">
                       Obrigatório para esta Candidatura
                     </Badge>
                   ) : (
-                    <Badge variant="outline" className="border-emerald-500 text-emerald-600 bg-emerald-50 dark:bg-emerald-950/20">
+                    <Badge variant="success">
                       Isento (Admissão Direta)
                     </Badge>
                   )
@@ -331,42 +337,47 @@ export function ApplicationDetailsModal({
 
           {/* Bloco 3: Exame de Acesso & Pontuação */}
           {application.requiresEntranceExam && (
-            <div className="rounded-lg border bg-card p-4 space-y-3">
-              <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
-                <Icon name="FileText" className="h-4 w-4 text-primary" />
-                Resultado da Prova de Acesso
-              </h4>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
-                <DetailRow
-                  label="Prova Designada"
-                  value={application.entranceExamTitle || "Prova de Acesso Curricular"}
-                />
-                <DetailRow
-                  label="Nota Obtida"
-                  value={
-                    application.examScore !== undefined ? (
-                      <span
-                        className={`text-sm font-bold px-2.5 py-1 rounded-md inline-block ${
-                          application.examScore >= application.minPassingScore
-                            ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
-                            : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
-                        }`}
-                      >
-                        {application.examScore.toFixed(1)} valores (Mínimo: {application.minPassingScore})
-                      </span>
-                    ) : (
-                      <span className="text-xs text-muted-foreground italic">
-                        Ainda não corrigido / aguarda realização da prova
-                      </span>
-                    )
-                  }
-                />
+            <>
+              <Separator />
+              <div className="rounded-xs bg-muted/30 p-3 space-y-3">
+                <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
+                  <Icon name="FileText" className="h-4 w-4 text-primary" />
+                  Resultado da Prova de Acesso
+                </h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3">
+                  <DetailRow
+                    label="Prova Designada"
+                    value={application.entranceExamTitle || "Prova de Acesso Curricular"}
+                  />
+                  <DetailRow
+                    label="Nota Obtida"
+                    value={
+                      application.examScore !== undefined ? (
+                        <Badge
+                          variant={
+                            application.examScore >= application.minPassingScore
+                              ? "success"
+                              : "destructive"
+                          }
+                        >
+                          {application.examScore.toFixed(1)} valores (Mínimo: {application.minPassingScore})
+                        </Badge>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic">
+                          Ainda não corrigido / aguarda realização da prova
+                        </span>
+                      )
+                    }
+                  />
+                </div>
               </div>
-            </div>
+            </>
           )}
 
+          <Separator />
+
           {/* Bloco 4: Encarregado de Educação */}
-          <div className="rounded-lg border bg-card p-4 space-y-3">
+          <div className="rounded-xs bg-muted/30 p-3 space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-1.5">
                 <Icon name="Phone" className="h-4 w-4 text-primary" />
@@ -409,7 +420,7 @@ export function ApplicationDetailsModal({
 
           {/* Bloco 5: Decisão da Direção Pedagógica & Auditoria */}
           {(application.decisionNotes || application.decidedBy) && (
-            <div className="rounded-lg border border-primary/20 bg-primary/5 p-4 space-y-2">
+            <div className="rounded-xs border border-primary/20 bg-primary/5 p-4 space-y-2">
               <h4 className="text-xs font-semibold uppercase tracking-wider text-primary flex items-center gap-1.5">
                 <Icon name="ShieldCheck" className="h-4 w-4" />
                 Despacho & Decisão da Direção Pedagógica
@@ -435,7 +446,7 @@ export function ApplicationDetailsModal({
           )}
         </div>
 
-        <SheetFooter className="p-4 border-t flex flex-wrap items-center justify-between gap-2 bg-background shrink-0">
+        <SheetFooter>
           <Button type="button" variant="outline" onClick={onClose}>
             Fechar
           </Button>

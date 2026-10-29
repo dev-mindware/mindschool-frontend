@@ -124,7 +124,7 @@ export function FamilyLibrary({ studentId, ward }: FamilyContext) {
 
       <FormModal id={REQUEST_MODAL} title="Pedir livro" description={book ? `${book.title} — para ${ward.student.full_name}` : undefined} submitLabel="Enviar pedido" isLoading={request.isPending}
         onSubmit={() => (book ? request.mutateAsync({ bookId: book.id, ...(notes.trim() ? { notes: notes.trim() } : {}) }).then(() => { SucessMessage("Pedido enviado à biblioteca."); }).catch((e) => fail(e, "Não foi possível enviar o pedido.")) : undefined)}>
-        <div className="sm:col-span-2 rounded-lg border bg-muted/30 p-3 text-sm">A biblioteca analisa o pedido e avisa quando o livro estiver pronto para levantar. O prazo de empréstimo é de 14 dias, com até 2 renovações.</div>
+        <div className="sm:col-span-2 rounded-xs border bg-muted/30 p-3 text-sm">A biblioteca analisa o pedido e avisa quando o livro estiver pronto para levantar. O prazo de empréstimo é de 14 dias, com até 2 renovações.</div>
         <div className="sm:col-span-2"><FormTextarea label="Observações" value={notes} onChange={setNotes} rows={3} /></div>
       </FormModal>
 

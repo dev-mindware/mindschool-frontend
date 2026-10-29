@@ -17,13 +17,13 @@ export function ResetPasswordSkeleton() {
       <div className="grid gap-6">
         <div className="space-y-2">
           <Skeleton className="h-4 w-24" />
-          <Skeleton className="h-10 w-full rounded-md" />
+          <Skeleton className="h-10 w-full rounded-xs" />
         </div>
         <div className="space-y-2">
           <Skeleton className="h-4 w-36" />
-          <Skeleton className="h-10 w-full rounded-md" />
+          <Skeleton className="h-10 w-full rounded-xs" />
         </div>
-        <Skeleton className="h-10 w-full rounded-md" />
+        <Skeleton className="h-10 w-full rounded-xs" />
         <div className="flex justify-center mt-2">
           <Skeleton className="h-4 w-32" />
         </div>

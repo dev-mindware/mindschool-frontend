@@ -68,7 +68,7 @@ export function LoginForm() {
       {/* Cabeçalho da marca e título adaptado à referência */}
       <div className="flex flex-col gap-1.5 text-left">
         <div className="flex items-center gap-3 mb-2">
-          <div className="flex items-center justify-center size-20 rounded-md overflow-hidden bg- p-1">
+          <div className="flex items-center justify-center size-20 rounded-xs overflow-hidden bg- p-1">
             <MindSchoolLogo size={64} priority />
           </div>
           <div className="flex flex-col">

@@ -22,7 +22,7 @@ export function NotificationItemSkeleton() {
 
 export function NotificationListSkeleton({ count = 5 }: { count?: number }) {
     return (
-        <div className="bg-card rounded-xl border border-border shadow-sm divide-y divide-border">
+        <div className="bg-card rounded-xs border border-border shadow-sm divide-y divide-border">
             {Array.from({ length: count }).map((_, index) => (
                 <NotificationItemSkeleton key={index} />
             ))}

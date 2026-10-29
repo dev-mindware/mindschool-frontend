@@ -25,3 +25,34 @@ export async function patchSettings(patch: Json, extra: Json = {}): Promise<void
   const current = await readRawSettings();
   await api.patch("/s", { ...extra, settings: deepMerge(current, patch) });
 }
+
+export interface UploadLogoResult {
+  logo_url: string;
+  object_id: string;
+  file_name: string;
+  mime_type: string;
+  size_bytes: number;
+}
+
+/** Carregamento directo do logótipo da escola para o storage privado. */
+export async function uploadSchoolLogo(file: File): Promise<UploadLogoResult> {
+  const buf = await file.arrayBuffer();
+  let binary = "";
+  const bytes = new Uint8Array(buf);
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  const base64 = btoa(binary);
+
+  const { data } = await api.post<UploadLogoResult>("/s/logo", {
+    file_name: file.name,
+    mime_type: file.type || "image/png",
+    content_base64: base64,
+  });
+  return data;
+}
+
+/** Remoção do logótipo da escola do storage. */
+export async function deleteSchoolLogo(): Promise<void> {
+  await api.delete("/s/logo");
+}

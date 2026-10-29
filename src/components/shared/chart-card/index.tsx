@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Icon } from "@/components/common/icon";
 import { cn } from "@/lib/utils";
 
+export { ChartEmpty, type ChartEmptyProps } from "@/components/common/empty-state";
+
 interface ChartCardProps {
   title: string;
   icon: keyof typeof icons;
@@ -24,7 +26,7 @@ export function ChartCard({ title, icon, description, action, className, childre
         <div className="flex items-start justify-between gap-2">
           <div className="min-w-0">
             <CardTitle className="flex items-center gap-2 text-base font-semibold">
-              <span className="flex size-8 shrink-0 items-center justify-center rounded-md bg-primary/10 text-primary"><Icon name={icon} className="size-4" /></span>
+              <span className="flex size-8 shrink-0 items-center justify-center rounded-xs bg-primary/10 text-primary"><Icon name={icon} className="size-4" /></span>
               <span className="truncate">{title}</span>
             </CardTitle>
             {description && <CardDescription className="mt-1">{description}</CardDescription>}
@@ -34,30 +36,6 @@ export function ChartCard({ title, icon, description, action, className, childre
       </CardHeader>
       <CardContent className="flex-1 px-2 pt-2 sm:px-4">{children}</CardContent>
     </Card>
-  );
-}
-
-export function ChartEmpty({
-  text,
-  icon = "ChartBar",
-  title,
-  className,
-}: {
-  text?: string;
-  icon?: keyof typeof icons;
-  title?: string;
-  className?: string;
-}) {
-  return (
-    <div className={cn("flex flex-col items-center justify-center py-10 px-4 text-center my-auto min-h-[160px]", className)}>
-      <div className="flex size-11 items-center justify-center rounded-xl bg-muted/50 border border-border/40 text-muted-foreground/70 mb-2.5">
-        <Icon name={icon} className="size-5" />
-      </div>
-      {title && <p className="text-sm font-semibold text-foreground">{title}</p>}
-      <p className={cn("text-xs text-muted-foreground leading-relaxed max-w-[280px]", title && "mt-1")}>
-        {text || "Sem dados para apresentar neste período."}
-      </p>
-    </div>
   );
 }
 

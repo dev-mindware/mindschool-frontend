@@ -23,11 +23,11 @@ import { MindSchoolLogo } from "@/components/common/logo/mindschool-logo";
 function SchoolMenu({ side }: { side: "right" | "bottom" }) {
   const { schools, current, switchSchool } = useSchool();
   return (
-    <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg" align="start" side={side} sideOffset={4}>
+    <DropdownMenuContent className="w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-xs" align="start" side={side} sideOffset={4}>
       <DropdownMenuLabel className="text-xs text-muted-foreground">As minhas escolas</DropdownMenuLabel>
       {schools.map((m) => (
         <DropdownMenuItem key={m.schoolId} onClick={() => switchSchool(m.schoolId)} className="gap-2 p-2 cursor-pointer">
-          <div className="flex items-center justify-center border rounded-md size-6">
+          <div className="flex items-center justify-center border rounded-xs size-6">
             <Icon name="School" className="size-3.5 shrink-0" />
           </div>
           <div className="flex flex-col">
@@ -60,7 +60,7 @@ export function SchoolRailButton() {
     <button
       type="button"
       aria-label="Escola ativa"
-      className="flex size-9 items-center justify-center rounded-xl bg-white/95 p-1.5 shadow-sm transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 dark:bg-zinc-900 dark:border dark:border-white/10"
+      className="flex size-9 items-center justify-center rounded-xs bg-white/95 p-1.5 shadow-sm transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 dark:bg-zinc-900 dark:border dark:border-white/10"
     >
       <MindSchoolLogo size={24} />
     </button>
@@ -84,7 +84,7 @@ export function SidebarCompanyInfo() {
 
   const button = (
     <SidebarMenuButton size="lg" className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground">
-      <div className="flex items-center justify-center rounded-lg p-1 aspect-square size-8 shrink-0 bg-sidebar-accent/60 dark:bg-sidebar-accent">
+      <div className="flex items-center justify-center rounded-xs p-1 aspect-square size-8 shrink-0 bg-sidebar-accent/60 dark:bg-sidebar-accent">
         <MindSchoolLogo size={24} />
       </div>
       <div className="grid flex-1 text-sm leading-tight text-left">

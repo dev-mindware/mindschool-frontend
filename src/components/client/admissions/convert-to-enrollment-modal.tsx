@@ -9,6 +9,7 @@ import {
   ButtonSubmit,
   Icon,
   Input,
+  Label,
   PaginatedSelect,
   Progress,
 } from "@/components";
@@ -107,10 +108,10 @@ export function ConvertToEnrollmentModal({
 
     setIsSubmitting(true);
     try {
-      const result = await convertCandidateToEnrollment(application.id, selectedSectionId);
+      await convertCandidateToEnrollment(application.id, selectedSectionId);
 
       SucessMessage(
-        `Matrícula efectivada com sucesso! Aluno cadastrado no sistema.`
+        "Matrícula efectivada com sucesso! Aluno cadastrado no sistema."
       );
       onClose();
     } catch (err: unknown) {
@@ -142,7 +143,7 @@ export function ConvertToEnrollmentModal({
 
       <form id="convert-enrollment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
         {/* Banner Informativo */}
-        <div className="p-3.5 rounded-lg border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 text-xs space-y-1 text-emerald-950 dark:text-emerald-200">
+        <div className="p-3.5 rounded-xs border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 text-xs space-y-1 text-emerald-950 dark:text-emerald-200">
           <div className="font-semibold flex items-center gap-1.5 text-sm text-emerald-800 dark:text-emerald-300">
             <Icon name="CircleCheck" className="h-4 w-4" />
             Candidatura Aprovada pronta para conversão
@@ -153,7 +154,7 @@ export function ConvertToEnrollmentModal({
         </div>
 
         {/* Resumo da Pretensão do Candidato */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-lg border bg-card text-xs">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 rounded-xs bg-muted/30 text-xs">
           <div>
             <span className="text-muted-foreground">Classe Pretendida:</span>
             <p className="font-medium text-foreground text-sm">
@@ -189,9 +190,9 @@ export function ConvertToEnrollmentModal({
         {/* Seleção de Turma com PaginatedSelect */}
         <div className="space-y-4">
           <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+            <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
               Turma de destino
-            </label>
+            </Label>
             <PaginatedSelect
               options={sectionOptions}
               value={selectedSectionId}
@@ -213,7 +214,7 @@ export function ConvertToEnrollmentModal({
 
           {/* Indicador de Lotação em Tempo Real */}
           {currentSection && (
-            <div className="p-3.5 rounded-lg border bg-muted/30 space-y-2">
+            <div className="p-3.5 rounded-xs border bg-muted/30 space-y-2">
               <div className="flex justify-between items-center text-xs">
                 <span className="font-medium text-foreground">
                   Lotação da {currentSection.name} ({currentSection.roomNumber}):
@@ -247,7 +248,7 @@ export function ConvertToEnrollmentModal({
 
           <Input label="Ano Letivo (o da turma)" value={currentSection?.academicYear ?? "Escolha a turma"} disabled />
 
-          <div className="rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground space-y-1">
+          <div className="rounded-xs border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground space-y-1">
             <p className="font-semibold text-foreground">O que é criado</p>
             <ul className="list-disc space-y-0.5 pl-4">
               <li>A ficha do aluno (com o n.º de processo) e a matrícula na turma escolhida.</li>

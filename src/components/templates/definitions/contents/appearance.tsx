@@ -66,11 +66,11 @@ export function Appearance() {
         <p className="text-[11px] font-bold text-muted-foreground uppercase tracking-[0.1em] px-1">
           Identidade Visual
         </p>
-        <div className="bg-card rounded-2xl border border-border/50 overflow-hidden divide-y divide-border/30 shadow-sm">
+        <div className="bg-card rounded-xs border border-border/50 overflow-hidden divide-y divide-border/30 shadow-sm">
           {/* Color Picker Item */}
           <div className="flex items-center justify-between p-4 hover:bg-muted/20 transition-all">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xs bg-primary/10 flex items-center justify-center">
                 <Icon name="Palette" size={16} className="text-primary" />
               </div>
               <div className="space-y-0.5">
@@ -98,7 +98,7 @@ export function Appearance() {
           {/* Font Selection Item */}
           <div className="flex items-center justify-between p-4 hover:bg-muted/20 transition-all">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+              <div className="w-8 h-8 rounded-xs bg-primary/10 flex items-center justify-center">
                 <Icon name="Type" size={16} className="text-primary" />
               </div>
               <div className="space-y-0.5">
@@ -107,7 +107,7 @@ export function Appearance() {
               </div>
             </div>
             <Select value={font} onValueChange={handleFontChange}>
-              <SelectTrigger className="w-[120px] h-8 text-[11px] bg-muted/50 border-none rounded-lg">
+              <SelectTrigger className="w-[120px] h-8 text-[11px] bg-muted/50 border-none rounded-xs">
                 <SelectValue placeholder="Outfit" />
               </SelectTrigger>
               <SelectContent>
@@ -129,16 +129,17 @@ export function Appearance() {
         </p>
         <div className="grid grid-cols-3 gap-3">
           {themes.map(({ name, value, img }) => (
-            <button
+            <Button
               key={value}
               type="button"
+              variant="outline"
               onClick={() => setTheme(value)}
               className={cn(
-                "group relative flex flex-col gap-2 p-2 rounded-2xl bg-card border transition-all active:scale-95 text-left cursor-pointer",
+                "group relative flex h-auto flex-col items-stretch gap-2 p-2 rounded-xs bg-card border transition-all active:scale-95 text-left cursor-pointer",
                 theme === value ? "border-primary shadow-sm bg-primary/5" : "border-border/50 hover:border-border"
               )}
             >
-              <div className="relative aspect-[4/3] rounded-xl overflow-hidden border border-border/30 bg-muted">
+              <div className="relative aspect-[4/3] w-full rounded-xs overflow-hidden border border-border/30 bg-muted">
                 <Image
                   src={img}
                   alt={name}
@@ -161,7 +162,7 @@ export function Appearance() {
               >
                 {name}
               </p>
-            </button>
+            </Button>
           ))}
         </div>
       </div>

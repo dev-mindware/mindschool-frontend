@@ -39,10 +39,10 @@ export function UserInfo({ compact = false }: { compact?: boolean }) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             {compact ? (
-              <button type="button" aria-label="Conta" className="flex size-10 items-center justify-center rounded-xl transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 data-[state=open]:bg-white/15">
-                <Avatar className="size-8 rounded-lg">
+              <button type="button" aria-label="Conta" className="flex size-10 items-center justify-center rounded-xs transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 data-[state=open]:bg-white/15">
+                <Avatar className="size-8 rounded-full">
                   <AvatarImage src="" alt={user.name} />
-                  <AvatarFallback className="rounded-lg bg-white/20 text-white">{user.name[0]?.toUpperCase() || "U"}</AvatarFallback>
+                  <AvatarFallback className="rounded-full bg-white/20 text-white">{user.name[0]?.toUpperCase() || "U"}</AvatarFallback>
                 </Avatar>
               </button>
             ) : (
@@ -50,9 +50,9 @@ export function UserInfo({ compact = false }: { compact?: boolean }) {
                 size="lg"
                 className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-muted-foreground"
               >
-                <Avatar className="w-8 h-8 rounded-lg">
+                <Avatar className="w-8 h-8 rounded-full">
                   <AvatarImage src="" alt={user.name} />
-                  <AvatarFallback className="rounded-lg">
+                  <AvatarFallback className="rounded-full">
                     {user.name[0]?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>
@@ -65,16 +65,16 @@ export function UserInfo({ compact = false }: { compact?: boolean }) {
             )}
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className={compact ? "w-60 rounded-lg" : "w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-lg"}
+            className={compact ? "w-60 rounded-xs" : "w-(--radix-dropdown-menu-trigger-width) min-w-56 rounded-xs"}
             side={isMobile ? "bottom" : "right"}
             align="end"
             sideOffset={4}
           >
             <DropdownMenuLabel className="p-0 font-normal">
               <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm">
-                <Avatar className="w-8 h-8 rounded-lg">
+                <Avatar className="w-8 h-8 rounded-full">
                   <AvatarImage src="" alt={user.name} />
-                  <AvatarFallback className="rounded-lg">
+                  <AvatarFallback className="rounded-full">
                     {user.name[0]?.toUpperCase() || "U"}
                   </AvatarFallback>
                 </Avatar>

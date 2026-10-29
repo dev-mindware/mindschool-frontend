@@ -7,8 +7,7 @@ import {
   DynamicMetricCard,
   PaginatedSelect,
   SelectField,
-  Button,
-  Icon,
+  Label,
   EmptyState,
 } from "@/components";
 import { useTeachingScope } from "@/hooks/school/use-teaching-scope";
@@ -143,7 +142,7 @@ export function GradesPageContent() {
       <div className="space-y-6">
         <TitleList
           title="Lançamento de Notas (MED)"
-          suTitle="Registo de notas e cálculo de MAC, NPP e NPT com recálculo automático de MAS e MT oficial (Decreto Executivo n.º 424/25)."
+          suTitle="Lançamento trimestral de notas (MAC, NPP, NPT e MT)."
         />
         <EmptyState
           icon="BookOpen"
@@ -162,7 +161,7 @@ export function GradesPageContent() {
       {/* Top Header */}
       <TitleList
         title="Lançamento de Notas (MED)"
-        suTitle="Registo de notas e cálculo de MAC, NPP e NPT com recálculo automático de MAS e MT oficial (Decreto Executivo n.º 424/25)."
+        suTitle="Lançamento trimestral de notas (MAC, NPP, NPT e MT)."
       />
 
       {/* Dynamic Metric Cards */}
@@ -202,12 +201,10 @@ export function GradesPageContent() {
       </div>
 
       {/* Barra de Filtros e Seleção */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4 p-4 rounded-lg border bg-card shadow-xs">
+      <div className="flex flex-wrap items-end gap-3">
         {/* Turma (PaginatedSelect) */}
-        <div className="space-y-1.5">
-          <label className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-            Turma Seleccionada
-          </label>
+        <div className="w-full sm:w-64 space-y-1.5">
+          <Label>Turma Seleccionada</Label>
           <PaginatedSelect
             options={sectionOptions}
             value={selectedSectionId}
@@ -228,7 +225,7 @@ export function GradesPageContent() {
         </div>
 
         {/* Disciplina */}
-        <div>
+        <div className="w-full sm:w-64">
           <SelectField
             label="Disciplina Curricular"
             options={subjectOptions}
@@ -239,7 +236,7 @@ export function GradesPageContent() {
         </div>
 
         {/* Trimestre */}
-        <div>
+        <div className="w-full sm:w-56">
           <SelectField
             label="Trimestre de Avaliação"
             options={TERMS}
@@ -265,7 +262,7 @@ export function GradesPageContent() {
           }}
         />
       ) : (
-        <div className="p-8 text-center text-muted-foreground text-sm border rounded-lg bg-card">
+        <div className="p-8 text-center text-muted-foreground text-sm border rounded-xs bg-card">
           {isLoading
             ? "A carregar a mini-pauta…"
             : sections.length === 0

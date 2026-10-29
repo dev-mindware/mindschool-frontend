@@ -7,6 +7,7 @@ import {
   Badge,
   DetailRow,
   Icon,
+  Separator,
 } from "@/components";
 import {
   Sheet,
@@ -16,6 +17,7 @@ import {
   SheetDescription,
   SheetFooter,
 } from "@/components/ui/sheet";
+import { useEnrollmentProof } from "./use-enrollment-proof";
 
 interface EnrollmentDetailsModalProps {
   isOpen: boolean;
@@ -25,13 +27,11 @@ interface EnrollmentDetailsModalProps {
 
 const SHIFT_LABEL: Record<string, string> = { MORNING: "Manhã", AFTERNOON: "Tarde", EVENING: "Noite", DIURNO: "Diurno" };
 
-const STATUS_LABELS: Record<string,{ label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
+const STATUS_LABELS: Record<string, { label: string; variant: "default" | "secondary" | "destructive" | "outline" }> = {
   ACTIVE: { label: "Matrícula Efectiva (Ativa)", variant: "default" },
   TRANSFERRED: { label: "Transferido", variant: "secondary" },
   CANCELLED: { label: "Cancelada / Anulada", variant: "destructive" },
 };
-
-import { useEnrollmentProof } from "./use-enrollment-proof";
 
 export function EnrollmentDetailsModal({
   isOpen,
@@ -68,65 +68,65 @@ export function EnrollmentDetailsModal({
           </div>
         </SheetHeader>
 
-      <div className="flex-1 overflow-y-auto p-6">
-      <div className="space-y-6">
-        {/* Informações do Estudante */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-4 rounded-xl bg-card border">
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Identificação do Estudante
-            </h4>
-            <DetailRow label="Nome do Aluno" value={enrollment.studentName} />
-            <DetailRow label="N.º de Processo (aluno)" value={enrollment.studentNumber} />
-            <DetailRow label="N.º de Matrícula (esta matrícula)" value={enrollment.enrollmentNumber} />
-          </div>
-          <div className="space-y-2">
-            <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
-              Alocação de Turma
-            </h4>
-            <DetailRow label="Turma Alocada" value={enrollment.sectionName} />
-            <DetailRow label="Turno" value={SHIFT_LABEL[enrollment.shift] ?? enrollment.shift} />
-            <DetailRow label="Classe" value={enrollment.classLevelName} />
-          </div>
-        </div>
-
-        {/* Informações Administrativas */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-4 rounded-xl bg-muted/40 border">
-          <div>
-            <span className="text-xs text-muted-foreground block">Data de Matrícula</span>
-            <span className="text-sm font-semibold">{enrollment.enrollmentDate}</span>
-          </div>
-          <div>
-            <span className="text-xs text-muted-foreground block">Plano de Propinas</span>
-            <span className="text-sm font-semibold">{enrollment.tuitionPlanId || "Plano Geral"}</span>
-          </div>
-          <div>
-            <span className="text-xs text-muted-foreground block">Ano Letivo</span>
-            <span className="text-sm font-semibold">{enrollment.academicYear}</span>
-          </div>
-        </div>
-
-        {/* Se foi cancelada: auditoria de cancelamento */}
-        {enrollment.status === "CANCELLED" && (
-          <div className="p-4 rounded-xl border border-destructive/30 bg-destructive/5 space-y-2">
-            <div className="flex items-center gap-2 text-destructive font-semibold text-sm">
-              <Icon name="TriangleAlert" className="h-4 w-4" />
-              Auditoria de Cancelamento da Vaga
+        <div className="flex-1 overflow-y-auto p-6 space-y-6">
+          {/* Informações do Estudante */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 p-3 rounded-xs bg-muted/30">
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Identificação do Estudante
+              </h4>
+              <DetailRow label="Nome do Aluno" value={enrollment.studentName} />
+              <DetailRow label="N.º de Processo (aluno)" value={enrollment.studentNumber} />
+              <DetailRow label="N.º de Matrícula (esta matrícula)" value={enrollment.enrollmentNumber} />
             </div>
-            <DetailRow label="Motivo da Anulação" value={enrollment.cancellationReason || undefined} />
-            <DetailRow label="Data de Anulação" value={enrollment.cancellationDate || undefined} />
+            <div className="space-y-2">
+              <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                Alocação de Turma
+              </h4>
+              <DetailRow label="Turma Alocada" value={enrollment.sectionName} />
+              <DetailRow label="Turno" value={SHIFT_LABEL[enrollment.shift] ?? enrollment.shift} />
+              <DetailRow label="Classe" value={enrollment.classLevelName} />
+            </div>
           </div>
-        )}
 
-        {/* Observações */}
-        {enrollment.notes && (
-          <div className="space-y-1.5 p-3 rounded-lg bg-card border text-xs">
-            <span className="font-semibold text-muted-foreground block">Notas da Secretaria:</span>
-            <p className="text-foreground">{enrollment.notes}</p>
+          <Separator />
+
+          {/* Informações Administrativas */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 p-3 rounded-xs bg-muted/30">
+            <div>
+              <span className="text-xs text-muted-foreground block">Data de Matrícula</span>
+              <span className="text-sm font-semibold">{enrollment.enrollmentDate}</span>
+            </div>
+            <div>
+              <span className="text-xs text-muted-foreground block">Plano de Propinas</span>
+              <span className="text-sm font-semibold">{enrollment.tuitionPlanId || "Plano Geral"}</span>
+            </div>
+            <div>
+              <span className="text-xs text-muted-foreground block">Ano Letivo</span>
+              <span className="text-sm font-semibold">{enrollment.academicYear}</span>
+            </div>
           </div>
-        )}
-      </div>
-      </div>
+
+          {/* Se foi cancelada: auditoria de cancelamento */}
+          {enrollment.status === "CANCELLED" && (
+            <div className="p-4 rounded-xs border border-destructive/30 bg-destructive/5 space-y-2">
+              <div className="flex items-center gap-2 text-destructive font-semibold text-sm">
+                <Icon name="TriangleAlert" className="h-4 w-4" />
+                Auditoria de Cancelamento da Vaga
+              </div>
+              <DetailRow label="Motivo da Anulação" value={enrollment.cancellationReason || undefined} />
+              <DetailRow label="Data de Anulação" value={enrollment.cancellationDate || undefined} />
+            </div>
+          )}
+
+          {/* Observações */}
+          {enrollment.notes && (
+            <div className="space-y-1.5 p-3 rounded-xs bg-muted/30 text-xs">
+              <span className="font-semibold text-muted-foreground block">Notas da Secretaria:</span>
+              <p className="text-foreground">{enrollment.notes}</p>
+            </div>
+          )}
+        </div>
 
         <SheetFooter>
           <Button variant="outline" onClick={() => void proof.emit(enrollment)} disabled={proof.isPending}>

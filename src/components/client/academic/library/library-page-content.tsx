@@ -17,7 +17,7 @@ export function LibraryPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Biblioteca Escolar" suTitle="Acervo, empréstimos a alunos e professores, renovações e declaração de Nada Consta.">
+      <TitleList title="Biblioteca Escolar" suTitle="Gestão do acervo bibliográfico, empréstimos e devoluções.">
         <div className="flex items-center gap-2" data-tour="library-actions">
           <Button variant="outline" size="sm" onClick={() => openModal("library-clearance")} className="gap-2">
             <Icon name="ShieldCheck" className="size-4" />

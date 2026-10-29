@@ -12,7 +12,6 @@ import { icons } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Icon, AlertError } from "../common";
 
-
 interface InputCurrencyProps
   extends Omit<NumericFormatProps, "onValueChange"> {
   label?: string;
@@ -57,10 +56,10 @@ const InputCurrency = React.forwardRef<HTMLInputElement, InputCurrencyProps>(
 
         <div
           className={cn(
-            "flex items-center rounded-md border text-sm transition-colors duration-200 w-full overflow-hidden",
+            "flex items-center rounded-xs border text-sm transition-colors duration-200 w-full overflow-hidden",
             error
               ? "border-red-500 ring-1 ring-red-400"
-              : "border-input focus-within:border-primary-500 focus-within:ring-[3px] focus-within:ring-ring/50",
+              : "border-input focus-within:border-primary focus-within:ring-[3px] focus-within:ring-ring/50",
             disabled && "opacity-50 cursor-not-allowed bg-muted/30"
           )}
         >
@@ -99,7 +98,7 @@ const InputCurrency = React.forwardRef<HTMLInputElement, InputCurrencyProps>(
               setTimeout(() => {
                 try {
                   target.select();
-                } catch (err) {}
+                } catch {}
               }, 50);
               props.onFocus?.(e);
             }}
@@ -107,7 +106,6 @@ const InputCurrency = React.forwardRef<HTMLInputElement, InputCurrencyProps>(
               onValueChange?.(values.floatValue ?? 0);
             }}
             {...props}
-            // 0 mostra-se vazio (placeholder «0,00»): com «0,00» escrito, o que se digita entra antes do zero e o valor vem multiplicado por 10
             value={props.value === 0 || props.value === "0" ? "" : props.value}
           />
 
@@ -127,7 +125,6 @@ const InputCurrency = React.forwardRef<HTMLInputElement, InputCurrencyProps>(
 );
 
 InputCurrency.displayName = "InputCurrency";
-
 
 type RHFInputCurrencyProps<
   TFieldValues extends FieldValues = FieldValues,

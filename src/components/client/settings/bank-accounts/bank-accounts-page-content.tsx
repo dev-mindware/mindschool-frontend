@@ -48,9 +48,9 @@ export function BankAccountsPageContent() {
     {
       key: "iban", header: "IBAN",
       render: (_, a) => (
-        <button type="button" onClick={() => void copy(a.iban, "IBAN")} className="group flex items-center gap-2 font-mono text-xs hover:text-primary" title="Copiar IBAN">
+        <Button type="button" variant="ghost" size="sm" onClick={() => void copy(a.iban, "IBAN")} className="group h-auto px-1.5 py-0.5 flex items-center gap-2 font-mono text-xs hover:text-primary" title="Copiar IBAN">
           {formatIban(a.iban)}<Icon name="Copy" className="size-3.5 opacity-0 transition-opacity group-hover:opacity-100" />
-        </button>
+        </Button>
       ),
     },
     { key: "account_number", header: "N.º de conta", render: (_, a) => <span className="font-mono text-xs">{a.account_number ?? "—"}</span> },
@@ -71,11 +71,11 @@ export function BankAccountsPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Dados bancários" suTitle="Contas para onde as famílias transferem as propinas. Ficam visíveis no portal, junto de cada pagamento.">
+      <TitleList title="Dados bancários" suTitle="Contas bancárias e IBANs para cobrança de propinas.">
         <Can permission="bank_account:write"><Button size="sm" className="gap-2" onClick={openNew}><Icon name="Plus" className="size-4" />Adicionar conta</Button></Can>
       </TitleList>
 
-      <div className="flex gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-900 dark:text-amber-200">
+      <div className="flex gap-3 rounded-xs border border-amber-500/30 bg-amber-500/5 p-3 text-xs text-amber-900 dark:text-amber-200">
         <Icon name="ShieldAlert" className="mt-0.5 size-4 shrink-0" />
         <p>Qualquer alteração a estas contas é auditada e o titular recebe um email de aviso. Confirme sempre o IBAN antes de guardar: um IBAN errado desvia os pagamentos das famílias.</p>
       </div>

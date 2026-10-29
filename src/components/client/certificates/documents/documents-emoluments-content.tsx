@@ -102,7 +102,7 @@ export function DocumentsEmolumentsContent() {
     <div className="space-y-6">
       <TitleList
         title="Emissão de Emolumentos & Documentos da Secretaria"
-        suTitle="Gestão integrada de protocolos, cobrança de taxas de secretaria e emissão de documentos timbrados."
+        suTitle="Tabela de emolumentos e taxas de emissão documental."
       >
         <div className="flex flex-wrap items-center gap-2">
           <Can permission="request:write">

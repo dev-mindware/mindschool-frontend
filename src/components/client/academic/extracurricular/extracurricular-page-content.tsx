@@ -22,7 +22,7 @@ export function ExtracurricularPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Atividades Extracurriculares" suTitle="Clubes escolares e desporto: horário, responsável, lotação e inscrições.">
+      <TitleList title="Atividades Extracurriculares" suTitle="Gestão de clubes, desporto, artes e inscrições.">
         <div className="flex items-center gap-2">
           <Can permission="activity:write"><Button size="sm" variant="outline" className="gap-1.5" onClick={() => openModal("activity-enroll")}><Icon name="UserPlus" className="size-4" />Inscrever aluno</Button></Can>
           <Can permission="activity:write"><Button size="sm" className="gap-1.5" onClick={() => openModal("activity-new")}><Icon name="Plus" className="size-4" />Nova atividade</Button></Can>

@@ -89,7 +89,7 @@ export function WeekTimetable<T>({
   const top = (t: string) => (mins(t) - range.from) * PX_PER_MIN;
 
   return (
-    <div className={cn("w-full overflow-x-auto rounded-2xl border border-border/80 bg-card shadow-xs", className)}>
+    <div className={cn("w-full overflow-x-auto rounded-xs border border-border/80 bg-card shadow-xs", className)}>
       <div className="min-w-[760px]">
         <div className="grid border-b bg-muted/40 text-center text-[11px] font-medium uppercase tracking-wider text-muted-foreground" style={{ gridTemplateColumns: `64px repeat(${days.length}, minmax(0, 1fr))` }}>
           <div className="py-2.5 font-mono text-[10px]">Hora</div>
@@ -147,7 +147,7 @@ export function WeekTimetable<T>({
                       key={s.position}
                       type="button"
                       onClick={() => onEmptyClick(d, s)}
-                      className="group absolute inset-x-1 flex flex-col items-center justify-center rounded-md border border-dashed border-border/70 bg-card/60 p-1 text-center transition-all hover:border-primary hover:bg-primary/[0.06] hover:shadow-xs cursor-pointer select-none"
+                      className="group absolute inset-x-1 flex flex-col items-center justify-center rounded-xs border border-dashed border-border/70 bg-card/60 p-1 text-center transition-all hover:border-primary hover:bg-primary/[0.06] hover:shadow-xs cursor-pointer select-none"
                       style={base}
                       title={`Clique para agendar aula no ${s.lessonNo ?? s.position}.º tempo (${s.start} – ${s.end})`}
                     >
@@ -174,7 +174,7 @@ export function WeekTimetable<T>({
                       key={h}
                       type="button"
                       onClick={() => onEmptyClick(d, { position: i + 1, start: startStr, end: endStr, kind: "aula", lessonNo: i + 1 })}
-                      className="group absolute inset-x-1 flex flex-col items-center justify-center rounded-md border border-dashed border-border/60 bg-card/40 p-1 text-center transition-all hover:border-primary hover:bg-primary/[0.06] cursor-pointer select-none"
+                      className="group absolute inset-x-1 flex flex-col items-center justify-center rounded-xs border border-dashed border-border/60 bg-card/40 p-1 text-center transition-all hover:border-primary hover:bg-primary/[0.06] cursor-pointer select-none"
                       style={base}
                     >
                       <span className="text-[11px] font-medium text-muted-foreground/80 group-hover:text-primary transition-colors">
@@ -190,7 +190,7 @@ export function WeekTimetable<T>({
                     type="button"
                     onClick={() => onBlockClick?.(b)}
                     className={cn(
-                      "absolute inset-x-1 overflow-hidden rounded-md border p-2 text-left shadow-xs transition-all hover:shadow-md hover:scale-[1.01] cursor-pointer z-10",
+                      "absolute inset-x-1 overflow-hidden rounded-xs border p-2 text-left shadow-xs transition-all hover:shadow-md hover:scale-[1.01] cursor-pointer z-10",
                       TONE[b.tone ?? "primary"]
                     )}
                     style={{

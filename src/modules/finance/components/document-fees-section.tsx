@@ -42,7 +42,7 @@ export function DocumentFeesSection() {
         {TYPES.map((t) => {
           const v = Number(fees[t] ?? 0);
           return (
-            <div key={t} className="flex items-center justify-between rounded-lg border bg-card p-3 text-sm">
+            <div key={t} className="flex items-center justify-between rounded-xs border bg-card p-3 text-sm">
               <span>{REQUEST_TYPE_LABEL[t]}</span>
               {v > 0 ? <span className="font-semibold tabular-nums">{formatCurrency(v)}</span> : <Badge variant="secondary" className="font-normal">Gratuito</Badge>}
             </div>

@@ -63,6 +63,7 @@ export function LockPautaModal({
       isOpen={isOpen}
       onClose={onClose}
       canClose
+      size="md"
       title={
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-primary/10 text-primary border border-primary/20 flex items-center justify-center shrink-0">
@@ -78,12 +79,11 @@ export function LockPautaModal({
           </div>
         </div>
       }
-      className="!max-h-[88vh] !w-[95vw] sm:!max-w-xl lg:!max-w-2xl overflow-y-auto"
     >
       <form onSubmit={handleSubmit} className="space-y-4 pt-2">
         {/* Aviso se houver notas em falta */}
         {hasMissingGrades ? (
-          <div className="p-3.5 rounded-lg border border-destructive-border bg-destructive-muted text-xs text-destructive space-y-1.5">
+          <div className="p-3.5 rounded-xs border border-destructive-border bg-destructive-muted text-xs text-destructive space-y-1.5">
             <div className="font-semibold flex items-center gap-1.5 text-sm text-destructive">
               <Icon name="CircleAlert" className="h-4 w-4" />
               Bloqueio de Conformidade MED (PAUTA_INCOMPLETE)
@@ -93,7 +93,7 @@ export function LockPautaModal({
             </p>
           </div>
         ) : (
-          <div className="p-3.5 rounded-lg border border-primary/20 bg-primary/5 text-xs text-foreground space-y-1.5">
+          <div className="p-3.5 rounded-xs border border-primary/20 bg-primary/5 text-xs text-foreground space-y-1.5">
             <div className="font-semibold flex items-center gap-1.5 text-sm text-primary">
               <Icon name="ShieldCheck" className="h-4 w-4" />
               Pronto para Homologação
@@ -105,7 +105,7 @@ export function LockPautaModal({
         )}
 
         {/* Resumo da Pauta */}
-        <div className="grid grid-cols-2 gap-3 p-3.5 rounded-lg border bg-card text-xs">
+        <div className="grid grid-cols-2 gap-3 p-3.5 rounded-xs border bg-card text-xs">
           <div>
             <span className="text-muted-foreground">Turma:</span>
             <p className="font-semibold text-foreground text-sm">{pauta.sectionName}</p>
@@ -137,7 +137,7 @@ export function LockPautaModal({
         </p>
 
         {/* O que o fecho provoca */}
-        <div className="space-y-1.5 rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground">
+        <div className="space-y-1.5 rounded-xs border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground">
           <p className="font-semibold text-foreground">O que acontece ao fechar</p>
           <ul className="list-disc space-y-1 pl-4">
             <li>Guarda-se uma versão imutável desta pauta (snapshot); é a que sai nos PDF e nos boletins.</li>
@@ -155,7 +155,7 @@ export function LockPautaModal({
           <ButtonSubmit
             isLoading={isSubmitting}
             disabled={hasMissingGrades}
-            className="gap-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium"
+            className="gap-2"
           >
             <Icon name="Lock" className="h-4 w-4" />
             Homologar e Trancar Pauta

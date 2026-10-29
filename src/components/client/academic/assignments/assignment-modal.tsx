@@ -9,12 +9,11 @@ import { getApiErrorMessage } from "@/utils/api-error";
 import {
   GlobalModal,
   Input,
-  SelectField,
   Button,
   ButtonSubmit,
   Checkbox,
   Icon,
-  Badge,
+  Label,
 } from "@/components";
 import { FormMultiCombobox } from "@/components/common/form-modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -124,10 +123,10 @@ function QuickTeacherModal({ isOpen, onClose, onCreated, allSubjects }: QuickTea
       canClose
       title="Registar Novo Docente"
       description="Registo rápido de professor com definição prévia das disciplinas que pode ministrar"
-      className="w-max"
+      size="lg"
     >
       <form onSubmit={handleSubmit} className="space-y-4 pt-1">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Input
             label="Nome Completo *"
             startIcon="User"
@@ -164,42 +163,50 @@ function QuickTeacherModal({ isOpen, onClose, onCreated, allSubjects }: QuickTea
 
         <div className="space-y-2 pt-1">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+            <Label className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
               <Icon name="BookOpen" className="size-3.5 text-primary" />
               Disciplinas que pode ministrar ({selectedSubjects.length} selecionadas)
-            </label>
-            <div className="flex gap-2">
-              <button
+            </Label>
+            <div className="flex items-center gap-2">
+              <Button
                 type="button"
-                className="text-xs text-primary hover:underline font-medium"
+                variant="link"
+                size="sm"
+                className="h-auto p-0 text-xs font-medium text-primary"
                 onClick={() => setSelectedSubjects(allSubjects.map((s) => s.id))}
               >
                 Todas
-              </button>
+              </Button>
               <span className="text-xs text-muted-foreground">•</span>
-              <button
+              <Button
                 type="button"
-                className="text-xs text-muted-foreground hover:underline"
+                variant="link"
+                size="sm"
+                className="h-auto p-0 text-xs text-muted-foreground"
                 onClick={() => setSelectedSubjects([])}
               >
                 Limpar
-              </button>
+              </Button>
             </div>
           </div>
 
-          <div className="max-h-48 overflow-y-auto rounded-lg border border-border/60 bg-muted/20 p-2.5 grid grid-cols-1 sm:grid-cols-2 gap-2">
+          <div className="grid max-h-48 grid-cols-1 gap-2 overflow-y-auto rounded-xs border border-border/60 bg-muted/20 p-2.5 sm:grid-cols-2">
             {allSubjects.map((sub) => {
               const isChecked = selectedSubjects.includes(sub.id);
               return (
-                <label
+                <Label
                   key={sub.id}
-                  className={`flex items-center gap-2.5 p-2 rounded-md border text-xs cursor-pointer transition-colors ${
-                    isChecked ? "border-primary/40 bg-primary/5 text-foreground font-medium" : "border-border/40 hover:bg-muted/50 text-muted-foreground"
+                  className={`flex cursor-pointer items-center gap-2.5 rounded-xs border p-2 text-xs font-normal transition-colors ${
+                    isChecked
+                      ? "border-primary/40 bg-primary/5 font-medium text-foreground"
+                      : "border-border/40 text-muted-foreground hover:bg-muted/50"
                   }`}
                 >
                   <Checkbox checked={isChecked} onCheckedChange={() => handleToggleSubject(sub.id)} />
-                  <span className="truncate">{sub.name} <span className="text-[10px] opacity-70 font-mono">({sub.code})</span></span>
-                </label>
+                  <span className="truncate">
+                    {sub.name} <span className="font-mono text-[10px] opacity-70">({sub.code})</span>
+                  </span>
+                </Label>
               );
             })}
           </div>
@@ -209,7 +216,7 @@ function QuickTeacherModal({ isOpen, onClose, onCreated, allSubjects }: QuickTea
           <Button type="button" variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <ButtonSubmit isLoading={isSubmitting} className="w-max">
+          <ButtonSubmit isLoading={isSubmitting}>
             Registar Docente
           </ButtonSubmit>
         </div>
@@ -236,7 +243,6 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isQuickTeacherOpen, setIsQuickTeacherOpen] = useState(false);
 
-  // Carregamento automático das disciplinas com base nas qualificações/histórico do professor
   useEffect(() => {
     if (!selectedTeacherId) {
       setSelectedSubjectIds([]);
@@ -319,18 +325,17 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
         canClose
         title="Atribuição Docente (Múltiplas Turmas & Disciplinas)"
         description="Vincule um professor a várias turmas e disciplinas simultâneas no ano letivo"
-        className="w-max"
+        size="lg"
       >
         <form onSubmit={handleSubmit} className="space-y-3">
-          {/* Seleção do Professor com Botão Rápido de Criação */}
           <div className="space-y-1.5">
             <div className="flex items-center justify-between">
-              <label className="text-sm font-medium text-foreground">Professor Docente *</label>
+              <Label className="text-sm font-medium text-foreground">Professor Docente *</Label>
               <Button
                 type="button"
                 variant="outline"
                 size="sm"
-                className="h-7 text-xs gap-1 border-primary/30 text-primary hover:bg-primary/10"
+                className="h-7 gap-1 border-primary/30 text-xs text-primary hover:bg-primary/10"
                 onClick={() => setIsQuickTeacherOpen(true)}
               >
                 <Icon name="UserPlus" className="size-3.5" />
@@ -351,8 +356,7 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
             </Select>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Turmas (escolha múltipla com pesquisa: a lista longa vive num popover, o modal não tem scroll) */}
+          <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormMultiCombobox
               label={`Turmas alocadas (${selectedSectionIds.length}) *`}
               values={selectedSectionIds}
@@ -362,7 +366,6 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
               options={sections.map((s) => ({ value: s.id, label: `${s.classLevel} ${s.name}`, hint: s.shift === "MORNING" ? "Manhã" : s.shift === "AFTERNOON" ? "Tarde" : "Noite" }))}
             />
 
-            {/* Disciplinas */}
             <FormMultiCombobox
               label={`Disciplinas (${selectedSubjectIds.length}) *`}
               values={selectedSubjectIds}
@@ -400,19 +403,20 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
             )}
           </div>
 
-          {/* Botões de Ação no Padrão MindGest */}
           <div className="flex justify-end gap-3 pt-1">
             <Button type="button" variant="outline" onClick={onClose}>
               Cancelar
             </Button>
-            <ButtonSubmit isLoading={isSubmitting} className="w-max" disabled={!selectedTeacherId || selectedSectionIds.length === 0 || selectedSubjectIds.length === 0}>
+            <ButtonSubmit
+              isLoading={isSubmitting}
+              disabled={!selectedTeacherId || selectedSectionIds.length === 0 || selectedSubjectIds.length === 0}
+            >
               Atribuir Docente
             </ButtonSubmit>
           </div>
         </form>
       </GlobalModal>
 
-      {/* Modal Rápido de Criação de Docente com Qualificações */}
       <QuickTeacherModal
         isOpen={isQuickTeacherOpen}
         onClose={() => setIsQuickTeacherOpen(false)}
@@ -422,4 +426,3 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
     </>
   );
 }
-

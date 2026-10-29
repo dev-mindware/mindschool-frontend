@@ -132,15 +132,9 @@ export function EntranceExamsPageContent() {
         if (item.examScore !== undefined) {
           const isPassed = item.examScore >= item.minPassingScore;
           return (
-            <span
-              className={`text-xs font-medium px-2 py-0.5 rounded ${
-                isPassed
-                  ? "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/40 dark:text-emerald-300"
-                  : "bg-red-100 text-red-800 dark:bg-red-900/40 dark:text-red-300"
-              }`}
-            >
+            <Badge variant={isPassed ? "success" : "destructive"} className="text-xs">
               {item.examScore.toFixed(1)} valores ({isPassed ? "Aprovado" : "Não Apto"})
-            </span>
+            </Badge>
           );
         }
         return (
@@ -193,7 +187,7 @@ export function EntranceExamsPageContent() {
       {/* Header com TitleList */}
       <TitleList
         title="Provas & Exames de Acesso"
-        suTitle="Convocatórias, pautas e lançamento de pontuações de admissão (purpose: prova_admissao)"
+        suTitle="Provas de admissão, lançamento de notas e seriação."
       />
 
       {/* Cartões de Métricas */}

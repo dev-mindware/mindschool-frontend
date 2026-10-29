@@ -33,7 +33,7 @@ export function FamilyShell({ title, description, perStudent = true, children }:
         )}
       </TitleList>
       {perStudent && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card p-4">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xs border bg-card p-4">
           <div>
             <h3 className="font-semibold text-foreground">{ward.student.full_name}</h3>
             <p className="text-xs text-muted-foreground">

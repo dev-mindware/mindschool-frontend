@@ -22,7 +22,7 @@ export function ActivityCertificatePrintModal({ target }: { target?: Certificate
       onSubmit={() => {}}
     >
       {target && (
-        <div id="activity-certificate-print-content" className="sm:col-span-2 space-y-6 rounded-lg border-4 border-double border-amber-400 bg-white p-10 text-center text-slate-900 print:border-0">
+        <div id="activity-certificate-print-content" className="sm:col-span-2 space-y-6 rounded-xs border-4 border-double border-amber-400 bg-white p-10 text-center text-slate-900 print:border-0">
           <div className="text-[11px] font-bold uppercase tracking-widest text-slate-600">República de Angola • Ministério da Educação</div>
           <div className="text-lg font-black uppercase">{profile.schoolName}</div>
           <h2 className="font-serif text-2xl font-bold">Certificado de Participação</h2>

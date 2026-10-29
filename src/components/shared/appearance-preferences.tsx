@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
-import { applyFont, readFont } from "@/lib/appearance";
+import { applyFont, applyPrimary, readFont } from "@/lib/appearance";
 
 /** Aplica as preferências guardadas (tipo de letra e cor) ao arrancar, em qualquer página (não só em Definições). */
 export function AppearancePreferences() {
@@ -9,7 +9,7 @@ export function AppearancePreferences() {
     applyFont(readFont());
     try {
       const color = localStorage.getItem("primary-color");
-      if (color) document.documentElement.style.setProperty("--primary", color);
+      if (color) applyPrimary(color);
     } catch { /* sem armazenamento: ficam os valores por omissão */ }
   }, []);
   return null;

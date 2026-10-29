@@ -25,13 +25,13 @@ interface NotificationFiltersProps {
 const STATUS_LABELS: Record<"all" | "read" | "unread", string> = {
   all: "Todas",
   read: "Lidas",
-  unread: "Não Lidas",
+  unread: "Não lidas",
 };
 
 const TYPE_LABELS: Record<"all" | "INFO" | "WARNING" | "ERROR" | "SUCCESS" | "AI_ALERT", string> = {
   all: "Todos os tipos",
   AI_ALERT: "MIND AI / Inteligentes",
-  INFO: "Informações",
+  INFO: "Informativas",
   SUCCESS: "Sucesso / Validações",
   WARNING: "Avisos",
   ERROR: "Erros",
@@ -57,7 +57,7 @@ export function NotificationFilters({
           className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
         />
         <Input
-          placeholder="Buscar notificações..."
+          placeholder="Pesquisar notificações..."
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
           className="pl-10 bg-background"

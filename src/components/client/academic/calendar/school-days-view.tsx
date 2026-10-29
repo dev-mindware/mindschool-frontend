@@ -1,7 +1,20 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Badge, Button, Can, ConfirmModal, FormModal, Icon, Input, MonthCalendar, TitleList, type CalendarItem } from "@/components";
+import {
+  Badge,
+  Button,
+  Can,
+  ConfirmModal,
+  FormModal,
+  GenericTable,
+  Icon,
+  Input,
+  MonthCalendar,
+  TitleList,
+  type CalendarItem,
+  type Column,
+} from "@/components";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { useSchoolDays } from "@/hooks/school/use-school-days";
 import type { ApiSchoolDay } from "@/services/calendar-service";
@@ -23,6 +36,12 @@ const kindOf = (d: ApiSchoolDay): Kind => {
 
 const KIND_LABEL: Record<"marca" | "feriado", string> = { marca: "Marca da Direção", feriado: "Feriado" };
 const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."));
+
+type HighlightRow = {
+  id: string;
+  d: ApiSchoolDay;
+  kind: "marca" | "feriado";
+};
 
 function MarkDayModal() {
   const { open } = useModal();
@@ -64,19 +83,60 @@ export function SchoolDaysView() {
     .filter(({ kind }) => kind === "feriado" || kind === "marca")
     .map(({ d, kind }) => ({ id: d.date, title: d.reason, start: d.date, tone: kind === "marca" ? "danger" : "warning" }));
   const nonLective = useMemo(() => new Set(kinds.filter(({ kind }) => kind !== "lectivo" && kind !== "fim_de_semana").map(({ d }) => d.date)), [kinds]);
-  const highlights = inMonth.filter(({ kind }) => kind === "feriado" || kind === "marca");
+  const highlights: HighlightRow[] = inMonth
+    .filter((x): x is { d: ApiSchoolDay; kind: "marca" | "feriado" } => x.kind === "feriado" || x.kind === "marca")
+    .map(({ d, kind }) => ({ id: d.date, d, kind }));
   const count = (k: Kind) => inMonth.filter((x) => x.kind === k).length;
+
+  const highlightColumns: Column<HighlightRow>[] = [
+    {
+      key: "id",
+      header: "Data",
+      render: (_, row) => <span className="font-mono text-xs text-muted-foreground">{row.d.date}</span>,
+    },
+    {
+      key: "reason",
+      header: "Descrição",
+      render: (_, row) => <span className="font-medium">{row.d.reason}</span>,
+    },
+    {
+      key: "kind",
+      header: "Tipo",
+      render: (_, row) => <Badge variant="outline">{KIND_LABEL[row.kind]}</Badge>,
+    },
+    {
+      key: "action",
+      header: "Ação",
+      className: "text-right",
+      render: (_, row) =>
+        row.kind === "marca" && row.d.event_id ? (
+          <Can permission="calendar:mark_day">
+            <Button
+              size="sm"
+              variant="ghost"
+              className="text-destructive"
+              onClick={() => {
+                setToRemove(row.d);
+                openModal("school-days-unmark");
+              }}
+            >
+              Remover marca
+            </Button>
+          </Can>
+        ) : null,
+    },
+  ];
 
   const upgrade = () =>
     planModal.open({
       requiredPlan: "profissional",
       featureName: "Calendário geral da escola",
-      description: "O calendário geral — actividades, avaliações, reuniões, revisões com impacto e Google Calendar — faz parte do plano Profissional.",
+      description: "O calendário geral — atividades, avaliações, reuniões, revisões com impacto e Google Calendar — faz parte do plano Profissional.",
     });
 
   return (
     <div className="space-y-6">
-      <TitleList title="Calendário Escolar" suTitle={s.year ? `Ano letivo ${s.year.name}: dias letivos, feriados e marcas da Direção.` : "Não há ano letivo ativo."}>
+      <TitleList title="Calendário Escolar" suTitle="Configuração de dias letivos, turnos e tempos por dia.">
         <Can permission="calendar:mark_day">
           <Button size="sm" className="gap-1.5" disabled={!s.year} onClick={() => openModal("school-days-mark")}><Icon name="CalendarX" className="size-4" />Marcar dia não letivo</Button>
         </Can>
@@ -93,29 +153,14 @@ export function SchoolDaysView() {
 
       <section className="space-y-2">
         <h3 className="text-sm font-semibold">Feriados e marcas deste mês</h3>
-        {highlights.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{s.isLoading ? "A carregar…" : "Sem feriados nem marcas neste mês."}</p>
-        ) : (
-          <ul className="divide-y rounded-lg border">
-            {highlights.map(({ d, kind }) => (
-              <li key={d.date} className="flex items-center justify-between gap-3 px-3 py-2 text-sm">
-                <div className="flex items-center gap-3">
-                  <span className="font-mono text-xs text-muted-foreground">{d.date}</span>
-                  <span className="font-medium">{d.reason}</span>
-                  <Badge variant="outline">{KIND_LABEL[kind as "marca" | "feriado"]}</Badge>
-                </div>
-                {kind === "marca" && d.event_id && (
-                  <Can permission="calendar:mark_day">
-                    <Button size="sm" variant="ghost" className="text-destructive" onClick={() => { setToRemove(d); openModal("school-days-unmark"); }}>Remover marca</Button>
-                  </Can>
-                )}
-              </li>
-            ))}
-          </ul>
-        )}
+        <GenericTable
+          data={highlights}
+          columns={highlightColumns}
+          emptyMessage={s.isLoading ? "A carregar…" : "Sem feriados nem marcas neste mês."}
+        />
       </section>
 
-      <div className="flex flex-col gap-3 rounded-xl border border-dashed bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
+      <div className="flex flex-col gap-3 rounded-xs border border-dashed bg-muted/30 p-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="flex items-start gap-3">
           <Icon name="Lock" className="mt-0.5 size-4 text-muted-foreground" />
           <div>

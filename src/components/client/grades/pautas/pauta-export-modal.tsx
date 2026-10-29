@@ -39,8 +39,6 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
   const failedCount = pauta.students.filter((s) => s.transitionStatus === "FAILED").length;
   const pendingCount = totalStudents - approvedCount - conditionalCount - failedCount;
 
-  const approvalPercentage = totalStudents > 0 ? ((approvedCount + conditionalCount) / totalStudents) * 100 : 0;
-
   const handleDownload = async () => {
     try {
       setIsDownloading(true);
@@ -66,13 +64,13 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
       isOpen={isOpen}
       onClose={onClose}
       canClose
+      size="5xl"
       title="Exportar Pauta Oficial de Aproveitamento (PDF)"
       description="Documento administrativo oficial formatado para impressão e arquivo escolar (A4 Paisagem)."
-      className="w-full sm:max-w-6xl"
     >
       <div className="space-y-4">
         {/* Folha de Documento Oficial A4 Paisagem (Simulação Física) */}
-        <div className="overflow-x-auto rounded-xl border border-border bg-slate-200/70 p-2 sm:p-5 dark:bg-slate-950/80 shadow-inner">
+        <div className="overflow-x-auto rounded-xs border border-border bg-slate-200/70 p-2 sm:p-5 dark:bg-slate-950/80 shadow-inner">
           <div
             id="pauta-official-print-sheet"
             className="mx-auto w-full min-w-[1050px] max-w-[1180px] bg-white p-8 text-black shadow-md font-sans"
@@ -375,7 +373,7 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
               type="button"
               onClick={handleDownload}
               disabled={isDownloading}
-              className="gap-2 bg-primary text-primary-foreground"
+              className="gap-2"
             >
               {isDownloading ? (
                 <Icon name="Loader2" className="w-4 h-4 animate-spin" />

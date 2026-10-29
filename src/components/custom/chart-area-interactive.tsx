@@ -160,22 +160,22 @@ export function ChartAreaInteractive({
         </div>
         <Select value={timeRange} onValueChange={setTimeRange}>
           <SelectTrigger
-            className="hidden w-[160px] rounded-lg sm:ml-auto sm:flex"
+            className="hidden w-[160px] rounded-xs sm:ml-auto sm:flex"
             aria-label="Select a value"
           >
             <SelectValue placeholder="Periodo" />
           </SelectTrigger>
-          <SelectContent className="rounded-xl">
-            <SelectItem value="all" className="rounded-lg">
+          <SelectContent className="rounded-xs">
+            <SelectItem value="all" className="rounded-xs">
               Tudo
             </SelectItem>
-            <SelectItem value="90d" className="rounded-lg">
+            <SelectItem value="90d" className="rounded-xs">
               Últimos 90 dias
             </SelectItem>
-            <SelectItem value="30d" className="rounded-lg">
+            <SelectItem value="30d" className="rounded-xs">
               Últimos 30 dias
             </SelectItem>
-            <SelectItem value="7d" className="rounded-lg">
+            <SelectItem value="7d" className="rounded-xs">
               Último 7 dias
             </SelectItem>
           </SelectContent>

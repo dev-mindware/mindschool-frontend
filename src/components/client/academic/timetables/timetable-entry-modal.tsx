@@ -2,12 +2,19 @@
 
 import React, { useEffect, useMemo, useState } from "react";
 import {
-  GlobalModal,
   SelectField,
   Button,
   ButtonSubmit,
   Badge,
   Icon,
+  Input,
+  Label,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -104,7 +111,6 @@ export function TimetableEntryModal({
   const [roomId, setRoomId] = useState<string>("");
   const roomsEnabled = useEntitled({ feature: "rooms" });
 
-  // Sincronizar defaults ou dados de edição ao abrir
   useEffect(() => {
     if (isOpen) {
       if (entryToEdit) {
@@ -138,14 +144,13 @@ export function TimetableEntryModal({
         setRoomId("");
       }
     }
-  }, [isOpen, entryToEdit, defaultSectionId, defaultWeekday, defaultSlot, defaultStart, defaultEnd]);
+  }, [isOpen, entryToEdit, defaultSectionId, defaultWeekday, defaultSlot, defaultStart, defaultEnd, subjects]);
 
   const selectedSection = useMemo(
     () => sections.find((s) => s.id === sectionId) || sections[0],
     [sections, sectionId],
   );
 
-  // Slots de tempo calculados para o turno da turma selecionada
   const availableSlots = useMemo(() => {
     if (!selectedSection) return [];
     const rawSlots = slotsFor(selectedSection.shift);
@@ -165,7 +170,6 @@ export function TimetableEntryModal({
       });
   }, [selectedSection, slotsFor]);
 
-  // Se o slot selecionado não existe na lista de slots, ajustar para o primeiro
   useEffect(() => {
     if (availableSlots.length > 0 && !availableSlots.some((s) => s.position === firstSlot)) {
       const first = availableSlots[0];
@@ -177,7 +181,6 @@ export function TimetableEntryModal({
     }
   }, [availableSlots, firstSlot, defaultStart, defaultEnd]);
 
-  // Se mudar o slot em modo slots, actualizar os horários dinâmicos de apoio
   const onSlotSelect = (val: number) => {
     setFirstSlot(val);
     const target = availableSlots.find((s) => s.position === val);
@@ -189,14 +192,12 @@ export function TimetableEntryModal({
     }
   };
 
-  // Preset de duração rápida no modo dinâmico
   const handleAddDuration = (durationMinutes: number) => {
     const startMin = toMinutes(startTime);
     const newEndMin = Math.min(startMin + durationMinutes, 23 * 60 + 59);
     setEndTime(formatMinutes(newEndMin));
   };
 
-  // Verificar se o slot pode ser duplo (o slot seguinte tem que existir e ser aula, sem intervalo)
   const canDouble = useMemo(() => {
     if (!selectedSection) return false;
     const rawSlots = slotsFor(selectedSection.shift);
@@ -210,7 +211,6 @@ export function TimetableEntryModal({
     }
   }, [canDouble, span]);
 
-  // Auto-selecionar professor se a disciplina já estiver atribuída a esta turma
   const existingAssignmentForSubject = useMemo(() => {
     if (!sectionId || !subjectId) return null;
     return assignments.find((a) => a.sectionId === sectionId && a.subjectId === subjectId);
@@ -222,7 +222,6 @@ export function TimetableEntryModal({
     }
   }, [existingAssignmentForSubject]);
 
-  // Pré-selecionar sala da turma se não houver sala selecionada
   useEffect(() => {
     if (selectedSection?.roomNumber && !roomId) {
       const matchingRoom = rooms.find(
@@ -234,7 +233,6 @@ export function TimetableEntryModal({
     }
   }, [selectedSection, rooms, roomId]);
 
-  // Cálculo da duração ativa em minutos
   const currentDurationMin = useMemo(() => {
     if (timeMode === "dynamic") {
       return toMinutes(endTime) - toMinutes(startTime);
@@ -259,7 +257,6 @@ export function TimetableEntryModal({
     return `${start.start} às ${end?.end || start.end}`;
   }, [timeMode, startTime, endTime, availableSlots, selectedSection, slotsFor, firstSlot, span]);
 
-  // Minutos de início e fim ativos para detecção universal de conflitos
   const activeStartMin = useMemo(() => {
     if (timeMode === "dynamic") return toMinutes(startTime);
     const start = availableSlots.find((s) => s.position === firstSlot);
@@ -409,295 +406,285 @@ export function TimetableEntryModal({
   }, [canDouble]);
 
   return (
-    <GlobalModal
-      isOpen={isOpen}
-      onClose={onClose}
-      canClose
-      title={entryToEdit ? "Editar Aula no Horário Semanal" : "Adicionar Aula ao Horário Semanal"}
-      description={
-        entryToEdit
-          ? "Atualize o dia, as horas, a disciplina, o professor ou a sala"
-          : "Seleccione o dia, o período de horas, a disciplina e o professor responsável"
-      }
-      className="w-full sm:max-w-2xl"
-    >
-      <form onSubmit={handleSubmit} className="space-y-4 pt-1">
-        {/* Seletor de Turma (se houver mais de uma) */}
-        <div>
-          <SelectField
-            label="Turma *"
-            value={sectionId}
-            options={sectionOptions}
-            onValueChange={setSectionId}
-          />
-        </div>
+    <Sheet open={isOpen} onOpenChange={(next) => !next && onClose()}>
+      <SheetContent className="flex flex-col gap-6 overflow-y-auto p-6 sm:max-w-lg">
+        <SheetHeader className="p-0">
+          <SheetTitle>
+            {entryToEdit ? "Editar Aula no Horário Semanal" : "Adicionar Aula ao Horário Semanal"}
+          </SheetTitle>
+          <SheetDescription>
+            {entryToEdit
+              ? "Atualize o dia, as horas, a disciplina, o professor ou a sala"
+              : "Seleccione o dia, o período de horas, a disciplina e o professor responsável"}
+          </SheetDescription>
+        </SheetHeader>
 
-        {/* 1. Dia da Semana (Seleção Visual em Chips) */}
-        <div className="space-y-1.5">
-          <label className="text-sm font-medium flex items-center justify-between">
-            <span>Dia da Semana *</span>
-            <span className="text-xs font-semibold text-primary">
-              {WEEKDAY[weekday]}
-            </span>
-          </label>
-          <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-            {WEEKDAYS.map((d) => {
-              const isSelected = weekday === d.value;
-              return (
-                <button
-                  key={d.value}
-                  type="button"
-                  onClick={() => setWeekday(d.value)}
-                  className={cn(
-                    "flex flex-col items-center justify-center py-2 px-1 rounded-xl border text-xs font-medium transition-all select-none",
-                    isSelected
-                      ? "border-primary bg-primary text-primary-foreground shadow-xs font-semibold"
-                      : "border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground",
-                  )}
-                >
-                  <span className="text-sm">{d.short}</span>
-                  <span className="text-[10px] opacity-80">{d.label.split("-")[0]}</span>
-                </button>
-              );
-            })}
+        <form onSubmit={handleSubmit} className="flex flex-col gap-4">
+          <div>
+            <SelectField
+              label="Turma *"
+              value={sectionId}
+              options={sectionOptions}
+              onValueChange={setSectionId}
+            />
           </div>
-        </div>
 
-        {/* 2. Período de Horas / Seleção Dinâmica ou por Tempos */}
-        <div className="p-3.5 rounded-xl border bg-muted/20 space-y-3">
-          <div className="flex flex-wrap items-center justify-between gap-2">
-            <span className="text-xs font-semibold text-foreground flex items-center gap-1.5">
-              <Icon name="Clock" className="w-4 h-4 text-primary" />
-              Período de Horas & Duração Letiva
-            </span>
-            <div className="flex items-center gap-1.5">
-              {currentDurationMin > 0 ? (
-                <Badge variant="outline" className="text-xs font-mono bg-background text-primary border-primary/30">
-                  {currentSlotInfo} ({currentDurationMin} min)
-                </Badge>
-              ) : (
-                <Badge variant="destructive" className="text-xs">
-                  Horário Inválido
-                </Badge>
-              )}
+          {/* 1. Dia da Semana (Seleção Visual em Chips) */}
+          <div className="space-y-1.5">
+            <Label className="flex items-center justify-between text-sm font-medium">
+              <span>Dia da Semana *</span>
+              <span className="text-xs font-semibold text-primary">{WEEKDAY[weekday]}</span>
+            </Label>
+            <div className="grid grid-cols-3 gap-2 sm:grid-cols-6">
+              {WEEKDAYS.map((d) => {
+                const isSelected = weekday === d.value;
+                return (
+                  <Button
+                    key={d.value}
+                    type="button"
+                    variant={isSelected ? "default" : "outline"}
+                    onClick={() => setWeekday(d.value)}
+                    className={cn(
+                      "flex h-auto flex-col items-center justify-center rounded-xs px-1 py-2 text-xs font-medium",
+                      isSelected && "font-semibold",
+                    )}
+                  >
+                    <span className="text-sm">{d.short}</span>
+                    <span className="text-[10px] opacity-80">{d.label.split("-")[0]}</span>
+                  </Button>
+                );
+              })}
             </div>
           </div>
 
-          {/* Alternador de Modo: Dinâmico / Livre vs. Tempos Padronizados */}
-          <div className="flex rounded-lg border bg-background/80 p-0.5 text-xs font-medium">
-            <button
-              type="button"
-              onClick={() => setTimeMode("dynamic")}
-              className={cn(
-                "flex-1 py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5",
-                timeMode === "dynamic"
-                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Icon name="Sparkles" className="w-3.5 h-3.5" />
-              <span>Horário Dinâmico (Livre)</span>
-              <span className="text-[10px] opacity-75 font-mono px-1 rounded bg-black/10 dark:bg-white/10">ex: 07h – 08h30</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => setTimeMode("slots")}
-              className={cn(
-                "flex-1 py-1.5 px-3 rounded-md transition-all flex items-center justify-center gap-1.5",
-                timeMode === "slots"
-                  ? "bg-primary text-primary-foreground font-semibold shadow-xs"
-                  : "text-muted-foreground hover:text-foreground",
-              )}
-            >
-              <Icon name="CalendarRange" className="w-3.5 h-3.5" />
-              <span>Tempos da Grelha (Slots)</span>
-            </button>
-          </div>
+          {/* 2. Período de Horas / Seleção Dinâmica ou por Tempos */}
+          <div className="space-y-3 rounded-xs border bg-muted/20 p-3.5">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <span className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                <Icon name="Clock" className="size-4 text-primary" />
+                Período de Horas & Duração Letiva
+              </span>
+              <div className="flex items-center gap-1.5">
+                {currentDurationMin > 0 ? (
+                  <Badge variant="outline" className="border-primary/30 bg-background font-mono text-xs text-primary">
+                    {currentSlotInfo} ({currentDurationMin} min)
+                  </Badge>
+                ) : (
+                  <Badge variant="destructive" className="text-xs">
+                    Horário Inválido
+                  </Badge>
+                )}
+              </div>
+            </div>
 
-          {timeMode === "dynamic" ? (
-            <div className="space-y-2.5 pt-1">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-foreground">
-                    Hora de Início *
-                  </label>
-                  <input
+            <div className="flex gap-1 rounded-xs border bg-background/80 p-1 text-xs font-medium">
+              <Button
+                type="button"
+                size="sm"
+                variant={timeMode === "dynamic" ? "default" : "ghost"}
+                onClick={() => setTimeMode("dynamic")}
+                className="h-8 flex-1 gap-1.5 text-xs"
+              >
+                <Icon name="Sparkles" className="size-3.5" />
+                <span>Horário Dinâmico</span>
+              </Button>
+              <Button
+                type="button"
+                size="sm"
+                variant={timeMode === "slots" ? "default" : "ghost"}
+                onClick={() => setTimeMode("slots")}
+                className="h-8 flex-1 gap-1.5 text-xs"
+              >
+                <Icon name="CalendarRange" className="size-3.5" />
+                <span>Tempos da Grelha</span>
+              </Button>
+            </div>
+
+            {timeMode === "dynamic" ? (
+              <div className="space-y-2.5 pt-1">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  <Input
+                    label="Hora de Início *"
                     type="time"
                     value={startTime}
                     onChange={(e) => setStartTime(e.target.value)}
                     required
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
                   />
-                </div>
-
-                <div className="space-y-1">
-                  <label className="text-xs font-medium text-foreground">
-                    Hora de Término *
-                  </label>
-                  <input
+                  <Input
+                    label="Hora de Término *"
                     type="time"
                     value={endTime}
                     onChange={(e) => setEndTime(e.target.value)}
                     required
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm font-mono shadow-xs focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5 pt-1">
+                  <span className="mr-1 text-[11px] font-medium text-muted-foreground">
+                    Duração Rápida:
+                  </span>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleAddDuration(45)}
+                    className="h-7 px-2 text-[11px]"
+                  >
+                    +45m (1 tempo)
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleAddDuration(60)}
+                    className="h-7 px-2 text-[11px]"
+                  >
+                    +60m (1 hora)
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleAddDuration(90)}
+                    className="h-7 border-primary/30 px-2 text-[11px] text-primary"
+                  >
+                    +90m (1h 30m)
+                  </Button>
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleAddDuration(120)}
+                    className="h-7 px-2 text-[11px]"
+                  >
+                    +120m (2 horas)
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-3">
+                <div className="sm:col-span-2">
+                  <SelectField
+                    label="Tempo Inicial *"
+                    value={String(firstSlot)}
+                    options={slotOptions}
+                    onValueChange={(val) => onSlotSelect(Number(val))}
+                  />
+                </div>
+
+                <div>
+                  <SelectField
+                    label="Duração *"
+                    value={String(span)}
+                    options={durationOptions}
+                    onValueChange={(val) => setSpan(Number(val))}
                   />
                 </div>
               </div>
+            )}
+          </div>
 
-              {/* Presets rápidos de duração a partir do início */}
-              <div className="flex flex-wrap items-center gap-1.5 pt-1">
-                <span className="text-[11px] text-muted-foreground font-medium mr-1">
-                  Duração Rápida:
-                </span>
-                <button
-                  type="button"
-                  onClick={() => handleAddDuration(45)}
-                  className="px-2 py-1 rounded border border-border bg-background hover:bg-muted text-[11px] font-medium transition-colors"
-                >
-                  +45m (1 tempo)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleAddDuration(60)}
-                  className="px-2 py-1 rounded border border-border bg-background hover:bg-muted text-[11px] font-medium transition-colors"
-                >
-                  +60m (1 hora)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleAddDuration(90)}
-                  className="px-2 py-1 rounded border border-border bg-background hover:bg-muted text-[11px] font-medium transition-colors text-primary border-primary/30"
-                >
-                  +90m (1h 30m)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => handleAddDuration(120)}
-                  className="px-2 py-1 rounded border border-border bg-background hover:bg-muted text-[11px] font-medium transition-colors"
-                >
-                  +120m (2 horas)
-                </button>
-              </div>
+          {/* 3. Disciplina e Professor */}
+          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+            <div>
+              <SelectField
+                label="Disciplina Curricular *"
+                value={subjectId}
+                placeholder="Seleccione a disciplina"
+                options={subjectOptions}
+                onValueChange={setSubjectId}
+              />
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-1">
-              <div className="sm:col-span-2">
-                <SelectField
-                  label="Tempo Inicial *"
-                  value={String(firstSlot)}
-                  options={slotOptions}
-                  onValueChange={(val) => onSlotSelect(Number(val))}
-                />
-              </div>
 
+            <div>
+              <SelectField
+                label="Professor Responsável *"
+                value={teacherId}
+                placeholder="Seleccione o professor"
+                options={teacherOptions}
+                onValueChange={setTeacherId}
+              />
+            </div>
+          </div>
+
+          {subjectId && (
+            <div className="flex items-center gap-2 text-xs">
+              {existingAssignmentForSubject ? (
+                <span className="flex items-center gap-1 text-emerald-600 dark:text-emerald-400">
+                  <Icon name="CheckCircle" className="size-3.5" />
+                  Professor habitual desta disciplina na turma já atribuído.
+                </span>
+              ) : (
+                <span className="flex items-center gap-1 text-muted-foreground">
+                  <Icon name="Sparkles" className="size-3.5 text-primary" />
+                  Esta disciplina será vinculada à turma e ao professor automaticamente.
+                </span>
+              )}
+            </div>
+          )}
+
+          {/* 4. Sala de Aulas (Opcional) */}
+          {roomsEnabled && (
+            <div>
+              <SelectField
+                label="Sala de Aulas (Opcional)"
+                value={roomId}
+                options={roomOptions}
+                onValueChange={setRoomId}
+              />
+            </div>
+          )}
+
+          {/* Alertas de Conflito em tempo real */}
+          {sectionConflict && (
+            <div className="flex items-start gap-2 rounded-xs border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+              <Icon name="CircleAlert" className="mt-0.5 size-4 shrink-0" />
               <div>
-                <SelectField
-                  label="Duração *"
-                  value={String(span)}
-                  options={durationOptions}
-                  onValueChange={(val) => setSpan(Number(val))}
-                />
+                <strong>Choque de Turma:</strong> A turma já tem uma aula de{" "}
+                <strong>{sectionConflict.subject.name}</strong> agendada neste mesmo horário.
               </div>
             </div>
           )}
-        </div>
 
-        {/* 3. Disciplina e Professor */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          <div>
-            <SelectField
-              label="Disciplina Curricular *"
-              value={subjectId}
-              placeholder="Seleccione a disciplina"
-              options={subjectOptions}
-              onValueChange={setSubjectId}
-            />
-          </div>
-
-          <div>
-            <SelectField
-              label="Professor Responsável *"
-              value={teacherId}
-              placeholder="Seleccione o professor"
-              options={teacherOptions}
-              onValueChange={setTeacherId}
-            />
-          </div>
-        </div>
-
-        {/* Notificação contextual de atribuição */}
-        {subjectId && (
-          <div className="text-xs flex items-center gap-2">
-            {existingAssignmentForSubject ? (
-              <span className="text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                <Icon name="CheckCircle" className="w-3.5 h-3.5" />
-                Professor habitual desta disciplina na turma já atribuído.
-              </span>
-            ) : (
-              <span className="text-muted-foreground flex items-center gap-1">
-                <Icon name="Sparkles" className="w-3.5 h-3.5 text-primary" />
-                Esta disciplina será vinculada à turma e ao professor automaticamente.
-              </span>
-            )}
-          </div>
-        )}
-
-        {/* 4. Sala de Aulas (Opcional) */}
-        {roomsEnabled && (
-          <div>
-            <SelectField
-              label="Sala de Aulas (Opcional)"
-              value={roomId}
-              options={roomOptions}
-              onValueChange={setRoomId}
-            />
-          </div>
-        )}
-
-        {/* Alertas de Conflito em tempo real */}
-        {sectionConflict && (
-          <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/5 text-destructive text-xs flex items-start gap-2">
-            <Icon name="CircleAlert" className="w-4 h-4 shrink-0 mt-0.5" />
-            <div>
-              <strong>Choque de Turma:</strong> A turma já tem uma aula de{" "}
-              <strong>{sectionConflict.subject.name}</strong> agendada neste mesmo horário.
+          {teacherConflict && !sectionConflict && (
+            <div className="flex items-start gap-2 rounded-xs border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+              <Icon name="CircleAlert" className="mt-0.5 size-4 shrink-0" />
+              <div>
+                <strong>Choque de professor:</strong> O professor selecionado já tem uma aula na turma{" "}
+                <strong>{teacherConflict.section.name}</strong> neste mesmo horário. O sistema não deixa gravar: escolha outro tempo ou outro professor.
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {teacherConflict && !sectionConflict && (
-          <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/5 text-destructive text-xs flex items-start gap-2">
-            <Icon name="CircleAlert" className="w-4 h-4 shrink-0 mt-0.5" />
-            <div>
-              <strong>Choque de professor:</strong> O professor selecionado já tem uma aula na turma{" "}
-              <strong>{teacherConflict.section.name}</strong> neste mesmo horário. O sistema não deixa gravar: escolha outro tempo ou outro professor.
+          {roomConflict && (
+            <div className="flex items-start gap-2 rounded-xs border border-destructive/30 bg-destructive/5 p-3 text-xs text-destructive">
+              <Icon name="CircleAlert" className="mt-0.5 size-4 shrink-0" />
+              <div>
+                <strong>Choque de sala:</strong> A sala selecionada já está ocupada por outra turma neste horário. O sistema não deixa gravar: escolha outra sala ou outro tempo.
+              </div>
             </div>
-          </div>
-        )}
+          )}
 
-        {roomConflict && (
-          <div className="p-3 rounded-xl border border-destructive/30 bg-destructive/5 text-destructive text-xs flex items-start gap-2">
-            <Icon name="CircleAlert" className="w-4 h-4 shrink-0 mt-0.5" />
-            <div>
-              <strong>Choque de sala:</strong> A sala selecionada já está ocupada por outra turma neste horário. O sistema não deixa gravar: escolha outra sala ou outro tempo.
-            </div>
-          </div>
-        )}
-
-        {/* Rodapé com Botões de Ação */}
-        <div className="flex justify-end gap-3 pt-3 border-t">
-          <Button type="button" variant="outline" onClick={onClose}>
-            Cancelar
-          </Button>
-          <ButtonSubmit
-            isLoading={addLesson.isPending || updateLesson.isPending}
-            disabled={!sectionId || !subjectId || !teacherId || Boolean(sectionConflict) || Boolean(teacherConflict) || Boolean(roomConflict)}
-            className="w-max"
-          >
-            {entryToEdit ? "Guardar Alterações" : "Adicionar ao Horário"}
-          </ButtonSubmit>
-        </div>
-      </form>
-    </GlobalModal>
+          <SheetFooter>
+            <Button type="button" variant="outline" onClick={onClose}>
+              Cancelar
+            </Button>
+            <ButtonSubmit
+              isLoading={addLesson.isPending || updateLesson.isPending}
+              disabled={
+                !sectionId ||
+                !subjectId ||
+                !teacherId ||
+                Boolean(sectionConflict) ||
+                Boolean(teacherConflict) ||
+                Boolean(roomConflict)
+              }
+            >
+              {entryToEdit ? "Guardar Alterações" : "Adicionar ao Horário"}
+            </ButtonSubmit>
+          </SheetFooter>
+        </form>
+      </SheetContent>
+    </Sheet>
   );
 }

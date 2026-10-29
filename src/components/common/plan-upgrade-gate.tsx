@@ -23,8 +23,7 @@ export function PlanUpgradeGate({
   return (
     <div className="flex flex-col items-center justify-center min-h-[60vh] p-6 text-center animate-in fade-in duration-500">
       <div className="relative mb-6">
-        <div className="absolute inset-0 bg-primary/10 blur-2xl rounded-full scale-150 animate-pulse" />
-        <div className="relative flex items-center justify-center w-20 h-20 mx-auto rounded-2xl bg-primary/10 border border-primary/20 text-primary">
+        <div className="relative flex items-center justify-center w-20 h-20 mx-auto rounded-xs bg-primary/10 border border-primary/20 text-primary">
           <Icon name="Lock" className="w-10 h-10" strokeWidth={1.5} />
         </div>
       </div>
@@ -51,7 +50,7 @@ export function PlanUpgradeGate({
       </div>
 
       {benefits.length > 0 && (
-        <div className="w-full max-w-sm mt-8 p-5 bg-muted/40 rounded-xl border text-left space-y-3">
+        <div className="w-full max-w-sm mt-8 p-5 bg-muted/40 rounded-xs border text-left space-y-3">
           <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">
             O que está incluído no plano {planLabel}:
           </h4>
@@ -63,7 +62,7 @@ export function PlanUpgradeGate({
               >
                 <Icon
                   name="Check"
-                  className="w-4 h-4 text-green-600 mt-0.5 shrink-0"
+                  className="w-4 h-4 text-success mt-0.5 shrink-0"
                   strokeWidth={3}
                 />
                 <span>{benefit}</span>
@@ -83,7 +82,7 @@ export function PlanUpgradeGate({
         </Button>
         <Button
           onClick={() => router.push("/plans")}
-          className="flex-1 bg-primary hover:opacity-90 transition-opacity gap-2"
+          className="flex-1 gap-2"
         >
           <Icon name="Zap" className="w-4 h-4 fill-current" />
           Fazer Upgrade

@@ -15,7 +15,7 @@ export function TransportPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Transporte Escolar & Rotas" suTitle="Rotas, paragens, viaturas, motoristas e alunos transportados (a lotação da viatura é respeitada).">
+      <TitleList title="Transporte Escolar & Rotas" suTitle="Gestão de rotas escolares, viaturas e embarques.">
         <div className="flex items-center gap-2">
           <Can permission="transport:write"><Button size="sm" variant="outline" className="gap-1.5" onClick={() => openModal("transport-assign")}><Icon name="UserPlus" className="size-4" />Alocar aluno</Button></Can>
           <Can permission="transport:write"><Button size="sm" className="gap-1.5" onClick={() => openModal("transport-new-route")}><Icon name="Plus" className="size-4" />Nova rota</Button></Can>

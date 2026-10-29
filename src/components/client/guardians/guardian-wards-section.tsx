@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { GuardianWard } from '@/types';
-import { Button, Badge, Icon, SelectField, PaginatedSelect } from '@/components';
+import { Avatar, AvatarFallback, Button, Badge, Icon, SelectField, PaginatedSelect } from '@/components';
 
 interface StudentOption {
   value: string;
@@ -28,6 +28,14 @@ interface GuardianWardsSectionProps {
   onRemoveWard: (studentId: string) => void;
 }
 
+const getInitials = (name: string) =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0]?.toUpperCase())
+    .join('');
+
 export function GuardianWardsSection({
   wards,
   candidateStudentId,
@@ -46,7 +54,7 @@ export function GuardianWardsSection({
   onRemoveWard,
 }: GuardianWardsSectionProps) {
   return (
-    <div className="space-y-3 p-4 rounded-xl border bg-muted/20">
+    <div className="space-y-3 p-3 rounded-xs bg-muted/30">
       <div className="flex items-center justify-between">
         <div>
           <h4 className="text-xs font-semibold text-foreground uppercase tracking-wider flex items-center gap-1.5">
@@ -70,12 +78,14 @@ export function GuardianWardsSection({
           {wards.map((ward) => (
             <div
               key={ward.studentId}
-              className="flex items-center justify-between p-3 rounded-lg border bg-card hover:bg-muted/10 transition"
+              className="flex items-center justify-between p-3 rounded-xs border border-border/60 bg-background/60 transition"
             >
               <div className="flex items-center gap-3">
-                <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
-                  <Icon name="User" className="h-4 w-4" />
-                </div>
+                <Avatar className="h-8 w-8 shrink-0">
+                  <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+                    {getInitials(ward.studentName)}
+                  </AvatarFallback>
+                </Avatar>
                 <div>
                   <p className="text-sm font-medium text-foreground">
                     {ward.studentName}
@@ -85,9 +95,9 @@ export function GuardianWardsSection({
                       {relationshipLabels[ward.relationship] || ward.relationship}
                     </Badge>
                     {ward.isPrimaryContact && (
-                      <span className="text-[10px] text-emerald-600 bg-emerald-50 dark:bg-emerald-950/50 px-2 py-0.5 rounded-full font-medium">
+                      <Badge variant="success" className="text-[10px] font-medium">
                         Contacto Principal
-                      </span>
+                      </Badge>
                     )}
                   </div>
                 </div>
@@ -107,7 +117,7 @@ export function GuardianWardsSection({
           ))}
         </div>
       ) : (
-        <div className="p-3 text-center border border-dashed rounded-lg text-xs text-muted-foreground">
+        <div className="p-3 text-center border border-dashed rounded-xs text-xs text-muted-foreground">
           Nenhum educando associado. Adicione educandos usando o seletor abaixo.
         </div>
       )}

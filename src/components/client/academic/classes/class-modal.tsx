@@ -9,13 +9,19 @@ import { AcademicSection, Shift, EducationCycle } from "@/types";
 import { useAcademicSections, useAcademicYears } from "@/hooks/school/use-academic";
 import { getApiErrorMessage } from "@/utils/api-error";
 import {
-  GlobalModal,
   Input,
   SelectField,
   Button,
   ButtonSubmit,
   Badge,
   Icon,
+  Label,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
 } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { YearSetup } from "./year-setup";
@@ -42,7 +48,6 @@ const classSectionFormSchema = z
       if (!data.endTime) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Indique a hora de término do turno", path: ["endTime"] });
       }
-      // o turno não pode acabar antes de começar («Manhã: 13:00 às 08:00»)
       if (data.startTime && data.endTime && data.endTime <= data.startTime) {
         ctx.addIssue({ code: z.ZodIssueCode.custom, message: "A hora de término tem de ser depois da hora de início", path: ["endTime"] });
       }
@@ -89,7 +94,6 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
   const { save } = useAcademicSections();
   const { years, isLoading: yearsLoading, isError: yearsFailed, refetch: refetchYears } = useAcademicYears();
 
-  // Só anos letivos que existem na escola (não se inventa um ano que a API não conhece).
   const academicYearOptions = useMemo(
     () => (years ?? []).map((y) => ({ value: y.name, label: y.status === "activo" ? `${y.name} (Ativo)` : y.name })),
     [years],
@@ -180,7 +184,6 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
     { value: "UPPER_SECONDARY", label: "IIº Ciclo / Técnico (10ª à 13ª)" },
   ];
 
-  // Opções de turno limpas, sem horas rígidas prefixadas
   const shiftOptions = [
     { value: "MORNING", label: "Manhã" },
     { value: "AFTERNOON", label: "Tarde" },
@@ -238,187 +241,183 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
 
   return (
     <>
-    <GlobalModal
-      isOpen={isOpen}
-      onClose={discard.request}
-      canClose
-      title={sectionToEdit ? "Editar Turma" : "Criar Nova Turma"}
-      description="Configuração de classe, turno letivo dinâmico, sala física e ano letivo"
-      className="w-full sm:max-w-3xl"
-    >
-      {yearsLoading ? (
-        <p className="py-6 text-center text-sm text-muted-foreground">A carregar os anos letivos…</p>
-      ) : years.length === 0 ? (
-        <YearSetup loadFailed={yearsFailed} onRetry={() => void refetchYears()} onClose={onClose} />
-      ) : (
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
-        <Input
-          label="Nome Descritivo da Turma *"
-          startIcon="DoorOpen"
-          placeholder="Ex: 10ª A, 7ª B, 11ª Informática"
-          {...register("name")}
-          error={errors.name?.message}
-        />
+      <Sheet open={isOpen} onOpenChange={(next) => !next && discard.request()}>
+        <SheetContent className="flex flex-col gap-6 overflow-y-auto p-6 sm:max-w-xl">
+          <SheetHeader className="p-0">
+            <SheetTitle>{sectionToEdit ? "Editar Turma" : "Criar Nova Turma"}</SheetTitle>
+            <SheetDescription>
+              Configuração de classe, turno letivo dinâmico, sala física e ano letivo
+            </SheetDescription>
+          </SheetHeader>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-          <SelectField
-            label="Ciclo Pedagógico *"
-            value={selectedCycle}
-            options={cycleOptions}
-            onValueChange={(val) => handleCycleChange(val as EducationCycle)}
-          />
-
-          <SelectField
-            label="Nível / Classe *"
-            value={selectedClassLevel}
-            options={currentClassOptions}
-            onValueChange={(val) => setValue("classLevel", val)}
-          />
-
-          <SelectField
-            label="Turno Letivo *"
-            value={selectedShift}
-            options={shiftOptions}
-            onValueChange={(val) => handleShiftChange(val as Shift)}
-          />
-
-          {/* Ano Letivo Dinâmico e Editável (Não Desabilitado) */}
-          <SelectField
-            label="Ano Letivo *"
-            value={selectedAcademicYear || activeOrCurrentYear}
-            options={academicYearOptions}
-            onValueChange={(val) => setValue("academicYear", val, { shouldValidate: true })}
-          />
-
-          <Input
-            label="Sala de Aulas *"
-            startIcon="Building2"
-            placeholder="Ex: Sala 14, Lab 2"
-            {...register("roomNumber")}
-            error={errors.roomNumber?.message}
-          />
-
-          <Input
-            type="quantity"
-            min={1}
-            max={100}
-            step={1}
-            label="Capacidade de Alunos *"
-            startIcon="Users"
-            placeholder="40"
-            value={Number(watch("capacity")) || 1}
-            onChange={(e) =>
-              setValue("capacity", Math.max(1, Number(e.target.value) || 1), {
-                shouldValidate: true,
-              })
-            }
-            error={errors.capacity?.message}
-          />
-          <p className="text-[11px] text-muted-foreground sm:col-span-3">
-            <strong>Capacidade</strong> é o limite de matrículas: cheia, o sistema não matricula mais alunos (os aprovados ficam em lista de espera) e não pode ficar abaixo dos alunos já matriculados.
-          </p>
-        </div>
-
-        {/* Bloco de Horário do Turno Dinâmico (Configurável pela Escola ou Flexível no Diurno) */}
-        {selectedShift === "DIURNO" ? (
-          <div className="p-4 rounded-xl border border-sky-500/30 bg-sky-500/5 space-y-2.5">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-xs font-semibold text-sky-700 dark:text-sky-300">
-                <Icon name="CalendarRange" className="w-4 h-4 text-sky-600 dark:text-sky-400" />
-                <span>Regime Diurno • Horário Flexível por Disciplina</span>
-              </div>
-              <Badge variant="outline" className="text-xs border-sky-500/30 text-sky-700 dark:text-sky-300 bg-background">
-                Definido no Horário Semanal
-              </Badge>
-            </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
-              No regime <strong>Diurno</strong>, a turma não segue um horário rígido fixo de turno único. A distribuição de horas é feita individualmente para cada disciplina na criação do <strong>Horário Semanal</strong>, permitindo aulas de manhã ou à tarde.
-            </p>
-            <div className="rounded-lg bg-background/80 p-2.5 border border-sky-500/20 text-xs space-y-1">
-              <span className="font-semibold text-foreground flex items-center gap-1.5">
-                <Icon name="Lightbulb" className="w-3.5 h-3.5 text-amber-500" />
-                Exemplo de configuração no Horário:
-              </span>
-              <p className="text-muted-foreground font-mono text-[11px]">
-                Disciplina 1 — (Segunda-Feira: 07h30–10h30), (Quarta-Feira: 12h30–14h00)
-              </p>
-            </div>
-          </div>
-        ) : (
-          <div className="p-3.5 rounded-xl border bg-muted/30 space-y-3">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
-                <Icon name="Clock" className="w-4 h-4 text-primary" />
-                <span>Horário do Turno (Horas Dinâmicas)</span>
-              </div>
-              {currentStartTime && currentEndTime && (
-                <Badge variant="outline" className="text-xs bg-background">
-                  {selectedShift === "MORNING" ? "Manhã" : selectedShift === "AFTERNOON" ? "Tarde" : "Noite"}: {currentStartTime} às {currentEndTime}
-                </Badge>
-              )}
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-[1fr_1fr_1.6fr] gap-3 items-end">
+          {yearsLoading ? (
+            <p className="py-6 text-center text-sm text-muted-foreground">A carregar os anos letivos…</p>
+          ) : years.length === 0 ? (
+            <YearSetup loadFailed={yearsFailed} onRetry={() => void refetchYears()} onClose={onClose} />
+          ) : (
+            <form id="class-modal-form" onSubmit={handleSubmit(onSubmit)} className="flex flex-col gap-4">
               <Input
-                type="time"
-                label="Hora de Início *"
-                startIcon="Clock"
-                {...register("startTime")}
-                error={errors.startTime?.message}
+                label="Nome Descritivo da Turma *"
+                startIcon="DoorOpen"
+                placeholder="Ex: 10ª A, 7ª B, 11ª Informática"
+                {...register("name")}
+                error={errors.name?.message}
               />
 
-              <Input
-                type="time"
-                label="Hora de Término *"
-                startIcon="Clock"
-                {...register("endTime")}
-                error={errors.endTime?.message}
-              />
+              <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                <SelectField
+                  label="Ciclo Pedagógico *"
+                  value={selectedCycle}
+                  options={cycleOptions}
+                  onValueChange={(val) => handleCycleChange(val as EducationCycle)}
+                />
 
-            {/* Atalhos rápidos de horários frequentes para conveniência */}
-            {currentPresets.length > 0 && (
-              <div className="space-y-1.5">
-                <span className="text-[11px] text-muted-foreground font-medium">
-                  Sugestões (clique para aplicar):
-                </span>
-                <div className="flex flex-wrap gap-1.5">
-                  {currentPresets.map((preset) => {
-                    const isActive = currentStartTime === preset.start && currentEndTime === preset.end;
-                    return (
-                      <button
-                        key={preset.label}
-                        type="button"
-                        onClick={() => applyTimePreset(preset.start, preset.end)}
-                        className={`text-xs px-2.5 py-1 rounded-md border transition-colors ${
-                          isActive
-                            ? "bg-primary text-primary-foreground border-primary font-medium"
-                            : "bg-background hover:bg-muted text-muted-foreground hover:text-foreground border-border"
-                        }`}
-                      >
-                        {preset.label}
-                      </button>
-                    );
-                  })}
+                <SelectField
+                  label="Nível / Classe *"
+                  value={selectedClassLevel}
+                  options={currentClassOptions}
+                  onValueChange={(val) => setValue("classLevel", val)}
+                />
+
+                <SelectField
+                  label="Turno Letivo *"
+                  value={selectedShift}
+                  options={shiftOptions}
+                  onValueChange={(val) => handleShiftChange(val as Shift)}
+                />
+
+                <SelectField
+                  label="Ano Letivo *"
+                  value={selectedAcademicYear || activeOrCurrentYear}
+                  options={academicYearOptions}
+                  onValueChange={(val) => setValue("academicYear", val, { shouldValidate: true })}
+                />
+
+                <Input
+                  label="Sala de Aulas *"
+                  startIcon="Building2"
+                  placeholder="Ex: Sala 14, Lab 2"
+                  {...register("roomNumber")}
+                  error={errors.roomNumber?.message}
+                />
+
+                <Input
+                  type="quantity"
+                  min={1}
+                  max={100}
+                  step={1}
+                  label="Capacidade de Alunos *"
+                  startIcon="Users"
+                  placeholder="40"
+                  value={Number(watch("capacity")) || 1}
+                  onChange={(e) =>
+                    setValue("capacity", Math.max(1, Number(e.target.value) || 1), {
+                      shouldValidate: true,
+                    })
+                  }
+                  error={errors.capacity?.message}
+                />
+                <p className="text-[11px] text-muted-foreground sm:col-span-2">
+                  <strong>Capacidade</strong> é o limite de matrículas: cheia, o sistema não matricula mais alunos (os aprovados ficam em lista de espera) e não pode ficar abaixo dos alunos já matriculados.
+                </p>
+              </div>
+
+              {selectedShift === "DIURNO" ? (
+                <div className="space-y-2.5 rounded-xs border border-sky-500/30 bg-sky-500/5 p-4">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-2 text-xs font-semibold text-sky-700 dark:text-sky-300">
+                      <Icon name="CalendarRange" className="size-4 text-sky-600 dark:text-sky-400" />
+                      <span>Regime Diurno • Horário Flexível por Disciplina</span>
+                    </div>
+                    <Badge variant="info" className="text-xs">
+                      Definido no Horário Semanal
+                    </Badge>
+                  </div>
+                  <p className="text-xs leading-relaxed text-muted-foreground">
+                    No regime <strong>Diurno</strong>, a turma não segue um horário rígido fixo de turno único. A distribuição de horas é feita individualmente para cada disciplina na criação do <strong>Horário Semanal</strong>, permitindo aulas de manhã ou à tarde.
+                  </p>
+                  <div className="space-y-1 rounded-xs border border-sky-500/20 bg-background/80 p-2.5 text-xs">
+                    <span className="flex items-center gap-1.5 font-semibold text-foreground">
+                      <Icon name="Lightbulb" className="size-3.5 text-amber-500" />
+                      Exemplo de configuração no Horário:
+                    </span>
+                    <p className="font-mono text-[11px] text-muted-foreground">
+                      Disciplina 1 — (Segunda-Feira: 07h30–10h30), (Quarta-Feira: 12h30–14h00)
+                    </p>
+                  </div>
                 </div>
-              </div>
-            )}
-            </div>
-          </div>
-        )}
+              ) : (
+                <div className="space-y-3 rounded-xs border bg-muted/30 p-3.5">
+                  <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex items-center gap-1.5 text-xs font-semibold text-foreground">
+                      <Icon name="Clock" className="size-4 text-primary" />
+                      <span>Horário do Turno (Horas Dinâmicas)</span>
+                    </div>
+                    {currentStartTime && currentEndTime && (
+                      <Badge variant="outline" className="bg-background text-xs">
+                        {selectedShift === "MORNING" ? "Manhã" : selectedShift === "AFTERNOON" ? "Tarde" : "Noite"}: {currentStartTime} às {currentEndTime}
+                      </Badge>
+                    )}
+                  </div>
 
-        {/* Botões de Ação no Padrão MindGest */}
-        <div className="flex justify-end gap-3 pt-1">
-          <Button type="button" variant="outline" onClick={discard.request}>
-            Cancelar
-          </Button>
-          <ButtonSubmit isLoading={isSubmitting} className="w-max">
-            {sectionToEdit ? "Guardar Alterações" : "Criar Turma"}
-          </ButtonSubmit>
-        </div>
-      </form>
-      )}
-    </GlobalModal>
-    {discard.dialog}
+                  <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <Input
+                      type="time"
+                      label="Hora de Início *"
+                      startIcon="Clock"
+                      {...register("startTime")}
+                      error={errors.startTime?.message}
+                    />
+
+                    <Input
+                      type="time"
+                      label="Hora de Término *"
+                      startIcon="Clock"
+                      {...register("endTime")}
+                      error={errors.endTime?.message}
+                    />
+                  </div>
+
+                  {currentPresets.length > 0 && (
+                    <div className="space-y-1.5">
+                      <Label className="text-[11px] font-medium text-muted-foreground">
+                        Sugestões (clique para aplicar):
+                      </Label>
+                      <div className="flex flex-wrap gap-1.5">
+                        {currentPresets.map((preset) => {
+                          const isActive = currentStartTime === preset.start && currentEndTime === preset.end;
+                          return (
+                            <Button
+                              key={preset.label}
+                              type="button"
+                              size="sm"
+                              variant={isActive ? "default" : "outline"}
+                              onClick={() => applyTimePreset(preset.start, preset.end)}
+                              className="h-7 px-2.5 text-xs"
+                            >
+                              {preset.label}
+                            </Button>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <SheetFooter>
+                <Button type="button" variant="outline" onClick={discard.request}>
+                  Cancelar
+                </Button>
+                <ButtonSubmit isLoading={isSubmitting}>
+                  {sectionToEdit ? "Guardar Alterações" : "Criar Turma"}
+                </ButtonSubmit>
+              </SheetFooter>
+            </form>
+          )}
+        </SheetContent>
+      </Sheet>
+      {discard.dialog}
     </>
   );
 }

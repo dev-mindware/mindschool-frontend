@@ -74,13 +74,13 @@ export function AllNotifications() {
     <div className="space-y-6">
       <TitleList
         title="Notificações"
-        suTitle="Mantenha-se atualizado sobre as suas atividades e mensagens"
+        suTitle="Mantenha-se atualizado sobre as suas atividades, avisos e comunicações escolares."
       >
         <div className="flex gap-2">
           {unreadCount > 0 && (
             <Button onClick={handleMarkAllAsRead} variant="outline">
               <Icon name="CheckCheck" className="mr-2 h-4 w-4" />
-              Marcar tudo como lido
+              Marcar todas como lidas
             </Button>
           )}
           <Link href="/settings?tab=notifications">
@@ -101,7 +101,7 @@ export function AllNotifications() {
         setFilterType={setFilterType}
       />
 
-      <div className="bg-card rounded-xl border shadow-sm overflow-hidden">
+      <div className="bg-card rounded-xs border shadow-sm overflow-hidden">
         <NotificationList
           className="h-[calc(100vh-20rem)] min-h-[15rem]"
           notifications={filteredNotifications}

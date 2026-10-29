@@ -15,13 +15,13 @@ export function UnauthorizedLink() {
       <div className="flex justify-center items-center space-x-4">
         <Link
           href={`${getRouteByRole(user?.role as Role)}`}
-          className="w-max mt-6 px-4 py-2 bg-primary text-white  font-medium rounded-md shadow-md hover:bg-primary transition-all"
+          className="w-max mt-6 px-4 py-2 bg-primary text-white  font-medium rounded-xs shadow-md hover:bg-primary transition-all"
         >
           Voltar à página anterior
         </Link>
 
         <Button
-          className="w-max mt-6 px-4 py-2 bg-primary text-white  font-medium rounded-md shadow-md hover:bg-primary transition-all"
+          className="w-max mt-6 px-4 py-2 bg-primary text-white  font-medium rounded-xs shadow-md hover:bg-primary transition-all"
           onClick={handleLogout}
         >
           Sair

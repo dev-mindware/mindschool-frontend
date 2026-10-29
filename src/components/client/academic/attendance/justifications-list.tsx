@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Badge, Button, ButtonOnlyAction, DataList, FormModal, Input, type Column } from "@/components";
+import { Badge, Button, ButtonOnlyAction, DataList, EmptyState, FormModal, Input, ListSkeleton, type Column } from "@/components";
 import { useClassAbsences, useEnrollmentAbsences } from "@/hooks/school/use-absences";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -19,10 +19,16 @@ function AbsencesModal({ enrollmentId, name }: { enrollmentId: string | null; na
   return (
     <FormModal id="absences-detail" title={`Faltas — ${name}`} description="Converta faltas injustificadas em justificadas, com motivo." size="lg" readOnly onSubmit={() => undefined}>
       <div className="sm:col-span-2 space-y-3 text-sm">
-        {isLoading && <p className="text-muted-foreground">A carregar…</p>}
-        {!isLoading && absences.length === 0 && <p className="text-muted-foreground">Sem faltas registadas.</p>}
+        {isLoading && <ListSkeleton rows={3} cols={3} />}
+        {!isLoading && absences.length === 0 && (
+          <EmptyState
+            icon="CircleCheck"
+            title="Sem faltas registadas"
+            description="Este aluno não possui faltas pendentes ou justificadas no sistema."
+          />
+        )}
         {absences.map((a) => (
-          <div key={a.id} className="grid items-end gap-3 rounded-lg border p-3 sm:grid-cols-[110px_1fr_auto]">
+          <div key={a.id} className="grid items-end gap-3 rounded-xs border p-3 sm:grid-cols-[110px_1fr_auto]">
             <div><p className="font-mono text-xs">{a.date}</p>{a.status === "falta_justificada" ? <Badge variant="outline">Justificada</Badge> : <Badge variant="destructive">Injustificada</Badge>}</div>
             {a.status === "falta_justificada" ? <p className="text-muted-foreground">{a.justification}</p> : <Input label="Justificação (mín. 5 caracteres)" value={text[a.id] ?? ""} onChange={(e) => setText((c) => ({ ...c, [a.id]: e.target.value }))} />}
             {a.status !== "falta_justificada" && <Button size="sm" className="h-10" disabled={(text[a.id] ?? "").trim().length < 5 || justify.isPending} onClick={() => justify.mutateAsync({ id: a.id, justification: text[a.id]!.trim() }).then(() => SucessMessage("Falta justificada.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível justificar.")))}>Justificar</Button>}

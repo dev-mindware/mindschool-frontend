@@ -9,7 +9,9 @@ import {
   SelectField,
   Button,
   ButtonSubmit,
-  Textarea,
+  Checkbox,
+  FormTextarea,
+  Label,
 } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 
@@ -71,12 +73,12 @@ export function CancelEnrollmentModal({
       onClose={onClose}
       canClose
       warning
+      size="md"
       title="Cancelar Matrícula"
       description="Processo auditado de anulação de vaga escolar"
-      className="!max-h-[85vh] !max-w-md"
     >
       <form onSubmit={handleConfirm} className="space-y-4 pt-2">
-        <div className="rounded-lg border border-amber-200 bg-amber-50/50 p-3 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
+        <div className="rounded-xs border border-amber-200 bg-amber-50/50 p-3 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
           <p className="font-medium">Atenção:</p>
           <p className="mt-0.5">
             Está a anular a matrícula do estudante{" "}
@@ -100,26 +102,29 @@ export function CancelEnrollmentModal({
           onValueChange={setSelectedPreset}
         />
 
-        <div className="space-y-1">
-          <label className="text-sm font-medium">
-            {selectedPreset === "Outro motivo"
+        <FormTextarea
+          label={
+            selectedPreset === "Outro motivo"
               ? "Descreva o motivo detalhado *"
-              : "Detalhes Adicionais (Opcional)"}
-          </label>
-          <Textarea
-            rows={3}
-            placeholder="Observações complementares para registo da secretaria..."
-            value={customReason}
-            onChange={(e) => setCustomReason(e.target.value)}
-          />
-        </div>
+              : "Detalhes Adicionais (Opcional)"
+          }
+          rows={3}
+          placeholder="Observações complementares para registo da secretaria..."
+          value={customReason}
+          onChange={setCustomReason}
+        />
 
-        <label className="flex items-start gap-2 text-xs cursor-pointer">
-          <input type="checkbox" className="mt-0.5" checked={justified} onChange={(e) => setJustified(e.target.checked)} />
-          <span>
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="cancel-enrollment-justified"
+            className="mt-0.5"
+            checked={justified}
+            onCheckedChange={(checked) => setJustified(Boolean(checked))}
+          />
+          <Label htmlFor="cancel-enrollment-justified" className="text-xs font-normal leading-relaxed cursor-pointer">
             <strong>Motivo justificado</strong> (doença comprovada, mudança de localidade). Marque só se houver comprovativo: dá direito a exame especial.
-          </span>
-        </label>
+          </Label>
+        </div>
 
         <div className="flex justify-end gap-3 pt-3 border-t">
           <Button type="button" variant="outline" onClick={onClose}>
@@ -127,7 +132,7 @@ export function CancelEnrollmentModal({
           </Button>
           <ButtonSubmit
             isLoading={isSubmitting}
-            className="w-max bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+            className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
           >
             Confirmar Anulação
           </ButtonSubmit>

@@ -227,10 +227,10 @@ function Indicators({ data }: { data: FinanceOverview }) {
     { icon: "CircleCheck", label: "Faturas liquidadas", value: `${k.invoices_paid}/${k.invoices_total}`, hint: "no ano letivo" },
   ];
   return (
-    <ChartCard title="Indicadores de cobrança" icon="Gauge" description={`Ano letivo ${data.academic_year?.name ?? ""} · actualizado a ${data.as_of}`}>
+    <ChartCard title="Indicadores de cobrança" icon="Gauge" description={`Ano letivo ${data.academic_year?.name ?? ""} · atualizado a ${data.as_of}`}>
       <div className="grid grid-cols-2 gap-3 pb-2 lg:grid-cols-4">
         {tiles.map((t) => (
-          <div key={t.label} className="rounded-lg border bg-muted/20 p-3">
+          <div key={t.label} className="rounded-xs border bg-muted/20 p-3">
             <div className="flex items-center gap-2 text-xs text-muted-foreground"><Icon name={t.icon} className="size-3.5" />{t.label}</div>
             <div className="mt-1 text-lg font-semibold tabular-nums">{t.value}</div>
             {t.hint && <div className="text-xs text-muted-foreground">{t.hint}</div>}

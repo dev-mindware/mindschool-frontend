@@ -3,6 +3,7 @@
 import * as React from "react";
 import { Check, Eye, EyeOff, X } from "lucide-react";
 import { AlertError } from "@/components/common/alert-error";
+import { Progress } from "@/components/ui/progress";
 import { cn } from "@/lib/utils";
 
 export interface ValidInputPasswordProps
@@ -109,10 +110,10 @@ export const ValidInputPassword = React.forwardRef<
 
         <div
           className={cn(
-            "relative flex items-center rounded-md border text-sm transition-colors duration-200 overflow-hidden bg-background",
+            "relative flex items-center rounded-xs border text-sm transition-colors duration-200 overflow-hidden bg-background",
             error
               ? "border-red-500 ring-1 ring-red-400"
-              : "border-input focus-within:border-primary-500 focus-within:ring-[3px] focus-within:ring-ring/50",
+              : "border-input focus-within:border-primary focus-within:ring-[3px] focus-within:ring-ring/50",
             disabled && "opacity-50 cursor-not-allowed bg-muted/30"
           )}
         >
@@ -145,22 +146,11 @@ export const ValidInputPassword = React.forwardRef<
         {/* Barra de progresso de força */}
         {stringValue.length > 0 && (
           <div className="space-y-2 pt-1">
-            <div
-              className="w-full h-1.5 overflow-hidden rounded-full bg-muted"
-              role="progressbar"
-              aria-valuenow={strengthScore}
-              aria-valuemin={0}
-              aria-valuemax={5}
+            <Progress
+              value={(strengthScore / 5) * 100}
               aria-label="Segurança da palavra-passe"
-            >
-              <div
-                className={cn(
-                  "h-full transition-all duration-300 ease-out",
-                  getStrengthColor(strengthScore)
-                )}
-                style={{ width: `${(strengthScore / 5) * 100}%` }}
-              />
-            </div>
+              className="h-1.5"
+            />
 
             <p className="text-xs font-medium text-muted-foreground">
               {getStrengthText(strengthScore)}

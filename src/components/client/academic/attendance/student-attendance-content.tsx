@@ -6,7 +6,7 @@ import { useSections } from "@/hooks/school/use-sections";
 import { useTeacherAssignments } from "@/hooks/school/use-academic";
 import { useRollCall } from "@/hooks/school/use-roll-call";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
-import { timetablesService, type ApiEntry } from "@/services/timetables-service";
+import { timetablesService } from "@/services/timetables-service";
 import { RollCallSheet } from "./roll-call-sheet";
 import { AttendanceStatsView } from "./attendance-stats-view";
 import { JustificationsList } from "./justifications-list";
@@ -17,6 +17,7 @@ import {
   FormSelect,
   Icon,
   Input,
+  Label,
   StatusLegend,
   Tabs,
   TabsContent,
@@ -43,7 +44,6 @@ export function StudentAttendanceContent() {
   const { data: sections = [] } = useSections();
   const { assignments } = useTeacherAssignments();
 
-  // Estados de seleção
   const [pickedClassId, setSelectedClassId] = useState("");
   const [pickedSubjectId, setSelectedSubjectId] = useState("");
   const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
@@ -51,13 +51,11 @@ export function StudentAttendanceContent() {
   const [isManualMode, setIsManualMode] = useState<boolean>(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
 
-  // Turma seleccionada
   const selectedClassId = pickedClassId || sections[0]?.id || "";
   const selectedClass = sections.find((c) => c.id === selectedClassId);
   const className = selectedClass ? `${selectedClass.classLevel} ${selectedClass.name}` : "";
   const classSubjects = useMemo(() => assignments.filter((a) => a.sectionId === selectedClassId), [assignments, selectedClassId]);
 
-  // Carregar o horário semanal estabelecido da escola
   const { data: timetables = [] } = useQuery({
     queryKey: ["timetables", schoolId],
     queryFn: timetablesService.list,
@@ -69,15 +67,13 @@ export function StudentAttendanceContent() {
     return timetables.find((t) => t.status === "publicado") ?? timetables[0] ?? null;
   }, [timetables]);
 
-  // Entradas do horário ativo
-  const { data: timetableEntries = [], isLoading: isEntriesLoading } = useQuery({
+  const { data: timetableEntries = [] } = useQuery({
     queryKey: ["timetable-entries", schoolId, activeTimetable?.id],
     queryFn: () => timetablesService.entries(activeTimetable!.id),
     enabled: Boolean(schoolId && activeTimetable?.id),
     staleTime: 15 * 1000,
   });
 
-  // Dia da semana correspondente à data seleccionada (1 = Segunda ... 7 = Domingo)
   const weekday = useMemo(() => {
     if (!selectedDate) return 1;
     const [y, m, d] = selectedDate.split("-").map(Number);
@@ -87,7 +83,6 @@ export function StudentAttendanceContent() {
 
   const selectedWeekdayName = WEEKDAY_NAMES[weekday] || "Dia";
 
-  // Tempos letivos do horário estabelecido para esta turma no dia da semana seleccionado
   const classTimetableEntries = useMemo(() => {
     if (!selectedClassId || !timetableEntries.length) return [];
     return timetableEntries.filter((e) => e.section.id === selectedClassId);
@@ -101,7 +96,6 @@ export function StudentAttendanceContent() {
 
   const hasTimetableLessonsToday = dayTimetableLessons.length > 0;
 
-  // Tempo do horário atualmente ativo/seleccionado
   const activeTimetableLesson = useMemo(() => {
     if (selectedEntryId) {
       const found = dayTimetableLessons.find((e) => e.id === selectedEntryId);
@@ -110,7 +104,6 @@ export function StudentAttendanceContent() {
     return dayTimetableLessons[0] || null;
   }, [dayTimetableLessons, selectedEntryId]);
 
-  // Disciplina e dados efectivos da aula para a chamada
   const effectiveSubjectId = useMemo(() => {
     if (!isManualMode && activeTimetableLesson) {
       return activeTimetableLesson.section_subject_id;
@@ -129,7 +122,6 @@ export function StudentAttendanceContent() {
     return effectiveSubject?.subjectName || "Disciplina";
   }, [isManualMode, activeTimetableLesson, effectiveSubject]);
 
-  // Dados da chamada para métricas
   const { students: rollCall } = useRollCall(selectedClassId, effectiveSubjectId || undefined, selectedDate);
   const marked = rollCall.filter((r) => r.status);
   const classRate = marked.length ? Math.round((marked.filter((r) => r.status === "PRESENT" || r.status === "LATE").length / marked.length) * 100) : 0;
@@ -139,14 +131,14 @@ export function StudentAttendanceContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Assiduidade & Disciplina" suTitle="Registo de presenças, faltas justificadas e ocorrências disciplinares por tempo letivo.">
+      <TitleList title="Assiduidade & Disciplina" suTitle="Registo diário de presenças, faltas e justificações por turma.">
         <Button
           size="sm"
           variant="outline"
           onClick={() => setIsExportOpen(true)}
           className="gap-2"
         >
-          <Icon name="Download" className="h-4 w-4" />
+          <Icon name="Download" className="size-4" />
           <span>Baixar Folha (PDF)</span>
         </Button>
       </TitleList>
@@ -170,23 +162,25 @@ export function StudentAttendanceContent() {
       </div>
 
       {/* Barra de Filtros Contextuais */}
-      <div className="grid gap-4 sm:grid-cols-3" data-tour="attendance-context">
-        <FormSelect
-          label="Turma"
-          value={selectedClassId}
-          onValueChange={(v) => {
-            setSelectedClassId(v);
-            setSelectedEntryId("");
-            setSelectedSubjectId("");
-            setIsManualMode(false);
-          }}
-          options={sections.map((c) => ({
-            value: c.id,
-            label: `${c.classLevel} ${c.name} (${c.shift === "MORNING" ? "Manhã" : c.shift === "AFTERNOON" ? "Tarde" : "Diurno"})`,
-          }))}
-        />
+      <div className="flex flex-wrap items-end gap-3" data-tour="attendance-context">
+        <div className="min-w-60 flex-1">
+          <FormSelect
+            label="Turma"
+            value={selectedClassId}
+            onValueChange={(v) => {
+              setSelectedClassId(v);
+              setSelectedEntryId("");
+              setSelectedSubjectId("");
+              setIsManualMode(false);
+            }}
+            options={sections.map((c) => ({
+              value: c.id,
+              label: `${c.classLevel} ${c.name} (${c.shift === "MORNING" ? "Manhã" : c.shift === "AFTERNOON" ? "Tarde" : "Diurno"})`,
+            }))}
+          />
+        </div>
 
-        <div className="space-y-1.5">
+        <div className="min-w-52 flex-1 space-y-1.5">
           <Input
             label="Data da aula"
             type="date"
@@ -197,7 +191,7 @@ export function StudentAttendanceContent() {
               setIsManualMode(false);
             }}
           />
-          <div className="flex items-center gap-1.5 text-xs text-muted-foreground px-0.5">
+          <div className="flex items-center gap-1.5 px-0.5 text-xs text-muted-foreground">
             <Icon name="CalendarDays" className="size-3.5 text-primary" />
             <span className="font-medium text-foreground">{selectedWeekdayName}</span>
             <span>•</span>
@@ -207,7 +201,7 @@ export function StudentAttendanceContent() {
 
         {/* Disciplina Manual (visível em modo manual ou se a turma não tiver tempos no horário) */}
         {isManualMode || (!hasTimetableLessonsToday && classTimetableEntries.length === 0) ? (
-          <div className="space-y-1.5">
+          <div className="min-w-60 flex-1 space-y-1.5">
             <FormSelect
               label="Disciplina (Manual)"
               value={effectiveSubjectId}
@@ -215,32 +209,36 @@ export function StudentAttendanceContent() {
               options={classSubjects.map((s) => ({ value: s.id, label: s.subjectName }))}
             />
             {hasTimetableLessonsToday && (
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
                 onClick={() => setIsManualMode(false)}
-                className="text-xs text-primary hover:underline flex items-center gap-1 font-medium"
+                className="h-auto gap-1 p-0 text-xs font-medium text-primary"
               >
                 <Icon name="ArrowLeft" className="size-3" />
                 Voltar ao horário estabelecido da turma
-              </button>
+              </Button>
             )}
           </div>
         ) : (
-          <div className="flex flex-col justify-center">
-            <span className="text-xs text-muted-foreground">Regime de Chamada</span>
-            <div className="flex items-center gap-2 mt-1">
-              <Badge variant="outline" className="bg-primary/5 text-primary border-primary/20 text-xs py-1 px-2.5">
-                <Icon name="CalendarClock" className="size-3.5 mr-1.5" />
+          <div className="flex min-w-52 flex-1 flex-col justify-center pb-1">
+            <Label className="text-xs text-muted-foreground">Regime de Chamada</Label>
+            <div className="mt-1 flex items-center gap-2">
+              <Badge variant="default" className="px-2.5 py-1 text-xs">
+                <Icon name="CalendarClock" className="mr-1.5 size-3.5" />
                 Horário da Turma
               </Badge>
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
                 onClick={() => setIsManualMode(true)}
-                className="text-xs text-muted-foreground hover:text-foreground hover:underline ml-auto"
+                className="ml-auto h-auto p-0 text-xs text-muted-foreground hover:text-foreground"
                 title="Registar aula de substituição ou extraordinária"
               >
                 Aula avulsa
-              </button>
+              </Button>
             </div>
           </div>
         )}
@@ -248,11 +246,11 @@ export function StudentAttendanceContent() {
 
       {/* Selector de Tempos do Horário Estabelecido da Turma */}
       {!isManualMode && (
-        <div className="rounded-xl border bg-card p-4 shadow-sm space-y-3">
+        <div className="space-y-3 rounded-xs border bg-card p-4 shadow-xs">
           <div className="flex flex-wrap items-center justify-between gap-2 border-b pb-2.5">
             <div className="flex items-center gap-2">
               <Icon name="Clock" className="size-4 text-primary" />
-              <h3 className="font-semibold text-sm">
+              <h3 className="text-sm font-semibold">
                 Tempos Letivos no Horário Estabelecido ({selectedWeekdayName})
               </h3>
               <Badge variant="secondary" className="text-xs">
@@ -267,69 +265,66 @@ export function StudentAttendanceContent() {
           </div>
 
           {hasTimetableLessonsToday ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-2.5 pt-1">
+            <div className="grid grid-cols-1 gap-2.5 pt-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
               {dayTimetableLessons.map((lesson, idx) => {
                 const isSelected = activeTimetableLesson?.id === lesson.id;
                 return (
-                  <button
+                  <Button
                     key={lesson.id}
                     type="button"
+                    variant="outline"
                     onClick={() => {
                       setSelectedEntryId(lesson.id);
                       setIsManualMode(false);
                     }}
                     className={cn(
-                      "flex flex-col text-left p-3 rounded-lg border transition-all text-xs relative",
+                      "relative flex h-auto flex-col items-start justify-start rounded-xs p-3 text-left text-xs font-normal transition-all",
                       isSelected
-                        ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/40 shadow-sm"
-                        : "border-border bg-background hover:bg-muted/60 text-muted-foreground"
+                        ? "border-primary bg-primary/10 text-foreground ring-2 ring-primary/40"
+                        : "border-border bg-background text-muted-foreground hover:bg-muted/60"
                     )}
                   >
-                    <div className="flex items-center justify-between w-full mb-1">
-                      <span className={cn(
-                        "font-mono px-1.5 py-0.5 rounded text-[11px] font-semibold",
-                        isSelected ? "bg-primary text-primary-foreground" : "bg-muted text-foreground"
-                      )}>
+                    <div className="mb-1 flex w-full items-center justify-between">
+                      <Badge variant={isSelected ? "default" : "secondary"} className="font-mono text-[11px]">
                         {lesson.first_slot ? `${lesson.first_slot}º Tempo` : `${idx + 1}º Tempo`}
-                      </span>
+                      </Badge>
                       <span className="font-mono text-[11px] font-medium text-foreground">
                         {lesson.start} – {lesson.end}
                       </span>
                     </div>
-                    <span className="font-bold text-foreground text-sm truncate mt-1">
+                    <span className="mt-1 w-full truncate text-sm font-bold text-foreground">
                       {lesson.subject.name}
                     </span>
-                    <div className="flex items-center gap-2 mt-2 text-[11px] text-muted-foreground">
+                    <div className="mt-2 flex w-full items-center gap-2 text-[11px] text-muted-foreground">
                       <span className="truncate">{lesson.teacher.full_name}</span>
                       {lesson.room && (
-                        <span className="shrink-0 bg-muted px-1.5 py-0.2 rounded font-mono text-[10px]">
+                        <span className="shrink-0 rounded bg-muted px-1.5 py-0.5 font-mono text-[10px]">
                           {lesson.room.name || lesson.room.code}
                         </span>
                       )}
                     </div>
-                  </button>
+                  </Button>
                 );
               })}
             </div>
           ) : (
-            <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 dark:bg-amber-500/10 p-4 text-amber-950 dark:text-amber-200">
+            <div className="rounded-xs border border-amber-500/30 bg-amber-500/10 p-4 text-amber-950 dark:text-amber-200">
               <div className="flex items-start gap-3">
-                <Icon name="CalendarX2" className="size-5 text-amber-600 dark:text-amber-400 mt-0.5 shrink-0" />
+                <Icon name="CalendarX2" className="mt-0.5 size-5 shrink-0 text-amber-600 dark:text-amber-400" />
                 <div className="space-y-1">
-                  <p className="font-semibold text-sm text-foreground">
+                  <p className="text-sm font-semibold text-foreground">
                     {sections.length === 0 ? "Ainda não há turmas" : `Sem tempos letivos no horário da turma para ${selectedWeekdayName}`}
                   </p>
                   <p className="text-xs text-muted-foreground">
                     {sections.length === 0 ? "Crie uma turma em Académico › Turmas para poder registar presenças." : <>A turma <strong className="text-foreground">{className}</strong> não tem aulas agendadas no horário semanal para {selectedWeekdayName}.</>}
                   </p>
-                  <div className="pt-2 flex items-center gap-2">
+                  <div className="flex items-center gap-2 pt-2">
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-8 text-xs bg-background/80 hover:bg-accent border-border text-foreground hover:text-foreground shadow-xs"
                       onClick={() => setIsManualMode(true)}
                     >
-                      <Icon name="PlusCircle" className="size-3.5 mr-1.5" />
+                      <Icon name="PlusCircle" className="mr-1.5 size-3.5" />
                       Registar chamada extraordinária / avulsa
                     </Button>
                   </div>
@@ -400,7 +395,7 @@ export function StudentAttendanceContent() {
         lessonStart={activeTimetableLesson?.start}
         lessonEnd={activeTimetableLesson?.end}
         roomCode={activeTimetableLesson?.room?.code || activeTimetableLesson?.location_label || undefined}
-        students={rollCall.map((r, i) => ({
+        students={rollCall.map((r) => ({
           studentId: r.id,
           name: r.name,
           studentNumber: r.number || "",
@@ -418,4 +413,3 @@ export function StudentAttendanceContent() {
     </div>
   );
 }
-

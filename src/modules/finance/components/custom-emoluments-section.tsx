@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { SucessMessage } from "@/utils/messages";
 import {
   Badge,
   Button,
@@ -70,7 +70,7 @@ const DEFAULT_EMOLUMENTS: CustomEmolument[] = [
 /** Gestão dos Emolumentos próprios da escola: preços, prazos de emissão e taxas associadas. */
 export function CustomEmolumentsSection() {
   const { plans, savePolicy } = useTuition();
-  const { openModal, closeModal } = useModal();
+  const { openModal } = useModal();
   const policy = plans[0];
 
   const emoluments: CustomEmolument[] =
@@ -207,7 +207,7 @@ export function CustomEmolumentsSection() {
       key: "active",
       header: "Estado",
       render: (_, item) => (
-        <Badge variant={item.active ? "outline" : "secondary"} className={item.active ? "border-emerald-600 text-emerald-600" : ""}>
+        <Badge variant={item.active ? "success" : "secondary"}>
           {item.active ? "Ativo" : "Inactivo"}
         </Badge>
       ),

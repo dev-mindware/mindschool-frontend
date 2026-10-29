@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { GlobalModal, Button, SelectField, Icon } from "@/components";
+import { GlobalModal, Button, ButtonSubmit, FormTextarea, Input, SelectField, Icon } from "@/components";
 import { DropoutRiskAlert, ActionType } from "@/types/dropout-risk";
 
 interface DropoutRiskInterventionModalProps {
@@ -61,10 +61,10 @@ export function DropoutRiskInterventionModal({
       isOpen={isOpen}
       onClose={onClose}
       title={selectedAlert ? `Nova Intervenção: ${selectedAlert.studentName}` : "Nova Intervenção"}
-      className="!w-[95vw] sm:!max-w-2xl lg:!max-w-3xl"
+      size="md"
     >
       <form onSubmit={handleSubmit} className="space-y-4">
-        <div className="p-3 bg-muted/40 rounded-lg text-xs space-y-1">
+        <div className="p-3 bg-muted/40 rounded-xs text-xs space-y-1">
           <p className="font-medium text-foreground">
             Aluno: {selectedAlert?.studentName} ({selectedAlert?.studentNumber})
           </p>
@@ -87,67 +87,46 @@ export function DropoutRiskInterventionModal({
             ]}
           />
 
-          <div>
-            <label className="block text-xs font-semibold text-foreground mb-1">
-              Data Prevista de Retorno / Acompanhamento
-            </label>
-            <input
-              type="date"
-              value={followUpDate}
-              onChange={(e) => setFollowUpDate(e.target.value)}
-              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-hidden focus:ring-1 focus:ring-primary"
-            />
-          </div>
-        </div>
-
-        <div>
-          <label className="block text-xs font-semibold text-foreground mb-1">
-            Título da Intervenção *
-          </label>
-          <input
-            type="text"
-            required
-            value={actionTitle}
-            onChange={(e) => setActionTitle(e.target.value)}
-            placeholder="Ex: Reunião Presencial com o Encarregado de Educação..."
-            className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-hidden focus:ring-1 focus:ring-primary"
+          <Input
+            label="Data Prevista de Retorno / Acompanhamento"
+            type="date"
+            value={followUpDate}
+            onChange={(e) => setFollowUpDate(e.target.value)}
           />
         </div>
 
-        <div>
-          <label className="block text-xs font-semibold text-foreground mb-1">
-            Notas e Acordos Estabelecidos *
-          </label>
-          <textarea
-            required
-            rows={4}
-            value={actionNotes}
-            onChange={(e) => setActionNotes(e.target.value)}
-            placeholder="Descreva o que foi acordado com o aluno/encarregado (ex: compromisso de assiduidade, inscrição nas aulas de reforço aos sábados)..."
-            className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-hidden focus:ring-1 focus:ring-primary"
-          />
-        </div>
+        <Input
+          label="Título da Intervenção *"
+          type="text"
+          required
+          value={actionTitle}
+          onChange={(e) => setActionTitle(e.target.value)}
+          placeholder="Ex: Reunião Presencial com o Encarregado de Educação..."
+        />
 
-        <div>
-          <label className="block text-xs font-semibold text-foreground mb-1">
-            Responsável pelo Registo
-          </label>
-          <input
-            type="text"
-            value={intervenorName}
-            onChange={(e) => setIntervenorName(e.target.value)}
-            className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background focus:outline-hidden focus:ring-1 focus:ring-primary"
-          />
-        </div>
+        <FormTextarea
+          label="Notas e Acordos Estabelecidos *"
+          rows={4}
+          value={actionNotes}
+          onChange={setActionNotes}
+          placeholder="Descreva o que foi acordado com o aluno/encarregado (ex: compromisso de assiduidade, inscrição nas aulas de reforço aos sábados)..."
+        />
+
+        <Input
+          label="Responsável pelo Registo"
+          type="text"
+          value={intervenorName}
+          onChange={(e) => setIntervenorName(e.target.value)}
+        />
 
         <div className="flex items-center justify-end gap-3 pt-3">
-          <Button variant="outline" type="button" className="w-max" onClick={onClose}>
+          <Button variant="outline" type="button" onClick={onClose}>
             Cancelar
           </Button>
-          <Button type="submit" className="w-max gap-2 font-medium">
+          <ButtonSubmit isLoading={false}>
             <Icon name="Check" className="w-4 h-4" />
             Gravar Intervenção
-          </Button>
+          </ButtonSubmit>
         </div>
       </form>
     </GlobalModal>

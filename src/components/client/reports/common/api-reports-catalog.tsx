@@ -64,7 +64,7 @@ export function ApiReportsCatalog({ domains, title, description }: ApiReportsCat
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         {visible.map((r) => (
-          <div key={r.code} className="space-y-3 rounded-xl border bg-card p-4 shadow-xs">
+          <div key={r.code} className="space-y-3 rounded-xs border bg-card p-4 shadow-xs">
             <div className="flex items-start justify-between gap-2">
               <div>
                 <h3 className="text-sm font-semibold text-foreground">{r.name}</h3>

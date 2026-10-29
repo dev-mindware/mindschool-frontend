@@ -68,7 +68,7 @@ export function ExamGradingPageContent() {
               key={s.id}
               type="button"
               onClick={() => setSelected(s.id)}
-              className={`w-full text-left rounded-lg border p-2.5 text-xs transition-colors ${selected === s.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/40'}`}
+              className={`w-full text-left rounded-xs border p-2.5 text-xs transition-colors ${selected === s.id ? 'border-primary bg-primary/5' : 'border-border hover:bg-muted/40'}`}
             >
               <p className="font-medium text-foreground">{s.student?.full_name ?? 'Aluno'}</p>
               <p className="text-muted-foreground mt-0.5">
@@ -84,7 +84,7 @@ export function ExamGradingPageContent() {
           {!current && <p className="text-xs text-muted-foreground">Escolha uma submissão à esquerda.</p>}
           {current && detail && (
             <>
-              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-primary/20 bg-primary/5 p-3">
+              <div className="flex flex-wrap items-center justify-between gap-3 rounded-xs border border-primary/20 bg-primary/5 p-3">
                 <div>
                   <h3 className="text-sm font-semibold text-foreground">{current.student?.full_name}</h3>
                   <p className="text-xs text-muted-foreground">{STATUS_LABEL[detail.status]}</p>
@@ -99,19 +99,19 @@ export function ExamGradingPageContent() {
                 const manual = a.question.question_type === 'dissertativa';
                 const value = show(a.value, a.question.options);
                 return (
-                  <div key={a.question.id} className="rounded-xl border border-border bg-card p-3 space-y-2">
+                  <div key={a.question.id} className="rounded-xs border border-border bg-card p-3 space-y-2">
                     <div className="flex items-center justify-between text-xs">
                       <span className="font-semibold">Questão {i + 1} ({a.question.max_score} pts)</span>
                       {manual ? (
                         <Badge variant="warning">Correção manual</Badge>
                       ) : (
-                        <span className={a.score_awarded && a.score_awarded > 0 ? 'text-emerald-600 font-semibold' : 'text-rose-600 font-semibold'}>
+                        <Badge variant={a.score_awarded && a.score_awarded > 0 ? 'success' : 'destructive'}>
                           {a.score_awarded ?? 0} pts
-                        </span>
+                        </Badge>
                       )}
                     </div>
                     <p className="text-xs text-foreground">{a.question.prompt}</p>
-                    <div className="rounded-lg bg-muted/40 p-2 text-xs">
+                    <div className="rounded-xs bg-muted/40 p-2 text-xs">
                       <span className="block text-[11px] text-muted-foreground mb-0.5">Resposta do aluno</span>
                       {value ?? <span className="italic text-muted-foreground">Sem resposta</span>}
                     </div>
@@ -143,10 +143,10 @@ export function ExamGradingPageContent() {
 
               <div className="flex items-center justify-between border-t border-border pt-3">
                 {detail.status === 'confirmada' ? (
-                  <span className="inline-flex items-center gap-1.5 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-1.5 text-xs font-semibold text-emerald-700">
+                  <Badge variant="success" className="gap-1.5 px-3 py-1.5 text-xs font-semibold">
                     <Icon name="CheckCheck" className="size-4" />
                     Nota lançada na mini-pauta
-                  </span>
+                  </Badge>
                 ) : (
                   <Button
                     size="sm"

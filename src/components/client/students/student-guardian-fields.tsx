@@ -2,10 +2,9 @@
 
 import React, { useMemo } from "react";
 import { UseFormRegister, FieldErrors, UseFormSetValue } from "react-hook-form";
-import { Input, SelectField, Icon } from "@/components";
+import { Button, Input, SelectField, Icon, Tabs, TabsList, TabsTrigger } from "@/components";
 import { useGuardians } from "@/hooks/school/use-guardians";
 import { StudentFormValues } from "./student-identification-fields";
-import { cn } from "@/lib/utils";
 
 interface StudentGuardianFieldsProps {
   register: UseFormRegister<StudentFormValues>;
@@ -57,38 +56,21 @@ export function StudentGuardianFields({
         </h4>
 
         {!isEditing && (
-          <div className="flex items-center gap-1 p-1 bg-muted/60 rounded-lg self-start sm:self-auto border border-border/50">
-            <button
-              type="button"
-              onClick={() => {
-                setValue("guardianMode", "existing", { shouldValidate: true });
-              }}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
-                guardianMode === "existing"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Icon name="Users" className="w-3.5 h-3.5" />
-              <span>Selecionar Existente</span>
-            </button>
-            <button
-              type="button"
-              onClick={() => {
-                setValue("guardianMode", "new", { shouldValidate: true });
-              }}
-              className={cn(
-                "flex items-center gap-1.5 px-3 py-1 text-xs font-medium rounded-md transition-all cursor-pointer",
-                guardianMode === "new"
-                  ? "bg-background text-foreground shadow-sm"
-                  : "text-muted-foreground hover:text-foreground"
-              )}
-            >
-              <Icon name="UserPlus" className="w-3.5 h-3.5" />
-              <span>Cadastrar Novo</span>
-            </button>
-          </div>
+          <Tabs
+            value={guardianMode}
+            onValueChange={(v) => setValue("guardianMode", v as "existing" | "new", { shouldValidate: true })}
+          >
+            <TabsList className="h-8">
+              <TabsTrigger value="existing" className="gap-1.5 text-xs">
+                <Icon name="Users" className="w-3.5 h-3.5" />
+                <span>Selecionar Existente</span>
+              </TabsTrigger>
+              <TabsTrigger value="new" className="gap-1.5 text-xs">
+                <Icon name="UserPlus" className="w-3.5 h-3.5" />
+                <span>Cadastrar Novo</span>
+              </TabsTrigger>
+            </TabsList>
+          </Tabs>
         )}
       </div>
 
@@ -97,18 +79,20 @@ export function StudentGuardianFields({
           {isLoading ? (
             <p className="text-xs text-muted-foreground">A carregar encarregados registados...</p>
           ) : allGuardians.length === 0 ? (
-            <div className="rounded-lg border border-dashed border-border p-4 text-center space-y-2">
+            <div className="rounded-xs border border-dashed border-border p-4 text-center space-y-2">
               <p className="text-xs text-muted-foreground">
                 Ainda não há encarregados registados nesta escola.
               </p>
-              <button
+              <Button
                 type="button"
+                variant="link"
+                size="sm"
                 onClick={() => setValue("guardianMode", "new")}
-                className="text-xs text-primary font-medium hover:underline inline-flex items-center gap-1"
+                className="text-xs text-primary font-medium gap-1 h-auto p-0"
               >
                 <Icon name="UserPlus" className="w-3.5 h-3.5" />
                 Cadastrar o primeiro encarregado
-              </button>
+              </Button>
             </div>
           ) : (
             <div className="space-y-3">
@@ -128,7 +112,7 @@ export function StudentGuardianFields({
               </div>
 
               {selectedGuardian && (
-                <div className="rounded-lg border border-border/70 bg-muted/30 p-3 space-y-1.5 text-xs animate-in fade-in-50 duration-200">
+                <div className="rounded-xs border border-border/70 bg-muted/30 p-3 space-y-1.5 text-xs animate-in fade-in-50 duration-200">
                   <div className="flex items-center justify-between font-medium text-foreground">
                     <span className="flex items-center gap-1.5">
                       <Icon name="User" className="w-3.5 h-3.5 text-primary" />

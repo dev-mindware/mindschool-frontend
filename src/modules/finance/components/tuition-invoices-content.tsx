@@ -38,7 +38,7 @@ function ChargesList() {
 
   return (
     <div className="space-y-6">
-      <div className="flex gap-3 rounded-lg border bg-muted/30 p-3 text-xs text-muted-foreground">
+      <div className="flex gap-3 rounded-xs border bg-muted/30 p-3 text-xs text-muted-foreground">
         <Icon name="Link" className="mt-0.5 size-4 shrink-0 text-primary" />
         <p>Uma <strong>cobrança</strong> não é um documento fiscal: a <strong>fatura-recibo</strong> é emitida no <strong>MindGest</strong> quando a cobrança é paga («Marcar como pago» em Propinas). A coluna «Fiscal» mostra o estado dessa fatura; o detalhe está no separador «Faturas».</p>
       </div>
@@ -97,7 +97,7 @@ function ChargesList() {
 export function TuitionInvoicesContent() {
   return (
     <div className="space-y-6">
-      <TitleList title="Faturas" suTitle="Faturas-recibo emitidas no MindGest ao marcar as propinas como pagas, e as cobranças da escola. Estornos e notas de crédito fazem-se só no MindGest." />
+      <TitleList title="Faturas" suTitle="Facturas de propinas, emolumentos e liquidações." />
       <Tabs defaultValue="facturas" className="space-y-4">
         <TabsList className="flex h-auto flex-wrap">
           <TabsTrigger value="facturas" className="text-xs">Faturas</TabsTrigger>

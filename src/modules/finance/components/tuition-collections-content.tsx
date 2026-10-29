@@ -3,25 +3,14 @@
 import React, { useMemo, useState } from "react";
 import { TitleList } from "@/components/common/title-list";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
-import { DataList, type Column } from "@/components";
+import { DataList, GlobalModal, type Column } from "@/components";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Icon } from "@/components/common/icon";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogFooter,
-} from "@/components/ui/dialog";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { useTuition } from "@/modules/finance/hooks/use-tuition";
 import { useTuitionBilling } from "@/modules/finance/hooks/use-tuition-billing";
 import { StudentTuitionFee } from "@/modules/finance/types";
 import { formatCurrency } from "@/utils/format-currency";
-import { SucessMessage } from "@/utils/messages";
 
 export function TuitionCollectionsContent() {
   const { allFees, isLoading } = useTuition();
@@ -121,19 +110,13 @@ export function TuitionCollectionsContent() {
       render: (_, item) => {
         if (item.status === "OVERDUE") {
           return (
-            <Badge
-              variant="outline"
-              className="border-destructive/30 bg-destructive/10 text-destructive font-medium text-[10px]"
-            >
+            <Badge variant="destructive" className="font-medium text-[10px]">
               Vencida
             </Badge>
           );
         }
         return (
-          <Badge
-            variant="outline"
-            className="border-amber-500/30 bg-amber-500/10 text-amber-700 dark:text-amber-400 font-medium text-[10px]"
-          >
+          <Badge variant="warning" className="font-medium text-[10px]">
             Pendente
           </Badge>
         );
@@ -298,68 +281,15 @@ export function TuitionCollectionsContent() {
         emptyIcon="CheckCheck"
       />
 
-      {/* Modal de Pré-visualização e Envio de E-mail (MindGest Standard: w-max sem bordas internas) */}
-      <Dialog open={Boolean(selectedFee)} onOpenChange={(open) => !open && setSelectedFee(null)}>
-        <DialogContent className="w-full max-w-xl p-6 gap-5">
-          <DialogHeader className="space-y-1">
-            <DialogTitle className="flex items-center gap-2 text-base font-semibold">
-              <Icon name="Mail" className="w-5 h-5 text-primary" />
-              Notificação de Cobrança por E-mail
-            </DialogTitle>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Pré-visualização do comunicado oficial a ser expedido ao encarregado de educação.
-            </DialogDescription>
-          </DialogHeader>
-
-          {selectedFee && (
-            <div className="space-y-4">
-              <div className="space-y-1 rounded-lg border border-border/50 p-3 text-xs">
-                <p className="font-medium">Destinatário: {selectedFee.guardianName || "Encarregado principal"}</p>
-                <p className={selectedFee.guardianEmail ? "text-muted-foreground" : "font-medium text-amber-600 dark:text-amber-400"}>
-                  {selectedFee.guardianEmail ?? "Sem e-mail registado: o envio falha. Acrescente o e-mail na ficha do encarregado."}
-                </p>
-                <p className="text-muted-foreground">O texto é o modelo oficial da escola. O assunto e o valor em dívida são preenchidos pelo sistema.</p>
-              </div>
-              {/* Pré-visualização do E-mail */}
-              <div className="rounded-lg bg-muted/40 p-4 space-y-3 text-xs border border-border/40">
-                <div className="flex items-center justify-between pb-2 border-b border-border/30">
-                  <div className="flex items-center gap-2 font-medium">
-                    <Icon name="School" className="w-4 h-4 text-primary" />
-                    <span>MindSchool — Tesouraria Académica</span>
-                  </div>
-                  <Badge variant="outline" className="text-[10px] font-mono">
-                    Canal Oficial SMTP
-                  </Badge>
-                </div>
-
-                <div className="space-y-2 text-muted-foreground leading-relaxed">
-                  <p>
-                    Exmo.(a) Sr.(a){" "}
-                    <strong className="text-foreground">{selectedFee.guardianName || "Encarregado(a)"}</strong>,
-                  </p>
-                  <p>
-                    Vimos por este meio informar que a mensalidade de{" "}
-                    <strong className="text-foreground">
-                      {selectedFee.monthLabel} / {selectedFee.year}
-                    </strong>{" "}
-                    referente ao estudante{" "}
-                    <strong className="text-foreground">{selectedFee.studentName}</strong> (Processo nº{" "}
-                    <span className="font-mono text-foreground">{selectedFee.studentNumber}</span>) encontra-se com o valor de{" "}
-                    <strong className="text-foreground">{formatCurrency(selectedFee.totalAmount)}</strong> em atraso.
-                  </p>
-                  <p>
-                    Solicitamos a regularização do pagamento junto da secretaria ou por transferência bancária, de modo a evitar a aplicação de juros ou multas por atraso progressivas segundo o regulamento financeiro em vigor.
-                  </p>
-                </div>
-
-                <div className="pt-2 border-t border-border/30 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
-                  <span>Vencimento: {selectedFee.dueDate}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
-          <DialogFooter className="gap-2 sm:gap-0 pt-2">
+      <GlobalModal
+        isOpen={Boolean(selectedFee)}
+        onClose={() => setSelectedFee(null)}
+        size="md"
+        icon={<Icon name="Mail" className="w-5 h-5" />}
+        title="Notificação de Cobrança por E-mail"
+        description="Pré-visualização do comunicado oficial a ser expedido ao encarregado de educação."
+        footer={
+          <>
             <Button variant="outline" size="sm" onClick={() => setSelectedFee(null)} className="h-9 text-xs">
               Cancelar
             </Button>
@@ -372,9 +302,57 @@ export function TuitionCollectionsContent() {
               <Icon name="Send" className="w-3.5 h-3.5" />
               {isSending ? "A enviar comunicado..." : "Confirmar e Enviar E-mail"}
             </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+          </>
+        }
+      >
+        {selectedFee && (
+          <div className="space-y-4">
+            <div className="space-y-1 rounded-xs border border-border/50 p-3 text-xs">
+              <p className="font-medium">Destinatário: {selectedFee.guardianName || "Encarregado principal"}</p>
+              <p className={selectedFee.guardianEmail ? "text-muted-foreground" : "font-medium text-amber-600 dark:text-amber-400"}>
+                {selectedFee.guardianEmail ?? "Sem e-mail registado: o envio falha. Acrescente o e-mail na ficha do encarregado."}
+              </p>
+              <p className="text-muted-foreground">O texto é o modelo oficial da escola. O assunto e o valor em dívida são preenchidos pelo sistema.</p>
+            </div>
+            {/* Pré-visualização do E-mail */}
+            <div className="rounded-xs bg-muted/40 p-4 space-y-3 text-xs border border-border/40">
+              <div className="flex items-center justify-between pb-2 border-b border-border/30">
+                <div className="flex items-center gap-2 font-medium">
+                  <Icon name="School" className="w-4 h-4 text-primary" />
+                  <span>MindSchool — Tesouraria Académica</span>
+                </div>
+                <Badge variant="outline" className="text-[10px] font-mono">
+                  Canal Oficial SMTP
+                </Badge>
+              </div>
+
+              <div className="space-y-2 text-muted-foreground leading-relaxed">
+                <p>
+                  Exmo.(a) Sr.(a){" "}
+                  <strong className="text-foreground">{selectedFee.guardianName || "Encarregado(a)"}</strong>,
+                </p>
+                <p>
+                  Vimos por este meio informar que a mensalidade de{" "}
+                  <strong className="text-foreground">
+                    {selectedFee.monthLabel} / {selectedFee.year}
+                  </strong>{" "}
+                  referente ao estudante{" "}
+                  <strong className="text-foreground">{selectedFee.studentName}</strong> (Processo nº{" "}
+                  <span className="font-mono text-foreground">{selectedFee.studentNumber}</span>) encontra-se com o valor de{" "}
+                  <strong className="text-foreground">{formatCurrency(selectedFee.totalAmount)}</strong> em atraso.
+                </p>
+                <p>
+                  Solicitamos a regularização do pagamento junto da secretaria ou por transferência bancária, de modo a evitar a aplicação de juros ou multas por atraso progressivas segundo o regulamento financeiro em vigor.
+                </p>
+              </div>
+
+              <div className="pt-2 border-t border-border/30 flex items-center justify-between text-[11px] text-muted-foreground font-mono">
+                <span>Vencimento: {selectedFee.dueDate}</span>
+              </div>
+            </div>
+          </div>
+        )}
+      </GlobalModal>
     </div>
   );
 }

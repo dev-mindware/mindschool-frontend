@@ -31,7 +31,7 @@ export function YearSetup({ loadFailed, onRetry, onClose }: YearSetupProps) {
   if (loadFailed) {
     return (
       <div className="space-y-4">
-        <div className="flex gap-3 rounded-lg border border-destructive/30 bg-destructive/5 p-3 text-xs">
+        <div className="flex gap-3 rounded-xs border border-destructive/30 bg-destructive/5 p-3 text-xs">
           <Icon name="CircleAlert" className="mt-0.5 size-4 shrink-0 text-destructive" />
           <p>Não foi possível carregar os anos letivos da escola. Verifique a ligação e tente de novo; sem o ano letivo não se cria a turma.</p>
         </div>
@@ -46,7 +46,7 @@ export function YearSetup({ loadFailed, onRetry, onClose }: YearSetupProps) {
   if (!can("academic_year:write")) {
     return (
       <div className="space-y-4">
-        <div className="flex gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
+        <div className="flex gap-3 rounded-xs border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
           <Icon name="Info" className="mt-0.5 size-4 shrink-0 text-amber-600" />
           <p>Esta escola ainda não tem ano letivo, e as turmas precisam de um. Peça ao titular ou à direção para criar o ano letivo; depois volte aqui.</p>
         </div>
@@ -68,7 +68,7 @@ export function YearSetup({ loadFailed, onRetry, onClose }: YearSetupProps) {
 
   return (
     <form onSubmit={submit} className="space-y-3">
-      <div className="flex gap-3 rounded-lg border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
+      <div className="flex gap-3 rounded-xs border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
         <Icon name="Info" className="mt-0.5 size-4 shrink-0 text-amber-600" />
         <p>
           Esta escola ainda não tem <strong>ano letivo</strong>. As turmas, matrículas e avaliações vivem dentro de um, por isso crie o primeiro: fica ativo e é o que a turma vai usar. Os valores abaixo são uma sugestão; ajuste-os se preciso.
@@ -85,7 +85,7 @@ export function YearSetup({ loadFailed, onRetry, onClose }: YearSetupProps) {
 
       <div className="flex justify-end gap-3 pt-1">
         <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
-        <ButtonSubmit isLoading={createYear.isPending} className="w-max">Criar e ativar ano letivo</ButtonSubmit>
+        <ButtonSubmit isLoading={createYear.isPending}>Criar e ativar ano letivo</ButtonSubmit>
       </div>
     </form>
   );

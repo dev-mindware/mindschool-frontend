@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Badge, Button, ConfirmModal, EmptyState, Icon } from "@/components";
+import { Badge, Button, Checkbox, ConfirmModal, EmptyState, Icon, Input, Label, RadioGroup, RadioGroupItem, Textarea } from "@/components";
 import { portalService, type AnswerValue, type ExamQuestion, type ExamSession } from "@/modules/family/services/portal-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -18,37 +18,65 @@ const TYPE_LABEL: Record<ExamQuestion["question_type"], string> = {
 };
 
 function AnswerInput({ q, value, onChange, disabled }: { q: ExamQuestion; value: AnswerValue | undefined; onChange: (v: AnswerValue) => void; disabled: boolean }) {
-  const base = "w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus-visible:ring-2 focus-visible:ring-primary/40 disabled:opacity-70";
-  if (q.question_type === "escolha_multipla_unica" || q.question_type === "escolha_multipla_varias") {
-    const multi = q.question_type === "escolha_multipla_varias";
+  if (q.question_type === "escolha_multipla_varias") {
     const chosen = Array.isArray(value) ? value : typeof value === "string" && value ? [value] : [];
     return (
       <div className="space-y-2">
         {(q.options ?? []).map((o) => {
           const on = chosen.includes(o.id);
           return (
-            <label key={o.id} className={`flex cursor-pointer items-start gap-3 rounded-lg border p-3 text-sm ${on ? "border-primary bg-primary/5" : ""} ${disabled ? "cursor-default" : "hover:bg-muted/40"}`}>
-              <input type={multi ? "checkbox" : "radio"} name={q.id} className="mt-0.5 accent-[var(--primary)]" checked={on} disabled={disabled}
-                onChange={() => onChange(multi ? (on ? chosen.filter((x) => x !== o.id) : [...chosen, o.id]) : o.id)} />
+            <Label key={o.id} className={`flex cursor-pointer items-start gap-3 rounded-xs border p-3 text-sm font-normal ${on ? "border-primary bg-primary/5" : ""} ${disabled ? "cursor-default" : "hover:bg-muted/40"}`}>
+              <Checkbox
+                checked={on}
+                disabled={disabled}
+                onCheckedChange={() => onChange(on ? chosen.filter((x) => x !== o.id) : [...chosen, o.id])}
+                className="mt-0.5"
+              />
               <span>{o.text}</span>
-            </label>
+            </Label>
           );
         })}
       </div>
+    );
+  }
+  if (q.question_type === "escolha_multipla_unica") {
+    const current = typeof value === "string" ? value : "";
+    return (
+      <RadioGroup value={current} onValueChange={onChange} disabled={disabled} className="space-y-2">
+        {(q.options ?? []).map((o) => {
+          const on = current === o.id;
+          return (
+            <Label key={o.id} className={`flex cursor-pointer items-start gap-3 rounded-xs border p-3 text-sm font-normal ${on ? "border-primary bg-primary/5" : ""} ${disabled ? "cursor-default" : "hover:bg-muted/40"}`}>
+              <RadioGroupItem value={o.id} className="mt-0.5" />
+              <span>{o.text}</span>
+            </Label>
+          );
+        })}
+      </RadioGroup>
     );
   }
   if (q.question_type === "verdadeiro_falso") {
     return (
       <div className="flex gap-2">
         {[{ v: true, label: "Verdadeiro" }, { v: false, label: "Falso" }].map((o) => (
-          <button key={o.label} type="button" disabled={disabled} onClick={() => onChange(o.v)}
-            className={`rounded-lg border px-4 py-2 text-sm ${value === o.v ? "border-primary bg-primary/10 font-medium text-primary" : "hover:bg-muted/40"}`}>{o.label}</button>
+          <Button
+            key={o.label}
+            type="button"
+            variant={value === o.v ? "default" : "outline"}
+            disabled={disabled}
+            onClick={() => onChange(o.v)}
+            className="rounded-xs"
+          >
+            {o.label}
+          </Button>
         ))}
       </div>
     );
   }
-  if (q.question_type === "resposta_curta") return <input className={base} value={typeof value === "string" ? value : ""} disabled={disabled} maxLength={255} onChange={(e) => onChange(e.target.value)} placeholder="Escreva a resposta" />;
-  return <textarea className={`${base} min-h-32`} value={typeof value === "string" ? value : ""} disabled={disabled} maxLength={10000} onChange={(e) => onChange(e.target.value)} placeholder="Escreva a sua resposta" />;
+  if (q.question_type === "resposta_curta") {
+    return <Input value={typeof value === "string" ? value : ""} disabled={disabled} maxLength={255} onChange={(e) => onChange(e.target.value)} placeholder="Escreva a resposta" />;
+  }
+  return <Textarea className="min-h-32" value={typeof value === "string" ? value : ""} disabled={disabled} maxLength={10000} onChange={(e) => onChange(e.target.value)} placeholder="Escreva a sua resposta" />;
 }
 
 /** Realização da prova online: temporizador, gravação automática de cada resposta, envio com confirmação e resultado. */
@@ -155,7 +183,7 @@ export function ExamTaker({ examId, submissionId }: { examId: string; submission
 
   return (
     <div className="space-y-6">
-      <div className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 rounded-xl border bg-card/95 p-3 backdrop-blur">
+      <div className="sticky top-0 z-10 -mx-1 flex flex-wrap items-center justify-between gap-3 rounded-xs border bg-card/95 p-3 backdrop-blur">
         <div className="flex items-center gap-3 text-sm">
           <Badge variant="outline">Tentativa {session.submission.attempt_number}</Badge>
           <span className="text-muted-foreground">{answeredCount}/{total} respondidas</span>
@@ -170,7 +198,7 @@ export function ExamTaker({ examId, submissionId }: { examId: string; submission
       </div>
 
       {result && (
-        <div className="rounded-xl border bg-card p-5">
+        <div className="rounded-xs border bg-card p-5">
           <p className="text-sm text-muted-foreground">Resultado da prova</p>
           <p className="mt-1 text-3xl font-bold tabular-nums">{result.total_score.toFixed(1)} <span className="text-lg font-normal text-muted-foreground">/ {result.max_score.toFixed(1)}</span></p>
           <p className="mt-2 text-xs text-muted-foreground">
@@ -181,7 +209,7 @@ export function ExamTaker({ examId, submissionId }: { examId: string; submission
 
       <ol className="space-y-4">
         {session.questions.map((q, i) => (
-          <li key={q.id} className="space-y-3 rounded-xl border bg-card p-4">
+          <li key={q.id} className="space-y-3 rounded-xs border bg-card p-4">
             <div className="flex items-start justify-between gap-3">
               <div>
                 <p className="text-xs text-muted-foreground">Pergunta {i + 1} • {TYPE_LABEL[q.question_type]} • {q.max_score} {q.max_score === 1 ? "ponto" : "pontos"}</p>

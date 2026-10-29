@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { GlobalModal, Button, Icon } from '@/components';
+import { GlobalModal, Button, Icon, Input, Label } from '@/components';
 
 interface AttendanceQrScannerModalProps {
   isOpen: boolean;
@@ -50,37 +50,42 @@ export function AttendanceQrScannerModal({
       isOpen={isOpen}
       onClose={onClose}
       title="Terminal de Ponto por Leitura QR (Portão / Balcão)"
-      size="xl"
+      size="md"
     >
       <div className="space-y-5">
-        <div className="text-center p-6 bg-slate-950 text-white rounded-2xl border border-slate-800 space-y-4 shadow-inner">
-          <div className="inline-flex items-center justify-center p-4 bg-primary/20 text-primary rounded-full border border-primary/40">
-            <Icon name="ScanQrCode" className="w-12 h-12 animate-pulse" />
+        <div className="space-y-4 rounded-xs border border-border bg-muted/30 p-6 text-center">
+          <div className="inline-flex items-center justify-center rounded-full border border-primary/40 bg-primary/10 p-4 text-primary">
+            <Icon name="ScanQrCode" className="size-12 animate-pulse" />
           </div>
           <div>
             <h3 className="text-base font-semibold">Aproxime o QR Code do Professor</h3>
-            <p className="text-xs text-slate-400 mt-1">
+            <p className="mt-1 text-xs text-muted-foreground">
               Suporta QR Dinâmico da aplicação móvel ou o Cartão Físico institucional.
             </p>
           </div>
 
           {/* Input Simulado de Leitor Ótico de Balcão */}
-          <div className="flex gap-2 max-w-sm mx-auto">
-            <input
-              type="text"
-              autoFocus
-              placeholder="Código lido (MS1.…)"
-              value={scannedCodeInput}
-              onChange={(e) => setScannedCodeInput(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                  e.preventDefault();
-                  handleSimulateScan();
-                }
-              }}
-              className="flex-1 px-3 py-2 text-sm bg-slate-900 border border-slate-700 rounded-lg text-white placeholder:text-slate-500 font-mono focus:outline-hidden focus:ring-1 focus:ring-primary"
-            />
-            <Button size="sm" variant="default" onClick={() => handleSimulateScan()}>
+          <div className="mx-auto flex max-w-sm items-end gap-2 text-left">
+            <div className="flex-1 space-y-1.5">
+              <Label htmlFor="qr-scanner-input" className="sr-only">
+                Código QR lido
+              </Label>
+              <Input
+                id="qr-scanner-input"
+                type="text"
+                autoFocus
+                placeholder="Código lido (MS1.…)"
+                value={scannedCodeInput}
+                onChange={(e) => setScannedCodeInput(e.target.value)}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') {
+                    e.preventDefault();
+                    void handleSimulateScan();
+                  }
+                }}
+              />
+            </div>
+            <Button size="sm" variant="default" className="h-10" onClick={() => void handleSimulateScan()}>
               Confirmar
             </Button>
           </div>
@@ -89,37 +94,36 @@ export function AttendanceQrScannerModal({
         {/* Feedback Visual do Ponto */}
         {scanResult && (
           <div
-            className={`p-4 rounded-xl border ${
+            className={`rounded-xs border p-4 ${
               scanResult.success
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-900'
-                : 'bg-rose-50 border-rose-200 text-rose-900'
+                ? 'border-emerald-200 bg-emerald-50 text-emerald-900 dark:border-emerald-800/40 dark:bg-emerald-950/20 dark:text-emerald-200'
+                : 'border-rose-200 bg-rose-50 text-rose-900 dark:border-rose-800/40 dark:bg-rose-950/20 dark:text-rose-200'
             }`}
           >
             <div className="flex items-start gap-3">
               <Icon
                 name={scanResult.success ? 'CircleCheck' : 'CircleAlert'}
-                className={`w-5 h-5 mt-0.5 ${scanResult.success ? 'text-emerald-600' : 'text-rose-600'}`}
+                className={`mt-0.5 size-5 ${scanResult.success ? 'text-emerald-600' : 'text-rose-600'}`}
               />
               <div className="flex-1">
                 <div className="flex items-center justify-between">
-                  <h4 className="font-semibold text-sm">
+                  <h4 className="text-sm font-semibold">
                     {scanResult.success
                       ? scanResult.type === 'CHECK_IN'
                         ? 'Check-In Realizado (Entrada)'
                         : 'Check-Out Realizado (Saída)'
                       : 'Erro na Leitura'}
                   </h4>
-                  {scanResult.time && <span className="text-xs font-mono font-medium">{scanResult.time}</span>}
+                  {scanResult.time && <span className="font-mono text-xs font-medium">{scanResult.time}</span>}
                 </div>
                 {scanResult.teacherName && (
-                  <p className="text-xs font-medium mt-0.5">{scanResult.teacherName}</p>
+                  <p className="mt-0.5 text-xs font-medium">{scanResult.teacherName}</p>
                 )}
-                <p className="text-xs mt-1 text-muted-foreground">{scanResult.message}</p>
+                <p className="mt-1 text-xs text-muted-foreground">{scanResult.message}</p>
               </div>
             </div>
           </div>
         )}
-
       </div>
     </GlobalModal>
   );

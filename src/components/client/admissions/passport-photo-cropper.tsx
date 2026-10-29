@@ -1,8 +1,9 @@
 "use client";
 
-import React, { useState, useRef, useCallback, useEffect } from "react";
+import React, { useState, useRef, useCallback } from "react";
 import { Icon } from "@/components/common/icon";
 import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
 import {
   Dialog,
   DialogContent,
@@ -266,10 +267,10 @@ export function PassportPhotoCropper({
   return (
     <div className={cn("space-y-2", className)}>
       <div className="flex items-center justify-between">
-        <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+        <Label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
           <Icon name="Camera" className="h-4 w-4 text-primary" />
           {label} {required && <span className="text-destructive">*</span>}
-        </label>
+        </Label>
         <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-200 dark:border-emerald-800">
           Máx. {Math.round(maxBytes / 1024)} KB
         </span>
@@ -286,9 +287,9 @@ export function PassportPhotoCropper({
       {!value ? (
         <div
           onClick={() => fileInputRef.current?.click()}
-          className="group relative flex flex-col items-center justify-center gap-2 rounded-xl border-2 border-dashed border-border/80 bg-muted/20 p-5 text-center cursor-pointer transition-all hover:border-primary/60 hover:bg-primary/[0.02]"
+          className="group relative flex flex-col items-center justify-center gap-2 rounded-xs border-2 border-dashed border-border/80 bg-muted/20 p-5 text-center cursor-pointer transition-all hover:border-primary/60 hover:bg-primary/[0.02]"
         >
-          <div className="relative flex h-24 w-20 items-center justify-center rounded-lg border-2 border-border/60 bg-muted/40 text-muted-foreground transition-transform group-hover:scale-105 group-hover:border-primary/50 shadow-sm">
+          <div className="relative flex h-24 w-20 items-center justify-center rounded-xs border-2 border-border/60 bg-muted/40 text-muted-foreground transition-transform group-hover:scale-105 group-hover:border-primary/50 shadow-sm">
             <Icon name="User" className="h-10 w-10 text-muted-foreground/50" />
             <div className="absolute -bottom-2 -right-2 flex h-6 w-6 items-center justify-center rounded-full bg-primary text-primary-foreground shadow">
               <Icon name="Crop" className="h-3.5 w-3.5" />
@@ -304,9 +305,9 @@ export function PassportPhotoCropper({
           </div>
         </div>
       ) : (
-        <div className="flex items-center gap-4 rounded-xl border border-border bg-card p-3 shadow-xs">
+        <div className="flex items-center gap-4 rounded-xs border border-border bg-card p-3 shadow-xs">
           {/* Preview da foto recortada */}
-          <div className="relative h-24 w-18 shrink-0 overflow-hidden rounded-md border border-border bg-muted shadow-xs">
+          <div className="relative h-24 w-18 shrink-0 overflow-hidden rounded-xs border border-border bg-muted shadow-xs">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img
               src={value.previewUrl}
@@ -372,7 +373,7 @@ export function PassportPhotoCropper({
           </DialogHeader>
 
           {/* Viewport de Recorte 3:4 */}
-          <div className="relative mx-auto flex items-center justify-center bg-black/90 rounded-xl overflow-hidden p-3 shadow-inner select-none">
+          <div className="relative mx-auto flex items-center justify-center bg-black/90 rounded-xs overflow-hidden p-3 shadow-inner select-none">
             <div
               ref={viewportRef}
               onMouseDown={handleMouseDown}
@@ -383,7 +384,7 @@ export function PassportPhotoCropper({
               onTouchMove={handleTouchMove}
               onTouchEnd={handleTouchEnd}
               className={cn(
-                "relative w-[210px] h-[280px] overflow-hidden rounded-lg border-2 border-primary/90 shadow-2xl cursor-grab bg-neutral-900",
+                "relative w-[210px] h-[280px] overflow-hidden rounded-xs border-2 border-primary/90 shadow-2xl cursor-grab bg-neutral-900",
                 isDragging && "cursor-grabbing"
               )}
             >
@@ -409,7 +410,7 @@ export function PassportPhotoCropper({
               )}
 
               {/* Guia Oval de Rosto Tipo Passe */}
-              <div className="absolute inset-0 pointer-events-none border border-white/20 rounded-lg flex items-center justify-center">
+              <div className="absolute inset-0 pointer-events-none border border-white/20 rounded-xs flex items-center justify-center">
                 <div className="w-[130px] h-[175px] rounded-[50%/60%] border-2 border-dashed border-white/40 shadow-sm" />
                 <div className="absolute bottom-2 text-[10px] text-white/70 font-medium px-2 py-0.5 rounded bg-black/40">
                   Enquadre rosto e ombros
@@ -419,7 +420,7 @@ export function PassportPhotoCropper({
           </div>
 
           {/* Controlos de Zoom e Rotação */}
-          <div className="space-y-3 bg-muted/30 p-3 rounded-lg border border-border/60">
+          <div className="space-y-3 bg-muted/30 p-3 rounded-xs border border-border/60">
             <div className="flex items-center gap-3">
               <Icon name="ZoomOut" className="h-4 w-4 text-muted-foreground shrink-0" />
               <Slider

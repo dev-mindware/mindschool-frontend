@@ -74,8 +74,8 @@ export function ReportCardsPageContent() {
   return (
     <div className="space-y-6">
       <TermsMissingBanner />
-      {studentFilter && <p role="note" className="rounded-lg border bg-muted/40 p-2.5 text-xs">A mostrar só os boletins de um aluno. <a className="underline" href="/certificates/report-cards">Ver todos</a></p>}
-      <TitleList title="Boletins de Notas" suTitle="Emissão do boletim oficial por aluno e período; só se emite com a pauta fechada.">
+      {studentFilter && <p role="note" className="rounded-xs border bg-muted/40 p-2.5 text-xs">A mostrar só os boletins de um aluno. <a className="underline" href="/certificates/report-cards">Ver todos</a></p>}
+      <TitleList title="Boletins de Notas" suTitle="Consulta e emissão de boletins trimestrais por turma.">
         <Can permission="document:issue"><Button size="sm" className="gap-2" onClick={() => openModal("boletim-issue")}><Icon name="FilePlus" className="size-4" />Emitir boletim</Button></Can>
       </TitleList>
 

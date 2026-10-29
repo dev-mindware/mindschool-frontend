@@ -1,6 +1,7 @@
 import { ReactNode } from "react";
 import { Button } from "./button";
 import { Icon } from "../common";
+import { cn } from "@/lib/utils";
 
 type Props = {
   isLoading: boolean;
@@ -17,7 +18,7 @@ export function ButtonSubmit({ isLoading, disabled, children, className, form }:
       disabled={isLoading || disabled}
       type="submit"
       form={form}
-      className={`w-full bg-primary hover:bg-primary text-white py-2 ${className ?? ""}`}
+      className={cn("w-full", className)}
     >
       {isLoading && <Icon className="animate-spin" name="LoaderCircle" />}
       {children}

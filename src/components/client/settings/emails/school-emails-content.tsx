@@ -44,7 +44,7 @@ export function SchoolEmailsContent() {
   const { log, stats, isLoading, isError } = useSchoolEmails();
   return (
     <div className="space-y-6">
-      <TitleList title="Emails enviados" suTitle="Registo dos emails que a plataforma enviou em nome da escola (últimos 30 dias nos indicadores)." />
+      <TitleList title="Emails enviados" suTitle="Histórico de e-mails enviados a encarregados e alunos." />
 
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
         <DynamicMetricCard title={stats?.sent ?? 0} subtitle="Enviados" icon="Send" description="Últimos 30 dias" />

@@ -46,7 +46,15 @@ export function SubscriptionManager() {
     { key: "created_at", header: "Data", render: (_, o) => <span className="font-mono text-xs">{formatDate(o.created_at)}</span> },
     { key: "plan", header: "Plano", render: (_, o) => (<div className="flex flex-col"><span className="font-medium">{o.plan.name}</span><span className="text-xs text-muted-foreground">{o.addon_codes.length ? `+ ${o.addon_codes.join(", ")} • ` : ""}{o.period_months} mês(es)</span></div>) },
     { key: "total_amount", header: "Total", render: (_, o) => <span className="font-mono text-xs">{formatCurrencyCompact(o.total_amount)}</span> },
-    { key: "status", header: "Estado", render: (_, o) => <Badge variant="outline">{ORDER_LABEL[o.status] ?? o.status}</Badge> },
+    {
+      key: "status",
+      header: "Estado",
+      render: (_, o) => (
+        <Badge variant={o.status === "approved" ? "success" : o.status === "rejected" ? "destructive" : "outline"}>
+          {ORDER_LABEL[o.status] ?? o.status}
+        </Badge>
+      ),
+    },
     { key: "proofs", header: "Comprovativo", render: (_, o) => (o.proofs.length ? <span className="text-xs">{o.proofs.find((p) => p.is_current)?.file_name ?? "—"}</span> : "—") },
     {
       key: "action", header: "Ação",
@@ -91,7 +99,7 @@ export function SubscriptionManager() {
             {quotas.map((q) => {
               const pct = Math.min(100, Math.round((q.used / (q.limit ?? 1)) * 100));
               return (
-                <div key={q.key} className="space-y-2 rounded-xl border p-4">
+                <div key={q.key} className="space-y-2 rounded-xs border p-4">
                   <div className="flex items-center justify-between text-sm"><span className="flex items-center gap-1 font-medium">{QUOTA_NAME[q.key] ?? q.unit}<HelpHint term="quota" /></span><span className={q.state !== "OK" ? "text-amber-700" : "text-muted-foreground"}>{fmtQuotaValue(q.key, q.used)} / {q.limit === null ? "sem limite" : fmtQuotaValue(q.key, q.limit)}</span></div>
                   <Progress value={pct} />
                   {QUOTA_NOTE[q.key] && <p className="text-[11px] text-muted-foreground">{QUOTA_NOTE[q.key]}</p>}

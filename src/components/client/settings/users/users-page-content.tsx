@@ -53,7 +53,7 @@ export function UsersPageContent() {
   const columns: Column<ApiMembership>[] = [
     { key: "user.full_name", header: "Utilizador", render: (_, m) => (<div className="flex flex-col"><span className="font-medium">{m.user.full_name}</span><span className="text-xs text-muted-foreground">{m.user.email}</span></div>) },
     { key: "role", header: "Papel", render: (_, m) => <Badge variant={m.is_active ? "outline" : "secondary"}>{ROLE_LABEL[m.role] ?? m.role}</Badge> },
-    { key: "is_active", header: "Estado", render: (_, m) => (m.is_active ? (m.user.invite_pending ? <Badge variant="outline" className="border-amber-500/40 bg-amber-500/10 text-amber-700">Convite pendente</Badge> : <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">Ativo</Badge>) : <Badge variant="secondary">Revogado</Badge>) },
+    { key: "is_active", header: "Estado", render: (_, m) => (m.is_active ? (m.user.invite_pending ? <Badge variant="warning">Convite pendente</Badge> : <Badge variant="success">Ativo</Badge>) : <Badge variant="secondary">Revogado</Badge>) },
     { key: "granted_at", header: "Desde", render: (_, m) => <span className="font-mono text-xs">{formatDate(m.granted_at)}</span> },
     {
       key: "action", header: "Ação",
@@ -63,7 +63,7 @@ export function UsersPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Utilizadores e Papéis" suTitle="Quem tem acesso à escola e com que papel. Só se atribuem os papéis que o seu perfil permite.">
+      <TitleList title="Utilizadores e Papéis" suTitle="Contas de acesso, papéis e permissões na escola.">
         <Can permission="membership:write"><Button size="sm" className="gap-2" onClick={() => openModal("settings-add-user")}><Icon name="UserPlus" className="size-4" />Adicionar utilizador</Button></Can>
       </TitleList>
 

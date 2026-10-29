@@ -15,7 +15,7 @@ export function HealthPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Saúde & Apoio Psicopedagógico" suTitle="Enfermaria escolar, fichas clínicas e acompanhamento psicopedagógico. Dados confidenciais: o acesso é restrito e auditado.">
+      <TitleList title="Saúde & Apoio Psicopedagógico" suTitle="Fichas médicas, alergias e ocorrências na enfermaria.">
         {!visitsForbidden && (
           <Can permission="health:write"><Button size="sm" onClick={() => openModal("health-new-visit")} className="gap-2"><Icon name="Plus" className="size-4" />Novo atendimento</Button></Can>
         )}

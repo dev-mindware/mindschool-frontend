@@ -50,10 +50,10 @@ export function PriceInput({
 
       <div
         className={cn(
-          "relative flex items-center rounded-md border text-sm transition-colors duration-200 overflow-hidden bg-background",
+          "relative flex items-center rounded-xs border text-sm transition-colors duration-200 overflow-hidden bg-background",
           error
             ? "border-red-500 ring-1 ring-red-400"
-            : "border-input focus-within:border-primary-500 focus-within:ring-[3px] focus-within:ring-ring/50",
+            : "border-input focus-within:border-primary focus-within:ring-[3px] focus-within:ring-ring/50",
           disabled && "opacity-50 cursor-not-allowed bg-muted/30"
         )}
       >

@@ -34,7 +34,7 @@ export function ClearanceCertificateModal() {
         <StudentSelect label="Aluno *" students={students} value={studentId} onChange={setStudentId} />
       </div>
       {student && (
-        <div id="library-clearance-print-content" className="sm:col-span-2 space-y-4 rounded-lg border bg-white p-6 text-sm text-slate-900 print:border-0">
+        <div id="library-clearance-print-content" className="sm:col-span-2 space-y-4 rounded-xs border bg-white p-6 text-sm text-slate-900 print:border-0">
           <div className="space-y-1 border-b pb-3 text-center">
             <div className="text-sm font-black uppercase">{profile.schoolName}</div>
             <div className="text-[11px] text-slate-500">Biblioteca Escolar</div>

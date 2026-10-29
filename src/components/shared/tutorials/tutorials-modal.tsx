@@ -1,14 +1,7 @@
 "use client";
 
 import React, { useState } from "react";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
-  DialogTrigger,
-} from "@/components/ui/dialog";
+import { GlobalModal } from "@/components/modal";
 import { Button } from "@/components/ui/button";
 import {
   TUTORIAL_CATEGORIES,
@@ -45,34 +38,26 @@ export function TutorialsModal() {
       : TUTORIAL_VIDEOS.filter((v) => v.category === selectedCategory);
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <Button
-          variant="outline"
-          size="sm"
-          className="gap-2 font-medium border-border hover:border-red-500/50 hover:bg-red-50/50 dark:hover:bg-red-950/20 text-foreground transition-colors cursor-pointer"
-          title="Tutoriais em Vídeo — Canal YouTube da Mindware"
-        >
-          <YoutubeIcon className="w-4 h-4 shrink-0" />
-          <span className="hidden sm:inline">Tutoriais</span>
-        </Button>
-      </DialogTrigger>
+    <>
+      <Button
+        variant="outline"
+        size="sm"
+        onClick={() => setIsOpen(true)}
+        className="gap-2 font-medium border-border hover:border-red-500/50 hover:bg-red-50/50 dark:hover:bg-red-950/20 text-foreground transition-colors cursor-pointer"
+        title="Tutoriais em Vídeo — Canal YouTube da Mindware"
+      >
+        <YoutubeIcon className="w-4 h-4 shrink-0" />
+        <span className="hidden sm:inline">Tutoriais</span>
+      </Button>
 
-      <DialogContent className="sm:max-w-[800px] max-h-[88vh] p-0 overflow-hidden flex flex-col gap-0 border-border bg-background">
-        {/* Modal header */}
-        <div className="p-5 md:p-6 border-b border-border bg-muted/40 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <YoutubeIcon className="w-6 h-6 shrink-0" />
-              <DialogTitle className="text-lg md:text-xl font-bold tracking-tight">
-                Tutoriais em Vídeo & Playlist
-              </DialogTitle>
-            </div>
-            <DialogDescription className="text-xs text-muted-foreground">
-              Assista aos tutoriais da MindSchool ou inscreva-se no canal do YouTube.
-            </DialogDescription>
-          </div>
-
+      <GlobalModal
+        isOpen={isOpen}
+        onClose={() => setIsOpen(false)}
+        size="4xl"
+        icon={<YoutubeIcon className="w-6 h-6 shrink-0" />}
+        title="Tutoriais em Vídeo & Playlist"
+        description="Assista aos tutoriais da MindSchool ou inscreva-se no canal do YouTube."
+        headerExtra={
           <a
             href={YOUTUBE_CHANNEL_URL}
             target="_blank"
@@ -89,12 +74,11 @@ export function TutorialsModal() {
               <ExternalLink className="w-3.5 h-3.5 opacity-80" />
             </Button>
           </a>
-        </div>
-
-        {/* Modal Main Body */}
-        <div className="p-5 md:p-6 overflow-y-auto space-y-6 flex-1">
+        }
+      >
+        <div className="space-y-6">
           {/* Main Video Player Section (Preloaded & Ready to View) */}
-          <div className="space-y-3 p-4 rounded-xl border border-border bg-card shadow-xs">
+          <div className="space-y-3 p-4 rounded-xs border border-border bg-card shadow-xs">
             <div className="flex items-center justify-between gap-2">
               <div className="flex items-center gap-2">
                 <Video className="w-4 h-4 text-primary" />
@@ -110,7 +94,7 @@ export function TutorialsModal() {
             </div>
 
             {/* Video Player Frame */}
-            <div className="relative aspect-video w-full rounded-lg overflow-hidden bg-black border border-border">
+            <div className="relative aspect-video w-full rounded-xs overflow-hidden bg-black border border-border">
               <iframe
                 src={`https://www.youtube.com/embed/${activeVideo.youtubeId}?autoplay=0`}
                 title={activeVideo.title}
@@ -136,18 +120,16 @@ export function TutorialsModal() {
             {/* Category Filter Pills */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar">
               {TUTORIAL_CATEGORIES.map((cat) => (
-                <button
+                <Button
                   key={cat.id}
+                  type="button"
+                  size="sm"
+                  variant={selectedCategory === cat.id ? "default" : "outline"}
                   onClick={() => setSelectedCategory(cat.id)}
-                  className={cn(
-                    "px-3 py-1.5 text-xs rounded-md font-medium transition-colors shrink-0 cursor-pointer border",
-                    selectedCategory === cat.id
-                      ? "bg-primary text-primary-foreground border-primary"
-                      : "bg-background text-muted-foreground border-border hover:bg-accent hover:text-foreground"
-                  )}
+                  className="h-8 px-3 text-xs shrink-0"
                 >
                   {cat.label}
-                </button>
+                </Button>
               ))}
             </div>
 
@@ -160,7 +142,7 @@ export function TutorialsModal() {
                     key={video.id}
                     onClick={() => setActiveVideo(video)}
                     className={cn(
-                      "group flex flex-col justify-between p-3.5 rounded-lg border cursor-pointer transition-all space-y-2.5",
+                      "group flex flex-col justify-between p-3.5 rounded-xs border cursor-pointer transition-all space-y-2.5",
                       isCurrent
                         ? "bg-primary/5 border-primary shadow-xs"
                         : "bg-card border-border hover:border-primary/40 hover:bg-accent/40"
@@ -214,7 +196,7 @@ export function TutorialsModal() {
             </div>
           </div>
         </div>
-      </DialogContent>
-    </Dialog>
+      </GlobalModal>
+    </>
   );
 }

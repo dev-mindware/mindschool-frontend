@@ -2,6 +2,7 @@
 
 import { useDropzone, type Accept } from "react-dropzone";
 import { Icon } from "@/components/common/icon";
+import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ErrorMessage } from "@/utils/messages";
 
@@ -51,7 +52,7 @@ export function FileUpload({ value, onChange, accept, maxBytes = 10 * 1024 * 102
     <div
       {...getRootProps()}
       className={cn(
-        "flex cursor-pointer flex-col items-center justify-center gap-1 rounded-lg border-2 border-dashed p-5 text-center text-sm transition-colors hover:border-primary/60 hover:bg-muted/30",
+        "flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xs border-2 border-dashed p-5 text-center text-sm transition-colors hover:border-primary/60 hover:bg-muted/30",
         isDragActive && "border-primary bg-primary/5",
         disabled && "pointer-events-none opacity-60",
         className,
@@ -64,9 +65,9 @@ export function FileUpload({ value, onChange, accept, maxBytes = 10 * 1024 * 102
         {value ? `${kb(value.size)} · clique ou arraste para trocar` : (hint ?? `${extensions(accept)} · máximo ${kb(maxBytes)}`)}
       </span>
       {value && (
-        <button type="button" className="mt-1 text-xs text-destructive hover:underline" onClick={(e) => { e.stopPropagation(); onChange(null); }}>
+        <Button type="button" variant="link" size="sm" className="mt-1 h-auto p-0 text-xs text-destructive" onClick={(e) => { e.stopPropagation(); onChange(null); }}>
           Remover
-        </button>
+        </Button>
       )}
     </div>
   );

@@ -7,6 +7,7 @@ import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { DataList, StatusLegend, type Column } from "@/components";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Checkbox } from "@/components/ui/checkbox";
 import { Icon } from "@/components/common/icon";
 import { FeatureGate } from "@/components/common";
 import { ErrorMessage } from "@/utils/messages";
@@ -57,12 +58,10 @@ export function TuitionPaymentsContent() {
       header: "",
       render: (_, item) =>
         item.status === "PAID" || item.status === "EXEMPT" ? null : (
-          <input
-            type="checkbox"
+          <Checkbox
             aria-label={`Seleccionar ${item.studentName} ${item.monthLabel}`}
             checked={selected.has(item.id)}
-            onChange={() => toggle(item.id)}
-            className="size-4 cursor-pointer accent-primary"
+            onCheckedChange={() => toggle(item.id)}
           />
         ),
     },
@@ -132,7 +131,7 @@ export function TuitionPaymentsContent() {
       render: (_, item) => {
         if (item.status === "PAID") {
           return (
-            <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 font-medium text-[10px]">
+            <Badge variant="success" className="font-medium text-[10px]">
               <Icon name="Check" className="w-3 h-3 mr-1" />
               Liquidada
             </Badge>
@@ -140,7 +139,7 @@ export function TuitionPaymentsContent() {
         }
         if (item.status === "PENDING") {
           return (
-            <Badge variant="outline" className="border-amber-500/30 bg-amber-500/10 text-amber-700 font-medium text-[10px]">
+            <Badge variant="warning" className="font-medium text-[10px]">
               <Icon name="Clock" className="w-3 h-3 mr-1" />
               Pendente
             </Badge>
@@ -148,7 +147,7 @@ export function TuitionPaymentsContent() {
         }
         if (item.status === "OVERDUE") {
           return (
-            <Badge variant="outline" className="border-destructive/30 bg-destructive/10 text-destructive font-medium text-[10px]">
+            <Badge variant="destructive" className="font-medium text-[10px]">
               <Icon name="CircleAlert" className="w-3 h-3 mr-1" />
               Em Atraso
             </Badge>
@@ -222,11 +221,11 @@ export function TuitionPaymentsContent() {
       <div className="flex flex-col sm:flex-row gap-4 justify-between items-start sm:items-center">
         <TitleList
           title="Gestão de Propinas & Mensalidades"
-          suTitle="Marque as propinas como pagas: regista o pagamento e pede ao MindGest a fatura-recibo (o documento fiscal). O comprovativo interno não tem valor fiscal."
+          suTitle="Validação de comprovativos e recibos de pagamento."
         />
         <div className="flex items-center gap-2">
-          <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700 px-3 py-1 font-semibold text-xs gap-1.5">
-            <Icon name="ShieldCheck" className="w-3.5 h-3.5 text-emerald-600" />
+          <Badge variant="success" className="px-3 py-1 font-semibold text-xs gap-1.5">
+            <Icon name="ShieldCheck" className="w-3.5 h-3.5" />
             Faturação via MindGest
           </Badge>
         </div>
@@ -272,7 +271,7 @@ export function TuitionPaymentsContent() {
       />
 
       {chosen.length > 0 && (
-        <div className="flex flex-wrap items-center justify-between gap-3 rounded-lg border border-primary/30 bg-primary/5 p-3 text-xs">
+        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xs border border-primary/30 bg-primary/5 p-3 text-xs">
           <span>
             <strong>{chosen.length}</strong> {chosen.length === 1 ? "propina seleccionada" : "propinas seleccionadas"} · {formatCurrency(chosen.reduce((a, f) => a + f.totalAmount, 0))}
             {chosenStudents > 1 && <span className="ml-2 text-destructive">De alunos diferentes: deixe só um aluno.</span>}

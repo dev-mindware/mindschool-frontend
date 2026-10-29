@@ -42,9 +42,9 @@ export function MedSnapshotsContent() {
       render: (_, s) => {
         const blocking = s.issues.filter((i) => i.severity === "blocking").length;
         const warn = s.issues.length - blocking;
-        return s.issues.length === 0 ? <span className="text-xs text-emerald-600">Sem pendências</span> : (
+        return s.issues.length === 0 ? <Badge variant="success">Sem pendências</Badge> : (
           <details className="text-xs">
-            <summary className="cursor-pointer">{blocking > 0 && <span className="text-destructive">{blocking} bloqueante(s) </span>}{warn > 0 && <span className="text-amber-700">{warn} aviso(s)</span>}</summary>
+            <summary className="cursor-pointer">{blocking > 0 && <span className="text-destructive">{blocking} bloqueante(s) </span>}{warn > 0 && <span className="text-warning">{warn} aviso(s)</span>}</summary>
             <ul className="mt-1 max-w-xs list-disc space-y-0.5 pl-4 text-muted-foreground">
               {s.issues.slice(0, 8).map((i, n) => <li key={n} className={i.severity === "blocking" ? "text-destructive" : undefined}>{i.message}</li>)}
               {s.issues.length > 8 && <li>… e mais {s.issues.length - 8}</li>}
@@ -81,7 +81,7 @@ export function MedSnapshotsContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Mapas Estatísticos Oficiais (MED)" suTitle="Instantâneo (corte imutável dos dados, com código de verificação) → validação → aprovação pela Direção → exportação → registo de submissão. O sistema prepara os mapas; a entrega ao Ministério faz-se fora daqui.">
+      <TitleList title="Mapas Estatísticos Oficiais (MED)" suTitle="Mapas estatísticos oficiais de aproveitamento (MED).">
         <Can permission="report:med_snapshot"><Button size="sm" className="gap-2" onClick={() => openModal("med-generate")}>
           <Icon name="FilePlus" className="size-4" />
           Gerar instantâneo

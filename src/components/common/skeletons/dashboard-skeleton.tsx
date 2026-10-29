@@ -21,7 +21,7 @@ export function DashboardSkeleton() {
                     <CardHeader className="flex flex-row items-start justify-between gap-2 px-4 pb-3">
                         <div className="space-y-2">
                             <div className="flex items-center gap-2">
-                                <Skeleton className="size-8 rounded-md bg-primary/10" />
+                                <Skeleton className="size-8 rounded-xs bg-primary/10" />
                                 <Skeleton className="h-5 w-40" />
                             </div>
                             <Skeleton className="h-3.5 w-28 ml-10" />
@@ -34,7 +34,7 @@ export function DashboardSkeleton() {
                                     <div key={i} className="w-full h-px bg-muted/40" />
                                 ))}
                             </div>
-                            <Skeleton className="h-full w-full bg-gradient-to-t from-primary/10 via-primary/5 to-transparent rounded-lg" />
+                            <Skeleton className="h-full w-full bg-gradient-to-t from-primary/10 via-primary/5 to-transparent rounded-xs" />
                         </div>
                         <div className="flex justify-center gap-6 mt-4">
                             <div className="flex items-center gap-2">
@@ -57,7 +57,7 @@ export function DashboardSkeleton() {
                 <Card className="flex flex-col gap-0 py-4 border shadow-none">
                     <CardHeader className="px-4 pb-2">
                         <CardTitle className="flex items-center gap-2">
-                            <Skeleton className="size-8 rounded-md bg-primary/10" />
+                            <Skeleton className="size-8 rounded-xs bg-primary/10" />
                             <Skeleton className="h-5 w-32" />
                         </CardTitle>
                     </CardHeader>
@@ -65,7 +65,7 @@ export function DashboardSkeleton() {
                         <div className="relative size-[190px] flex items-center justify-center my-2">
                             <div className="absolute inset-0 rounded-full border-[18px] border-muted/30 animate-pulse" />
                             <div className="flex flex-col items-center justify-center gap-1.5">
-                                <Skeleton className="h-7 w-16 rounded-md" />
+                                <Skeleton className="h-7 w-16 rounded-xs" />
                                 <Skeleton className="h-3 w-12" />
                             </div>
                         </div>
@@ -95,7 +95,7 @@ export function DashboardSkeleton() {
                 <Card className="p-4 border shadow-none flex flex-col justify-between space-y-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Skeleton className="size-8 rounded-md bg-primary/10" />
+                            <Skeleton className="size-8 rounded-xs bg-primary/10" />
                             <Skeleton className="h-5 w-24" />
                         </div>
                         <Skeleton className="h-4 w-12" />
@@ -127,7 +127,7 @@ export function DashboardSkeleton() {
                 <Card className="p-4 border shadow-none flex flex-col justify-between space-y-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Skeleton className="size-8 rounded-md bg-primary/10" />
+                            <Skeleton className="size-8 rounded-xs bg-primary/10" />
                             <Skeleton className="h-5 w-36" />
                         </div>
                         <Skeleton className="h-4 w-12" />
@@ -156,7 +156,7 @@ export function DashboardSkeleton() {
                 <Card className="p-4 border shadow-none flex flex-col justify-between space-y-4">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center gap-2">
-                            <Skeleton className="size-8 rounded-md bg-primary/10" />
+                            <Skeleton className="size-8 rounded-xs bg-primary/10" />
                             <Skeleton className="h-5 w-20" />
                         </div>
                         <Skeleton className="h-4 w-12" />
@@ -185,7 +185,7 @@ export function DashboardSkeleton() {
                 <Card className="lg:col-span-2 p-4 border shadow-none">
                     <div className="flex items-center justify-between mb-4">
                         <div className="flex items-center gap-2">
-                            <Skeleton className="size-8 rounded-md bg-primary/10" />
+                            <Skeleton className="size-8 rounded-xs bg-primary/10" />
                             <Skeleton className="h-5 w-36" />
                         </div>
                         <Skeleton className="h-4 w-16" />
@@ -193,7 +193,7 @@ export function DashboardSkeleton() {
                     <ul className="divide-y divide-border">
                         {[1, 2, 3, 4, 5].map((i) => (
                             <li key={i} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                                <Skeleton className="size-8 rounded-md shrink-0" />
+                                <Skeleton className="size-8 rounded-xs shrink-0" />
                                 <Skeleton className="h-4 flex-1" />
                                 <Skeleton className="h-4 w-20 shrink-0" />
                                 <Skeleton className="h-3 w-16 shrink-0" />
@@ -205,7 +205,7 @@ export function DashboardSkeleton() {
                 {/* Monthly Goal Skeleton */}
                 <Card className="p-4 border shadow-none flex flex-col justify-between">
                     <div className="flex items-center gap-2 mb-2">
-                        <Skeleton className="size-8 rounded-md bg-primary/10" />
+                        <Skeleton className="size-8 rounded-xs bg-primary/10" />
                         <Skeleton className="h-5 w-32" />
                     </div>
                     <div className="flex items-center gap-4 py-2">

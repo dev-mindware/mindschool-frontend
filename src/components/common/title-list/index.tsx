@@ -20,7 +20,7 @@ export function TitleList({
           <h2 className="text-2xl text-start md:text-start">{title}</h2>
         )}
         {suTitle && (
-          <p className="text-start text-muted-foreground sm:text-start">
+          <p className="text-start text-sm text-muted-foreground sm:text-start">
             {suTitle}
           </p>
         )}

@@ -2,7 +2,14 @@
 
 import { useState } from "react";
 import { TeacherAssignment } from "@/types";
-import { ConfirmModal, ButtonOnlyAction, DataList, type Column } from "@/components";
+import {
+  Avatar,
+  AvatarFallback,
+  ConfirmModal,
+  ButtonOnlyAction,
+  DataList,
+  type Column,
+} from "@/components";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { useTeacherAssignments } from "@/hooks/school/use-academic";
 
@@ -24,9 +31,11 @@ export function AssignmentsList({ assignments, isLoading }: AssignmentsListProps
       header: "Professor Docente",
       render: (_, item) => (
         <div className="flex items-center gap-2">
-          <div className="w-8 h-8 rounded-full bg-primary/10 text-primary flex items-center justify-center font-bold text-xs">
-            {item.teacherName.replace(/Prof\.(ª)?\s*(Dr\.(ª)?)?\s*/, "").slice(0, 2).toUpperCase()}
-          </div>
+          <Avatar className="size-7">
+            <AvatarFallback className="bg-primary/10 text-xs font-bold text-primary">
+              {item.teacherName.replace(/Prof\.(ª)?\s*(Dr\.(ª)?)?\s*/, "").slice(0, 2).toUpperCase()}
+            </AvatarFallback>
+          </Avatar>
           <span className="font-medium text-foreground">{item.teacherName}</span>
         </div>
       ),
@@ -35,7 +44,7 @@ export function AssignmentsList({ assignments, isLoading }: AssignmentsListProps
       key: "subjectName",
       header: "Disciplina",
       render: (_, item) => (
-        <span className="font-medium text-foreground text-sm">
+        <span className="text-sm font-medium text-foreground">
           {item.subjectName}
         </span>
       ),
@@ -44,7 +53,7 @@ export function AssignmentsList({ assignments, isLoading }: AssignmentsListProps
       key: "sectionName",
       header: "Turma Alocada",
       render: (_, item) => (
-        <span className="font-mono text-xs px-2 py-0.5 rounded bg-muted font-medium">
+        <span className="rounded bg-muted px-2 py-0.5 font-mono text-xs font-medium">
           {item.sectionName}
         </span>
       ),
@@ -62,7 +71,7 @@ export function AssignmentsList({ assignments, isLoading }: AssignmentsListProps
       key: "academicYear",
       header: "Ano Letivo",
       render: (_, item) => (
-        <span className="text-xs text-muted-foreground font-mono">
+        <span className="font-mono text-xs text-muted-foreground">
           {item.academicYear}
         </span>
       ),

@@ -11,10 +11,10 @@ export function UpgradeModal({ feature }: { feature: string }) {
   return (
     <GlobalModal
       id="upgrade-modal"
-      className="w-[28rem]"
+      size="md"
       title={
         <div className="flex items-center justify-center">
-          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary-50 text-primary-700 dark:bg-primary-900/30 dark:text-primary-300 rounded-full text-sm font-medium">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium">
             <Sparkles className="h-4 w-4" />
             Recurso Premium
           </div>
@@ -23,9 +23,9 @@ export function UpgradeModal({ feature }: { feature: string }) {
     >
       <div className="py-4 space-y-4">
         <div className="text-center space-y-3">
-          <p className="text-slate-600 dark:text-slate-300 leading-relaxed text-sm">
+          <p className="text-muted-foreground leading-relaxed text-sm">
             O recurso{" "}
-            <span className="font-semibold text-slate-900 dark:text-white">
+            <span className="font-semibold text-foreground">
               {feature}
             </span>{" "}
             está disponível apenas em planos superiores. Atualize agora e
@@ -34,12 +34,12 @@ export function UpgradeModal({ feature }: { feature: string }) {
         </div>
 
         <div className="text-center py-2">
-          <p className="text-sm text-slate-500 dark:text-slate-400 mb-2">
+          <p className="text-sm text-muted-foreground mb-2">
             Planos a partir de
           </p>
-          <div className="text-2xl font-bold text-slate-900 dark:text-white">
+          <div className="text-2xl font-bold text-foreground">
             5.445,22{" "}
-            <span className="text-base font-normal text-slate-600 dark:text-slate-400">
+            <span className="text-base font-normal text-muted-foreground">
               kz
             </span>
           </div>
@@ -62,7 +62,7 @@ export function UpgradeModal({ feature }: { feature: string }) {
             target="_blank"
             className="block flex-1"
           >
-            <Button className="w-full bg-primary text-white hover:opacity-90">
+            <Button className="w-full">
               Ver Planos
             </Button>
           </Link>

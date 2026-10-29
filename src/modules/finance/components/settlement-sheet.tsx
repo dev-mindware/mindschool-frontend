@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
+import { Skeleton } from "@/components/ui/skeleton";
+import { Separator } from "@/components/ui/separator";
 import { Icon } from "@/components/common/icon";
 import { ErrorMessage, SucessMessage } from "@/utils/messages";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -99,36 +101,37 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
-      <SheetContent className="w-full sm:max-w-xl flex flex-col p-0 gap-0">
-        <SheetHeader className="p-5 border-b shrink-0">
+      <SheetContent className="flex flex-col gap-6 overflow-y-auto p-6 sm:max-w-lg">
+        <SheetHeader className="p-0">
           <SheetTitle className="text-lg font-bold">Marcar como pago</SheetTitle>
           <SheetDescription className="text-xs">
             Regista o valor total em dívida e pede a fatura-recibo ao MindGest. Não há pagamento parcial.
           </SheetDescription>
         </SheetHeader>
 
-        {/* Nenhum painel tem scroll: o corpo é compacto (o resumo das cobranças é uma linha e as formas de pagamento cabem numa só). */}
-        <div className="flex-1 space-y-3 overflow-y-auto p-5">
+        <div className="flex-1 space-y-4">
           {done ? (
             <DoneCard settlement={done} />
           ) : (
             <>
               {mixed && (
-                <p className="rounded-lg border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
+                <p className="rounded-xs border border-destructive/30 bg-destructive/10 p-3 text-xs text-destructive">
                   Escolheu propinas de alunos diferentes. Cada pagamento (e cada fatura-recibo) é de um só aluno: deixe só um aluno seleccionado.
                 </p>
               )}
 
-              <div className="space-y-1.5 rounded-xl border bg-muted/40 p-3">
+              <section className="space-y-1.5">
                 <p className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{fees[0]!.studentName}</p>
                 <p className="text-xs">
                   {fees.map((f) => `${f.monthLabel} / ${f.year}${(f.penalties?.length ?? 0) > 0 ? " + multa" : ""}`).join(" · ")}
                 </p>
-                <div className="flex justify-between border-t pt-1.5 text-sm font-bold">
+                <div className="flex justify-between pt-1.5 text-sm font-bold">
                   <span>Total a pagar ({fees.length} {fees.length === 1 ? "cobrança" : "cobranças"})</span>
                   <span className="text-primary tabular-nums">{formatCurrency(total)}</span>
                 </div>
-              </div>
+              </section>
+
+              <Separator />
 
               <IntegrationNotice state={options.data?.integration} loading={options.isLoading} />
 
@@ -138,11 +141,19 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
                   {PAYMENT_METHODS.map((m) => {
                     const on = method === m.id;
                     return (
-                      <button key={m.id} type="button" title={m.desc} onClick={() => setMethod(m.id)}
-                        className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-left transition-all ${on ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:bg-muted/50"}`}>
+                      <Button
+                        key={m.id}
+                        type="button"
+                        variant="outline"
+                        title={m.desc}
+                        onClick={() => setMethod(m.id)}
+                        className={`flex h-auto items-center justify-start gap-2 rounded-xs border px-3 py-2.5 text-left transition-all ${
+                          on ? "border-primary bg-primary/10 text-foreground" : "border-border bg-card text-muted-foreground hover:bg-muted/50"
+                        }`}
+                      >
                         <Icon name={m.icon as any} className={`h-4 w-4 ${on ? "text-primary" : "text-muted-foreground"}`} />
                         <span className="text-sm font-semibold text-foreground">{m.label}</span>
-                      </button>
+                      </Button>
                     );
                   })}
                 </div>
@@ -150,7 +161,7 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
 
               <div className="space-y-1.5">
                 <Label htmlFor="settlement-ref" className="text-xs text-foreground">N.º de talão / transação (opcional)</Label>
-                <Input id="settlement-ref" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Ex: 94829103" className="h-10 text-xs" maxLength={50} />
+                <Input id="settlement-ref" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Ex: 94829103" maxLength={50} />
               </div>
 
               <CustomerChooser
@@ -165,7 +176,7 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
           )}
         </div>
 
-        <SheetFooter>
+        <SheetFooter className="mt-auto flex-row justify-end gap-2 p-0">
           {done ? (
             <Button type="button" onClick={onClose}>Fechar</Button>
           ) : (
@@ -192,7 +203,7 @@ function customerHasNif(o: ApiCustomerOptions | undefined, c: Choice | null): bo
 function IntegrationNotice({ state, loading }: { state: ApiCustomerOptions["integration"] | undefined; loading: boolean }) {
   if (loading || !state || state === "ready") {
     return state === "ready" ? (
-      <p className="flex items-start gap-2 rounded-lg border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-800">
+      <p className="flex items-start gap-2 rounded-xs border border-emerald-500/30 bg-emerald-500/10 p-3 text-xs text-emerald-800">
         <Icon name="ShieldCheck" className="mt-0.5 size-4 shrink-0" /> A escola está ligada ao MindGest: a fatura-recibo é pedida logo a seguir ao pagamento.
       </p>
     ) : null;
@@ -203,7 +214,7 @@ function IntegrationNotice({ state, loading }: { state: ApiCustomerOptions["inte
     ? "A escola não está ligada ao MindGest. O pagamento fica registado, mas a fatura-recibo só é emitida depois de o titular ligar a escola (Definições › Integrações › MindGest)."
     : "O catálogo do MindGest está incompleto: há serviços sem imposto definido. O pagamento fica registado e a fatura-recibo segue quando o imposto for definido no MindGest.";
   return (
-    <p className="flex items-start gap-2 rounded-lg border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900">
+    <p className="flex items-start gap-2 rounded-xs border border-amber-500/30 bg-amber-500/10 p-3 text-xs text-amber-900">
       <Icon name="TriangleAlert" className="mt-0.5 size-4 shrink-0" /> {text}
     </p>
   );
@@ -212,7 +223,7 @@ function IntegrationNotice({ state, loading }: { state: ApiCustomerOptions["inte
 function DoneCard({ settlement }: { settlement: ApiSettlement }) {
   const st = FISCAL_STATUS[settlement.fiscal_document?.status ?? "sem_submissao"];
   return (
-    <div className="space-y-3 rounded-xl border bg-muted/40 p-4 text-sm">
+    <section className="space-y-3 text-sm">
       <p className="flex items-center gap-2 font-semibold"><Icon name="CircleCheck" className="size-4 text-emerald-600" /> Pagamento registado: {formatCurrency(Number(settlement.total))}</p>
       <p className="text-xs text-muted-foreground">Cliente da fatura-recibo: <strong>{settlement.customer.name}</strong>{settlement.customer.nif ? ` · NIF ${settlement.customer.nif}` : " · consumidor final"}</p>
       <div className="flex flex-wrap items-center gap-2">
@@ -220,7 +231,7 @@ function DoneCard({ settlement }: { settlement: ApiSettlement }) {
         <Badge variant={st.variant} className="font-normal">{st.label}</Badge>
       </div>
       <p className="text-xs text-muted-foreground">{st.hint} Acompanhe em <strong>Propinas &amp; Finanças › Faturas</strong>.</p>
-    </div>
+    </section>
   );
 }
 
@@ -228,7 +239,15 @@ function CustomerChooser(p: {
   options: ApiCustomerOptions | undefined; loading: boolean; error: string | null;
   choice: Choice | null; onChoose: (c: Choice) => void; onChanged: () => void;
 }) {
-  if (p.loading) return <div className="h-24 animate-pulse rounded-xl bg-muted" />;
+  if (p.loading) {
+    return (
+      <div className="space-y-2">
+        <Skeleton className="h-4 w-48 rounded-xs" />
+        <Skeleton className="h-16 w-full rounded-xs" />
+        <Skeleton className="h-16 w-full rounded-xs" />
+      </div>
+    );
+  }
   if (p.error || !p.options) return <p className="text-xs text-destructive">{p.error ?? "Sem dados."}</p>;
   const o = p.options;
   const same = (c: Choice) => p.choice?.kind === c.kind && p.choice?.guardianId === c.guardianId;
@@ -245,21 +264,35 @@ function CustomerChooser(p: {
       <p className="text-[11px] text-muted-foreground">Por omissão, o encarregado com NIF; sem NIF, o aluno; sem NIF de ninguém, «consumidor final». O NIF é facultativo, serve só para a fatura-recibo (é enviado ao MindGest, que a emite) e, se o guardar, fica na ficha cifrado.</p>
       <div className="space-y-1.5">
         {rows.map((r) => (
-          <div key={`${r.choice.kind}-${r.choice.guardianId ?? ""}`} className={`rounded-lg border px-3 py-2 ${same(r.choice) ? "border-primary bg-primary/5" : "border-border"}`}>
-            <button type="button" className="flex w-full items-center justify-between gap-2 text-left" onClick={() => p.onChoose(r.choice)}>
+          <div key={`${r.choice.kind}-${r.choice.guardianId ?? ""}`} className={`rounded-xs border px-3 py-2 ${same(r.choice) ? "border-primary bg-primary/5" : "border-border"}`}>
+            <Button
+              type="button"
+              variant="ghost"
+              className="flex h-auto w-full items-center justify-between gap-2 p-0 text-left hover:bg-transparent"
+              onClick={() => p.onChoose(r.choice)}
+            >
               <span className="min-w-0 truncate">
                 <span className="text-sm font-semibold">{r.title}</span>
-                <span className="text-[11px] text-muted-foreground"> · {r.subtitle}</span>
+                <span className="text-[11px] font-normal text-muted-foreground"> · {r.subtitle}</span>
               </span>
-              <span className="font-mono text-xs text-muted-foreground">{r.nif ? `NIF ${r.nif}` : "sem NIF"}</span>
-            </button>
+              <span className="font-mono text-xs font-normal text-muted-foreground">{r.nif ? `NIF ${r.nif}` : "sem NIF"}</span>
+            </Button>
             {same(r.choice) && !r.nif && <NifEditor onSave={r.save} onSaved={p.onChanged} />}
           </div>
         ))}
-        <button type="button" onClick={() => p.onChoose({ kind: "consumidor_final" })}
-          className={`flex w-full items-center justify-between rounded-lg border px-3 py-2 text-left ${p.choice?.kind === "consumidor_final" ? "border-primary bg-primary/5" : "border-border"}`}>
-          <span><span className="text-sm font-semibold">Consumidor final</span><span className="text-[11px] text-muted-foreground"> · fatura sem NIF do cliente</span></span>
-        </button>
+        <Button
+          type="button"
+          variant="outline"
+          onClick={() => p.onChoose({ kind: "consumidor_final" })}
+          className={`flex h-auto w-full items-center justify-between rounded-xs border px-3 py-2 text-left ${
+            p.choice?.kind === "consumidor_final" ? "border-primary bg-primary/5" : "border-border"
+          }`}
+        >
+          <span>
+            <span className="text-sm font-semibold">Consumidor final</span>
+            <span className="text-[11px] font-normal text-muted-foreground"> · fatura sem NIF do cliente</span>
+          </span>
+        </Button>
       </div>
     </div>
   );
@@ -296,7 +329,7 @@ function NifEditor({ onSave, onSaved }: { onSave: (nif: string) => Promise<void>
       <div className="flex items-end gap-2">
         <div className="flex-1 space-y-1">
           <Label className="text-[11px]">NIF</Label>
-          <Input value={nif} onChange={(e) => { setNif(e.target.value); setFound(null); }} placeholder="Ex: 5417012345" className="h-9 text-xs" />
+          <Input value={nif} onChange={(e) => { setNif(e.target.value); setFound(null); }} placeholder="Ex: 5417012345" />
         </div>
         <Button type="button" size="sm" variant="outline" disabled={!valid || busy !== null} onClick={() => void verify()}>Verificar NIF</Button>
         <Button type="button" size="sm" disabled={!valid || busy !== null} onClick={() => void save()}>Guardar</Button>

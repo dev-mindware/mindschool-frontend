@@ -33,12 +33,12 @@ export function NotificationDropdown() {
         <Button
           size="icon"
           variant="ghost"
-          className="relative  hover:bg-primary-50"
+          className="relative hover:bg-primary/5"
           aria-label="Abrir notificações"
         >
           <Bell className="h-5 w-5 text-foreground" />
           {badgeEnabled && unreadCount > 0 && (
-            <span className="absolute -top-1 -right-1 h-5 w-5 bg-primary-500 text-white text-xs rounded-full flex items-center justify-center font-medium">
+            <span className="absolute -top-1 -right-1 h-5 w-5 bg-primary text-primary-foreground text-xs rounded-full flex items-center justify-center font-medium">
               {unreadCount > 9 ? "9+" : unreadCount}
             </span>
           )}

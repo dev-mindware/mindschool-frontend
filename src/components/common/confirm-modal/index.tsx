@@ -34,11 +34,10 @@ export function ConfirmModal({ id, title, description, confirmLabel = "Confirmar
       size="md"
       footer={
         <>
-          <Button type="button" variant="outline" className="w-max" onClick={() => closeModal(id)}>Cancelar</Button>
+          <Button type="button" variant="outline" onClick={() => closeModal(id)}>Cancelar</Button>
           <Button
             type="button"
             variant={destructive ? "destructive" : "default"}
-            className="w-max"
             disabled={Boolean(isLoading)}
             onClick={async () => {
               try {
@@ -57,7 +56,7 @@ export function ConfirmModal({ id, title, description, confirmLabel = "Confirmar
     >
       <span className="sr-only">{title}</span>
       {effects && effects.length > 0 && (
-        <div className="space-y-1.5 rounded-md border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
+        <div className="space-y-1.5 rounded-xs border border-border/60 bg-muted/30 p-3 text-xs text-muted-foreground">
           <p className="font-semibold text-foreground">O que acontece</p>
           <ul className="list-disc space-y-1 pl-4">{effects.map((e) => <li key={e}>{e}</li>)}</ul>
         </div>

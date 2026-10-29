@@ -26,7 +26,7 @@ function TabsList({
     <TabsPrimitive.List
       data-slot="tabs-list"
       className={cn(
-        "bg-sidebar text-muted-foreground/70 inline-flex w-fit items-center justify-center rounded-md p-0.5",
+        "bg-sidebar text-muted-foreground/70 inline-flex w-fit items-center justify-center rounded-xs p-0.5 border border-border",
         className
       )}
       {...props}
@@ -42,9 +42,8 @@ function TabsTrigger({
     <TabsPrimitive.Trigger
       data-slot="tabs-trigger"
       className={cn(
-        "hover:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 inline-flex items-center justify-center rounded-sm px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-xs [&_svg]:shrink-0",
-        // 🔥 cor ativa roxo
-        "data-[state=active]:bg-primary-50 dark:data-[state=active]:bg-primary/10 data-[state=active]:text-primary-700 dark:data-[state=active]:text-primary-400",
+        "hover:text-muted-foreground focus-visible:border-ring focus-visible:ring-ring/50 inline-flex items-center justify-center rounded-xs px-3 py-1.5 text-sm font-medium whitespace-nowrap transition-all outline-none focus-visible:ring-[3px] disabled:pointer-events-none disabled:opacity-50 data-[state=active]:shadow-xs [&_svg]:shrink-0",
+        "data-[state=active]:bg-primary/10 data-[state=active]:text-primary",
         className
       )}
       {...props}

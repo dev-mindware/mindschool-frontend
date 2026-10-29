@@ -15,6 +15,7 @@ import {
   ButtonSubmit,
   Badge,
   Icon,
+  Label,
 } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { cn } from "@/lib/utils";
@@ -157,32 +158,34 @@ export function SubjectModal({
       canClose
       title={subjectToEdit ? "Editar Disciplina Curricular" : "Criar Nova Disciplina"}
       description="Definição da matriz curricular, regime de classificação e critérios pedagógicos"
-      className="w-full sm:max-w-2xl"
+      size="3xl"
     >
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-1">
         {/* Sugestões Rápidas de Disciplinas Frequentes */}
         {!subjectToEdit && (
-          <div className="space-y-1.5 p-3 rounded-xl border bg-muted/20">
-            <span className="text-[11px] text-muted-foreground font-medium flex items-center gap-1.5">
-              <Icon name="Sparkles" className="w-3.5 h-3.5 text-primary" />
+          <div className="space-y-1.5 rounded-xs border bg-muted/20 p-3">
+            <Label className="flex items-center gap-1.5 text-[11px] font-medium text-muted-foreground">
+              <Icon name="Sparkles" className="size-3.5 text-primary" />
               Sugestões rápidas do currículo angolano (clique para preencher):
-            </span>
+            </Label>
             <div className="flex flex-wrap gap-1.5">
               {COMMON_PRESETS.map((p) => (
-                <button
+                <Button
                   key={p.name}
                   type="button"
+                  size="sm"
+                  variant="outline"
                   onClick={() => applyPreset(p.name, p.code, p.isCore)}
-                  className="text-xs px-2.5 py-1 rounded-md border border-border bg-background hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
+                  className="h-7 px-2.5 text-xs font-normal"
                 >
                   {p.name} ({p.code})
-                </button>
+                </Button>
               ))}
             </div>
           </div>
         )}
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
           <div className="sm:col-span-2">
             <Input
               label="Nome Descritivo da Disciplina *"
@@ -219,7 +222,7 @@ export function SubjectModal({
             onValueChange={(val) => setValue("gradingScale", val as "quantitativa" | "qualitativa" | "mista")}
           />
           {subjectToEdit && (
-            <p className="text-[11px] text-muted-foreground mt-1">
+            <p className="mt-1 text-[11px] text-muted-foreground">
               A escala de avaliação é imutável após o registo para garantir a integridade das notas já lançadas.
             </p>
           )}
@@ -229,7 +232,7 @@ export function SubjectModal({
         <div
           onClick={() => setValue("isCore", !isCoreValue)}
           className={cn(
-            "flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer select-none transition-all",
+            "flex cursor-pointer select-none items-start gap-3 rounded-xs border p-3.5 transition-all",
             isCoreValue
               ? "border-amber-500/40 bg-amber-500/5 dark:bg-amber-500/10"
               : "border-border bg-muted/20 hover:bg-muted/40",
@@ -237,46 +240,46 @@ export function SubjectModal({
         >
           <div
             className={cn(
-              "size-5 rounded border mt-0.5 flex items-center justify-center transition-colors shrink-0",
+              "mt-0.5 flex size-5 shrink-0 items-center justify-center rounded border transition-colors",
               isCoreValue
-                ? "bg-amber-500 border-amber-500 text-white"
+                ? "border-amber-500 bg-amber-500 text-white"
                 : "border-muted-foreground/40 bg-background",
             )}
           >
-            {isCoreValue && <Icon name="Check" className="w-3.5 h-3.5 stroke-[3]" />}
+            {isCoreValue && <Icon name="Check" className="size-3.5 stroke-[3]" />}
           </div>
-          <div className="space-y-0.5 flex-1">
+          <div className="flex-1 space-y-0.5">
             <div className="flex items-center gap-2">
               <span className="text-sm font-semibold text-foreground">
                 Disciplina Nuclear / Chave
               </span>
               <Badge
                 variant={isCoreValue ? "warning" : "outline"}
-                className="text-[10px] py-0 px-1.5"
+                className="px-1.5 py-0 text-[10px]"
               >
                 {isCoreValue ? "Nuclear (Critério Central)" : "Geral / Complementar"}
               </Badge>
             </div>
-            <p className="text-xs text-muted-foreground leading-relaxed">
+            <p className="text-xs leading-relaxed text-muted-foreground">
               Disciplinas nucleares (ex: Língua Portuguesa e Matemática) possuem critérios pedagógicos determinantes na transição e aprovação do aluno, além de destaque visual em pautas e boletins.
             </p>
           </div>
         </div>
 
         {/* Informação sobre Carga Horária e Afetação Docente */}
-        <div className="p-3.5 rounded-xl border border-sky-500/20 bg-sky-500/5 flex items-start gap-2.5 text-xs text-muted-foreground">
-          <Icon name="Info" className="w-4 h-4 text-sky-600 dark:text-sky-400 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-2.5 rounded-xs border border-sky-500/20 bg-sky-500/5 p-3.5 text-xs text-muted-foreground">
+          <Icon name="Info" className="mt-0.5 size-4 shrink-0 text-sky-600 dark:text-sky-400" />
           <p className="leading-relaxed">
             A <strong>carga horária semanal</strong> e o <strong>professor titular</strong> são definidos individualmente por turma na secção de <strong className="text-foreground">Atribuições Curriculares</strong> e na grelha do <strong className="text-foreground">Horário Semanal</strong>.
           </p>
         </div>
 
         {/* Botões de Ação no Padrão MindGest */}
-        <div className="flex justify-end gap-3 pt-3 border-t">
+        <div className="flex justify-end gap-3 border-t pt-3">
           <Button type="button" variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <ButtonSubmit isLoading={isSubmitting} className="w-max">
+          <ButtonSubmit isLoading={isSubmitting}>
             {subjectToEdit ? "Guardar Alterações" : "Criar Disciplina"}
           </ButtonSubmit>
         </div>

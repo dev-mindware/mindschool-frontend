@@ -10,7 +10,7 @@ export function DynamicMetricCardSkeleton({ className }: { className?: string })
                     <div className="space-y-2">
                         <div className="flex justify-between items-start">
                             <Skeleton className="h-8 w-24 bg-muted/60" />
-                            <Skeleton className="h-8 w-8 rounded-md bg-muted/40" />
+                            <Skeleton className="h-8 w-8 rounded-xs bg-muted/40" />
                         </div>
                         <Skeleton className="h-6 w-32 bg-muted/50" />
                     </div>

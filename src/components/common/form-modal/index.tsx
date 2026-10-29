@@ -1,7 +1,7 @@
 "use client";
 
 import { useId, useState, type ReactNode, type FormEvent } from "react";
-import { Button, ButtonSubmit, Input, Popover, PopoverContent, PopoverTrigger } from "@/components/ui";
+import { Button, ButtonSubmit, Input, Label, Popover, PopoverContent, PopoverTrigger } from "@/components/ui";
 import { Icon } from "@/components/common/icon";
 import { GlobalModal } from "@/components/modal";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -92,7 +92,7 @@ export function FormModal({
       size={SIZE[size]}
       footer={
         <>
-          <Button type="button" variant="outline" className="w-max" onClick={cancel}>{readOnly ? "Fechar" : "Cancelar"}</Button>
+          <Button type="button" variant="outline" onClick={cancel}>{readOnly ? "Fechar" : "Cancelar"}</Button>
           {!readOnly && (
             isPdfDownloadModal ? (
               <PrintDownloadDropdown
@@ -101,10 +101,9 @@ export function FormModal({
                 orientation={pdfOrientation}
                 disabled={disabled}
                 label="Baixar PDF"
-                className="w-max"
               />
             ) : (
-              <ButtonSubmit form={formId} className="w-max" isLoading={Boolean(isLoading)} disabled={disabled}>{submitLabel}</ButtonSubmit>
+              <ButtonSubmit form={formId} isLoading={Boolean(isLoading)} disabled={disabled}>{submitLabel}</ButtonSubmit>
             )
           )}
         </>
@@ -142,9 +141,9 @@ interface FormSelectProps {
 export function FormSelect({ label, value, onValueChange, options, placeholder = "Seleccione", error, disabled, className }: FormSelectProps) {
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <label className="text-sm font-medium">{label}</label>
+      <Label>{label}</Label>
       <Select value={value ?? ""} onValueChange={onValueChange} disabled={disabled}>
-        <SelectTrigger className="h-10 w-full" aria-label={label || placeholder}><SelectValue placeholder={placeholder} /></SelectTrigger>
+        <SelectTrigger className="w-full" aria-label={label || placeholder}><SelectValue placeholder={placeholder} /></SelectTrigger>
         <SelectContent>
           {options.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
         </SelectContent>
@@ -159,7 +158,7 @@ interface FormTextareaProps { label: string; value: string; onChange: (v: string
 export function FormTextarea({ label, value, onChange, placeholder, rows = 3, error, className }: FormTextareaProps) {
   return (
     <div className={cn("flex flex-col gap-1.5 sm:col-span-2", className)}>
-      <label className="text-sm font-medium">{label}</label>
+      <Label>{label}</Label>
       <Textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={rows} />
       {error && <p className="text-xs text-destructive">{error}</p>}
     </div>
@@ -192,10 +191,10 @@ export function FormMultiCombobox({ label, values, onValuesChange, options, plac
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <label className="text-sm font-medium">{label}</label>
+      <Label>{label}</Label>
       <Popover open={openPopover} onOpenChange={setOpenPopover}>
         <PopoverTrigger asChild>
-          <Button type="button" variant="outline" disabled={disabled} className="h-10 w-full justify-between font-normal">
+          <Button type="button" variant="outline" disabled={disabled} className="w-full justify-between font-normal">
             <span className={cn("truncate", chosen.length === 0 && "text-muted-foreground")}>{summary}</span>
             <Icon name="ChevronsUpDown" className="size-4 opacity-50 shrink-0" />
           </Button>
@@ -204,9 +203,9 @@ export function FormMultiCombobox({ label, values, onValuesChange, options, plac
           <Input value={q} onChange={(e) => setQ(e.target.value)} placeholder={searchPlaceholder} startIcon="Search" />
           <div className="flex items-center justify-between px-1 text-xs">
             <span className="text-muted-foreground">{values.length} seleccionada(s)</span>
-            <span className="flex gap-3">
-              <button type="button" className="font-medium text-primary hover:underline" onClick={() => onValuesChange(Array.from(new Set([...values, ...shown.map((o) => o.value)])))}>Todas</button>
-              <button type="button" className="text-muted-foreground hover:underline" onClick={() => onValuesChange([])}>Limpar</button>
+            <span className="flex gap-1">
+              <Button type="button" variant="link" size="sm" className="h-auto p-0 text-xs" onClick={() => onValuesChange(Array.from(new Set([...values, ...shown.map((o) => o.value)])))}>Todas</Button>
+              <Button type="button" variant="link" size="sm" className="h-auto p-0 text-xs text-muted-foreground" onClick={() => onValuesChange([])}>Limpar</Button>
             </span>
           </div>
           <div className="max-h-60 overflow-y-auto space-y-0.5">
@@ -214,13 +213,15 @@ export function FormMultiCombobox({ label, values, onValuesChange, options, plac
             {shown.map((o) => {
               const on = values.includes(o.value);
               return (
-                <button
+                <Button
                   key={o.value}
                   type="button"
+                  variant="ghost"
+                  size="sm"
                   role="option"
                   aria-selected={on}
                   onClick={() => toggle(o.value)}
-                  className={cn("flex w-full items-center justify-between gap-2 rounded-sm px-2 py-1.5 text-left text-sm hover:bg-muted", on && "bg-primary/10 font-medium")}
+                  className={cn("flex w-full items-center justify-between gap-2 px-2 py-1.5 text-left text-sm font-normal", on && "bg-primary/10 font-medium")}
                 >
                   <span className="flex items-center gap-2 truncate">
                     <span className={cn("flex size-4 shrink-0 items-center justify-center rounded-sm border", on ? "border-primary bg-primary text-primary-foreground" : "border-muted-foreground/40")}>
@@ -229,7 +230,7 @@ export function FormMultiCombobox({ label, values, onValuesChange, options, plac
                     <span className="truncate">{o.label}</span>
                   </span>
                   {o.hint && <span className="shrink-0 text-xs text-muted-foreground">{o.hint}</span>}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -261,10 +262,10 @@ export function FormCombobox({ label, value, onValueChange, options, placeholder
 
   return (
     <div className={cn("flex flex-col gap-1.5", className)}>
-      <label className="text-sm font-medium">{label}</label>
+      <Label>{label}</Label>
       <Popover open={openPopover} onOpenChange={setOpenPopover}>
         <PopoverTrigger asChild>
-          <Button type="button" variant="outline" disabled={disabled} className="h-10 w-full justify-between font-normal">
+          <Button type="button" variant="outline" disabled={disabled} className="w-full justify-between font-normal">
             <span className={cn("truncate", !selected && "text-muted-foreground")}>{selected?.label ?? placeholder}</span>
             <Icon name="ChevronsUpDown" className="size-4 opacity-50 shrink-0" />
           </Button>
@@ -274,15 +275,17 @@ export function FormCombobox({ label, value, onValueChange, options, placeholder
           <div className="max-h-60 overflow-y-auto space-y-0.5">
             {shown.length === 0 && <p className="p-2 text-sm text-muted-foreground">Sem resultados.</p>}
             {shown.map((o) => (
-              <button
+              <Button
                 key={o.value}
                 type="button"
+                variant="ghost"
+                size="sm"
                 onClick={() => { onValueChange(o.value); setOpenPopover(false); setQ(""); }}
-                className={cn("flex w-full flex-col items-start rounded-sm px-2 py-1.5 text-left text-sm hover:bg-muted", o.value === value && "bg-muted font-medium")}
+                className={cn("flex h-auto w-full flex-col items-start px-2 py-1.5 text-left text-sm font-normal", o.value === value && "bg-muted font-medium")}
               >
                 <span>{o.label}</span>
                 {o.hint && <span className="text-xs text-muted-foreground">{o.hint}</span>}
-              </button>
+              </Button>
             ))}
           </div>
         </PopoverContent>

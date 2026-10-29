@@ -31,7 +31,7 @@ function InsightCard({ i }: { i: ApiInsight }) {
   const tone = i.favourable === null ? "text-muted-foreground" : i.favourable ? "text-emerald-600" : "text-destructive";
   const arrow = i.trend === "up" ? "TrendingUp" : i.trend === "down" ? "TrendingDown" : "Minus";
   return (
-    <div className="rounded-xl border bg-card p-4">
+    <div className="rounded-xs border bg-card p-4">
       <p className="text-xs text-muted-foreground">{i.label}</p>
       <p className="mt-1 text-2xl font-semibold tabular-nums">{fmt(i.key, i.current)}</p>
       <p className={`mt-1 flex items-center gap-1 text-xs ${tone}`}>
@@ -136,7 +136,7 @@ export function BiPageContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="BI & Analytics" suTitle="Tendências por ano letivo e por mês, só com indicadores agregados (sem dados nominais)." />
+      <TitleList title="BI & Analytics" suTitle="Indicadores académicos, financeiros e operacionais da escola." />
 
       {provisional.length > 0 && (
         <p className="flex items-center gap-2 text-xs text-muted-foreground">

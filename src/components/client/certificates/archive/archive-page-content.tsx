@@ -1,10 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { Badge, Button, EmptyState, FormModal, FormSelect, Icon, Input, TitleList } from "@/components";
+import { Badge, Button, EmptyState, FormModal, FormSelect, Icon, Input, TitleList, type Column } from "@/components";
+import { GenericTable } from "@/components/common/generic-table";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { useArchive } from "@/hooks/school/use-archive";
 import type { ApiArchiveItem, ArchiveFilters, RetentionState } from "@/services/archive-service";
 import { useModal } from "@/stores/modal/use-modal-store";
@@ -57,7 +56,7 @@ function ExtendModal({ item, onSubmit, pending }: { item: ApiArchiveItem | null;
 export function ArchivePageContent() {
   const [filters, setFilters] = useState<ArchiveFilters>({});
   const [search, setSearch] = useState("");
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
   const [extending, setExtending] = useState<ApiArchiveItem | null>(null);
   const a = useArchive(filters);
   const { openModal } = useModal();
@@ -67,18 +66,64 @@ export function ArchivePageContent() {
   }
 
   const s = a.summary;
-  const set = (patch: Partial<ArchiveFilters>) => { setFilters((f) => ({ ...f, ...patch })); setSelected(new Set()); };
-  const toggle = (id: string) => setSelected((cur) => { const n = new Set(cur); if (n.has(id)) n.delete(id); else if (n.size < MAX_BUNDLE) n.add(id); return n; });
-  const allOnPage = a.items.length > 0 && a.items.every((i) => selected.has(i.id));
-  const toggleAll = () => setSelected(allOnPage ? new Set() : new Set(a.items.slice(0, MAX_BUNDLE).map((i) => i.id)));
+  const set = (patch: Partial<ArchiveFilters>) => { setFilters((f) => ({ ...f, ...patch })); setSelectedIds([]); };
 
-  const download = () => a.bundle.mutateAsync([...selected]).then(() => SucessMessage(`Pacote com ${selected.size} ficheiro(s) descarregado.`)).catch(fail);
+  const download = () => a.bundle.mutateAsync(selectedIds).then(() => SucessMessage(`Pacote com ${selectedIds.length} ficheiro(s) descarregado.`)).catch(fail);
+
+  const columns: Column<ApiArchiveItem>[] = [
+    {
+      key: "file_name",
+      header: "Ficheiro",
+      render: (_, i) => (
+        <div className="flex flex-col">
+          <span className="font-medium">{i.file_name}</span>
+          {i.document && <span className="text-xs text-muted-foreground">{DOC_TYPE[i.document.type] ?? i.document.type} · {i.document.number}</span>}
+        </div>
+      ),
+    },
+    {
+      key: "domain",
+      header: "Origem",
+      render: (_, i) => <Badge variant="outline" className="text-[10px]">{i.domain}</Badge>,
+    },
+    {
+      key: "size_bytes",
+      header: "Tamanho",
+      className: "text-right font-mono text-xs",
+      render: (_, i) => bytes(i.size_bytes),
+    },
+    {
+      key: "created_at",
+      header: "Criado",
+      className: "whitespace-nowrap text-xs",
+      render: (_, i) => formatDate(i.created_at),
+    },
+    {
+      key: "retention_state",
+      header: "Retenção",
+      render: (_, i) => (
+        <div className="flex flex-col gap-0.5">
+          <Badge variant={RETENTION_TONE[i.retention_state]} className="w-fit text-[10px]">{RETENTION_LABEL[i.retention_state]}</Badge>
+          {i.retention_until && <span className="text-[11px] text-muted-foreground">até {formatDate(i.retention_until)}</span>}
+        </div>
+      ),
+    },
+    {
+      key: "action",
+      header: "Ações",
+      className: "w-28",
+      render: (_, i) =>
+        i.retention_until ? (
+          <Button size="sm" variant="ghost" onClick={() => { setExtending(i); openModal("archive-retention"); }}>Prorrogar</Button>
+        ) : null,
+    },
+  ];
 
   return (
     <div className="space-y-6">
-      <TitleList title="Arquivo Documental" suTitle="Todos os ficheiros da escola num só sítio: pesquise, controle a retenção e descarregue pacotes com manifesto (SHA-256).">
-        <Button size="sm" className="gap-1.5" disabled={selected.size === 0 || a.bundle.isPending} onClick={() => void download()}>
-          <Icon name="Download" className="size-4" />Descarregar pacote{selected.size > 0 ? ` (${selected.size})` : ""}
+      <TitleList title="Arquivo Documental" suTitle="Emissão em lote de documentos oficiais arquivados.">
+        <Button size="sm" className="gap-1.5" disabled={selectedIds.length === 0 || a.bundle.isPending} onClick={() => void download()}>
+          <Icon name="Download" className="size-4" />Descarregar pacote{selectedIds.length > 0 ? ` (${selectedIds.length})` : ""}
         </Button>
       </TitleList>
 
@@ -106,48 +151,14 @@ export function ArchivePageContent() {
       ) : a.items.length === 0 ? (
         <EmptyState icon="Archive" title="Sem ficheiros" description="Nenhum ficheiro corresponde aos critérios." />
       ) : (
-        <div className="rounded-lg border">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead className="w-10"><Checkbox checked={allOnPage} onCheckedChange={toggleAll} aria-label="Seleccionar todos" /></TableHead>
-                <TableHead>Ficheiro</TableHead>
-                <TableHead>Origem</TableHead>
-                <TableHead className="text-right">Tamanho</TableHead>
-                <TableHead>Criado</TableHead>
-                <TableHead>Retenção</TableHead>
-                <TableHead className="w-28" />
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {a.items.map((i) => (
-                <TableRow key={i.id}>
-                  <TableCell><Checkbox checked={selected.has(i.id)} onCheckedChange={() => toggle(i.id)} aria-label={`Seleccionar ${i.file_name}`} /></TableCell>
-                  <TableCell>
-                    <div className="flex flex-col">
-                      <span className="font-medium">{i.file_name}</span>
-                      {i.document && <span className="text-xs text-muted-foreground">{DOC_TYPE[i.document.type] ?? i.document.type} · {i.document.number}</span>}
-                    </div>
-                  </TableCell>
-                  <TableCell><Badge variant="outline" className="text-[10px]">{i.domain}</Badge></TableCell>
-                  <TableCell className="text-right font-mono text-xs">{bytes(i.size_bytes)}</TableCell>
-                  <TableCell className="whitespace-nowrap text-xs">{formatDate(i.created_at)}</TableCell>
-                  <TableCell>
-                    <div className="flex flex-col gap-0.5">
-                      <Badge variant={RETENTION_TONE[i.retention_state]} className="w-fit text-[10px]">{RETENTION_LABEL[i.retention_state]}</Badge>
-                      {i.retention_until && <span className="text-[11px] text-muted-foreground">até {formatDate(i.retention_until)}</span>}
-                    </div>
-                  </TableCell>
-                  <TableCell>
-                    {i.retention_until && (
-                      <Button size="sm" variant="ghost" onClick={() => { setExtending(i); openModal("archive-retention"); }}>Prorrogar</Button>
-                    )}
-                  </TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </div>
+        <GenericTable
+          data={a.items}
+          columns={columns}
+          selectable
+          selectedIds={selectedIds}
+          onSelectChange={(ids) => setSelectedIds(ids.slice(0, MAX_BUNDLE))}
+          emptyMessage="Nenhum ficheiro corresponde aos critérios."
+        />
       )}
 
       {a.hasMore && (

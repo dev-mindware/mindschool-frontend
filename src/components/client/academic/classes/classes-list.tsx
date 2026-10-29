@@ -9,6 +9,7 @@ import { getApiErrorMessage } from "@/utils/api-error";
 import { AcademicSection } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Progress } from "@/components/ui/progress";
 import { Icon } from "@/components";
 import {
   DropdownMenu,
@@ -63,7 +64,7 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
       key: "classLevel",
       header: "Classe / Nível",
       render: (_, item) => (
-        <span className="font-medium text-foreground text-sm">
+        <span className="text-sm font-medium text-foreground">
           {item.classLevel}
         </span>
       ),
@@ -98,7 +99,7 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
         const conf = shiftMap[item.shift] || shiftMap.MORNING;
         return (
           <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground">
-            <Icon name={conf.icon as any} className={`w-3.5 h-3.5 ${conf.color}`} />
+            <Icon name={conf.icon as any} className={`size-3.5 ${conf.color}`} />
             {conf.label}
           </span>
         );
@@ -110,10 +111,10 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
       render: (_, item) => {
         const room = item.roomNumber?.trim();
         if (!room || room === "—") {
-          return <span className="text-xs text-muted-foreground italic">Sem sala</span>;
+          return <span className="text-xs italic text-muted-foreground">Sem sala</span>;
         }
         return (
-          <span className="text-xs font-mono bg-muted/80 px-2 py-0.5 rounded border border-border/50 text-foreground font-medium">
+          <span className="rounded border border-border/50 bg-muted/80 px-2 py-0.5 font-mono text-xs font-medium text-foreground">
             {room}
           </span>
         );
@@ -129,31 +130,20 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
         );
         const isFull = item.currentEnrollmentCount >= item.capacity;
         return (
-          <div className="flex flex-col gap-1 w-36">
-            <div className="flex justify-between text-xs">
+          <div className="flex flex-col gap-1">
+            <div className="flex items-center justify-between gap-2 text-xs">
               <span className="font-semibold text-foreground">
                 {item.currentEnrollmentCount} / {item.capacity}
               </span>
               <span
                 className={`font-mono text-[11px] ${
-                  isFull ? "text-rose-600 font-medium" : "text-muted-foreground"
+                  isFull ? "font-medium text-destructive" : "text-muted-foreground"
                 }`}
               >
                 {percent}%
               </span>
             </div>
-            <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
-              <div
-                className={`h-full rounded-full transition-all ${
-                  percent >= 90
-                    ? "bg-rose-500"
-                    : percent >= 75
-                    ? "bg-amber-500"
-                    : "bg-emerald-500"
-                }`}
-                style={{ width: `${percent}%` }}
-              />
-            </div>
+            <Progress value={percent} className="h-1.5 w-20" />
           </div>
         );
       },
@@ -164,31 +154,31 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
       render: (_, item) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Abrir menu de ações">
-              <Icon name="EllipsisVertical" className="h-4 w-4" />
+            <Button variant="ghost" size="icon" className="size-8" aria-label="Abrir menu de ações">
+              <Icon name="EllipsisVertical" className="size-4" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
             <DropdownMenuItem
-              className="gap-2 cursor-pointer"
+              className="cursor-pointer gap-2"
               onClick={() => handleViewDetails(item)}
             >
-              <Icon name="Eye" className="h-4 w-4 text-muted-foreground" />
+              <Icon name="Eye" className="size-4 text-muted-foreground" />
               Ver Detalhes da Turma
             </DropdownMenuItem>
 <Can permission="section:write">
             <DropdownMenuItem
-              className="gap-2 cursor-pointer"
+              className="cursor-pointer gap-2"
               onClick={() => handleEdit(item)}
             >
-              <Icon name="Pencil" className="h-4 w-4" />
+              <Icon name="Pencil" className="size-4" />
               Editar Turma
             </DropdownMenuItem>
             <DropdownMenuItem
-              className="gap-2 cursor-pointer text-destructive focus:text-destructive"
+              className="cursor-pointer gap-2 text-destructive focus:text-destructive"
               onClick={() => { setToDelete(item); openModal("section-delete"); }}
             >
-              <Icon name="Trash2" className="h-4 w-4" />
+              <Icon name="Trash2" className="size-4" />
               Apagar Turma
             </DropdownMenuItem>
 </Can>

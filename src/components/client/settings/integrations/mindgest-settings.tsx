@@ -1,8 +1,8 @@
 "use client";
 
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { Badge, Button, Card, CardContent, CardHeader, CardTitle, ConfirmModal, Icon } from "@/components";
-import { mindgestService } from "@/services/mindgest-service";
+import { Badge, Button, ConfirmModal, GenericTable, Icon, Separator, type Column } from "@/components";
+import { mindgestService, type ApiMindgestStatus } from "@/services/mindgest-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -19,6 +19,8 @@ const ERRORS: Record<string, string> = {
   unreachable: "Não foi possível contactar o MindGest. Tente de novo dentro de instantes.",
 };
 const errorText = (e: string) => ERRORS[e] ?? `O MindGest respondeu com um erro (${e}).`;
+
+type CatalogueRow = ApiMindgestStatus["catalogue"]["items"][number] & { id: string };
 
 /** Definições › Integrações › MindGest (só o titular): estado da ligação de faturação, catálogo de emolumentos, testar e desligar. */
 export function MindgestSettings() {
@@ -45,16 +47,39 @@ export function MindgestSettings() {
   const connected = s.status === "active";
   const badge = !connected ? { label: "Não ligado", variant: "secondary" as const } : s.paused ? { label: "Emissões em pausa", variant: "warning" as const } : s.setup === "ready" ? { label: "Ligado", variant: "success" as const } : { label: "Configuração incompleta", variant: "warning" as const };
 
+  const catalogueRows: CatalogueRow[] = s.catalogue.items.map((i) => ({ ...i, id: i.service_ref }));
+  const catalogueColumns: Column<CatalogueRow>[] = [
+    {
+      key: "name",
+      header: "Serviço / Emolumento",
+      render: (_, i) => <span className="font-medium text-xs">{i.name}</span>,
+    },
+    {
+      key: "reference_price",
+      header: "Valor de Referência",
+      render: (_, i) => <span className="text-xs text-muted-foreground">{money(i.reference_price)}</span>,
+    },
+    {
+      key: "state",
+      header: "Estado Fiscal",
+      render: (_, i) => (
+        <Badge variant={i.state === "pronto" ? "success" : "warning"}>
+          {i.state === "pronto" ? "Pronto" : "Falta definir o imposto"}
+        </Badge>
+      ),
+    },
+  ];
+
   return (
-    <div className="space-y-4">
-      <Card>
-        <CardHeader className="flex-row items-center justify-between gap-3 space-y-0 pb-3">
-          <CardTitle className="flex items-center gap-2 text-sm font-semibold">
+    <div className="space-y-6">
+      <section className="space-y-3">
+        <div className="flex items-center justify-between gap-3">
+          <h3 className="flex items-center gap-2 text-sm font-semibold">
             <Icon name="ReceiptText" className="size-4 text-primary" />MindGest — faturação
-          </CardTitle>
+          </h3>
           <Badge variant={badge.variant}>{badge.label}</Badge>
-        </CardHeader>
-        <CardContent className="space-y-3 text-sm">
+        </div>
+        <div className="space-y-3 text-sm">
           {connected ? (
             <>
               <p className="text-muted-foreground">
@@ -85,41 +110,42 @@ export function MindgestSettings() {
               </p>
             </>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </section>
 
       {connected && (
-        <Card>
-          <CardHeader className="pb-3">
-            <CardTitle className="text-sm font-semibold">Catálogo de emolumentos</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-3 text-sm">
-            <p className="text-muted-foreground">
-              Cada tipo de cobrança é enviado ao MindGest como um serviço. O <strong className="text-foreground">imposto de cada serviço define-se no MindGest</strong> (Configurações › Plugins › MindSchool › Serviços),
-              por quem gere a empresa. Enquanto faltar algum, as faturas desses serviços ficam em espera; os pagamentos continuam a ser registados.
-            </p>
-            {s.catalogue.items.length === 0 ? (
-              <p className="text-xs text-muted-foreground">Catálogo ainda não enviado. Use «Reenviar catálogo».</p>
-            ) : (
-              <ul className="divide-y rounded-md border">
-                {s.catalogue.items.map((i) => (
-                  <li key={i.service_ref} className="flex items-center justify-between gap-3 px-3 py-2">
-                    <div>
-                      <span className="font-medium">{i.name}</span>
-                      <div className="text-xs text-muted-foreground">Valor de referência: {money(i.reference_price)}</div>
-                    </div>
-                    <Badge variant={i.state === "pronto" ? "success" : "warning"}>{i.state === "pronto" ? "Pronto" : "Falta definir o imposto"}</Badge>
-                  </li>
-                ))}
-              </ul>
-            )}
-            <p className="text-xs text-muted-foreground">Catálogo enviado em {when(s.catalogue.synced_at)}.</p>
-          </CardContent>
-        </Card>
+        <>
+          <Separator />
+          <section className="space-y-3">
+            <h3 className="text-sm font-semibold">Catálogo de emolumentos</h3>
+            <div className="space-y-3 text-sm">
+              <p className="text-muted-foreground">
+                Cada tipo de cobrança é enviado ao MindGest como um serviço. O <strong className="text-foreground">imposto de cada serviço define-se no MindGest</strong> (Configurações › Plugins › MindSchool › Serviços),
+                por quem gere a empresa. Enquanto faltar algum, as faturas desses serviços ficam em espera; os pagamentos continuam a ser registados.
+              </p>
+              {catalogueRows.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Catálogo ainda não enviado. Use «Reenviar catálogo».</p>
+              ) : (
+                <GenericTable<CatalogueRow> data={catalogueRows} columns={catalogueColumns} />
+              )}
+              <p className="text-xs text-muted-foreground">Catálogo enviado em {when(s.catalogue.synced_at)}.</p>
+            </div>
+          </section>
+        </>
       )}
 
-      {connected && <MindgestOperations s={s} onChange={() => void refresh()} />}
-      {connected && <MindgestBackfill />}
+      {connected && (
+        <>
+          <Separator />
+          <MindgestOperations s={s} onChange={() => void refresh()} />
+        </>
+      )}
+      {connected && (
+        <>
+          <Separator />
+          <MindgestBackfill />
+        </>
+      )}
 
       <ConfirmModal
         id={DISCONNECT}

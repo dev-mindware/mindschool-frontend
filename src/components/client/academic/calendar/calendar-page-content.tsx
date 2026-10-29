@@ -50,7 +50,7 @@ function NewEventModal() {
   const { open, modalData } = useModal();
   const planModal = usePlanUpgradeModal();
   const preset = (modalData["calendar-new-event"] as { date?: string } | undefined)?.date ?? "";
-  const [f, setF] = useState({ type: "actividade_escolar", title: "", start: "", end: "", startTime: "", endTime: "", visibility: "interna" as ApiEvent["visibility"], location: "", justification: "" });
+  const [f, setF] = useState({ type: "atividade_escolar", title: "", start: "", end: "", startTime: "", endTime: "", visibility: "interna" as ApiEvent["visibility"], location: "", justification: "" });
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }));
   const start = f.start || preset;
 
@@ -122,7 +122,6 @@ function GooglePanel() {
 
 /** Calendário escolar: vista de calendário (mês) e lista, filtros completos, feriados/pontes e ligação ao Google Calendar. */
 export function CalendarPageContent() {
-  // Sem o calendário geral (Essencial): só dias letivos, feriados e marcas da Direção.
   const full = useEntitled({ feature: "calendar_general", minPlan: "profissional" });
   return full ? <FullCalendarContent /> : <SchoolDaysView />;
 }
@@ -157,7 +156,7 @@ function FullCalendarContent() {
   };
 
   const eventColumns: Column<ApiEvent>[] = [
-    { key: "start_date", header: "Data", render: (_, e) => <span className="font-mono text-xs whitespace-nowrap">{formatIsoDay(e.start_date)}{e.end_date !== e.start_date ? ` → ${formatIsoDay(e.end_date)}` : ""}</span> },
+    { key: "start_date", header: "Data", render: (_, e) => <span className="whitespace-nowrap font-mono text-xs">{formatIsoDay(e.start_date)}{e.end_date !== e.start_date ? ` → ${formatIsoDay(e.end_date)}` : ""}</span> },
     { key: "title", header: "Evento", render: (_, e) => (<div className="flex flex-col"><span className="font-medium">{e.title}</span><span className="text-xs text-muted-foreground">{EVENT_TYPE_LABEL[e.type] ?? e.type}{e.origin === "google_proposta" ? " • proposta do Google" : ""}</span></div>) },
     { key: "effect", header: "Efeito", render: (_, e) => EFFECT[e.effect] },
     { key: "visibility", header: "Visibilidade", render: (_, e) => VISIBILITY[e.visibility] },
@@ -194,7 +193,7 @@ function FullCalendarContent() {
 
   return (
     <div className="space-y-6">
-      <TitleList title="Calendário Escolar" suTitle={c.year ? `Ano letivo ${c.year.name}: eventos, feriados e pontes, e sincronização com o Google Calendar.` : "Não há ano letivo ativo."}>
+      <TitleList title="Calendário Escolar" suTitle="Gestão de períodos letivos, feriados, exames e eventos.">
         <div className="flex gap-2">
           <Can permission="calendar:write"><Button size="sm" variant="outline" className="gap-1.5" disabled={!c.year || c.importNational.isPending} onClick={() => c.importNational.mutateAsync("apply").then(() => SucessMessage("Calendário nacional importado.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}><Icon name="Download" className="size-4" />Importar calendário nacional</Button></Can>
           <Can permission="calendar:write"><Button size="sm" className="gap-1.5" disabled={!c.year} onClick={() => openModal("calendar-new-event")}><Icon name="Plus" className="size-4" />Novo evento</Button></Can>
@@ -216,20 +215,28 @@ function FullCalendarContent() {
         </TabsList>
 
         <TabsContent value="events" className="space-y-4">
-          <div className="mt-6 inline-flex rounded-md border bg-sidebar p-1">
-            <Button size="sm" variant={view === "calendario" ? "default" : "ghost"} className="h-8 gap-1.5" onClick={() => f.setFilter("vista", "calendario")}><Icon name="CalendarDays" className="size-4" />Calendário</Button>
-            <Button size="sm" variant={view === "lista" ? "default" : "ghost"} className="h-8 gap-1.5" onClick={() => f.setFilter("vista", "lista")}><Icon name="List" className="size-4" />Lista</Button>
-          </div>
+          <Tabs value={view} onValueChange={(v) => f.setFilter("vista", v)} className="mt-6 space-y-4">
+            <TabsList>
+              <TabsTrigger value="calendario" className="gap-1.5">
+                <Icon name="CalendarDays" className="size-4" />
+                Calendário
+              </TabsTrigger>
+              <TabsTrigger value="lista" className="gap-1.5">
+                <Icon name="List" className="size-4" />
+                Lista
+              </TabsTrigger>
+            </TabsList>
 
-          {view === "calendario" ? (
-            <div className="space-y-6">
+            <TabsContent value="calendario" className="space-y-6">
               <ListFilterBar<ApiEvent> prefix="eventos" f={f} searchPlaceholder="Pesquisar eventos" filters={EVENT_FILTERS} dateFilters={EVENT_DATES} shown={filtered.length} total={c.events.length} />
               <MonthCalendar items={items} month={month} onMonthChange={setMonth} markedDays={nonLective} onSelectItem={(it) => { const e = c.events.find((x) => x.id === it.id); if (e) open(e); }} onSelectDay={(d) => openModal("calendar-new-event", { date: d })} />
               <p className="text-xs text-muted-foreground">Dias com fundo âmbar são não letivos. Clique num dia para criar um evento e num evento para ver o detalhe.</p>
-            </div>
-          ) : (
-            <DataList<ApiEvent> prefix="eventos" rows={c.events} columns={eventColumns} isLoading={c.eventsLoading} searchPlaceholder="Pesquisar eventos" searchText={eventText} filters={EVENT_FILTERS} dateFilters={EVENT_DATES} sorts={EVENT_SORTS} emptyTitle="Sem eventos" emptyDescription="Importe o calendário nacional ou crie um evento." emptyIcon="CalendarDays" />
-          )}
+            </TabsContent>
+
+            <TabsContent value="lista">
+              <DataList<ApiEvent> prefix="eventos" rows={c.events} columns={eventColumns} isLoading={c.eventsLoading} searchPlaceholder="Pesquisar eventos" searchText={eventText} filters={EVENT_FILTERS} dateFilters={EVENT_DATES} sorts={EVENT_SORTS} emptyTitle="Sem eventos" emptyDescription="Importe o calendário nacional ou crie um evento." emptyIcon="CalendarDays" />
+            </TabsContent>
+          </Tabs>
         </TabsContent>
 
         <TabsContent value="holidays" className="space-y-2">
@@ -258,7 +265,7 @@ function FullCalendarContent() {
 
       <FormModal id="calendar-event-detail" title={selected?.title ?? "Evento"} description={selected ? `${EVENT_TYPE_LABEL[selected.type] ?? selected.type} • ${STATUS[selected.status]}` : undefined} readOnly onSubmit={() => undefined}>
         {selected && (
-          <div className="sm:col-span-2 space-y-3 text-sm">
+          <div className="space-y-3 text-sm sm:col-span-2">
             <dl className="grid grid-cols-2 gap-3">
               <div><dt className="text-[11px] uppercase text-muted-foreground">Data</dt><dd className="font-mono">{formatIsoDay(selected.start_date)}{selected.end_date !== selected.start_date ? ` → ${formatIsoDay(selected.end_date)}` : ""}</dd></div>
               <div><dt className="text-[11px] uppercase text-muted-foreground">Horário</dt><dd className="font-mono">{selected.start_time ? `${selected.start_time.slice(0, 5)}–${selected.end_time?.slice(0, 5) ?? ""}` : "Dia inteiro"}</dd></div>

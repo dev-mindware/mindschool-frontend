@@ -55,7 +55,7 @@ export function SecurityCenter() {
           <Badge variant="outline" className={s.mfaEnabled ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700" : ""}>{s.mfaEnabled ? "Segundo factor ativo" : "Sem segundo factor"}</Badge>
         </div>
         {!s.mfaEnabled && s.mfaRequired && (
-          <div className="flex items-start gap-2 rounded-md border border-primary/30 bg-primary/5 p-3 text-sm">
+          <div className="flex items-start gap-2 rounded-xs border border-primary/30 bg-primary/5 p-3 text-sm">
             <Icon name="ShieldAlert" className="mt-0.5 size-4 shrink-0 text-primary" />
             <p>O seu perfil exige o segundo factor. Leva um minuto: clique em «Configurar autenticador» e siga os três passos.</p>
           </div>
@@ -99,7 +99,7 @@ export function SecurityCenter() {
           rows={s.sessions}
           columns={sessionColumns}
           filters={[{ key: "tipo", label: "Sessão", icon: "Monitor", options: [{ value: "actual", label: "Esta sessão" }, { value: "outras", label: "Outros dispositivos" }], match: (x, v) => (v === "actual" ? x.current : !x.current) }]}
-          sorts={[{ value: "actividade", label: "Última atividade", compare: (a, b) => a.last_active_at.localeCompare(b.last_active_at) }]}
+          sorts={[{ value: "atividade", label: "Última atividade", compare: (a, b) => a.last_active_at.localeCompare(b.last_active_at) }]}
           emptyTitle="Sem sessões"
           emptyIcon="Monitor"
           skeletonCols={4}

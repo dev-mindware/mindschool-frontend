@@ -16,7 +16,7 @@ export interface StatusLegendItem {
  */
 export function StatusLegend({ title = "Legenda dos estados", items }: { title?: string; items: StatusLegendItem[] }) {
   return (
-    <details className="group rounded-lg border bg-card text-xs">
+    <details className="group rounded-xs border bg-card text-xs">
       <summary className="flex cursor-pointer list-none items-center gap-2 px-3 py-2 font-medium text-muted-foreground hover:text-foreground">
         <Icon name="Info" className="size-3.5" />
         {title}

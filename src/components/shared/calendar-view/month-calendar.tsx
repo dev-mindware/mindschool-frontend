@@ -75,7 +75,7 @@ export function MonthCalendar({ items, month, onMonthChange, onSelectItem, onSel
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-2xl border border-border/80 bg-card shadow-xs">
+      <div className="overflow-hidden rounded-xs border border-border/80 bg-card shadow-xs">
         <div className="grid grid-cols-7 border-b bg-muted/40 text-center text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
           {WEEKDAYS.map((d) => <div key={d} className="py-2">{d}</div>)}
         </div>

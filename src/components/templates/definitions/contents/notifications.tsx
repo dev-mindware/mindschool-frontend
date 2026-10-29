@@ -88,7 +88,7 @@ export function Notification() {
 
     if (permission === "granted") {
       setBrowserNotificationsEnabled(true);
-      SucessMessage("Notificações do navegador ativadas.");
+      SucessMessage("Notificações do navegador activadas.");
       return;
     }
 
@@ -128,7 +128,7 @@ export function Notification() {
 
       <Separator />
 
-      <div className="rounded-lg border bg-card p-5 shadow-sm">
+      <div className="rounded-xs border bg-card p-5 shadow-sm">
         <SettingRow
           icon="Volume2"
           label="Som das notificações"
@@ -211,7 +211,7 @@ export function Notification() {
               }
               onCheckedChange={handleBrowserNotificationsChange}
               disabled={!browserNotificationsAvailable || browserNotificationsBlocked}
-              aria-label="Ativar notificações do navegador"
+              aria-label="Activar notificações do navegador"
             />
           }
         />
@@ -261,7 +261,7 @@ function SettingRow({
       )}
     >
       <div className="flex max-w-xl items-start gap-3">
-        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-md bg-primary/10">
+        <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xs bg-primary/10">
           <Icon name={icon} className="h-4 w-4 text-primary" />
         </div>
         <div className="space-y-1">

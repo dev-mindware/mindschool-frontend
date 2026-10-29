@@ -29,7 +29,7 @@ export function OverviewSectionCard({
         <Card className={cn("flex flex-col h-full gap-0 py-4", className)}>
             <CardHeader className="flex flex-row items-center justify-between gap-2 px-4 pb-3">
                 <CardTitle className="flex items-center gap-2 text-base font-semibold">
-                    <span className="flex size-8 items-center justify-center rounded-md bg-primary/10 text-primary">
+                    <span className="flex size-8 items-center justify-center rounded-xs bg-primary/10 text-primary">
                         <Icon name={icon} className="size-4" />
                     </span>
                     {title}

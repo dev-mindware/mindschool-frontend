@@ -5,9 +5,10 @@ import React, { useState } from "react";
 import { AdmissionApplication, EntranceExam } from "@/types/admission";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Can, ConfirmModal, DataList, Icon, type Column } from "@/components";
 import { useModal } from "@/stores/modal/use-modal-store";
-import { ErrorMessage } from "@/utils/messages";
+import { ErrorMessage, SucessMessage } from "@/utils/messages";
 import { getApiErrorMessage } from "@/utils/api-error";
 import {
   DropdownMenu,
@@ -21,7 +22,6 @@ import { DecisionModal } from "./decision-modal";
 import { GradeExamModal } from "./grade-exam-modal";
 import { ConvertToEnrollmentModal } from "./convert-to-enrollment-modal";
 import { useAdmissions } from "@/hooks/school/use-admissions";
-import { SucessMessage } from "@/utils/messages";
 
 interface ApplicationsListProps {
   applications: AdmissionApplication[];
@@ -119,9 +119,11 @@ export function ApplicationsList({ applications, entranceExams = [] }: Applicati
               <img src={item.passportPhotoUrl} alt="" className="h-full w-full object-cover" />
             </div>
           ) : (
-            <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-medium text-xs shrink-0">
-              {item.candidateName.charAt(0)}
-            </div>
+            <Avatar className="h-8 w-8 shrink-0">
+              <AvatarFallback className="bg-primary/10 text-primary font-medium text-xs">
+                {item.candidateName.charAt(0)}
+              </AvatarFallback>
+            </Avatar>
           )}
           <div className="flex flex-col">
             <span className="font-medium text-foreground text-sm">
@@ -164,15 +166,9 @@ export function ApplicationsList({ applications, entranceExams = [] }: Applicati
           const isPassed = item.examScore >= item.minPassingScore;
           return (
             <div className="flex flex-col gap-0.5">
-              <span
-                className={`text-xs font-medium px-2 py-0.5 rounded w-fit border ${
-                  isPassed
-                    ? "border-success-border bg-success-muted text-success"
-                    : "border-destructive-border bg-destructive-muted text-destructive"
-                }`}
-              >
+              <Badge variant={isPassed ? "success" : "destructive"} className="text-xs">
                 {item.examScore.toFixed(1)} val. {isPassed ? "✓ Aprovado" : "✗ Reprovado"}
-              </span>
+              </Badge>
               <span className="text-[10px] text-muted-foreground truncate max-w-[140px]">
                 {item.entranceExamTitle || "Prova de Acesso"}
               </span>

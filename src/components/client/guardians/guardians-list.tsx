@@ -1,10 +1,9 @@
 "use client";
 
 import React, { useState } from "react";
-import { Can, DataList, type Column } from "@/components";
+import { Avatar, AvatarFallback, Can, DataList, type Column } from "@/components";
 import { Guardian } from "@/types";
 import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { Icon } from "@/components";
 import {
   DropdownMenu,
@@ -23,6 +22,14 @@ interface GuardiansListProps {
   isLoading?: boolean;
   isError?: boolean;
 }
+
+const getInitials = (name: string) =>
+  name
+    .split(" ")
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((n) => n[0]?.toUpperCase())
+    .join("");
 
 export function GuardiansList({ guardians, isLoading, isError }: GuardiansListProps) {
   const { inviteGuardian } = useGuardians();
@@ -49,11 +56,18 @@ export function GuardiansList({ guardians, isLoading, isError }: GuardiansListPr
       key: "fullName",
       header: "Nome do Encarregado",
       render: (_, item) => (
-        <div className="flex flex-col">
-          <span className="font-medium text-foreground">{item.fullName}</span>
-          <span className="text-xs text-muted-foreground">
-            BI: {item.idDocumentNumber || "Não informado"}
-          </span>
+        <div className="flex items-center gap-2.5">
+          <Avatar className="h-8 w-8 shrink-0">
+            <AvatarFallback className="bg-primary/10 text-primary text-xs font-medium">
+              {getInitials(item.fullName)}
+            </AvatarFallback>
+          </Avatar>
+          <div className="flex flex-col">
+            <span className="font-medium text-foreground">{item.fullName}</span>
+            <span className="text-xs text-muted-foreground">
+              BI: {item.idDocumentNumber || "Não informado"}
+            </span>
+          </div>
         </div>
       ),
     },

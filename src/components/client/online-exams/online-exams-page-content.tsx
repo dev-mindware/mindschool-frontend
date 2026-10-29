@@ -34,7 +34,7 @@ export function OnlineExamsPageContent() {
     <div className="space-y-6">
       <TitleList
         title="Avaliações & Provas Online"
-        suTitle="Elabore provas com escolha múltipla, V/F, resposta curta e dissertativas, na plataforma ou num Google Form, com lançamento na mini-pauta."
+        suTitle="Criação, publicação e correcção de provas online."
       >
         <Can permission="exam:write"><Button variant="default" size="sm" onClick={() => openModal(CREATE_EXAM_MODAL_ID)} className="gap-2 shadow-xs text-xs font-semibold">
           <Icon name="Plus" className="size-4" />

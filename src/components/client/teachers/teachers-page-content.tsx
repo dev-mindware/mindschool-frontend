@@ -18,7 +18,7 @@ function CardPreview({ payload, name }: { payload: string; name: string }) {
   const { profile } = useSchoolSettingsStore();
   useEffect(() => { if (ref.current) void QRCode.toCanvas(ref.current, payload, { width: 180, margin: 1 }); }, [payload]);
   return (
-    <div className="mx-auto w-64 space-y-2 rounded-xl border-2 border-primary/40 bg-white p-4 text-center text-slate-900">
+    <div className="mx-auto w-64 space-y-2 rounded-xs border-2 border-primary/40 bg-white p-4 text-center text-slate-900">
       <p className="text-[10px] font-bold uppercase tracking-widest">{profile.schoolName}</p>
       <canvas ref={ref} className="mx-auto" />
       <p className="text-sm font-semibold">{name}</p>
@@ -56,7 +56,7 @@ function CredentialsModal({ teacher }: { teacher: ApiTeacherFull | null }) {
   return (
     <>
       <FormModal id="teachers-credentials" title={`Credenciais de ponto — ${teacher?.full_name ?? ""}`} description="O cartão físico só é mostrado uma vez: imprima-o logo após a emissão." size="lg" readOnly onSubmit={() => undefined}>
-        <div className="sm:col-span-2 space-y-4 text-sm">
+        <div className="space-y-4 text-sm sm:col-span-2">
           <Can permission="attendance:write" fallback={<p className="text-xs text-muted-foreground">A emissão de credenciais é feita pela Direção Pedagógica.</p>}>
           <div className="flex flex-wrap gap-2">
             <Button size="sm" variant="outline" disabled={issue.isPending} onClick={() => issue.mutateAsync("cartao_fisico").then((c) => { setCard(c.qr_payload ?? null); SucessMessage("Cartão emitido."); }).catch(fail)}>Emitir cartão físico</Button>
@@ -79,7 +79,7 @@ function CredentialsModal({ teacher }: { teacher: ApiTeacherFull | null }) {
           )}
           {credentials.length === 0 && <p className="text-muted-foreground">Sem credenciais emitidas.</p>}
           {credentials.map((c) => (
-            <div key={c.id} className="flex items-center justify-between rounded-lg border p-2">
+            <div key={c.id} className="flex items-center justify-between rounded-xs border p-2">
               <span>{c.credential_type === "cartao_fisico" ? "Cartão físico" : "QR da aplicação"} • {c.issued_at.slice(0, 10)}</span>
               <span className="flex items-center gap-2">
                 <Badge variant="outline">{c.status}</Badge>
@@ -110,7 +110,7 @@ export function TeachersPageContent() {
     { key: "full_name", header: "Professor", render: (_, x) => (<div className="flex flex-col"><span className="font-medium">{x.full_name}</span><span className="text-xs text-muted-foreground">{x.email}</span></div>) },
     { key: "document_number", header: "Documento", render: (_, x) => <span className="font-mono text-xs">{x.document_number}</span> },
     { key: "academic_qualification", header: "Habilitação", render: (_, x) => x.academic_qualification ?? "—" },
-    { key: "status", header: "Estado", render: (_, x) => <Badge variant={x.status === "activo" ? "outline" : "secondary"} className={x.status === "activo" ? "border-emerald-500/30 bg-emerald-500/10 text-emerald-700" : ""}>{STATUS[x.status]}</Badge> },
+    { key: "status", header: "Estado", render: (_, x) => <Badge variant={x.status === "activo" ? "success" : "secondary"}>{STATUS[x.status]}</Badge> },
     {
       key: "action", header: "Ação",
       render: (_, x) => (

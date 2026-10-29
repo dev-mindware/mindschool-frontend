@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { Button, Icon } from "@/components";
+import { Button, Icon, Textarea } from "@/components";
 import { TabsContent } from "@/components/ui/tabs";
 import { LocalChatHistoryItem } from "./index";
 
@@ -97,7 +97,7 @@ export function ChatTab({
 
     return (
         <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden m-0 outline-none data-[state=inactive]:hidden">
-            <div className="mx-6 mt-1 rounded-lg border border-border/60 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
+            <div className="mx-6 mt-1 rounded-xs border border-border/60 bg-muted/30 px-3 py-2 text-xs text-muted-foreground">
                 <span className="font-medium text-foreground">Limite semanal do MIND:</span>{" "}
                 {totalMessagesUsed}/{messageLimit} mensagens utilizadas esta semana. O limite renova todas as segundas-feiras.
             </div>
@@ -105,16 +105,17 @@ export function ChatTab({
             <div className="flex-1 overflow-y-auto px-6 py-2 space-y-4">
                 {messages.length === 0 ? (
                     <div className="flex flex-col gap-4 mt-2">
-                        <div className="flex flex-col overflow-hidden shadow-sm">
+                        <div className="flex flex-col overflow-hidden">
                             {QUICK_ACTIONS.map((action, index) => (
-                                <button
+                                <Button
                                     key={index}
+                                    variant="ghost"
                                     onClick={() => setInput(action.label)}
-                                    className="w-full flex items-center gap-3 py-3 border-b last:border-0 border-border/60 hover:bg-secondary/40 transition-colors group text-left px-4"
+                                    className="w-full h-auto justify-start flex items-center gap-3 py-3 border-b last:border-0 border-border/60 rounded-none text-left px-4"
                                 >
-                                    <Icon name="ArrowUpRight" className="h-3.5 w-3.5 text-muted-foreground group-hover:text-foreground font-bold shrink-0" strokeWidth={2.5} />
+                                    <Icon name="ArrowUpRight" className="h-3.5 w-3.5 text-muted-foreground shrink-0" strokeWidth={2.5} />
                                     <span className="text-sm text-foreground/90 font-medium">{action.label}</span>
-                                </button>
+                                </Button>
                             ))}
                         </div>
                     </div>
@@ -123,7 +124,7 @@ export function ChatTab({
                         {messages.map((msg, idx) => (
                             <div key={idx} className={`flex ${msg.role === "user" ? "justify-end" : "justify-start"}`}>
                                 <div
-                                    className={`max-w-[85%] rounded-2xl p-3 px-4 ${
+                                    className={`max-w-[85%] rounded-xs p-3 px-4 ${
                                         msg.role === "user"
                                             ? msg.failed
                                                 ? "bg-primary/60 text-primary-foreground rounded-br-sm opacity-80"
@@ -149,7 +150,7 @@ export function ChatTab({
 
                         {isPending && (
                             <div className="flex justify-start">
-                                <div className="max-w-[80%] rounded-2xl p-4 bg-muted text-foreground rounded-bl-sm flex items-center gap-2">
+                                <div className="max-w-[80%] rounded-xs p-4 bg-muted text-foreground rounded-bl-sm flex items-center gap-2">
                                     <Icon name="Loader" className="h-4 w-4 animate-spin text-muted-foreground" />
                                     <span className="text-xs font-medium text-muted-foreground">MIND está a pensar...</span>
                                 </div>
@@ -177,13 +178,13 @@ export function ChatTab({
                     </div>
                 )}
 
-                <div className="relative border border-border/80 rounded-2xl focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all bg-background shadow-sm">
-                    <textarea
+                <div className="relative border border-border/80 rounded-xs focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all bg-background shadow-xs">
+                    <Textarea
                         value={input}
                         maxLength={150}
                         onChange={(e) => setInput(e.target.value)}
                         onKeyDown={handleKeyDown}
-                        className="w-full min-h-[100px] max-h-[160px] p-4 pr-12 bg-transparent border-0 resize-none focus:outline-none text-sm placeholder:text-muted-foreground font-medium"
+                        className="w-full min-h-[100px] max-h-[160px] p-4 pr-12 bg-transparent border-0 resize-none focus-visible:ring-0 shadow-none text-sm placeholder:text-muted-foreground font-medium"
                         placeholder={limitReached ? "Limite semanal de mensagens atingido" : "Pergunte qualquer coisa..."}
                         disabled={isPending || limitReached}
                     />
@@ -193,13 +194,15 @@ export function ChatTab({
                             Esta semana: {totalMessagesUsed}/{messageLimit}
                         </span>
                     </div>
-                    <button
+                    <Button
+                        type="button"
+                        size="icon"
                         onClick={handleSend}
                         disabled={isPending || !input.trim() || limitReached}
-                        className="absolute right-3 bottom-3 p-2 bg-primary text-primary-foreground hover:bg-primary/90 rounded-full transition-colors flex items-center justify-center shadow-md disabled:opacity-50"
+                        className="absolute right-3 bottom-3 size-8 rounded-xs shadow-xs"
                     >
                         <Icon name="Send" className="h-4 w-4" />
-                    </button>
+                    </Button>
                 </div>
                 <p className="text-center text-[11px] text-muted-foreground mt-3 font-medium">
                     MIND pode cometer erros. Verifique as respostas.

@@ -137,17 +137,17 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               onClick={handleDecrement}
               disabled={disabled || isAtMin}
               aria-label="Diminuir quantidade"
-              className="flex items-center justify-center min-w-[44px] min-h-[44px] sm:min-w-10 sm:min-h-10 rounded-md bg-muted hover:bg-muted/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center justify-center min-w-[44px] min-h-[44px] sm:min-w-10 sm:min-h-10 rounded-xs bg-muted hover:bg-muted/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <Minus className="w-5 h-5 text-foreground" />
             </button>
 
             <div
               className={cn(
-                "flex-1 rounded-md border px-3 py-2 text-sm transition-colors duration-200",
+                "flex-1 rounded-xs border px-3 py-2 text-sm transition-colors duration-200",
                 error
                   ? "border-red-500 ring-1 ring-red-400"
-                  : "border-input focus-within:border-primary-500 focus-within:ring-[3px] focus-within:ring-ring/50",
+                  : "border-input focus-within:border-primary focus-within:ring-[3px] focus-within:ring-ring/50",
                 className
               )}
             >
@@ -181,7 +181,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               onClick={handleIncrement}
               disabled={disabled || isAtMax}
               aria-label="Aumentar quantidade"
-              className="flex items-center justify-center min-w-[44px] min-h-[44px] sm:min-w-10 sm:min-h-10 rounded-md bg-muted hover:bg-muted/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+              className="flex items-center justify-center min-w-[44px] min-h-[44px] sm:min-w-10 sm:min-h-10 rounded-xs bg-muted hover:bg-muted/80 disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
             >
               <Plus className="w-5 h-5 text-foreground" />
             </button>
@@ -189,10 +189,10 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
         ) : (
           <div
             className={cn(
-              "flex items-center rounded-md border px-3 py-2 text-sm transition-colors duration-200 w-full",
+              "flex items-center rounded-xs border px-3 py-2 text-sm transition-colors duration-200 w-full",
               error
                 ? "border-red-500 ring-1 ring-red-400"
-                : "border-input focus-within:border-primary-500 focus-within:ring-[3px] focus-within:ring-ring/50",
+                : "border-input focus-within:border-primary focus-within:ring-[3px] focus-within:ring-ring/50",
               className
             )}
           >

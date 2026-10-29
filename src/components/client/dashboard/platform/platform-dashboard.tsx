@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { Badge, DashboardSkeleton, DynamicMetricCard, EmptyState } from "@/components";
+import { Badge, DashboardSkeleton, DynamicMetricCard, EmptyState, Progress } from "@/components";
 import { ADMIN_PANEL_URL } from "@/constants/routes";
 import { platformService } from "@/services/platform-service";
 import { formatCurrency } from "@/utils/format-currency";
@@ -58,7 +58,10 @@ export function PlatformDashboard() {
                 {statuses.map(([k, v]) => (
                   <li key={k} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                     <span>{STATUS_LABEL[k] ?? k}</span>
-                    <span className="flex items-center gap-3"><span className="h-1.5 w-28 overflow-hidden rounded-full bg-muted"><span className="block h-full rounded-full bg-primary" style={{ width: `${schools ? (v / schools) * 100 : 0}%` }} /></span><span className="w-6 text-right font-semibold tabular-nums">{v}</span></span>
+                    <span className="flex items-center gap-3">
+                      <Progress value={schools ? (v / schools) * 100 : 0} className="h-2 w-28" />
+                      <span className="w-6 text-right font-semibold tabular-nums">{v}</span>
+                    </span>
                   </li>
                 ))}
               </ul>
@@ -74,7 +77,7 @@ export function PlatformDashboard() {
                 title="Tudo operacional"
                 description="Não há alertas críticos ou eventos falhados nas filas."
               />
-            ) : attention.map(([k, v]) => <Badge key={k} variant={v > 0 ? "warning" : "outline"} className="font-normal">{ATTENTION[k] ?? k}: {v}</Badge>)}
+            ) : attention.map(([k, v]) => <Badge key={k} variant={v > 0 ? "warning" : "secondary"} className="font-normal">{ATTENTION[k] ?? k}: {v}</Badge>)}
           </div>
         </OverviewSectionCard>
       </div>

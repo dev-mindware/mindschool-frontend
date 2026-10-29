@@ -72,7 +72,7 @@ function SubscriptionBanner() {
           <Link href="/plans">{cta}</Link>
         </Button>
         {level === "neutral" && (
-          <button onClick={() => setDismissed(true)} className="rounded-md p-1 opacity-70 transition-opacity hover:opacity-100" aria-label="Fechar banner"><X className="h-4 w-4" /></button>
+          <button onClick={() => setDismissed(true)} className="rounded-xs p-1 opacity-70 transition-opacity hover:opacity-100" aria-label="Fechar banner"><X className="h-4 w-4" /></button>
         )}
       </div>
     </div>

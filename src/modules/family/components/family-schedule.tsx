@@ -1,7 +1,7 @@
 "use client";
 
 import { useMemo } from "react";
-import { DynamicMetricCard, EmptyState, Tabs, TabsContent, TabsList, TabsTrigger, WeekTimetable, type TimetableBlock } from "@/components";
+import { Badge, DynamicMetricCard, EmptyState, Tabs, TabsContent, TabsList, TabsTrigger, WeekTimetable, type TimetableBlock } from "@/components";
 import { usePortal } from "@/modules/family/hooks/use-portal";
 import type { PortalTimetableDay } from "@/modules/family/services/portal-service";
 import type { FamilyContext } from "./family-shell";
@@ -19,13 +19,13 @@ function DayList({ title, entries, now }: { title: string; entries: Entry[]; now
         const current = now !== undefined && minutes(e.start) <= now && now < minutes(e.end);
         const past = now !== undefined && minutes(e.end) <= now;
         return (
-          <div key={e.id} className={`flex items-center gap-4 rounded-xl border bg-card p-3 ${current ? "border-primary ring-1 ring-primary/30" : ""} ${past ? "opacity-60" : ""}`}>
+          <div key={e.id} className={`flex items-center gap-4 rounded-xs border bg-card p-3 ${current ? "border-primary ring-1 ring-primary/30" : ""} ${past ? "opacity-60" : ""}`}>
             <div className="w-24 shrink-0 text-center font-mono text-sm"><div className="font-semibold">{e.start}</div><div className="text-xs text-muted-foreground">{e.end}</div></div>
             <div className="flex-1">
               <p className="font-medium">{e.subject.name}</p>
               <p className="text-xs text-muted-foreground">{e.teacher.full_name}{e.room ? ` • Sala ${e.room.code}` : ""}</p>
             </div>
-            {current && <span className="rounded-full bg-primary px-2 py-0.5 text-[11px] font-medium text-primary-foreground">A decorrer</span>}
+            {current && <Badge>A decorrer</Badge>}
           </div>
         );
       })}

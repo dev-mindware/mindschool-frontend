@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
+import { GenericTable, type Column } from "@/components/common/generic-table";
 import { cn } from "@/lib/utils";
 
 export interface SimpleColumn<T> {
@@ -19,30 +19,22 @@ interface SimpleTableProps<T> {
 const ALIGN = { left: "text-left", right: "text-right", center: "text-center" } as const;
 
 /**
- * Tabela de leitura, pequena e estática (quadros dentro de um cartão: evolução por disciplina, extracto por mês).
- * Para listas com pesquisa, filtros ou paginação usa-se `DataList`.
+ * Wrapper de compatibilidade que delega diretamente ao `GenericTable`.
  */
 export function SimpleTable<T>({ rows, columns, rowKey, className }: SimpleTableProps<T>) {
+  const mappedData = rows.map((row) => ({ ...row, id: rowKey(row) }));
+  const mappedColumns: Column<T & { id: string }>[] = columns.map((col, idx) => ({
+    key: `col_${idx}`,
+    header: col.header,
+    className: cn(ALIGN[col.align ?? "left"], col.className),
+    render: (_, item) => col.render(item),
+  }));
+
   return (
-    <div className={cn("overflow-x-auto rounded-xl border bg-card", className)}>
-      <Table className="text-sm">
-        <TableHeader>
-          <TableRow className="hover:bg-transparent">
-            {columns.map((c) => (
-              <TableHead key={c.header} className={cn("h-auto p-3 text-xs font-medium text-muted-foreground", ALIGN[c.align ?? "left"])}>{c.header}</TableHead>
-            ))}
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {rows.map((r) => (
-            <TableRow key={rowKey(r)} className="hover:bg-transparent">
-              {columns.map((c) => (
-                <TableCell key={c.header} className={cn("p-3", ALIGN[c.align ?? "left"], c.className)}>{c.render(r)}</TableCell>
-              ))}
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
+    <GenericTable
+      data={mappedData}
+      columns={mappedColumns}
+      className={className}
+    />
   );
 }

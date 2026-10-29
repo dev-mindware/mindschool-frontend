@@ -29,7 +29,7 @@ export function PendingSubscriptionModal() {
       className="sm:max-w-md"
     >
       <div className="space-y-4 pt-2">
-        <div className="p-4 rounded-lg bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-900/20 space-y-3">
+        <div className="p-4 rounded-xs bg-yellow-50 dark:bg-yellow-900/10 border border-yellow-200 dark:border-yellow-900/20 space-y-3">
           <div className="space-y-2 text-sm text-yellow-800 dark:text-yellow-200">
             <p>
               A sua subscrição atual está a aguardar a confirmação do pagamento ou

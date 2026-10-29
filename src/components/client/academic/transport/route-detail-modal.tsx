@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Badge, Button, FormModal, Input } from "@/components";
+import { Badge, Button, EmptyState, FormModal, Input } from "@/components";
 import { useTransport } from "@/hooks/school/use-transport";
 import { getApiErrorMessage } from "@/utils/api-error";
 
@@ -18,11 +18,17 @@ export function RouteDetailModal({ routeId }: { routeId: string | null }) {
       {route && (
         <div className="sm:col-span-2 space-y-4 text-sm">
           <ol className="space-y-3">
-            {route.stops.length === 0 && <li className="text-muted-foreground">Sem paragens.</li>}
+            {route.stops.length === 0 && (
+              <EmptyState
+                icon="MapPin"
+                title="Sem paragens"
+                description="Adicione a primeira paragem no formulário abaixo."
+              />
+            )}
             {route.stops.map((s) => {
               const list = riders.filter((a) => a.stop_id === s.id);
               return (
-                <li key={s.id} className="rounded-lg border p-3">
+                <li key={s.id} className="rounded-xs border p-3">
                   <div className="flex items-center gap-2"><span className="flex size-6 items-center justify-center rounded-full bg-primary/10 font-mono text-xs text-primary">{s.order_index}</span><span className="flex-1 font-medium">{s.name}</span><span className="font-mono text-xs text-muted-foreground">{s.pickup_time ?? ""}</span><Badge variant="outline">{list.length}</Badge></div>
                   {list.length > 0 && <ul className="mt-2 list-disc pl-10 text-xs text-muted-foreground">{list.map((a) => <li key={a.id}>{nameOf.get(a.student_id) ?? "Aluno"}</li>)}</ul>}
                 </li>

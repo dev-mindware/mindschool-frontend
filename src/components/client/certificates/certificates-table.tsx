@@ -2,17 +2,11 @@
 
 import { useState } from 'react';
 import { Badge, ButtonOnlyAction, DataList, type Column } from '@/components';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-} from '@/components/ui/alert-dialog';
+import { ConfirmModal } from '@/components/common/confirm-modal';
+import { useModal } from '@/stores/modal/use-modal-store';
 import { OfficialDocumentItem, OfficialDocumentType } from '@/types/certificate';
+
+const DELETE_DOCUMENT_MODAL_ID = 'certificate-delete';
 
 const TYPE_LABEL: Record<OfficialDocumentType, string> = {
   DECLARATION_ENROLLMENT: 'Decl. de Frequência',
@@ -41,6 +35,7 @@ interface CertificatesTableProps {
 
 /** Documentos oficiais emitidos, com filtros na URL (tipo, turma, ano, emissor, data). */
 export function CertificatesTable({ documents, isLoading, onViewPreview, onDelete }: CertificatesTableProps) {
+  const { openModal } = useModal();
   const [docToDelete, setDocToDelete] = useState<OfficialDocumentItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
@@ -102,7 +97,10 @@ export function CertificatesTable({ documents, isLoading, onViewPreview, onDelet
                     icon: 'Trash2' as const,
                     variant: 'destructive' as const,
                     permission: 'document:issue',
-                    onClick: (item: OfficialDocumentItem) => setDocToDelete(item),
+                    onClick: (item: OfficialDocumentItem) => {
+                      setDocToDelete(item);
+                      openModal(DELETE_DOCUMENT_MODAL_ID);
+                    },
                   },
                 ]
               : []),
@@ -140,35 +138,25 @@ export function CertificatesTable({ documents, isLoading, onViewPreview, onDelet
         emptyIcon="FileText"
       />
 
-      <AlertDialog open={Boolean(docToDelete)} onOpenChange={(open) => !open && setDocToDelete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Eliminar Documento Emitido</AlertDialogTitle>
-            <AlertDialogDescription>
-              Eliminar o documento <strong>{docToDelete?.documentNumber}</strong> emitido para <strong>{docToDelete?.studentName}</strong>?
-            </AlertDialogDescription>
-            <ul className="list-disc space-y-1 pl-5 text-xs text-muted-foreground">
-              <li>O número do documento fica «queimado»: não se reutiliza e deixa um buraco na numeração.</li>
-              <li>O código QR e o endereço de verificação deixam de validar: as cópias já entregues deixam de ser verificáveis.</li>
-              <li>A eliminação fica registada na auditoria. Para corrigir um documento, emita um novo.</li>
-              <li>Esta ação não se pode desfazer.</li>
-            </ul>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel disabled={isDeleting}>Cancelar</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={(e) => {
-                e.preventDefault();
-                confirmDelete();
-              }}
-              disabled={isDeleting}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              {isDeleting ? 'A eliminar...' : 'Eliminar documento'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
+      <ConfirmModal
+        id={DELETE_DOCUMENT_MODAL_ID}
+        title="Eliminar Documento Emitido"
+        description={
+          docToDelete
+            ? `Eliminar o documento ${docToDelete.documentNumber} emitido para ${docToDelete.studentName}?`
+            : ""
+        }
+        effects={[
+          'O número do documento fica «queimado»: não se reutiliza e deixa um buraco na numeração.',
+          'O código QR e o endereço de verificação deixam de validar: as cópias já entregues deixam de ser verificáveis.',
+          'A eliminação fica registada na auditoria. Para corrigir um documento, emita um novo.',
+        ]}
+        irreversible
+        destructive
+        confirmLabel="Eliminar documento"
+        isLoading={isDeleting}
+        onConfirm={confirmDelete}
+      />
     </>
   );
 }

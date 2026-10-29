@@ -9,6 +9,7 @@ import {
   SelectField,
   Button,
   ButtonSubmit,
+  FormTextarea,
   Icon,
 } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
@@ -64,6 +65,7 @@ export function DecisionModal({
       isOpen={isOpen}
       onClose={onClose}
       canClose
+      size="md"
       title={
         <div className="flex items-center gap-3">
           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary shrink-0">
@@ -79,11 +81,10 @@ export function DecisionModal({
           </div>
         </div>
       }
-      className="!max-h-[88vh] !w-[95vw] sm:!max-w-2xl overflow-y-auto"
     >
       <form onSubmit={handleSubmit} className="space-y-5 pt-2">
         {/* Resumo do Candidato */}
-        <div className="p-3.5 rounded-lg border bg-muted/40 space-y-1.5 text-xs">
+        <div className="p-3.5 rounded-xs border bg-muted/40 space-y-1.5 text-xs">
           <div className="flex justify-between items-center">
             <span className="font-semibold text-foreground text-sm">
               {application.candidateName}
@@ -141,24 +142,18 @@ export function DecisionModal({
             ]}
           />
 
-          <div className="space-y-1.5">
-            <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Fundamentação do Despacho (Obrigatório)
-            </label>
-            <textarea
-              rows={3}
-              value={notes}
-              onChange={(e) => setNotes(e.target.value)}
-              placeholder="Ex: Candidato aprovado no exame de acesso com média favorável. Vaga atribuída na turma matutina..."
-              className="w-full rounded-md border border-input bg-transparent px-3 py-2 text-sm shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring"
-              required
-            />
-          </div>
+          <FormTextarea
+            label="Fundamentação do Despacho (Obrigatório)"
+            rows={3}
+            value={notes}
+            onChange={setNotes}
+            placeholder="Ex: Candidato aprovado no exame de acesso com média favorável. Vaga atribuída na turma matutina..."
+          />
 
           <p className="text-xs text-muted-foreground">
             O despacho fica registado em nome de <strong className="text-foreground">{decidedBy}</strong>, com data e hora.
           </p>
-          <div className="space-y-1 rounded-md border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground">
+          <div className="space-y-1 rounded-xs border border-border/60 bg-muted/30 p-3 text-[11px] text-muted-foreground">
             <p><strong className="text-foreground">Aprovado:</strong> admite o candidato. Se a classe já não tiver vagas, o sistema coloca-o automaticamente em lista de espera. Se a candidatura tem prova de acesso e a nota ficou abaixo do mínimo da escola, a aprovação é recusada.</p>
             <p><strong className="text-foreground">Lista de espera:</strong> o candidato aguarda vaga; é promovido quando uma matrícula é anulada ou quando se promove a lista.</p>
             <p><strong className="text-foreground">Não admitido:</strong> encerra a candidatura.</p>

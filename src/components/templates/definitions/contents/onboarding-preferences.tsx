@@ -61,11 +61,11 @@ export function OnboardingPreferences() {
 
       <Separator />
 
-      <div className="rounded-lg border bg-card p-5 shadow-sm">
+      <div className="rounded-xs border bg-card p-5 shadow-sm">
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xs bg-primary/10">
                 <Icon name="Route" className="h-4 w-4 text-primary" />
               </div>
               <div>
@@ -92,7 +92,7 @@ export function OnboardingPreferences() {
         <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between">
           <div className="space-y-2">
             <div className="flex items-center gap-2">
-              <div className="flex h-9 w-9 items-center justify-center rounded-md bg-primary/10">
+              <div className="flex h-9 w-9 items-center justify-center rounded-xs bg-primary/10">
                 <Icon name="CircleHelp" className="h-4 w-4 text-primary" />
               </div>
               <div>
@@ -150,7 +150,7 @@ export function OnboardingPreferences() {
                 </p>
               </div>
 
-              <div className="divide-y rounded-md border">
+              <div className="divide-y rounded-xs border">
                 {seenTourEntries.map((tour) => (
                   <div
                     key={tour.id}

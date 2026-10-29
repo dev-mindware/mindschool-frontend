@@ -4,10 +4,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import {
-  Badge,
   Button,
   Checkbox,
   DynamicMetricCard,
+  DynamicMetricCardSkeleton,
   EmptyState,
   FeatureGate,
   FormModal,
@@ -15,6 +15,7 @@ import {
   Icon,
   Input,
   InputCurrency,
+  Label,
   TitleList,
 } from "@/components";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -145,7 +146,7 @@ export function TuitionPlansContent() {
 
       {plansLoading ? (
         <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" aria-busy="true" aria-label="A carregar a política financeira">
-          {Array.from({ length: 4 }, (_, i) => <Skeleton key={i} className="h-24 rounded-xl" />)}
+          {Array.from({ length: 4 }, (_, i) => <DynamicMetricCardSkeleton key={i} />)}
         </div>
       ) : !policy ? (
         <EmptyState icon="Wallet" title="Sem política financeira" description="Defina o valor da propina e as regras de mora para gerar faturas." />
@@ -272,7 +273,7 @@ export function TuitionPlansContent() {
               <h4 className="text-sm font-semibold text-foreground">Multa Inicial e Incremento Progressivo por Mês</h4>
             </div>
             <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              <div className="space-y-2 rounded-lg border border-border/50 bg-muted/20 p-3">
+              <div className="space-y-2 rounded-xs border border-border/50 bg-muted/20 p-3">
                 <p className="text-xs font-semibold text-foreground">1ª Multa (após a tolerância)</p>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <FormSelect
@@ -306,7 +307,7 @@ export function TuitionPlansContent() {
                 </div>
               </div>
 
-              <div className="space-y-2 rounded-lg border border-border/50 bg-muted/20 p-3">
+              <div className="space-y-2 rounded-xs border border-border/50 bg-muted/20 p-3">
                 <p className="text-xs font-semibold text-foreground">Agravamento por Cada Mês Adicional</p>
                 <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                   <FormSelect
@@ -353,16 +354,16 @@ export function TuitionPlansContent() {
               <Icon name="MailCheck" className="size-4 text-primary" />
               <h4 className="text-sm font-semibold text-foreground">Automação de Cobrança por Correio Electrónico</h4>
             </div>
-            <div className="space-y-2.5 rounded-lg border border-border/50 bg-muted/20 p-3 text-sm">
+            <div className="space-y-2.5 rounded-xs border border-border/50 bg-muted/20 p-3 text-sm">
               <div className="flex items-center gap-2">
                 <Checkbox
                   id="email-enabled"
                   checked={emailEnabled}
                   onCheckedChange={(c) => setEmailEnabled(Boolean(c))}
                 />
-                <label htmlFor="email-enabled" className="text-xs font-medium cursor-pointer">
+                <Label htmlFor="email-enabled" className="text-xs font-medium cursor-pointer">
                   Ativar régua automática de correio electrónico para os encarregados
-                </label>
+                </Label>
               </div>
 
               {emailEnabled && (
@@ -373,18 +374,20 @@ export function TuitionPlansContent() {
                       checked={Number(preDueDays) > 0}
                       onCheckedChange={(c) => setPreDueDays(c ? "5" : "0")}
                     />
-                    <label htmlFor="pre-due" className="text-xs text-muted-foreground flex items-center gap-2">
+                    <Label htmlFor="pre-due" className="text-xs font-normal text-muted-foreground flex items-center gap-2">
                       Enviar lembrete preventivo
-                      <input
-                        type="number"
-                        min={1}
-                        max={15}
-                        value={preDueDays}
-                        onChange={(e) => setPreDueDays(e.target.value)}
-                        className="w-12 h-6 px-1.5 text-xs rounded border text-foreground bg-background text-center"
-                      />
+                      <span className="w-16 inline-block">
+                        <Input
+                          type="number"
+                          min={1}
+                          max={15}
+                          value={preDueDays}
+                          onChange={(e) => setPreDueDays(e.target.value)}
+                          className="h-7 px-2 text-xs text-center"
+                        />
+                      </span>
                       dias antes do vencimento (dia {dueDay})
-                    </label>
+                    </Label>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -393,9 +396,9 @@ export function TuitionPlansContent() {
                       checked={graceWarning}
                       onCheckedChange={(c) => setGraceWarning(Boolean(c))}
                     />
-                    <label htmlFor="grace-warning" className="text-xs text-muted-foreground cursor-pointer">
+                    <Label htmlFor="grace-warning" className="text-xs font-normal text-muted-foreground cursor-pointer">
                       Enviar aviso preventivo durante o período de tolerância (antes da aplicação de multa)
-                    </label>
+                    </Label>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -404,9 +407,9 @@ export function TuitionPlansContent() {
                       checked={penaltyNotification}
                       onCheckedChange={(c) => setPenaltyNotification(Boolean(c))}
                     />
-                    <label htmlFor="penalty-notif" className="text-xs text-muted-foreground cursor-pointer">
+                    <Label htmlFor="penalty-notif" className="text-xs font-normal text-muted-foreground cursor-pointer">
                       Enviar aviso formal quando a multa é aplicada após o fim da tolerância
-                    </label>
+                    </Label>
                   </div>
 
                   <div className="flex items-center gap-2">
@@ -415,9 +418,9 @@ export function TuitionPlansContent() {
                       checked={monthlyFollowup}
                       onCheckedChange={(c) => setMonthlyFollowup(Boolean(c))}
                     />
-                    <label htmlFor="monthly-follow" className="text-xs text-muted-foreground cursor-pointer">
+                    <Label htmlFor="monthly-follow" className="text-xs font-normal text-muted-foreground cursor-pointer">
                       Enviar aviso mensal com o cálculo da multa agravada para dívidas em atraso
-                    </label>
+                    </Label>
                   </div>
 
                   <div className="pt-2">
@@ -440,9 +443,8 @@ export function TuitionPlansContent() {
         </Tabs>
       </FormModal>
 
-      {/* Modal do Estúdio de Templates de E-mail com Live Preview */}
+      {/* Sheet do Estúdio de Templates de E-mail com Live Preview */}
       <EmailTemplateEditor />
     </div>
   );
 }
-

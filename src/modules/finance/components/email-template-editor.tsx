@@ -1,9 +1,27 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Badge, Button, GlobalModal, Icon, Input } from "@/components";
+import {
+  Badge,
+  Button,
+  FormSelect,
+  Icon,
+  Input,
+  Label,
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetFooter,
+  SheetHeader,
+  SheetTitle,
+  Tabs,
+  TabsList,
+  TabsTrigger,
+  Textarea,
+} from "@/components";
 import { useTuition } from "@/modules/finance/hooks/use-tuition";
 import { EmailTemplateItem } from "@/modules/finance/types";
+import { useModal } from "@/stores/modal/use-modal-store";
 import { formatCurrency } from "@/utils/format-currency";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
@@ -121,7 +139,10 @@ const AVAILABLE_VARIABLES = [
 
 export function EmailTemplateEditor() {
   const { plans, savePolicy } = useTuition();
+  const { open, closeModal } = useModal();
   const policy = plans[0];
+
+  const isSheetOpen = Boolean(open[EMAIL_TEMPLATE_MODAL_ID]);
 
   const [activeKey, setActiveKey] = useState<TemplateKey>("pre_due");
   const [sendHour, setSendHour] = useState<string>("08:00");
@@ -234,73 +255,55 @@ export function EmailTemplateEditor() {
         },
       });
       SucessMessage("Modelos de correio electrónico e horários atualizados com sucesso!");
+      closeModal(EMAIL_TEMPLATE_MODAL_ID);
     } catch (e) {
       ErrorMessage(getApiErrorMessage(e, "Erro ao guardar modelos de e-mail."));
     }
   };
 
   return (
-    <GlobalModal
-      id={EMAIL_TEMPLATE_MODAL_ID}
-      title="Estúdio de Modelos & Comunicação por E-mail"
-      description="Personalize o texto, tags dinâmicas e pré-visualize em tempo real os e-mails formais disparados para os encarregados."
-      className="!max-w-6xl w-full"
-    >
-      <div className="space-y-6">
-        {/* Topo: Tabs dos 4 Templates e Horário de Envio */}
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between border-b pb-4">
-          <div className="flex flex-wrap gap-2">
-            {TEMPLATE_DEFS.map((def) => {
-              const active = def.key === activeKey;
-              return (
-                <button
-                  key={def.key}
-                  type="button"
-                  onClick={() => setActiveKey(def.key)}
-                  className={`flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-medium transition-all ${
-                    active
-                      ? "bg-primary text-primary-foreground shadow-sm"
-                      : "bg-muted/50 text-muted-foreground hover:bg-muted hover:text-foreground"
-                  }`}
-                >
-                  <Icon name={def.icon as any} className="size-3.5" />
-                  <span>{def.label}</span>
-                  <span
-                    className={`rounded px-1.5 py-0.5 text-[10px] ${
-                      active ? "bg-primary-foreground/20 text-primary-foreground" : "bg-background text-muted-foreground"
-                    }`}
-                  >
-                    {def.badge}
-                  </span>
-                </button>
-              );
-            })}
+    <Sheet open={isSheetOpen} onOpenChange={(v) => !v && closeModal(EMAIL_TEMPLATE_MODAL_ID)}>
+      <SheetContent className="flex flex-col gap-6 overflow-y-auto p-6 sm:max-w-2xl">
+        <SheetHeader className="p-0">
+          <SheetTitle>Estúdio de Modelos & Comunicação por E-mail</SheetTitle>
+          <SheetDescription>
+            Personalize o texto, tags dinâmicas e pré-visualize em tempo real os e-mails formais disparados para os encarregados.
+          </SheetDescription>
+        </SheetHeader>
+
+        <div className="space-y-6">
+          {/* Topo: Tabs dos 4 Templates e Horário de Envio */}
+          <div className="space-y-3 border-b pb-4">
+            <Tabs value={activeKey} onValueChange={(v) => setActiveKey(v as TemplateKey)}>
+              <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 p-1">
+                {TEMPLATE_DEFS.map((def) => (
+                  <TabsTrigger key={def.key} value={def.key} className="gap-1.5 text-xs">
+                    <Icon name={def.icon as any} className="size-3.5" />
+                    <span>{def.label}</span>
+                  </TabsTrigger>
+                ))}
+              </TabsList>
+            </Tabs>
+
+            <div className="max-w-xs">
+              <FormSelect
+                label="Horário de disparo"
+                value={sendHour}
+                onValueChange={setSendHour}
+                options={[
+                  { value: "07:00", label: "07:00 (Manhã cedo)" },
+                  { value: "08:00", label: "08:00 (Início do expediente)" },
+                  { value: "09:00", label: "09:00" },
+                  { value: "12:00", label: "12:00 (Almoço)" },
+                  { value: "14:00", label: "14:00 (Início da tarde)" },
+                  { value: "18:00", label: "18:00 (Fim da tarde)" },
+                ]}
+              />
+            </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="text-xs text-muted-foreground flex items-center gap-1.5">
-              <Icon name="AlarmClock" className="size-3.5 text-primary" />
-              Horário de disparo:
-            </span>
-            <select
-              value={sendHour}
-              onChange={(e) => setSendHour(e.target.value)}
-              className="h-8 rounded-md border border-input bg-background px-2 text-xs text-foreground focus:outline-none focus:ring-1 focus:ring-primary"
-            >
-              <option value="07:00">07:00 (Manhã cedo)</option>
-              <option value="08:00">08:00 (Início do expediente)</option>
-              <option value="09:00">09:00</option>
-              <option value="12:00">12:00 (Almoço)</option>
-              <option value="14:00">14:00 (Início da tarde)</option>
-              <option value="18:00">18:00 (Fim da tarde)</option>
-            </select>
-          </div>
-        </div>
-
-        {/* Workspace: Split-screen Editor e Live Preview */}
-        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
-          {/* Lado Esquerdo: Editor (7 colunas) */}
-          <div className="space-y-4 lg:col-span-7">
+          {/* Editor */}
+          <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div>
                 <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
@@ -317,8 +320,11 @@ export function EmailTemplateEditor() {
 
             {/* Campo Assunto */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">Assunto da Mensagem (com shortcodes)</label>
+              <Label htmlFor="template-subject" className="text-xs font-medium text-foreground">
+                Assunto da Mensagem (com shortcodes)
+              </Label>
               <Input
+                id="template-subject"
                 value={currentDraft.subject}
                 onChange={(e) => updateCurrentDraft("subject", e.target.value)}
                 placeholder="Ex.: Lembrete de Pagamento de Propina..."
@@ -327,53 +333,58 @@ export function EmailTemplateEditor() {
             </div>
 
             {/* Chips de Inserção de Variáveis */}
-            <div className="space-y-1.5 rounded-lg border border-border/50 bg-muted/20 p-3">
+            <div className="space-y-1.5 rounded-xs border border-border/50 bg-muted/20 p-3">
               <span className="text-[11px] font-semibold text-muted-foreground uppercase tracking-wider block">
                 Tags Dinâmicas (Clique para inserir no texto)
               </span>
               <div className="flex flex-wrap gap-1.5">
                 {AVAILABLE_VARIABLES.map((v) => (
-                  <button
+                  <Button
                     key={v.tag}
                     type="button"
+                    variant="outline"
+                    size="sm"
                     onClick={() => insertVariable(v.tag)}
-                    className="inline-flex items-center gap-1 rounded bg-background px-2 py-1 text-[11px] text-foreground border border-border/80 hover:border-primary hover:text-primary transition-colors cursor-pointer shadow-2xs"
+                    className="h-auto px-2 py-1 text-[11px] gap-1"
                     title={`Exemplo: ${v.sample}`}
                   >
                     <code>{v.tag}</code>
                     <span className="text-muted-foreground text-[10px]">({v.label})</span>
-                  </button>
+                  </Button>
                 ))}
               </div>
             </div>
 
             {/* Corpo do E-mail */}
             <div className="space-y-1.5">
-              <label className="text-xs font-medium text-foreground">Corpo da Mensagem</label>
-              <textarea
-                rows={11}
+              <Label htmlFor="template-body" className="text-xs font-medium text-foreground">
+                Corpo da Mensagem
+              </Label>
+              <Textarea
+                id="template-body"
+                rows={10}
                 value={currentDraft.body}
                 onChange={(e) => updateCurrentDraft("body", e.target.value)}
-                className="w-full rounded-md border border-input bg-background p-3 text-xs leading-relaxed text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-1 focus:ring-primary font-mono resize-y"
+                className="font-mono text-xs leading-relaxed"
                 placeholder="Escreva aqui o texto do modelo..."
               />
             </div>
           </div>
 
-          {/* Lado Direito: Live Preview (5 colunas) */}
-          <div className="space-y-3 lg:col-span-5">
+          {/* Live Preview */}
+          <div className="space-y-3">
             <div className="flex items-center justify-between">
               <h4 className="text-sm font-semibold text-foreground flex items-center gap-1.5">
                 <Icon name="Eye" className="size-4 text-emerald-600 dark:text-emerald-400" />
                 Pré-visualização em Tempo Real
               </h4>
-              <Badge variant="outline" className="text-[10px] text-emerald-600 border-emerald-600/30">
+              <Badge variant="success" className="text-[10px]">
                 HTML Formal Escola
               </Badge>
             </div>
 
             {/* Caixa que simula cliente de e-mail */}
-            <div className="rounded-xl border border-border/70 bg-card p-4 shadow-sm space-y-3 text-xs">
+            <div className="rounded-xs border border-border/70 bg-card p-4 shadow-sm space-y-3 text-xs">
               <div className="border-b pb-2.5 space-y-1">
                 <div className="flex items-center text-muted-foreground">
                   <span className="w-16 font-medium text-foreground">De:</span>
@@ -390,7 +401,7 @@ export function EmailTemplateEditor() {
               </div>
 
               {/* Corpo Renderizado com Estilo de E-mail Escolar */}
-              <div className="rounded-lg bg-background p-3.5 border border-border/40 space-y-3">
+              <div className="rounded-xs bg-background p-3.5 border border-border/40 space-y-3">
                 <div className="flex items-center gap-2 border-b border-border/40 pb-2">
                   <div className="size-7 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
                     FS
@@ -415,18 +426,26 @@ export function EmailTemplateEditor() {
           </div>
         </div>
 
-        {/* Rodapé de Ações */}
-        <div className="flex items-center justify-end gap-3 pt-4 border-t">
+        <SheetFooter className="mt-auto flex-row justify-end gap-2 p-0">
           <Button
-            onClick={handleSaveAll}
+            type="button"
+            variant="outline"
+            onClick={() => closeModal(EMAIL_TEMPLATE_MODAL_ID)}
+            disabled={savePolicy.isPending}
+          >
+            Cancelar
+          </Button>
+          <Button
+            type="button"
+            onClick={() => void handleSaveAll()}
             disabled={savePolicy.isPending}
             className="gap-2 text-xs font-semibold"
           >
             <Icon name="Save" className="size-4" />
             {savePolicy.isPending ? "A guardar..." : "Guardar todos os modelos"}
           </Button>
-        </div>
-      </div>
-    </GlobalModal>
+        </SheetFooter>
+      </SheetContent>
+    </Sheet>
   );
 }

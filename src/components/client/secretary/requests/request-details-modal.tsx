@@ -85,7 +85,7 @@ export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: Req
     <FormModal id="request-detail" title={request?.protocol ?? "Requerimento"} description={request ? `${REQUEST_TYPE_LABEL[request.type]} • ${REQUEST_STATUS_LABEL[request.status]}` : undefined} size="lg" readOnly onSubmit={() => undefined}>
       {request && (
         <div className="sm:col-span-2 space-y-4 text-sm">
-          <div className="grid grid-cols-2 gap-3 rounded-lg border p-3">
+          <div className="grid grid-cols-2 gap-3 rounded-xs border p-3">
             <div><span className="text-muted-foreground">Aluno:</span> <strong>{studentName(request.student_id)}</strong></div>
             <div><RequestStatusBadge status={request.status} /></div>
             <div className="col-span-2"><span className="text-muted-foreground">Assunto:</span> {request.subject}</div>
@@ -101,7 +101,7 @@ export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: Req
           <div className="space-y-2">
             <h4 className="font-semibold">Histórico</h4>
             {(request.events ?? []).map((e) => (
-              <div key={e.id} className="rounded-lg border p-2">
+              <div key={e.id} className="rounded-xs border p-2">
                 <div className="flex justify-between text-[11px] text-muted-foreground"><span>{EVENT_LABEL[e.kind] ?? e.kind}{e.to_status && e.kind !== "criado" ? ` → ${REQUEST_STATUS_LABEL[e.to_status as RequestStatus] ?? e.to_status}` : ""}</span><span>{formatDateTime(e.created_at)}</span></div>
                 {e.message && e.kind !== "atribuido" && <p className="mt-1">{e.message}</p>}
               </div>

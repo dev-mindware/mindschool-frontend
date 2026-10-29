@@ -4,6 +4,7 @@ import React, { useState, useEffect } from "react";
 import { Icon } from "@/components/common/icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
@@ -92,7 +93,6 @@ export function LessonKeepEditor({
 
     saveLessonKeepNote(noteData);
 
-    // Sincroniza também com o sumário/conteúdo no backend se a função for fornecida
     if (onSyncRemote) {
       const summaryText = [
         content.trim(),
@@ -120,7 +120,7 @@ export function LessonKeepEditor({
   return (
     <div
       className={cn(
-        "rounded-xl border p-4 sm:p-5 transition-colors space-y-4 shadow-xs",
+        "space-y-4 rounded-xs border p-4 shadow-xs transition-colors sm:p-5",
         activeTheme.bg,
         activeTheme.border
       )}
@@ -132,25 +132,25 @@ export function LessonKeepEditor({
             value={title}
             onChange={(e) => setTitle(e.target.value)}
             placeholder="Título do Plano da Aula..."
-            className="text-sm font-semibold border-none bg-transparent shadow-none px-0 focus-visible:ring-0 focus-visible:ring-offset-0 placeholder:text-muted-foreground/60"
+            className="border-none bg-transparent px-0 text-sm font-semibold shadow-none placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0"
           />
         </div>
 
-        <div className="flex items-center gap-1.5 shrink-0">
+        <div className="flex shrink-0 items-center gap-1.5">
           <Button
             type="button"
             size="icon"
             variant="ghost"
             onClick={() => setIsPinned(!isPinned)}
             className={cn(
-              "h-8 w-8 rounded-full",
+              "size-8 rounded-full",
               isPinned
-                ? "text-primary bg-primary/10 hover:bg-primary/20"
+                ? "bg-primary/10 text-primary hover:bg-primary/20"
                 : "text-muted-foreground hover:text-foreground"
             )}
             title={isPinned ? "Fixado na agenda de hoje" : "Fixar na agenda de hoje"}
           >
-            <Icon name="Pin" className={cn("w-4 h-4", isPinned && "fill-current")} />
+            <Icon name="Pin" className={cn("size-4", isPinned && "fill-current")} />
           </Button>
         </div>
       </div>
@@ -161,7 +161,7 @@ export function LessonKeepEditor({
           value={content}
           onChange={(e) => setContent(e.target.value)}
           placeholder="Escreva aqui as suas anotações rápidas, tópicos-chave da aula ou orientações pedagógicas..."
-          className="min-h-[90px] text-xs resize-y border-none bg-background/50 focus-visible:ring-1 focus-visible:ring-primary/40 rounded-lg p-3 leading-relaxed"
+          className="min-h-[90px] resize-y rounded-xs border-none bg-background/50 p-3 text-xs leading-relaxed focus-visible:ring-1 focus-visible:ring-primary/40"
         />
       </div>
 
@@ -169,47 +169,47 @@ export function LessonKeepEditor({
       <div className="space-y-2">
         <div className="flex items-center justify-between text-xs font-medium text-foreground/80">
           <span className="flex items-center gap-1.5">
-            <Icon name="CheckSquare" className="w-3.5 h-3.5 text-primary" />
+            <Icon name="CheckSquare" className="size-3.5 text-primary" />
             Roteiro da Aula (Checklist de Tarefas)
           </span>
-          <span className="text-[11px] text-muted-foreground font-mono">
+          <span className="font-mono text-[11px] text-muted-foreground">
             {checklist.filter((c) => c.done).length}/{checklist.length} concluídos
           </span>
         </div>
 
-        <div className="space-y-1.5 max-h-48 overflow-y-auto pr-1">
+        <div className="max-h-48 space-y-1.5 overflow-y-auto pr-1">
           {checklist.map((item) => (
             <div
               key={item.id}
-              className="flex items-center justify-between gap-2 p-1.5 rounded-md hover:bg-background/40 group transition-colors"
+              className="group flex items-center justify-between gap-2 rounded-xs p-1.5 transition-colors hover:bg-background/40"
             >
-              <div className="flex items-center gap-2 flex-1 min-w-0">
+              <div className="flex min-w-0 flex-1 items-center gap-2">
                 <Checkbox
                   checked={item.done}
                   onCheckedChange={() => handleToggleItem(item.id)}
                   id={`chk-${item.id}`}
                   className="rounded"
                 />
-                <label
+                <Label
                   htmlFor={`chk-${item.id}`}
                   className={cn(
-                    "text-xs cursor-pointer select-none truncate transition-all",
+                    "cursor-pointer select-none truncate text-xs font-normal transition-all",
                     item.done
-                      ? "line-through text-muted-foreground opacity-60"
+                      ? "text-muted-foreground line-through opacity-60"
                       : "text-foreground"
                   )}
                 >
                   {item.text}
-                </label>
+                </Label>
               </div>
               <Button
                 type="button"
                 variant="ghost"
                 size="icon"
                 onClick={() => handleRemoveItem(item.id)}
-                className="h-6 w-6 opacity-0 group-hover:opacity-100 text-muted-foreground hover:text-destructive rounded"
+                className="size-6 rounded text-muted-foreground opacity-0 hover:text-destructive group-hover:opacity-100"
               >
-                <Icon name="X" className="w-3 h-3" />
+                <Icon name="X" className="size-3" />
               </Button>
             </div>
           ))}
@@ -227,14 +227,14 @@ export function LessonKeepEditor({
               }
             }}
             placeholder="+ Adicionar item ao roteiro..."
-            className="h-8 text-xs bg-background/50 border-none shadow-none rounded-md px-2.5 focus-visible:ring-1 focus-visible:ring-primary/40"
+            className="h-8 rounded-xs border-none bg-background/50 px-2.5 text-xs shadow-none focus-visible:ring-1 focus-visible:ring-primary/40"
           />
           <Button
             type="button"
             size="sm"
             variant="secondary"
             onClick={handleAddChecklistItem}
-            className="h-8 px-2.5 text-xs shrink-0"
+            className="h-8 shrink-0 px-2.5 text-xs"
           >
             Adicionar
           </Button>
@@ -243,37 +243,38 @@ export function LessonKeepEditor({
 
       {/* TPC / Tarefa para Casa */}
       <div className="space-y-1">
-        <label className="text-xs font-medium text-foreground/80 flex items-center gap-1.5">
-          <Icon name="BookOpen" className="w-3.5 h-3.5 text-primary" />
+        <Label className="flex items-center gap-1.5 text-xs font-medium text-foreground/80">
+          <Icon name="BookOpen" className="size-3.5 text-primary" />
           Trabalho de Casa (TPC) / Leituras
-        </label>
+        </Label>
         <Input
           value={homework}
           onChange={(e) => setHomework(e.target.value)}
           placeholder="ex: Resolver exercícios da página 45 a 48 do manual escolar"
-          className="h-8 text-xs bg-background/50 border-none shadow-none rounded-md px-2.5 focus-visible:ring-1 focus-visible:ring-primary/40"
+          className="h-8 rounded-xs border-none bg-background/50 px-2.5 text-xs shadow-none focus-visible:ring-1 focus-visible:ring-primary/40"
         />
       </div>
 
       {/* Barra Inferior com Cores do Keep e Salvar */}
       <div className="flex flex-wrap items-center justify-between gap-3 pt-2">
-        {/* Seletor de Cores */}
         <div className="flex items-center gap-1.5">
-          <span className="text-[11px] text-muted-foreground mr-1">Cor:</span>
+          <span className="mr-1 text-[11px] text-muted-foreground">Cor:</span>
           {(Object.keys(KEEP_COLOR_MAP) as KeepColor[]).map((cKey) => {
             const item = KEEP_COLOR_MAP[cKey];
             const isSelected = color === cKey;
             return (
-              <button
+              <Button
                 key={cKey}
                 type="button"
+                size="icon"
+                variant="ghost"
                 onClick={() => setColor(cKey)}
                 className={cn(
-                  "h-5 w-5 rounded-full border transition-all",
+                  "size-5 rounded-full border p-0 transition-all",
                   item.dot,
                   isSelected
-                    ? "ring-2 ring-primary ring-offset-2 scale-110"
-                    : "opacity-80 hover:opacity-100 hover:scale-105"
+                    ? "scale-110 ring-2 ring-primary ring-offset-2"
+                    : "opacity-80 hover:scale-105 hover:opacity-100"
                 )}
                 title={item.label}
               />
@@ -281,14 +282,13 @@ export function LessonKeepEditor({
           })}
         </div>
 
-        {/* Botão Salvar */}
         <Button
           type="button"
           size="sm"
           onClick={handleSave}
-          className="h-8 px-3.5 text-xs font-medium gap-1.5"
+          className="h-8 gap-1.5 px-3.5 text-xs font-medium"
         >
-          <Icon name="Save" className="w-3.5 h-3.5" />
+          <Icon name="Save" className="size-3.5" />
           Guardar no Keep
         </Button>
       </div>
