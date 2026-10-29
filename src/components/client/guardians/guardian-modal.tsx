@@ -1,5 +1,6 @@
 'use client';
 
+import { useDiscardGuard } from "@/components/common/discard-guard";
 import { RELATIONSHIP_LABELS } from "@/constants/labels";
 import React, { useEffect, useState, useMemo } from 'react';
 import { useForm } from 'react-hook-form';
@@ -103,7 +104,7 @@ export function GuardianModal({
     setValue,
     watch,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<GuardianFormValues>({
     resolver: zodResolver(guardianFormSchema),
     mode: 'onChange',
@@ -120,6 +121,7 @@ export function GuardianModal({
       preferredContactChannel: 'WHATSAPP',
     },
   });
+  const discard = useDiscardGuard(isDirty || wards.length > 0 && !guardianToEdit, onClose);
 
   const selectedChannel = watch('preferredContactChannel');
 
@@ -261,7 +263,8 @@ export function GuardianModal({
   };
 
   return (
-    <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
+    <>
+    <Sheet open={isOpen} onOpenChange={(open) => !open && discard.request()}>
       <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
         <SheetHeader className="p-6 border-b shrink-0">
           <SheetTitle className="text-lg font-bold">
@@ -304,7 +307,7 @@ export function GuardianModal({
       </form>
 
         <SheetFooter>
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={discard.request}>
             Cancelar
           </Button>
           <ButtonSubmit form="guardian-form" isLoading={isSubmitting}>
@@ -313,5 +316,7 @@ export function GuardianModal({
         </SheetFooter>
       </SheetContent>
     </Sheet>
+    {discard.dialog}
+    </>
   );
 }

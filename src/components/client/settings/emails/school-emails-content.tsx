@@ -29,7 +29,7 @@ export const emailLogColumns = (showSchool = false): Column<ApiEmailLog>[] => [
   { key: "subject", header: "Assunto", render: (_, l) => (<div className="max-w-sm"><span className="line-clamp-1 font-medium">{l.subject}</span><span className="text-[11px] text-muted-foreground">{l.template_name ?? l.template_code}</span></div>) },
   { key: "recipient", header: "Destinatário", render: (_, l) => <span className="text-xs">{l.recipient}</span> },
   ...(showSchool ? [{ key: "school_id", header: "Escola", render: (_: unknown, l: ApiEmailLog) => <span className="font-mono text-[11px] text-muted-foreground">{l.school_id?.slice(-8) ?? "plataforma"}</span> }] : []),
-  { key: "status", header: "Estado", render: (_, l) => (<div><EmailStatusBadge status={l.status} />{l.error && <p className="mt-1 max-w-[200px] text-[11px] text-muted-foreground">{l.error}</p>}</div>) },
+  { key: "status", header: "Estado", render: (_, l) => (<div><EmailStatusBadge status={l.status} />{l.error && <p className="mt-1 max-w-[260px] text-[11px] text-muted-foreground">{l.error.startsWith("[permanente] ") ? `Falha definitiva (não será repetido): ${l.error.slice(13)}` : l.error}</p>}</div>) },
   { key: "attempts", header: "Tentativas", render: (_, l) => <span className="text-xs tabular-nums">{l.attempts}</span> },
 ];
 

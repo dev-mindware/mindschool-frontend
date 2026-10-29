@@ -108,7 +108,7 @@ export function GuardiansList({ guardians, isLoading, isError }: GuardiansListPr
       render: (_, item) => (
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-8 w-8">
+            <Button variant="ghost" size="icon" className="h-8 w-8" aria-label="Abrir menu de ações">
               <Icon name="EllipsisVertical" className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>

@@ -42,7 +42,7 @@ export function FinanceDashboard({ variant = "operations" }: FinanceDashboardPro
       <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" data-tour="finance-summary">
         <DynamicMetricCard title={formatCurrency(Number(k.billed))} subtitle="Faturado no ano" icon="Receipt" description={`${k.invoices_total} cobranças · ${k.students_billed} alunos`} />
         <DynamicMetricCard title={formatCurrency(Number(k.collected))} subtitle="Cobrado" icon="Coins" description={k.collection_rate !== null ? `Taxa de cobrança ${k.collection_rate}%` : "Sem faturação"} />
-        <DynamicMetricCard title={formatCurrency(Number(k.overdue_amount))} subtitle="Em atraso" icon="TriangleAlert" colors={n(k.overdue_amount) > 0 ? "destructive" : "default"} description={`${k.overdue_count} faturas · ${k.students_with_debt} alunos devedores`} />
+        <DynamicMetricCard title={formatCurrency(Number(k.overdue_amount))} subtitle="Em atraso" icon="TriangleAlert" colors={n(k.overdue_amount) > 0 ? "destructive" : "default"} description={`${k.overdue_count} cobranças · ${k.students_with_debt} alunos devedores`} />
         <DynamicMetricCard title={sub?.open ?? 0} subtitle="Comprovativos por validar" icon="FileCheck" description={sub?.avg_review_hours != null ? `Validação média em ${sub.avg_review_hours} h` : "Pagamentos enviados pelas famílias"} />
       </div>
 

@@ -1,5 +1,6 @@
 "use client";
 
+import { formatIsoDay } from "@/utils/format-date";
 import { useMemo, useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { Badge, Button, DataList, EmptyState, FormModal, Icon, type Column } from "@/components";
@@ -43,7 +44,7 @@ export function ApiReportsCatalog({ domains, title, description }: ApiReportsCat
 
   const rows: PreviewRow[] = useMemo(() => (open?.data.data ?? []).map((r, i) => ({ ...r, id: String(i) })), [open]);
   const columns: Column<PreviewRow>[] = useMemo(
-    () => (open?.data.columns ?? []).map((c) => ({ key: c.key, header: c.label, render: (_: unknown, row: PreviewRow) => String(row[c.key] ?? "") })),
+    () => (open?.data.columns ?? []).map((c) => ({ key: c.key, header: c.label, render: (_: unknown, row: PreviewRow) => { const v = row[c.key]; if (v === null || v === undefined || v === "") return ""; if ((c.type === "date" || c.type === "datetime") && typeof v === "string") return formatIsoDay(v); if (typeof v === "boolean") return v ? "Sim" : "Não"; return String(v); } })),
     [open],
   );
 

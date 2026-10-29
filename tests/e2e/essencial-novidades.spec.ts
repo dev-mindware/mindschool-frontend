@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { ACCOUNTS, API, APP_ORIGIN, RUN, apiFind, apiGet, apiList, expectNoScroll, fill, findRow, login, rowAction, schoolId } from "./helpers";
+import { ACCOUNTS, API, APP_ORIGIN, RUN, apiFind, apiGet, apiList, expectNoScroll, openDialog, fill, findRow, login, rowAction, schoolId } from "./helpers";
 
 /**
  * Funcionalidades pedidas depois do relatório de testes em produção: apagar turma vazia, editar sessão da prova de
@@ -171,4 +171,22 @@ test.describe("Relatório 6: o que cada papel pode fazer", () => {
     await page.goto("/academic/timetables");
     await expect(page.getByRole("button", { name: "Criar grelha de tempos" })).toHaveCount(0);
   });
+});
+
+test.describe("Relatório 7: cancelar formulários preenchidos", () => {
+  for (const [pagina, abrir, campo] of [
+    ["/academic/classes", "Criar Nova Turma", /Nome Descritivo da Turma/],
+    ["/students/guardians", "Cadastrar Encarregado", /Nome Completo/],
+  ] as const) {
+    test(`${abrir}: «Cancelar» com dados escritos pede confirmação`, async ({ page }) => {
+      await login(page, ACCOUNTS.direccao);
+      await page.goto(pagina);
+      const d = await openDialog(page, abrir);
+      await fill(d, campo, "Rascunho");
+      await d.getByRole("button", { name: "Cancelar" }).click();
+      await expect(page.getByRole("alertdialog")).toContainText("Descartar os dados preenchidos?");
+      await page.getByRole("button", { name: "Continuar a preencher" }).click();
+      await expect(d).toBeVisible();
+    });
+  }
 });

@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { useAcademicYears } from "@/hooks/school/use-academic";
 import { formatDate, formatDateTime, formatIdDocument, formatPhone } from "@/utils";
 import { AdmissionApplication, Candidate } from "@/types/admission";
 import {
@@ -58,7 +59,9 @@ export function ApplicationDetailsModal({
   onEnroll,
   onPromoteWaitlist,
 }: ApplicationDetailsModalProps) {
+  const { years } = useAcademicYears();
   if (!application || !isOpen) return null;
+  const yearName = application.academicYear || years.find((y) => y.id === application.academicYearId)?.name || "—";
 
   const statusConfig = STATUS_LABELS[application.status] || {
     label: application.status,
@@ -288,7 +291,7 @@ export function ApplicationDetailsModal({
                 label="Turno de Preferência"
                 value={SHIFT_LABELS[application.desiredShift] || application.desiredShift}
               />
-              <DetailRow label="Ano Letivo" value={application.academicYear || "Ano Letivo Ativo"} />
+              <DetailRow label="Ano Letivo" value={yearName} />
               <DetailRow
                 label="Data de Submissão"
                 value={formatDate(application.submissionDate)}
@@ -310,10 +313,10 @@ export function ApplicationDetailsModal({
               <DetailRow
                 label="Validação de Documentos"
                 value={
-                  application.documentsVerifiedAt ? (
+                  application.documentsVerifiedAt || application.status !== "SUBMITTED" ? (
                     <span className="text-xs text-emerald-600 font-medium flex items-center gap-1">
                       <Icon name="CircleCheck" className="h-3.5 w-3.5" />
-                      Validado em {formatDate(application.documentsVerifiedAt)}
+                      {application.documentsVerifiedAt ? `Validado em ${formatDate(application.documentsVerifiedAt)}` : "Validados"}
                     </span>
                   ) : (
                     <span className="text-xs text-amber-600 font-medium flex items-center gap-1">

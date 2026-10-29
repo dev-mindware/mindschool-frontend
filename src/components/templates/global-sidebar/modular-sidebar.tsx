@@ -57,6 +57,16 @@ export function ModularSidebar({ model, active, pathname }: Props) {
   // só a página atual fica destacada (não o pai «Visão geral» ao mesmo tempo)
   const currentUrl = activeNavUrl(pathname, active?.sections.flatMap((s) => s.links.map((l) => l.url)) ?? []);
 
+  // Título do separador: páginas que não o definem ficavam com o genérico «MindSchool | Sistema Integrado…»; usa o nome da página do menu.
+  const currentLabel = active?.sections.flatMap((s) => s.links).find((l) => l.url === currentUrl)?.name ?? (railOnly ? active?.label : undefined);
+  useEffect(() => {
+    if (!currentLabel) return;
+    const t = window.setTimeout(() => {
+      if (!document.title.includes("·") || document.title.includes("Sistema Integrado")) document.title = `${currentLabel} · MindSchool`;
+    }, 50);
+    return () => window.clearTimeout(t);
+  }, [currentLabel, pathname]);
+
   return (
     <Sidebar collapsible="icon" width={railOnly ? RAIL_WIDTH : DUAL_WIDTH}>
       <div className="flex h-full min-h-0 w-full">
@@ -135,7 +145,7 @@ function PanelLink({ link, current, onNavigate }: { link: NavLink; current: bool
     <SidebarMenuItem>
       <SidebarMenuButton asChild tooltip={link.name} isActive={current} onClick={onNavigate}
         className={cn("h-10 gap-3 rounded-lg px-3 text-sm transition-colors", current ? "bg-sidebar-accent font-medium text-foreground" : "text-sidebar-foreground/85 hover:bg-sidebar-accent/60")}>
-        <Link href={link.url} aria-current={current ? "page" : undefined}>
+        <Link href={link.url} aria-label={link.name} aria-current={current ? "page" : undefined}>
           <Icon name={link.icon} className={cn("size-[18px]", current && "text-primary")} />
           <span className="truncate">{link.name}</span>
           {link.showUpgrade && <Icon name="Lock" className="ml-auto size-3.5 shrink-0 text-muted-foreground" />}

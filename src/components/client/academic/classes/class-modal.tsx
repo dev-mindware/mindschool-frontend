@@ -1,5 +1,6 @@
 "use client";
 
+import { useDiscardGuard } from "@/components/common/discard-guard";
 import React, { useEffect, useMemo } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -102,7 +103,7 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
     setValue,
     watch,
     reset,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isDirty },
   } = useForm<z.input<typeof classSectionFormSchema>, unknown, ClassSectionFormValues>({
     resolver: zodResolver(classSectionFormSchema),
     mode: "onChange",
@@ -118,6 +119,7 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
       academicYear: activeOrCurrentYear,
     },
   });
+  const discard = useDiscardGuard(isDirty, onClose);
 
   const selectedCycle = watch("cycle");
   const selectedShift = watch("shift");
@@ -235,9 +237,10 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
   const currentPresets = SHIFT_PRESETS[selectedShift] || [];
 
   return (
+    <>
     <GlobalModal
       isOpen={isOpen}
-      onClose={onClose}
+      onClose={discard.request}
       canClose
       title={sectionToEdit ? "Editar Turma" : "Criar Nova Turma"}
       description="Configuração de classe, turno letivo dinâmico, sala física e ano letivo"
@@ -405,7 +408,7 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
 
         {/* Botões de Ação no Padrão MindGest */}
         <div className="flex justify-end gap-3 pt-1">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={discard.request}>
             Cancelar
           </Button>
           <ButtonSubmit isLoading={isSubmitting} className="w-max">
@@ -415,5 +418,7 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
       </form>
       )}
     </GlobalModal>
+    {discard.dialog}
+    </>
   );
 }

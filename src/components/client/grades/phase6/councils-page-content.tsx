@@ -61,7 +61,7 @@ function CouncilModal({ id }: { id: string | null }) {
       return d.observation.trim() ? [{ enrollment_id: s.enrollment_id, observation: d.observation.trim() }] : [];
     });
     if (payload.length === 0) return ErrorMessage("Nada para gravar.");
-    void putDecisions.mutateAsync(payload).then(() => SucessMessage("Decisões gravadas.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
+    void putDecisions.mutateAsync(payload).then(() => SucessMessage(isFinal ? "Decisões gravadas." : "Observações gravadas.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
   };
 
   const openMinutes = () => phase6Service.minutesPdf(id!).then((blob) => window.open(URL.createObjectURL(blob), "_blank")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível abrir a acta.")));

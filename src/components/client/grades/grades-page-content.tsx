@@ -122,6 +122,7 @@ export function GradesPageContent() {
         average: 0,
         passingRate: 0,
         pendingCount: 0,
+        hasGrades: false,
       };
     }
 
@@ -133,7 +134,7 @@ export function GradesPageContent() {
     const passingRate = graded.length > 0 ? Number(((approved.length / graded.length) * 100).toFixed(1)) : 0;
     const pendingCount = totalStudents - graded.length;
 
-    return { totalStudents, average, passingRate, pendingCount };
+    return { totalStudents, average, passingRate, pendingCount, hasGrades: graded.length > 0 };
   }, [activeSheet, passMark]);
 
   const selectedSection = sections.find((s) => s.id === selectedSectionId);
@@ -167,13 +168,13 @@ export function GradesPageContent() {
       {/* Dynamic Metric Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <DynamicMetricCard
-          title={`${stats.average.toFixed(1)} / 20`}
+          title={stats.hasGrades ? `${stats.average.toFixed(1)} / 20` : "—"}
           subtitle="Média da Disciplina"
           description={`${selectedSubject?.name || "Disciplina"} na ${selectedSection?.name || "Turma"}`}
           icon="TrendingUp"
         />
         <DynamicMetricCard
-          title={`${stats.passingRate.toFixed(1)}%`}
+          title={stats.hasGrades ? `${stats.passingRate.toFixed(1)}%` : "—"}
           subtitle="Taxa de Positivas"
           description="Alunos com MT igual ou acima da nota mínima da escola (Políticas), entre os que já têm MT"
           icon="Award"
