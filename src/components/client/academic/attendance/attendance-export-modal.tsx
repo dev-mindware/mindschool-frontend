@@ -215,7 +215,7 @@ export function AttendanceExportModal({
                           )}
                         </td>
                         <td className="border-r border-black px-2 py-1.5 text-[10px] text-black/80">
-                          {student.note || "—"}
+                          {student.note?.trim() || "—"}
                         </td>
                         <td className="px-1 py-1.5 text-center font-mono text-[10px] text-black/30">
                           __________

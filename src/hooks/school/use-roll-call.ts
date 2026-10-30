@@ -1,5 +1,6 @@
 "use client";
 
+import { sortByName } from "@/lib/sort-names";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
@@ -45,7 +46,7 @@ export function useRollCall(sectionId: string, sectionSubjectId: string | undefi
   const query = useQuery({
     queryKey: key,
     queryFn: async (): Promise<RollCallStudent[]> =>
-      (await api.get<{ data: ApiRow[] }>(url)).data.data.map((r, i) => ({
+      sortByName((await api.get<{ data: ApiRow[] }>(url)).data.data, (r) => r.student.full_name).map((r, i) => ({
         id: r.enrollment_id,
         name: r.student.full_name,
         number: r.student.process_number ?? "",

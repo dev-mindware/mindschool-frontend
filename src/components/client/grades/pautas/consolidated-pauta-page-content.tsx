@@ -13,6 +13,7 @@ import { LockPautaModal } from "./lock-pauta-modal";
 import { ReopenPautaModal } from "./reopen-pauta-modal";
 import { PautaExportModal } from "./pauta-export-modal";
 
+const SHIFT_LABEL: Record<string, string> = { manha: "Manhã", tarde: "Tarde", noite: "Noite", integral: "Integral" };
 const TERM_LABEL: Record<AssessmentTerm, string> = {
   TRIMESTER_1: "1.º Trimestre",
   TRIMESTER_2: "2.º Trimestre",
@@ -101,7 +102,7 @@ export function ConsolidatedPautaPageContent() {
         header: <span className="font-medium text-primary">Média MT</span>,
         className: "text-center w-24",
         render: (_, student) => (
-          <span className="font-medium text-foreground">{student.termAverageTotal.toFixed(1)}</span>
+          <span className="font-medium text-foreground">{Object.keys(student.subjects).length ? student.termAverageTotal.toFixed(1) : "—"}</span>
         ),
       },
       {
@@ -159,7 +160,7 @@ export function ConsolidatedPautaPageContent() {
     <div className="space-y-6">
       <TitleList
         title={`Pauta Consolidada — ${pauta.sectionName}`}
-        suTitle={`${TERM_LABEL[pauta.term]} • Ano Letivo ${pauta.academicYear} • Turno: ${pauta.shift} • ${pauta.students.length} Estudantes`}
+        suTitle={`${TERM_LABEL[pauta.term]} • Ano Letivo ${pauta.academicYear} • Turno: ${SHIFT_LABEL[pauta.shift] ?? pauta.shift} • ${pauta.students.length} Estudantes`}
       >
         <Badge variant={pauta.isClosed ? "default" : "warning"}>
           {pauta.isClosed ? "Fechada e Homologada" : "Em Elaboração"}
@@ -174,7 +175,7 @@ export function ConsolidatedPautaPageContent() {
         </div>
         <div>
           <span className="text-muted-foreground">Taxa de Aproveitamento:</span>
-          <p className="text-base font-bold text-success">{pauta.approvalRate.toFixed(1)}%</p>
+          <p className={`text-base font-bold ${pauta.students.some((s) => Object.keys(s.subjects).length) ? "text-success" : "text-muted-foreground"}`}>{pauta.students.some((s) => Object.keys(s.subjects).length) ? `${pauta.approvalRate.toFixed(1)}%` : "—"}</p>
         </div>
         <div>
           <span className="text-muted-foreground">Notas em Falta:</span>

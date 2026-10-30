@@ -390,11 +390,11 @@ export function StudentAttendanceContent() {
         onClose={() => setIsExportOpen(false)}
         className={className || "Turma"}
         subjectName={effectiveSubjectName}
-        teacherName={activeTimetableLesson?.teacher?.full_name}
+        teacherName={activeTimetableLesson?.teacher?.full_name || effectiveSubject?.teacherName}
         dateStr={selectedDate}
         lessonStart={activeTimetableLesson?.start}
         lessonEnd={activeTimetableLesson?.end}
-        roomCode={activeTimetableLesson?.room?.code || activeTimetableLesson?.location_label || undefined}
+        roomCode={activeTimetableLesson?.room?.code || activeTimetableLesson?.location_label || selectedClass?.roomNumber || undefined}
         students={rollCall.map((r) => ({
           studentId: r.id,
           name: r.name,

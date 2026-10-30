@@ -186,7 +186,7 @@ test.describe.serial("Académico, biblioteca e importações", () => {
       ]);
       expect(await download.failure(), `modelo ${tipo}`).toBeNull();
       expect(download.suggestedFilename()).toMatch(/\.xlsx$/);
-      await d.getByRole("button", { name: "Cancelar" }).click();
+      await d.getByRole("button", { name: /^(Cancelar|Fechar)$/ }).click();
       await expect(d).toBeHidden();
     }
   });

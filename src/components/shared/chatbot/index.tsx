@@ -426,11 +426,13 @@ export function ChatbotSheet() {
           });
         },
         onError: (error) => {
-          setInput(userMsg);
+          // 401/403 do servidor do assistente: dizer a causa certa em vez de «limite de tokens»
+          const unauthorized = /erro de autorização/i.test(error?.message ?? "");
+          const retryMessage = unauthorized ? error.message : MIND_RETRY_ERROR_MESSAGE;
           const detail =
-            error?.message && error.message !== "Failed to send message to Chatbot"
+            !unauthorized && error?.message && error.message !== "Failed to send message to Chatbot"
               ? `${MIND_RETRY_ERROR_MESSAGE} (${error.message})`
-              : MIND_RETRY_ERROR_MESSAGE;
+              : retryMessage;
           ErrorMessage(detail);
           setMessages((prev) => {
             const updated = [...prev];
@@ -444,7 +446,7 @@ export function ChatbotSheet() {
               ...updated,
               {
                 role: "assistant",
-                content: MIND_RETRY_ERROR_MESSAGE,
+                content: retryMessage,
                 created_at: new Date().toISOString(),
                 isTyping: true,
                 failed: true,

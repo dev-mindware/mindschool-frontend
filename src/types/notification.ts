@@ -26,6 +26,8 @@ export type NotificationType = {
   isAiAlert?: boolean;
   aiCategory?: "BILLING" | "STOCK" | "POS" | "CLIENTS" | "MARGIN" | string;
   createdAt: string;
+  /** Página a abrir para tratar o assunto (ex.: a matrícula), quando a notificação tem uma. */
+  link?: string | null;
 };
 
 export interface NotificationParams {

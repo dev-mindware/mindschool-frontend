@@ -68,7 +68,7 @@ export function PautasTable({ pautas, toolbar, onViewPauta, onLockPauta, onReope
       render: (_, item) => (
         <div className="flex flex-col gap-1 w-24">
           <div className="flex justify-between text-xs font-medium">
-            <span>{item.approvalRate.toFixed(1)}%</span>
+            <span>{item.students.some((s) => Object.keys(s.subjects).length) ? `${item.approvalRate.toFixed(1)}%` : '—'}</span>
           </div>
           <Progress value={item.approvalRate} className="h-2 w-24" />
         </div>

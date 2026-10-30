@@ -93,6 +93,7 @@ const toNotification = (n: ApiNotification): NotificationType => ({
   userId: "",
   isRead: n.read,
   createdAt: n.created_at,
+  link: n.link,
 });
 
 export const notificationsService = {

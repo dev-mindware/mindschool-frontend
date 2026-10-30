@@ -198,6 +198,7 @@ export function ChatTab({
                         type="button"
                         size="icon"
                         onClick={handleSend}
+                        aria-label="Enviar mensagem"
                         disabled={isPending || !input.trim() || limitReached}
                         className="absolute right-3 bottom-3 size-8 rounded-xs shadow-xs"
                     >

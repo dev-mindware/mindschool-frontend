@@ -236,7 +236,7 @@ export function TuitionPaymentsContent() {
         <DynamicMetricCard
           title={formatCurrency(summary.totalCollectedAmount)}
           subtitle="Arrecadação Confirmada"
-          description={`${counts.paid} mensalidades liquidadas`}
+          description={`${counts.paid} ${counts.paid === 1 ? "mensalidade liquidada" : "mensalidades liquidadas"}`}
           icon="TrendingUp"
         />
         <DynamicMetricCard

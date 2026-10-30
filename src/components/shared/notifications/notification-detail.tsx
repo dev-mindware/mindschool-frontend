@@ -1,4 +1,5 @@
 "use client";
+import Link from "next/link";
 import { format } from "date-fns";
 import { Button, EmptyState, GlobalModal } from "@/components";
 import { NotificationType } from "@/types";
@@ -29,7 +30,7 @@ export function NotificationDetail() {
             <div className="text-sm text-foreground">
               Recebida em{" "}
               {format(
-                currentNotification.createdAt || new Date(),
+                currentNotification.createdAt ? new Date(currentNotification.createdAt) : new Date(),
                 "dd/MM/yyyy HH:mm"
               )}
             </div>
@@ -42,7 +43,12 @@ export function NotificationDetail() {
           />
         )}
 
-        <div className="pt-4 flex justify-end">
+        <div className="pt-4 flex justify-end gap-2">
+          {currentNotification?.link && (
+            <Button asChild variant="outline" onClick={() => { setCurrentNotification(null); closeModal("notify-detail"); }}>
+              <Link href={currentNotification.link}>Abrir</Link>
+            </Button>
+          )}
           <Button
             onClick={() => {
               setCurrentNotification(null);

@@ -1,4 +1,5 @@
 import api from "./api";
+import { sortByName } from "@/lib/sort-names";
 import { ApiPauta, ApiPautaRow, ApiTerm, SEQUENCE_OF_TERM, gradesService, num } from "./grades-service";
 import type { AssessmentTerm, ConsolidatedPauta, ConsolidatedStudentRow } from "@/types/grade";
 
@@ -24,7 +25,7 @@ export const pautasService = {
     if (!t) return null;
     const p = (await api.get<ApiPautaFull>(`/s/sections/${sectionId}/pauta/${t.id}`)).data;
     const subjectOfSs = new Map(p.subjects.map((s) => [s.section_subject_id, s.subject.id]));
-    const students: ConsolidatedStudentRow[] = p.rows.map((r) => {
+    const students: ConsolidatedStudentRow[] = sortByName(p.rows, (r) => r.student.full_name).map((r) => {
       const subjects: ConsolidatedStudentRow["subjects"] = {};
       const mts: number[] = [];
       for (const [ssId, m] of Object.entries(r.marks)) {

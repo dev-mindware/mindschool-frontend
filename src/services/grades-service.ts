@@ -1,3 +1,4 @@
+import { sortByName } from "@/lib/sort-names";
 import api from "./api";
 import { fetchAllPages } from "./api-pagination";
 import { academicService } from "./academic-service";
@@ -73,7 +74,7 @@ export const gradesService = {
     const pauta = await gradesService.pauta(sectionId, t.id);
     const marks = new Map(pauta.rows.map((r) => [r.enrollment_id, r.marks[assignment.id]]));
     const enrollments = (await enrollmentsService.list()).filter((e) => e.sectionId === sectionId && e.status === "ACTIVE");
-    const roster = enrollments.map((e) => [e.id, { full_name: e.studentName }] as const);
+    const roster = sortByName(enrollments, (e) => e.studentName).map((e) => [e.id, { full_name: e.studentName }] as const);
     const numbers = new Map(enrollments.map((e) => [e.id, e.studentNumber] as const));
 
     const entries: StudentGradeEntry[] = roster.map(([enrollmentId, st]) => {
