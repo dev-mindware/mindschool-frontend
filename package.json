@@ -104,7 +104,7 @@
   "pnpm": {
     "overrides": {
       "fast-uri": ">=4.2.3",
-      "follow-redirects": ">=1.16.1",
+      "follow-redirects": ">=1.16.2",
       "source-map-js": ">=1.2.2"
     }
   },
