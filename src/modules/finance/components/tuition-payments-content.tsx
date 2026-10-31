@@ -5,6 +5,7 @@ import React, { useState } from "react";
 import { TitleList } from "@/components/common/title-list";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { DataList, StatusLegend, type Column } from "@/components";
+import { RequestError } from "@/components/common/request-error";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -38,7 +39,7 @@ export function TuitionPaymentsContent() {
   // Propinas escolhidas para «Marcar como pago» (uma liquidação, uma fatura-recibo; têm de ser do mesmo aluno).
   const [selected, setSelected] = useState<Set<string>>(new Set());
   const [settling, setSettling] = useState<StudentTuitionFee[]>([]);
-  const { allFees, summary, isLoading, counts, isError } = useTuition();
+  const { allFees, summary, isLoading, counts, isError, refetch } = useTuition();
 
   const { sendReminders } = useTuitionBilling();
   // Cobrança por e-mail é do Enterprise (ou add-on): no Essencial o botão nem aparece (a API responderia 402).
@@ -231,8 +232,13 @@ export function TuitionPaymentsContent() {
         </div>
       </div>
 
+      {/* Em erro não se mostram cartões a 0,00 Kz / 0%: seriam valores falsos. */}
+      {isError && allFees.length === 0 && (
+        <RequestError refetch={refetch} message="Não foi possível carregar as mensalidades. Tente novamente dentro de instantes." />
+      )}
+
       {/* Cartões de Métricas Financeiras */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${isError && allFees.length === 0 ? "hidden" : ""}`}>
         <DynamicMetricCard
           title={formatCurrency(summary.totalCollectedAmount)}
           subtitle="Arrecadação Confirmada"
@@ -259,7 +265,7 @@ export function TuitionPaymentsContent() {
         />
       </div>
 
-      <StatusLegend
+      {!(isError && allFees.length === 0) && <StatusLegend
         title="Estados, multas e liquidação"
         items={[
           { label: "Pendente", description: "Dentro do prazo ou com pagamento parcial: ainda há valor por pagar." },
@@ -268,7 +274,7 @@ export function TuitionPaymentsContent() {
           { label: "Marcar como pago", description: "Regista o pagamento do saldo total (propina e multas por pagar; não há pagamento parcial) e pede ao MindGest a fatura-recibo, que é o documento fiscal. Seleccione várias propinas do mesmo aluno para as pagar num só acto, com uma só fatura. Se a escola não estiver ligada ao MindGest, o pagamento fica registado e a fatura segue quando for ligada." },
           { label: "Ver comprovativo", description: "Comprovativo interno do pagamento, sem valor fiscal. A fatura-recibo está em Faturas." },
         ]}
-      />
+      />}
 
       {chosen.length > 0 && (
         <div className="flex flex-wrap items-center justify-between gap-3 rounded-xs border border-primary/30 bg-primary/5 p-3 text-xs">
@@ -287,7 +293,7 @@ export function TuitionPaymentsContent() {
         </div>
       )}
 
-      <DataList<StudentTuitionFee>
+      {!(isError && allFees.length === 0) && <DataList<StudentTuitionFee>
         prefix="propinas"
         rows={allFees}
         columns={columns}
@@ -309,10 +315,10 @@ export function TuitionPaymentsContent() {
           { value: "aluno", label: "Aluno", compare: (a, b) => a.studentName.localeCompare(b.studentName, "pt") },
           { value: "total", label: "Valor total", compare: (a, b) => a.totalAmount - b.totalAmount },
         ]}
-        emptyTitle={isError ? "Não foi possível carregar as mensalidades" : "Nenhuma mensalidade encontrada"}
-        emptyDescription={isError ? "Houve um erro no servidor, por isso os valores abaixo não são fiáveis. Atualize a página para tentar novamente." : "Ajuste os filtros para ver outras mensalidades."}
+        emptyTitle="Nenhuma mensalidade encontrada"
+        emptyDescription="Ajuste os filtros para ver outras mensalidades."
         emptyIcon="Wallet"
-      />
+      />}
 
       {settling.length > 0 && (
         <SettlementSheet isOpen onClose={() => { setSettling([]); setSelected(new Set()); }} fees={settling} />

@@ -506,7 +506,7 @@ export function PoliciesPageContent() {
             ],
             ["Nota Mínima de Transição", `${s.evaluation.pass_mark} valores`],
             ["Prazo de Reapreciação de Notas", `${s.evaluation.review_window_days} dias após o fecho da pauta`],
-            ["Quórum Mínimo do Conselho", `${s.evaluation.council_min_attendees} docentes`],
+            ["Quórum Mínimo do Conselho", `${s.evaluation.council_min_attendees} participantes presentes`],
           ]}
         />
 

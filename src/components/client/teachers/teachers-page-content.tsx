@@ -13,6 +13,16 @@ import { getApiErrorMessage } from "@/utils/api-error";
 const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
 const STATUS: Record<TeacherStatus, string> = { activo: "Ativo", licenca: "Em licença", desvinculado: "Desvinculado" };
 
+/** Linha da lista: ficha de professor ou utilizador «professor» que ainda não tem ficha (`noProfile`). */
+type TeacherRow = ApiTeacherFull & { noProfile?: boolean };
+
+function StatusBadge({ x }: { x: TeacherRow }) {
+  if (x.noProfile) return <Badge variant="warning">Sem ficha</Badge>;
+  // convite enviado e nunca usado: a ficha existe mas o professor ainda não entrou
+  if (x.status === "activo" && x.invite_pending) return <Badge variant="warning">Convite pendente</Badge>;
+  return <Badge variant={x.status === "activo" ? "success" : "secondary"}>{STATUS[x.status]}</Badge>;
+}
+
 function CardPreview({ payload, name }: { payload: string; name: string }) {
   const ref = useRef<HTMLCanvasElement>(null);
   const { profile } = useSchoolSettingsStore();
@@ -106,14 +116,25 @@ export function TeachersPageContent() {
 
   const setStatus = (x: ApiTeacherFull, status: TeacherStatus) => t.update.mutateAsync({ id: x.id, status }).then(() => SucessMessage("Estado atualizado.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
 
-  const columns: Column<ApiTeacherFull>[] = [
+  // Utilizadores com o papel «professor» sem ficha também aparecem (antes ficavam invisíveis até alguém criar a ficha).
+  const rows: TeacherRow[] = [
+    ...t.teachers,
+    ...t.candidates.map((m): TeacherRow => ({
+      id: `sem-ficha-${m.user.id}`, user_id: m.user.id, full_name: m.user.full_name, email: m.user.email, document_number: "—",
+      academic_qualification: null, status: "activo", invite_pending: m.user.invite_pending, noProfile: true,
+    })),
+  ];
+
+  const columns: Column<TeacherRow>[] = [
     { key: "full_name", header: "Professor", render: (_, x) => (<div className="flex flex-col"><span className="font-medium">{x.full_name}</span><span className="text-xs text-muted-foreground">{x.email}</span></div>) },
     { key: "document_number", header: "Documento", render: (_, x) => <span className="font-mono text-xs">{x.document_number}</span> },
     { key: "academic_qualification", header: "Habilitação", render: (_, x) => x.academic_qualification ?? "—" },
-    { key: "status", header: "Estado", render: (_, x) => <Badge variant={x.status === "activo" ? "success" : "secondary"}>{STATUS[x.status]}</Badge> },
+    { key: "status", header: "Estado", render: (_, x) => <StatusBadge x={x} /> },
     {
       key: "action", header: "Ação",
-      render: (_, x) => (
+      render: (_, x) => x.noProfile ? (
+        <Can permission="teacher:write"><Button size="sm" variant="outline" onClick={() => openModal("teachers-new")}>Criar ficha</Button></Can>
+      ) : (
         <ButtonOnlyAction data={x} actions={[
           { label: "Credenciais QR", icon: "QrCode", onClick: (r) => { setCreds(r); openModal("teachers-credentials"); } },
           ...(x.status !== "activo" ? [{ permission: "teacher:write", label: "Marcar como ativo", icon: "CircleCheck" as const, onClick: (r: ApiTeacherFull) => void setStatus(r, "activo") }] : []),
@@ -130,15 +151,15 @@ export function TeachersPageContent() {
         <Can permission="teacher:write"><Button size="sm" className="gap-2" onClick={() => openModal("teachers-new")}><Icon name="UserPlus" className="size-4" />Nova ficha</Button></Can>
       </TitleList>
 
-      <DataList<ApiTeacherFull>
+      <DataList<TeacherRow>
         prefix="docentes"
-        rows={t.teachers}
+        rows={rows}
         columns={columns}
         isLoading={t.isLoading}
         searchPlaceholder="Pesquisar por nome, e-mail ou documento"
         searchText={(x) => `${x.full_name} ${x.email ?? ""} ${x.document_number}`}
         filters={[
-          { key: "estado", label: "Estado", icon: "Tag", options: (Object.keys(STATUS) as TeacherStatus[]).map((s) => ({ value: s, label: STATUS[s] })), match: (x, v) => x.status === v },
+          { key: "estado", label: "Estado", icon: "Tag", options: [...(Object.keys(STATUS) as TeacherStatus[]).map((s) => ({ value: s, label: STATUS[s] })), { value: "convite", label: "Convite pendente" }, { value: "sem_ficha", label: "Sem ficha" }], match: (x, v) => (v === "sem_ficha" ? Boolean(x.noProfile) : v === "convite" ? Boolean(x.invite_pending) && !x.noProfile : !x.noProfile && x.status === v) },
           { key: "habilitacao", label: "Habilitação", icon: "GraduationCap", options: [{ value: "com", label: "Com habilitação" }, { value: "sem", label: "Sem habilitação" }], match: (x, v) => (v === "com" ? Boolean(x.academic_qualification) : !x.academic_qualification) },
         ]}
         sorts={[

@@ -216,7 +216,7 @@ export function TransitionsPageContent() {
             className="gap-2"
           >
             <Icon name="Download" className="h-4 w-4" />
-            <span>Baixar Ata (PDF)</span>
+            <span>Baixar Acta (PDF)</span>
           </Button>
         </div>
       </TitleList>

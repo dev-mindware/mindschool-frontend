@@ -53,8 +53,10 @@ type TourConfig = Omit<TourDefinition, "id" | "version"> & { version?: number };
 type StepOptions = Pick<TourStepDefinition, "side" | "align" | "demo">;
 
 const TOUR_ROLES = {
-  owner: ["OWNER"],
-  ownerManager: ["OWNER", "MANAGER"],
+  owner: ["OWNER", "DIRECTOR_GENERAL"],
+  ownerManager: ["OWNER", "MANAGER", "DIRECTOR_GENERAL", "PEDAGOGIC_DIRECTOR", "SECRETARY", "FINANCIAL"],
+  // quem configura a escola (definições)
+  schoolManagement: ["OWNER", "MANAGER", "DIRECTOR_GENERAL"],
 } satisfies Record<string, Role[]>;
 
 function dataTour(name: string) {
@@ -89,13 +91,13 @@ export const onboardingTours: Record<OnboardingTourId, TourDefinition> = {
     group: "setup",
     type: "setup",
     priority: 1,
-    roles: TOUR_ROLES.ownerManager,
+    roles: TOUR_ROLES.schoolManagement,
     minPlan: "essencial",
     steps: [
       tourStep(
         "setup-layout",
-        "Definições da conta",
-        "Prepare empresa, fiscalidade e operação antes de emitir documentos.",
+        "Definições da escola",
+        "Comece aqui: preencha os dados da instituição, crie o ano letivo e convide a equipa antes de matricular alunos.",
         { side: "bottom" },
       ),
       tourStep(
@@ -105,58 +107,10 @@ export const onboardingTours: Record<OnboardingTourId, TourDefinition> = {
         { side: "right" },
       ),
       tourStep(
-        "setup-company-profile",
-        "Perfil da empresa",
-        "Confirme nome, contacto, endereço e NIF usados nos documentos.",
-        { side: "left" },
-      ),
-      tourStep(
-        "setup-tab-appearance",
-        "Aparência",
-        "Personalize a experiência visual quando o plano permitir.",
-        { side: "right" },
-      ),
-      tourStep(
-        "setup-tab-subscription",
-        "Subscrição",
-        "Reveja plano, limites e estado de pagamento da empresa.",
-        { side: "right" },
-      ),
-      tourStep(
         "setup-workplace-tabs",
         "Ambiente de trabalho",
-        "Configure colaboradores, categorias, lojas, bancos e dados fiscais.",
+        "Instituição de Ensino (dados legais e logótipo), Corpo Docente, utilizadores e papéis, políticas da escola e integrações.",
         { side: "right" },
-      ),
-      tourStep(
-        "setup-tab-collaborators",
-        "Colaboradores",
-        "Gira acessos da equipa sem misturar perfis operacionais.",
-        { side: "right" },
-      ),
-      tourStep(
-        "setup-tab-categories",
-        "Categorias",
-        "Organize produtos, serviços e documentos por categorias.",
-        { side: "right" },
-      ),
-      tourStep(
-        "setup-tab-entities",
-        "Lojas",
-        "Configure lojas quando o plano tiver suporte multi-loja.",
-        { side: "right" },
-      ),
-      tourStep(
-        "setup-banks-content",
-        "Bancos",
-        "Cadastre bancos usados em documentos, recibos e controlo financeiro.",
-        { side: "left" },
-      ),
-      tourStep(
-        "setup-agt-content",
-        "Dados fiscais",
-        "Reveja séries, validações e configurações ligadas à integração fiscal.",
-        { side: "left" },
       ),
       tourStep(
         "setup-guides-content",
@@ -178,32 +132,26 @@ export const onboardingTours: Record<OnboardingTourId, TourDefinition> = {
       tourStep(
         "dashboard-header",
         "Visão operacional",
-        "Comece por confirmar se está a consultar os dados globais da empresa ou apenas os dados da loja associada.",
+        "Comece por confirmar a escola e o período em análise: os números abaixo referem-se a eles.",
         { side: "bottom" },
       ),
       tourStep(
         "dashboard-summary",
         "Indicadores principais",
-        "Compare produtos vendidos, serviços prestados e valores faturados. Utilize as variações para identificar mudanças que exigem atenção.",
+        "Alunos ativos, matrículas, propinas cobradas e risco de abandono num relance. Os alertas pedem atenção primeiro.",
         { side: "bottom" },
       ),
       tourStep(
         "dashboard-revenue",
-        "Evolução da faturação",
-        "Observe a evolução por período para reconhecer crescimento, quebras e sazonalidade antes de consultar os detalhes.",
+        "Propinas cobradas",
+        "A evolução mensal do que foi recebido ajuda a ver quebras e a antecipar a cobrança.",
         { side: "top" },
       ),
       tourStep(
         "dashboard-distribution",
-        "Distribuição das vendas",
-        "Compare o peso de produtos e serviços na receita para perceber a composição do negócio.",
+        "Alunos por classe",
+        "Veja como se distribuem as matrículas ativas pelas classes para planear turmas e professores.",
         { side: "left" },
-      ),
-      tourStep(
-        "dashboard-recent-sales",
-        "Vendas recentes",
-        "Confirme os últimos movimentos, respectivos valores e estados para detectar rapidamente situações pendentes.",
-        { side: "top" },
       ),
     ],
   }),
@@ -219,7 +167,7 @@ export const onboardingTours: Record<OnboardingTourId, TourDefinition> = {
       tourStep(
         "plans-header",
         "Escolha de plano",
-        "Compare planos, limites e funcionalidades para perceber qual se adapta melhor à empresa.",
+        "Compare planos, limites e funcionalidades para perceber qual se adapta melhor à escola.",
         { side: "bottom" },
       ),
       tourStep(

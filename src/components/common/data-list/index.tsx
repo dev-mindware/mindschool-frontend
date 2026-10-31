@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, type ReactNode } from "react";
+import { useMemo, useState, type ReactNode } from "react";
 import { icons } from "lucide-react";
 import { Button, DatePicker } from "@/components/ui";
 import { EmptyState } from "@/components/common/empty-state";
@@ -78,25 +78,37 @@ interface ListFilterBarProps<T> {
 
 /** Barra de filtros padrão MindGest: pesquisa + FilterPopover + datas + ordenação, com botão «Limpar». Estado na URL. */
 export function ListFilterBar<T>({ prefix, f, searchPlaceholder = "Pesquisar...", searchable = true, filters = [], dateFilters = [], sorts = [], toolbar, shown, total }: ListFilterBarProps<T>) {
+  // telemóvel: com muitos filtros ficam atrás do botão «Filtros», para a lista aparecer no primeiro ecrã (antes 9 filtros empurravam o primeiro registo para baixo)
+  const [open, setOpen] = useState(false);
+  const collapsible = filters.length + dateFilters.length + (sorts.length > 0 ? 2 : 0) > 3;
+  const hide = collapsible && !open;
   return (
     <div className="w-full flex flex-col gap-4 px-2 sm:px-0" data-tour={`${prefix}-filters`}>
       {/* telemóvel: grelha de 2 colunas (antes cada filtro ocupava uma linha); ecrã largo: quebra de linha em vez de transbordar à direita */}
       <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-row sm:flex-wrap sm:items-center">
         {searchable && <SearchHandlerWrapper search={f.search} setSearch={f.setSearch} className="col-span-2 w-full sm:w-auto sm:min-w-64 sm:flex-1" placeholder={searchPlaceholder} />}
-        {filters.map((def) => (
-          <FilterPopover key={def.key} icon={def.icon} label={def.label} options={def.options} value={f.get(def.key) || null} onChange={(v) => f.setFilter(def.key, v)} />
-        ))}
-        {sorts.length > 0 && (
-          <>
-            <FilterPopover icon="List" label="Ordenar por" options={sorts.map((s) => ({ value: s.value, label: s.label }))} value={f.sort || null} onChange={(v) => f.setSort(v)} />
-            <FilterPopover icon="ArrowDownUp" label="Ordem" options={[{ value: "asc", label: "Crescente" }, { value: "desc", label: "Decrescente" }]} value={f.sort ? f.order : null} onChange={(v) => { if (v && v !== f.order) f.toggleOrder(); }} />
-          </>
+        {collapsible && (
+          <Button type="button" size="sm" variant="outline" className="col-span-2 h-10 gap-2 sm:hidden" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
+            <Icon name="ListFilter" className="size-4" />
+            {open ? "Esconder filtros" : f.activeCount > 0 ? `Filtros (${f.activeCount})` : "Filtros"}
+          </Button>
         )}
+        <div className={`${hide ? "hidden sm:contents" : "contents"}`}>
+          {filters.map((def) => (
+            <FilterPopover key={def.key} icon={def.icon} label={def.label} options={def.options} value={f.get(def.key) || null} onChange={(v) => f.setFilter(def.key, v)} />
+          ))}
+          {sorts.length > 0 && (
+            <>
+              <FilterPopover icon="List" label="Ordenar por" options={sorts.map((s) => ({ value: s.value, label: s.label }))} value={f.sort || null} onChange={(v) => f.setSort(v)} />
+              <FilterPopover icon="ArrowDownUp" label="Ordem" options={[{ value: "asc", label: "Crescente" }, { value: "desc", label: "Decrescente" }]} value={f.sort ? f.order : null} onChange={(v) => { if (v && v !== f.order) f.toggleOrder(); }} />
+            </>
+          )}
+        </div>
         {toolbar && <div className="col-span-2 sm:col-span-1">{toolbar}</div>}
       </div>
 
       {dateFilters.length > 0 && (
-        <div className="flex flex-col sm:flex-row gap-3 flex-wrap">
+        <div className={`${hide ? "hidden sm:flex" : "flex"} flex-col sm:flex-row gap-3 flex-wrap`}>
           {dateFilters.map((d) => (
             <div key={d.key} className="flex flex-col sm:flex-row gap-3">
               <DatePicker value={f.get(`${d.key}-from`) ? new Date(f.get(`${d.key}-from`)) : undefined} onChange={(date) => f.setFilter(`${d.key}-from`, date ? iso(date) : "")} placeholder={`${d.label}: depois de..`} className="w-full sm:w-max" disabledDates={[]} />

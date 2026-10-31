@@ -15,7 +15,7 @@ export interface ApiMembership { id: string; role: SchoolRole; is_active: boolea
 // ---- Professores -------------------------------------------------------------------------------------------------
 
 export type TeacherStatus = "activo" | "licenca" | "desvinculado";
-export interface ApiTeacherFull { id: string; user_id: string | null; full_name: string; email: string | null; document_number: string; academic_qualification: string | null; status: TeacherStatus }
+export interface ApiTeacherFull { id: string; user_id: string | null; full_name: string; email: string | null; document_number: string; academic_qualification: string | null; status: TeacherStatus; invite_pending?: boolean }
 export interface ApiQrCredential { id: string; credential_type: "app_dinamico" | "cartao_fisico"; status: string; issued_at: string; expires_at: string | null; blocked_reason: string | null; qr_payload?: string }
 export interface ApiAvailabilityBlock { weekday: number; start: string; end: string; reason?: string }
 

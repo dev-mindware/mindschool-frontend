@@ -48,7 +48,7 @@ export function TransitionsExportModal({
         filename: `Ata_Conselho_Notas_${sectionName.replace(/\s+/g, "_")}_${displayYear.replace(/\//g, "-")}.pdf`,
         orientation: "portrait",
       });
-      SucessMessage("Ata do conselho de notas transferida em PDF com sucesso!");
+      SucessMessage("Acta do conselho de notas transferida em PDF com sucesso!");
     } catch (err) {
       console.error("Erro ao gerar PDF da ata:", err);
       ErrorMessage("Erro ao gerar o ficheiro PDF da ata oficial.");
@@ -67,7 +67,7 @@ export function TransitionsExportModal({
       onClose={onClose}
       canClose
       size="5xl"
-      title="Exportar Ata do Conselho de Notas (PDF)"
+      title="Exportar Acta do Conselho de Notas (PDF)"
       description="Documento administrativo deliberativo de transição escolar e aplicação do Decreto Executivo n.º 424/25."
     >
       <div className="space-y-4">
@@ -282,7 +282,7 @@ export function TransitionsExportModal({
               ) : (
                 <Icon name="Download" className="w-4 h-4" />
               )}
-              <span>Baixar Ata (PDF)</span>
+              <span>Baixar Acta (PDF)</span>
             </Button>
           </div>
         </div>

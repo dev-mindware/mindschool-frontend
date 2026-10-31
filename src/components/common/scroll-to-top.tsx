@@ -11,6 +11,13 @@ function resetScroll() {
   }
 }
 
+/** Repõe o topo já e de novo depois do primeiro desenho (o conteúdo novo pode mudar a altura). Serve a mudanças de separador que não mudam o caminho (`?tab=`). */
+export function resetScrollSoon() {
+  resetScroll();
+  requestAnimationFrame(resetScroll);
+  window.setTimeout(resetScroll, 150);
+}
+
 /**
  * Ao mudar de página (incluindo os separadores das Definições e o Planos) a vista volta ao topo.
  * O conteúdo vive dentro de um contentor com scroll próprio, que o Next não repõe sozinho (a página abria a meio, com o título cortado).

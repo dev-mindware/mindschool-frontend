@@ -59,7 +59,7 @@ export function MedAuditorDashboard() {
                   <li key={s.id} className="flex items-center justify-between gap-3 py-2.5 text-sm">
                     <div className="min-w-0">
                       <p className="truncate font-medium">{MED_MAP_LABEL[s.map_type]} · v{s.version}</p>
-                      <p className="text-xs text-muted-foreground">{formatIsoDay(s.created_at)} · checksum <span className="font-mono">{s.checksum.slice(0, 10)}…</span></p>
+                      <p className="text-xs text-muted-foreground">{formatIsoDay(s.created_at)} · código de integridade <span className="font-mono">{s.checksum.slice(0, 10)}…</span></p>
                     </div>
                     <Badge variant="outline" className="shrink-0 font-normal">{MED_STATUS_LABEL[s.status]}</Badge>
                   </li>

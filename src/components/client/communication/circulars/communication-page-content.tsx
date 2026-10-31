@@ -8,6 +8,7 @@ import { useSections } from "@/hooks/school/use-sections";
 import type { AnnouncementAudience, AnnouncementStatus, ApiAnnouncement } from "@/services/announcements-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { formatIsoDay } from "@/utils/format-date";
 import { cn } from "@/lib/utils";
 
 const STATUS_LABEL: Record<AnnouncementStatus, string> = { rascunho: "Rascunho", publicado: "Publicado", arquivado: "Arquivado" };
@@ -43,8 +44,8 @@ export function CommunicationPageContent() {
     { key: "title", header: "Comunicado", render: (_, x) => (<div className="max-w-md"><button type="button" className="text-left font-medium hover:underline" onClick={() => { setViewing(x); openModal("announcement-view"); }}>{x.title}</button><p className="line-clamp-1 text-xs text-muted-foreground">{x.body}</p></div>) },
     { key: "audience", header: "Destinatários", render: (_, x) => (<div><p className="text-sm">{AUDIENCE_LABEL[x.audience]}</p>{x.section_id && <p className="text-xs text-muted-foreground">{sectionName(x.section_id)}</p>}</div>) },
     { key: "status", header: "Estado", render: (_, x) => <Badge variant={STATUS_VARIANT[x.status]}>{STATUS_LABEL[x.status]}</Badge> },
-    { key: "created_at", header: "Criado em", render: (_, x) => <span className="text-xs">{x.created_at.slice(0, 10)}</span> },
-    { key: "published_at", header: "Publicado em", render: (_, x) => <span className="text-xs">{x.published_at?.slice(0, 10) ?? "—"}</span> },
+    { key: "created_at", header: "Criado em", render: (_, x) => <span className="text-xs">{formatIsoDay(x.created_at)}</span> },
+    { key: "published_at", header: "Publicado em", render: (_, x) => <span className="text-xs">{x.published_at ? formatIsoDay(x.published_at) : "—"}</span> },
     {
       key: "actions", header: "Ação",
       render: (_, x) => (
@@ -99,9 +100,9 @@ export function CommunicationPageContent() {
       />
 
       <FormModal id="announcement-form" title={editing ? "Editar comunicado" : "Novo comunicado"} description={editing ? "Só rascunhos podem ser editados." : "É criado como rascunho; publique-o para chegar ao portal."} submitLabel={editing ? "Guardar" : "Criar rascunho"} size="md"
-        isLoading={a.create.isPending || a.update.isPending} disabled={title.trim().length < 3 || body.trim().length < 3 || (audience === "turma" && !sectionId)} onSubmit={save}>
+        isLoading={a.create.isPending || a.update.isPending} disabled={title.trim().length < 3 || !/\p{L}/u.test(title) || body.trim().length < 3 || (audience === "turma" && !sectionId)} onSubmit={save}>
         <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
-          <Input label="Título *" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Reunião geral de encarregados de educação" />
+          <Input label="Título *" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Reunião geral de encarregados de educação" error={title.trim() && !/\p{L}/u.test(title) ? "O título tem de conter letras." : undefined} />
           {(
             <div className={cn("grid grid-cols-1 gap-3", audience === "turma" && "sm:grid-cols-2")}>
               <FormSelect label="Destinatários" value={audience} onValueChange={(v) => setAudience(v as AnnouncementAudience)} options={[{ value: "escola", label: "Toda a escola" }, { value: "turma", label: "Uma turma" }]} />

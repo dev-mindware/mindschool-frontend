@@ -20,6 +20,9 @@ export function useTuition(searchQuery = "", statusFilter: TuitionStatus | "ALL"
     queryFn: () => tuitionService.fees(),
     enabled: Boolean(schoolId),
     staleTime: 30 * 1000,
+    // com o servidor em baixo o erro tem de aparecer em poucos segundos (por omissão eram 3 repetições com espera crescente)
+    retry: 1,
+    retryDelay: 1500,
   });
   const { data: plans = [], isLoading: plansLoading } = useQuery({ queryKey: financeKeys.plans(schoolId), queryFn: () => tuitionService.plans(), enabled: Boolean(schoolId), staleTime: 60 * 1000 });
 

@@ -3,6 +3,7 @@
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Icon } from "@/components";
+import { resetScrollSoon } from "@/components/common/scroll-to-top";
 import { icons } from "lucide-react";
 import { Appearance } from "./contents/appearance";
 import { ProfileSettings } from "./contents/profile-settings";
@@ -131,6 +132,8 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
 
   const handleTabChange = (value: string) => {
     router.push(`?tab=${value}`);
+    // o separador muda só a query: o ScrollToTop (por caminho) não corre e a página abria a meio
+    resetScrollSoon();
   };
 
   const renderTabTrigger = (

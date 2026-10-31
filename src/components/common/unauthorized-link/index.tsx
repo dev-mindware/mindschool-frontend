@@ -17,7 +17,7 @@ export function UnauthorizedLink() {
           href={`${getRouteByRole(user?.role as Role)}`}
           className="w-max mt-6 px-4 py-2 bg-primary text-white  font-medium rounded-xs shadow-md hover:bg-primary transition-all"
         >
-          Voltar à página anterior
+          Ir para o início
         </Link>
 
         <Button

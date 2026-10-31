@@ -9,6 +9,7 @@ interface ApiPautaFull extends ApiPauta {
   subjects: Array<{ section_subject_id: string; subject: { id: string; name: string; code?: string | null } }>;
   closed_at: string | null;
   closed_by: string | null;
+  closed_by_name?: string | null;
   rows: Array<ApiPautaRow & { student: { id: string; full_name: string; process_number?: string | null }; complete: boolean }>;
 }
 
@@ -57,7 +58,7 @@ export const pautasService = {
       academicYear: p.academic_year_name ?? "",
       isClosed: p.status === "fechada",
       closedAt: p.closed_at ?? undefined,
-      closedBy: p.closed_by ?? undefined,
+      closedBy: p.closed_by_name ?? p.closed_by ?? undefined,
       students,
       missingGradesCount: p.summary.missing_grades_count,
       averageClassScore: avgs.length ? Number((avgs.reduce((a, s) => a + s.termAverageTotal, 0) / avgs.length).toFixed(1)) : 0,

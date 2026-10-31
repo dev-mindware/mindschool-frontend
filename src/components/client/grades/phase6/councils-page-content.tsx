@@ -71,7 +71,8 @@ function CouncilModal({ id }: { id: string | null }) {
 
   const openMinutes = () => phase6Service.minutesPdf(id!).then((blob) => window.open(URL.createObjectURL(blob), "_blank")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível abrir a acta.")));
 
-  const studentRows: CouncilStudentRow[] = (council?.students ?? []).map((s) => ({ ...s, id: s.enrollment_id }));
+  // por nome, com a ordem do português (a ordem do servidor põe «Ângela» depois do «Z»)
+  const studentRows: CouncilStudentRow[] = (council?.students ?? []).map((s) => ({ ...s, id: s.enrollment_id })).sort((a, b) => a.student.full_name.localeCompare(b.student.full_name, "pt"));
   const studentColumns: Column<CouncilStudentRow>[] = [
     {
       key: "student",
@@ -82,7 +83,7 @@ function CouncilModal({ id }: { id: string | null }) {
           <div>
             <p className="font-medium">{s.student.full_name}</p>
             <p className="text-xs text-muted-foreground">
-              {isFinal ? (proposed ? `Proposta do sistema: ${OUTCOME_LABEL[proposed]}` : "Sem proposta (pautas por fechar)") : Object.entries(s.marks ?? {}).map(([k, v]) => `${k.slice(0, 4)} ${v ?? "—"}`).join(" · ")}
+              {isFinal ? (proposed ? `Proposta do sistema: ${OUTCOME_LABEL[proposed]}` : "Sem proposta (pautas por fechar)") : Object.entries(s.marks ?? {}).map(([k, v]) => `${k} ${v ?? "—"}`).join(" · ")}
             </p>
           </div>
         );
@@ -112,7 +113,7 @@ function CouncilModal({ id }: { id: string | null }) {
       <SheetContent className="flex flex-col gap-6 overflow-y-auto p-6 sm:max-w-3xl">
         <SheetHeader className="p-0">
           <SheetTitle>{council ? `${council.section.class_level} ${council.section.name} — ${isFinal ? "Conselho final" : "Conselho periódico"}` : "Conselho de turma"}</SheetTitle>
-          {council && <SheetDescription>{closed ? "Encerrado" : "Agendado"}</SheetDescription>}
+          {council && <SheetDescription>{closed ? "Encerrado" : new Date(council.scheduled_at).getTime() < Date.now() ? "Agendado para uma data já passada: grave os participantes e as decisões e encerre." : "Agendado"}</SheetDescription>}
         </SheetHeader>
 
         {council && (
@@ -121,7 +122,7 @@ function CouncilModal({ id }: { id: string | null }) {
               <h4 className="font-semibold">Participantes</h4>
               {!closed && (
                 <p className="text-xs text-muted-foreground">
-                  O primeiro que marcar fica como presidente (pode mudar o papel abaixo). Para encerrar são precisos o presidente e o mínimo de presentes das Políticas. «Gravar participantes» e «Gravar decisões» são botões separados: grave os dois antes de encerrar.
+                  O primeiro que marcar fica como presidente (pode mudar o papel abaixo). Para encerrar são precisos o presidente e o mínimo de presentes das Políticas. «Gravar participantes» e «Gravar {isFinal ? "decisões" : "observações"}» são botões separados: grave os dois antes de encerrar.
                 </p>
               )}
               <div className="grid gap-2 sm:grid-cols-2">
@@ -204,7 +205,7 @@ export function CouncilsPageContent() {
     { key: "kind", header: "Tipo", render: (_, c) => (c.kind === "final" ? "Conselho final" : "Conselho periódico") },
     { key: "scheduled_at", header: "Agendado para", render: (_, c) => <span className="text-xs">{formatDateTime(c.scheduled_at)}</span> },
     { key: "agenda", header: "Agenda", render: (_, c) => <span className="line-clamp-1 text-muted-foreground">{c.agenda ?? "—"}</span> },
-    { key: "status", header: "Estado", render: (_, c) => <Badge variant="outline">{c.status === "encerrado" ? "Encerrado" : "Agendado"}</Badge> },
+    { key: "status", header: "Estado", render: (_, c) => c.status === "encerrado" ? <Badge variant="outline">Encerrado</Badge> : new Date(c.scheduled_at).getTime() < Date.now() ? <Badge variant="warning">Data passada: por encerrar</Badge> : <Badge variant="outline">Agendado</Badge> },
     { key: "action", header: "Ação", render: (_, c) => <ButtonOnlyAction data={c} actions={[{ label: "Abrir conselho", icon: "Eye", onClick: (x) => { setOpenId(x.id); openModal("council-detail"); } }]} /> },
   ];
 

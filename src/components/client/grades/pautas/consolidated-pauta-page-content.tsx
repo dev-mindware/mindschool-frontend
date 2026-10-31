@@ -42,7 +42,7 @@ export function ConsolidatedPautaPageContent() {
       return pauta.subjects.map((s) => ({
         id: s.id,
         name: s.name,
-        code: s.name.slice(0, 4).toUpperCase(),
+        code: (s.code ?? s.name.slice(0, 4)).toUpperCase(),
         isMySubject: isTeacher && myAssignments.some((a) => a.sectionId === sectionId && a.subjectId === s.id),
       }));
     }

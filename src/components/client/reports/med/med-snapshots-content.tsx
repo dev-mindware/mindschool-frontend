@@ -10,6 +10,7 @@ import { useGradeTerms } from "@/hooks/school/use-grades";
 import { academicService } from "@/services/academic-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { formatIsoDay } from "@/utils/format-date";
 
 
 /** Mapas estatisticos oficiais do MED a partir de instantaneos imutaveis (nunca recalculados ao vivo). */
@@ -33,8 +34,8 @@ export function MedSnapshotsContent() {
   };
 
   const columns: Column<MedSnapshot>[] = [
-    { key: "map_type", header: "Mapa", render: (_, s) => (<div><div className="text-sm font-semibold">{MED_MAP_LABEL[s.map_type]} · v{s.version}</div><div className="text-xs text-muted-foreground">checksum {s.checksum.slice(0, 10)}…</div></div>) },
-    { key: "created_at", header: "Gerado em", render: (_, s) => <span className="text-xs">{s.created_at.slice(0, 10)}</span> },
+    { key: "map_type", header: "Mapa", render: (_, s) => (<div><div className="text-sm font-semibold">{MED_MAP_LABEL[s.map_type]} · v{s.version}</div><div className="text-xs text-muted-foreground">código de integridade {s.checksum.slice(0, 10)}…</div></div>) },
+    { key: "created_at", header: "Gerado em", render: (_, s) => <span className="text-xs">{formatIsoDay(s.created_at)}</span> },
     { key: "status", header: "Estado", render: (_, s) => <Badge variant="outline">{MED_STATUS_LABEL[s.status]}</Badge> },
     {
       key: "issues",
