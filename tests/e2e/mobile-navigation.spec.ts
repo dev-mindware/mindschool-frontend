@@ -57,6 +57,31 @@ test.describe("Experiência Mobile (< 768px) — Navbar por Módulos, Filtros e 
   }) => {
     await login(page, ACCOUNTS.titular);
 
+    // 0. A sidebar lateral normal não existe em mobile e o botão do topo abre o dropdown de escola e conta
+    await expect(page.locator('[data-slot="sidebar"]')).toHaveCount(0);
+    await expect(page.locator('[data-slot="sidebar-trigger"]')).toBeHidden();
+
+    const mobileHeaderTrigger = page.getByRole("button", {
+      name: "Menu da escola e conta",
+    });
+    await expect(mobileHeaderTrigger).toBeVisible();
+    await mobileHeaderTrigger.click();
+
+    const headerMenu = page.getByRole("menu");
+    await expect(headerMenu).toBeVisible();
+    await expect(headerMenu).toContainText(ACCOUNTS.titular);
+    await expect(
+      headerMenu.getByRole("menuitem", { name: "Perfil" }),
+    ).toBeVisible();
+    await expect(
+      headerMenu.getByRole("menuitem", { name: "Aparência" }),
+    ).toBeVisible();
+    await expect(
+      headerMenu.getByRole("menuitem", { name: "Sair" }),
+    ).toBeVisible();
+    await page.keyboard.press("Escape");
+    await expect(headerMenu).toBeHidden();
+
     const mobileNav = page.getByRole("navigation", {
       name: "Navegação por módulos",
     });
@@ -211,6 +236,11 @@ test.describe("Experiência Desktop (>= 768px) — Preservação do Rail Modular
       name: "Navegação por módulos",
     });
     await expect(mobileNav).toBeHidden();
+
+    await expect(
+      page.getByRole("button", { name: "Menu da escola e conta" }),
+    ).toBeHidden();
+    await expect(page.locator('[data-slot="sidebar-trigger"]')).toBeVisible();
 
     const desktopRail = page.getByRole("navigation", { name: "Módulos" });
     await expect(desktopRail).toBeVisible();

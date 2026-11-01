@@ -20,7 +20,7 @@ export function SidebarSkeleton({ className }: SidebarSkeletonProps) {
   return (
     <div
       className={cn(
-        "flex h-screen w-64 flex-col bg-sidebar border-r border-sidebar-border",
+        "hidden md:flex h-screen w-64 flex-col bg-sidebar border-r border-sidebar-border",
         className
       )}
     >

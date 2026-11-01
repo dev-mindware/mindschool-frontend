@@ -11,7 +11,7 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui";
 import { useQueryState } from "nuqs";
-import { Icon, Input, Avatar, AvatarFallback, AvatarImage } from "@/components";
+import { Icon, Input, Avatar, AvatarFallback, AvatarImage, MobileHeaderMenu } from "@/components";
 import { useAuth } from "@/hooks/auth";
 import { useNavigation } from "@/hooks/common/use-navigation";
 import { deriveBreadcrumb } from "@/constants/navigation";
@@ -56,6 +56,7 @@ export function PageWrapper({
         {variant === "default" && (
           <div className="flex items-center gap-2 px-4 text-center">
             <SidebarTrigger className="-ml-1" />
+            <MobileHeaderMenu className="-ml-1" />
             <Separator
               orientation="vertical"
               className="mr-2 data-[orientation=vertical]:h-4"

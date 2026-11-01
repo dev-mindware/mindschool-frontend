@@ -1,7 +1,7 @@
 "use client";
 
 import { Icon } from "@/components/common/icon";
-import type { NavModule, NavigationModel } from "@/constants/navigation";
+import type { NavModule } from "@/constants/navigation";
 import { cn } from "@/lib/utils";
 import { SchoolRailButton } from "./sidebar-info";
 import { UserInfo } from "./user-info";
@@ -11,7 +11,7 @@ import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip
 export const RAIL_WIDTH = "4.5rem";
 
 /**
- * Vista Desktop do Rail de Módulos (`!isMobile`, `group-data-[collapsible=icon]:hidden`).
+ * Vista Desktop do Rail de Módulos (`group-data-[collapsible=icon]:hidden`).
  */
 export function DesktopModuleRail({
   top,
@@ -92,46 +92,6 @@ function RailButton({
       </TooltipTrigger>
       <TooltipContent side="right">{module.label}</TooltipContent>
     </Tooltip>
-  );
-}
-
-/**
- * Vista Mobile de Chips de Módulos no topo da gaveta lateral (`isMobile`).
- */
-export function MobileDrawerModuleChips({
-  model,
-  active,
-  onSelect,
-}: {
-  model: NavigationModel;
-  active: NavModule | undefined;
-  onSelect: (m: NavModule) => void;
-}) {
-  return (
-    <div
-      className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1"
-      role="tablist"
-      aria-label="Módulos"
-    >
-      {model.modules.map((m) => (
-        <button
-          key={m.id}
-          type="button"
-          role="tab"
-          aria-selected={active?.id === m.id}
-          onClick={() => onSelect(m)}
-          className={cn(
-            "flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs",
-            active?.id === m.id
-              ? "border-primary bg-primary/10 text-primary"
-              : "text-muted-foreground",
-          )}
-        >
-          <Icon name={m.icon} className="size-3.5" />
-          {m.label}
-        </button>
-      ))}
-    </div>
   );
 }
 

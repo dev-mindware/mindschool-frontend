@@ -27,11 +27,7 @@ import {
 import { cn } from "@/lib/utils";
 import { SidebarCompanyInfo } from "./sidebar-info";
 import { UserInfo } from "./user-info";
-import {
-  DesktopModuleRail,
-  MobileDrawerModuleChips,
-  RAIL_WIDTH,
-} from "./desktop-module-rail";
+import { DesktopModuleRail, RAIL_WIDTH } from "./desktop-module-rail";
 
 /** Rail + painel quando expandida; colapsada o rail desaparece e o painel fica em modo ícones (4 rem). */
 const DUAL_WIDTH = "calc(15rem + 4.5rem)";
@@ -43,20 +39,15 @@ interface Props {
 }
 
 /**
- * Rail de módulos + painel com as secções do módulo ativo. Ao colapsar o rail desaparece e o painel passa a uma
- * coluna de ícones com as páginas do módulo; a troca de módulo vive então no botão do topo.
+ * Rail de módulos + painel com as secções do módulo ativo (exclusivo para Desktop).
+ * Ao colapsar o rail desaparece e o painel passa a uma coluna de ícones com as páginas do módulo;
+ * a troca de módulo vive então no botão do topo.
  */
 export function ModularSidebar({ model, active, pathname }: Props) {
   const router = useRouter();
-  const {
-    isMobile,
-    setOpenMobile,
-    open: expanded,
-    setOpen,
-    setCollapseLocked,
-  } = useSidebar();
+  const { open: expanded, setOpen, setCollapseLocked } = useSidebar();
   // Módulo de uma só página (Dashboard, Configurações) ou página fora do menu (notificações): sem painel, só o rail.
-  const railOnly = !isMobile && (active?.pageCount ?? 0) <= 1;
+  const railOnly = (active?.pageCount ?? 0) <= 1;
 
   // Nesta página não há painel para colapsar: o botão (e o atalho) ficam desativados e o rail aparece sempre.
   useEffect(() => {
@@ -98,14 +89,12 @@ export function ModularSidebar({ model, active, pathname }: Props) {
   return (
     <Sidebar collapsible="icon" width={railOnly ? RAIL_WIDTH : DUAL_WIDTH}>
       <div className="flex h-full min-h-0 w-full">
-        {!isMobile && (
-          <DesktopModuleRail
-            top={top}
-            bottom={bottom}
-            active={active}
-            onSelect={open}
-          />
-        )}
+        <DesktopModuleRail
+          top={top}
+          bottom={bottom}
+          active={active}
+          onSelect={open}
+        />
 
         {/* colapsada o painel volta (em ícones), mesmo nos módulos de uma só página */}
         <div
@@ -119,16 +108,6 @@ export function ModularSidebar({ model, active, pathname }: Props) {
             <div className="hidden group-data-[collapsible=icon]:block">
               <SidebarCompanyInfo />
             </div>
-            {isMobile && (
-              <>
-                <SidebarCompanyInfo />
-                <MobileDrawerModuleChips
-                  model={model}
-                  active={active}
-                  onSelect={open}
-                />
-              </>
-            )}
             {active && (
               <h2 className="px-3 pb-2 pt-3 text-base font-semibold group-data-[collapsible=icon]:hidden">
                 {active.label}
@@ -151,7 +130,6 @@ export function ModularSidebar({ model, active, pathname }: Props) {
                       key={l.key}
                       link={l}
                       current={l.url === currentUrl}
-                      onNavigate={() => isMobile && setOpenMobile(false)}
                     />
                   ))}
                 </SidebarMenu>
@@ -159,12 +137,8 @@ export function ModularSidebar({ model, active, pathname }: Props) {
             ))}
           </SidebarContent>
 
-          {/* com rail, a conta vive no fundo do rail; sem rail (colapsada ou telemóvel) vem para aqui */}
-          <SidebarFooter
-            className={
-              isMobile ? undefined : "hidden group-data-[collapsible=icon]:flex"
-            }
-          >
+          {/* com rail, a conta vive no fundo do rail; sem rail (colapsada) vem para aqui */}
+          <SidebarFooter className="hidden group-data-[collapsible=icon]:flex">
             <UserInfo />
           </SidebarFooter>
         </div>
@@ -176,11 +150,9 @@ export function ModularSidebar({ model, active, pathname }: Props) {
 function PanelLink({
   link,
   current,
-  onNavigate,
 }: {
   link: NavLink;
   current: boolean;
-  onNavigate: () => void;
 }) {
   return (
     <SidebarMenuItem>
@@ -188,7 +160,6 @@ function PanelLink({
         asChild
         tooltip={link.name}
         isActive={current}
-        onClick={onNavigate}
         className={cn(
           "h-10 gap-3 rounded-xs px-3 text-sm transition-colors",
           current

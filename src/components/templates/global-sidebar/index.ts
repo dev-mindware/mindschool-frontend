@@ -6,4 +6,5 @@ export * from "./modular-sidebar";
 export * from "./desktop-module-rail";
 export * from "./grouped-nav";
 export * from "./mobile-module-navbar";
+export * from "./mobile-header-menu";
 

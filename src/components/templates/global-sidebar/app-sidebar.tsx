@@ -9,18 +9,21 @@ import {
   SidebarContent,
   SidebarSkeleton,
   SidebarCompanyInfo,
+  useSidebar,
 } from "@/components";
 import { useNavigation } from "@/hooks/common/use-navigation";
 import { GroupedNav } from "./grouped-nav";
 import { ModularSidebar } from "./modular-sidebar";
 
 /**
- * A sidebar adapta-se ao papel: `dual` (rail de módulos + painel) quando há muitos módulos e páginas,
- * `grouped` (coluna com rótulos) para listas planas e `flat` (acordeões) para o resto. Ver `constants/navigation.ts`.
+ * A sidebar lateral aplica-se apenas a ecrãs desktop (`!isMobile`); em mobile a navegação vive na `MobileModuleNavbar`
+ * e o menu de escola/conta vive no `MobileHeaderMenu`.
  */
 export function AppSidebar() {
+  const { isMobile } = useSidebar();
   const { ready, items, model, active, pathname } = useNavigation();
 
+  if (isMobile) return null;
   if (!ready) return <SidebarSkeleton />;
   if (model.mode === "dual") return <ModularSidebar model={model} active={active} pathname={pathname} />;
 

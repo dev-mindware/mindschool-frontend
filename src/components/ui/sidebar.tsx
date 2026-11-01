@@ -97,12 +97,11 @@ function SidebarProvider({
     [setOpenProp, open]
   );
 
-  // Helper to toggle the sidebar.
+  // Helper to toggle the sidebar (desktop only; mobile uses MobileModuleNavbar + MobileHeaderMenu).
   const toggleSidebar = React.useCallback(() => {
-    if (isMobile) return setOpenMobile((open) => !open);
-    if (collapseLocked) return;
+    if (isMobile || collapseLocked) return;
     return setOpen((open) => !open);
-  }, [isMobile, collapseLocked, setOpen, setOpenMobile]);
+  }, [isMobile, collapseLocked, setOpen]);
 
   // Adds a keyboard shortcut to toggle the sidebar.
   React.useEffect(() => {
@@ -208,28 +207,7 @@ function Sidebar({
   }
 
   if (isMobile) {
-    return (
-      <Sheet open={openMobile} onOpenChange={setOpenMobile} {...props}>
-        <SheetContent
-          data-sidebar="sidebar"
-          data-slot="sidebar"
-          data-mobile="true"
-          className="bg-sidebar text-sidebar-foreground w-(--sidebar-width) p-0 [&>button]:hidden"
-          style={
-            {
-              "--sidebar-width": SIDEBAR_WIDTH_MOBILE,
-            } as React.CSSProperties
-          }
-          side={side}
-        >
-          <SheetHeader className="sr-only">
-            <SheetTitle>Sidebar</SheetTitle>
-            <SheetDescription>Displays the mobile sidebar.</SheetDescription>
-          </SheetHeader>
-          <div className="flex flex-col w-full h-full">{children}</div>
-        </SheetContent>
-      </Sheet>
-    );
+    return null;
   }
 
   return (
@@ -297,7 +275,7 @@ function SidebarTrigger({
       size="icon"
       disabled={locked}
       aria-disabled={locked}
-      className={cn("size-7", className)}
+      className={cn("hidden md:inline-flex size-7", className)}
       onClick={(event) => {
         onClick?.(event);
         toggleSidebar();
