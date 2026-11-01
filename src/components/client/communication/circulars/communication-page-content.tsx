@@ -67,7 +67,7 @@ export function CommunicationPageContent() {
         <Can permission="announcement:write"><Button onClick={openNew} className="gap-2 text-xs shadow-xs"><Icon name="Plus" className="size-4" />Novo comunicado</Button></Can>
       </TitleList>
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={a.counts.total} subtitle="Comunicados" description="Todos os estados" icon="Files" />
         <DynamicMetricCard title={a.counts.published} subtitle="Publicados" description="Visíveis no portal" icon="Send" />
         <DynamicMetricCard title={a.counts.drafts} subtitle="Rascunhos" description="Aguardam publicação" icon="Pencil" />

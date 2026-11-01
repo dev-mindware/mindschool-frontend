@@ -113,7 +113,7 @@ export function MultiSchoolPageContent() {
       {g.group && <p className="text-xs text-muted-foreground">O seu papel: <strong>{GROUP_ROLE_LABEL[g.group.role]}</strong>{d?.computed_at ? ` • dados de ${new Date(d.computed_at).toLocaleString('pt-AO')}` : ''}</p>}
 
       {t && (
-        <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <DynamicMetricCard title={`${t.schools}`} subtitle="Escolas do Grupo" description={t.provisional_schools ? `${t.provisional_schools} com dados provisórios` : 'Dados consolidados'} icon="Building2" />
           {hasStudents && <DynamicMetricCard title={`${t.enrolled}`} subtitle="Alunos Matriculados" description={`Aprovação ${pct(t.approval_rate)} • abandono ${pct(t.dropout_rate)}`} icon="Users" />}
           {hasMoney && <DynamicMetricCard title={formatCurrencyCompact(t.collected)} subtitle="Cobrado" description={`de ${formatCurrencyCompact(t.invoiced)} faturados`} icon="Wallet" />}

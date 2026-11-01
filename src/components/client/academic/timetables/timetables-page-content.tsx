@@ -300,7 +300,7 @@ export function TimetablesPageContent() {
       </TitleList>
 <TeacherGoogleCard />
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={current ? `v${current.version_number}` : "—"} subtitle="Versão em vista" icon="CalendarRange" description={current ? STATUS_LABEL[current.status] : "Sem horário"} />
         <DynamicMetricCard title={current?.entries ?? 0} subtitle="Aulas no horário" icon="BookOpen" description="Em todas as turmas" />
         <DynamicMetricCard title={sections.length} subtitle={sections.length === 1 ? "Turma" : "Turmas"} icon="Users" description={current ? "Neste horário" : "Sem horário"} />

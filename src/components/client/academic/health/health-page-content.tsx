@@ -21,7 +21,7 @@ export function HealthPageContent() {
         )}
       </TitleList>
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={metrics.visits} subtitle="Atendimentos na enfermaria" description={`${metrics.today} hoje`} icon="HeartPulse" />
         <DynamicMetricCard title={metrics.notNotified} subtitle="Sem aviso ao encarregado" description="Atendimentos com encarregado por avisar" icon="TriangleAlert" colors={metrics.notNotified > 0 ? "destructive" : "default"} />
         <DynamicMetricCard title={metrics.openCases} subtitle="Casos em acompanhamento" description="Psicopedagogia em curso" icon="BrainCircuit" />

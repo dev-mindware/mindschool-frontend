@@ -206,7 +206,7 @@ export function DashboardOverview() {
   return (
     <div className="flex flex-col gap-4 md:gap-6">
       {/* 4 KPIs Sempre Garantidos e Balanceados */}
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4" data-tour="dashboard-summary">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" data-tour="dashboard-summary">
         {cards.slice(0, 4).map(({ extra: _e, ...c }, i) => (
           <DynamicMetricCard key={i} {...c} />
         ))}

@@ -33,7 +33,7 @@ export function GuardiansPageContent() {
       </TitleList>
 
       {/* Cartões de Métricas no Padrão MindGest */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard
           title={counts.total}
           subtitle="Total Encarregados"

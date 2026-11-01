@@ -145,13 +145,13 @@ export function TuitionPlansContent() {
       </TitleList>
 
       {plansLoading ? (
-        <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" aria-busy="true" aria-label="A carregar a política financeira">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" aria-busy="true" aria-label="A carregar a política financeira">
           {Array.from({ length: 4 }, (_, i) => <DynamicMetricCardSkeleton key={i} />)}
         </div>
       ) : !policy ? (
         <EmptyState icon="Wallet" title="Sem política financeira" description="Defina o valor da propina e as regras de mora para gerar faturas." />
       ) : (
-        <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <DynamicMetricCard
             title={formatCurrency(policy.monthlyAmount)}
             subtitle="Propina mensal"

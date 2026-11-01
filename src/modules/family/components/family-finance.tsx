@@ -66,7 +66,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
       <TabsContent value="pending"><PortalPayments studentId={studentId} studentName={ward.student.full_name} /></TabsContent>
 
       <TabsContent value="payments" className="space-y-4">
-        <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
           <DynamicMetricCard title={live.payments.length} subtitle="Pagamentos" icon="Receipt" description="Registados na escola" />
           <DynamicMetricCard title={formatCurrency(live.payments.reduce((a, p) => a + Number(p.amount), 0))} subtitle="Total pago" icon="Wallet" description="Soma de todos os pagamentos" />
           <DynamicMetricCard title={settled.length} subtitle="Faturas liquidadas" icon="CircleCheck" description="Totalmente pagas" />
@@ -104,7 +104,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
         <div className="w-40"><FormSelect label="Ano" value={year} onValueChange={setYear} options={[thisYear, thisYear - 1, thisYear - 2].map((y) => ({ value: String(y), label: String(y) }))} /></div>
         {!st ? <p className="text-sm text-muted-foreground">{statement.isLoading ? "A carregar…" : "Sem dados para este ano."}</p> : (
           <>
-            <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+            <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
               <DynamicMetricCard title={formatCurrency(st.billed)} subtitle="Faturado" icon="FileText" description={`${st.invoices} cobranças em ${st.year}`} />
               <DynamicMetricCard title={formatCurrency(st.paid)} subtitle="Pago" icon="CircleCheck" description="Recebido pela escola" />
               <DynamicMetricCard title={formatCurrency(st.outstanding)} subtitle="Em dívida" icon="TriangleAlert" colors={Number(st.outstanding) > 0 ? "destructive" : "default"} description="Por liquidar" />

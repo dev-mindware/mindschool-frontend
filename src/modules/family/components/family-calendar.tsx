@@ -51,7 +51,7 @@ export function FamilyCalendar() {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={upcoming.length} subtitle="Próximos eventos" icon="CalendarDays" description="Daqui para a frente" />
         <DynamicMetricCard title={inMonth} subtitle="Neste mês" icon="Calendar" description="Eventos a começar" />
         <DynamicMetricCard title={upcoming[0] ? upcoming[0].start_date.slice(5, 10).split("-").reverse().join("/") : "—"} subtitle="Próximo evento" icon="Clock" description={upcoming[0]?.title ?? "Sem eventos"} />

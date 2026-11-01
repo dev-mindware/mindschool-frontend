@@ -40,7 +40,7 @@ export function TuitionSubmissionsContent() {
     <div className="space-y-6">
       <TitleList title="Comprovativos de Pagamento" suTitle="Pagamentos enviados pelos encarregados e alunos: confira no extracto bancário e valide." />
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={summary?.open ?? 0} subtitle="Por validar" icon="FileCheck" colors={(summary?.open ?? 0) > 0 ? "destructive" : "default"} description="Submetidos, em análise ou a aguardar novo ficheiro" />
         <DynamicMetricCard title={summary?.oldest_open_hours != null ? `${summary.oldest_open_hours} h` : "—"} subtitle="Mais antigo em espera" icon="Hourglass" description="Responda em 1 dia útil" />
         <DynamicMetricCard title={formatCurrency(Number(summary?.approved_30d.amount ?? 0))} subtitle="Confirmado em 30 dias" icon="Coins" description={`${summary?.approved_30d.count ?? 0} pagamentos validados`} />

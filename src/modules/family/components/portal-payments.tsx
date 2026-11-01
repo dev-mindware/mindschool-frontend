@@ -143,7 +143,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={formatCurrency(debt)} subtitle="Em dívida" icon="Wallet" colors={debt > 0 ? "destructive" : "default"} description={`${payables.length} fatura(s) por pagar`} />
         <DynamicMetricCard title={formatCurrency(overdue)} subtitle="Vencido" icon="TriangleAlert" colors={overdue > 0 ? "destructive" : "default"} description={overdue > 0 ? "Regularize para evitar multa de mora" : "Nada em atraso"} />
         <DynamicMetricCard title={formatCurrency(inReview)} subtitle="Em análise" icon="Hourglass" description="À espera de validação pela escola. Ainda conta como dívida e a multa pode ser criada até ser aprovado" />

@@ -153,7 +153,7 @@ export function SchoolDaysView() {
         </Can>
       </TitleList>
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-3">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 [&>*:last-child:nth-child(odd)]:col-span-2 lg:[&>*:last-child:nth-child(odd)]:col-span-1">
         <DynamicMetricCard title={count("lectivo")} subtitle="Dias letivos no mês" icon="CalendarCheck" description="Dias de aulas para os alunos" />
         <DynamicMetricCard title={count("feriado")} subtitle="Feriados no mês" icon="PartyPopper" description="Calculados pela regra nacional" />
         <DynamicMetricCard title={count("marca")} subtitle="Marcas da Direção" icon="CalendarX" description="Dias não letivos decretados" colors={count("marca") > 0 ? "destructive" : "default"} />

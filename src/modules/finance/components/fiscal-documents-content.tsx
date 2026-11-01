@@ -175,7 +175,7 @@ export function FiscalDocumentsContent() {
         ]}
       />
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={data.length} subtitle="Faturas-recibo" icon="Receipt" description="Uma por acto de pagamento" />
         <DynamicMetricCard title={count(["certificada"])} subtitle="Certificadas" icon="ShieldCheck" description="Com número fiscal" />
         <DynamicMetricCard title={count(["pendente_fiscal", "sem_ligacao", "sem_catalogo", "pausada"])} subtitle="Em curso ou em espera" icon="Clock" description="Seguem sozinhas" />

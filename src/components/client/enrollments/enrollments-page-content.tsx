@@ -34,7 +34,7 @@ export function EnrollmentsPageContent() {
       </TitleList>
 
       {/* Cartões de Métricas no Padrão MindGest */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" data-tour="page-summary">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" data-tour="page-summary">
         <DynamicMetricCard
           title={counts.total}
           subtitle="Total de Matrículas"

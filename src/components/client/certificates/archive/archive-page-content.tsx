@@ -135,7 +135,7 @@ export function ArchivePageContent() {
         </Button>
       </TitleList>
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={s?.total_files ?? 0} subtitle="Ficheiros" icon="Archive" description={`${bytes(s?.total_bytes)} no total`} />
         <DynamicMetricCard title={s?.retention.em_retencao ?? 0} subtitle="Em retenção" icon="ShieldCheck" description="Com prazo para além do período de aviso" />
         <DynamicMetricCard title={s?.retention.a_expirar ?? 0} subtitle="A expirar" icon="Clock" description={`Nos próximos ${s?.expiring_days ?? 90} dias`} colors={(s?.retention.a_expirar ?? 0) > 0 ? "destructive" : "default"} />

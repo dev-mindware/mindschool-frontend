@@ -646,7 +646,7 @@ export function PoliciesPageContent() {
           {...modalProps}
         >
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <Input
                 label="Peso MAC (0–10)"
                 type="quantity"
@@ -759,7 +759,7 @@ export function PoliciesPageContent() {
               checked={ev.exception.enabled}
               onChange={(v) => setEv({ exception: { ...ev.exception, enabled: v } })}
             />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input
                 label="Da classe (n.º)"
                 type="quantity"
@@ -791,7 +791,7 @@ export function PoliciesPageContent() {
               value={ev.exception.max_subjects}
               onChange={(e) => setEv({ exception: { ...ev.exception, max_subjects: Math.max(0, Math.min(10, num(e.target.value))) } })}
             />
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input
                 label="Nota mínima admitida"
                 type="quantity"

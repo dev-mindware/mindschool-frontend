@@ -16,7 +16,7 @@ export function DashboardSkeleton() {
   return (
     <div className="flex flex-col gap-4 md:gap-6 animate-in fade-in duration-200">
       {/* 1. 4 KPIs Principais — Grelha idêntica ao DashboardOverview / FinanceDashboard / TeacherDashboard */}
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         {Array.from({ length: 4 }).map((_, idx) => (
           <DynamicMetricCardSkeleton key={idx} />
         ))}

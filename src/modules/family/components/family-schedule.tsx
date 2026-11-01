@@ -55,7 +55,7 @@ export function FamilySchedule({ studentId }: FamilyContext) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={todayEntries.length} subtitle="Aulas hoje" icon="CalendarDays" description={WEEKDAY[today] ?? ""} />
         <DynamicMetricCard title={next ? next.start : "—"} subtitle="Próxima aula" icon="Clock" description={next ? next.subject.name : "Sem mais aulas hoje"} />
         <DynamicMetricCard title={weeklyLessons} subtitle="Aulas por semana" icon="CalendarRange" description="Tempos letivos" />

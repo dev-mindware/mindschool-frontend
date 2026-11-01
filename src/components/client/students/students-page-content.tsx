@@ -23,7 +23,7 @@ export function StudentsPageContent() {
         <Can permission="student:write"><Button onClick={() => setAddOpen(true)} className="gap-2"><Icon name="UserPlus" className="size-4" />Cadastrar Aluno</Button></Can>
       </TitleList>
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" data-tour="page-summary">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" data-tour="page-summary">
         <DynamicMetricCard title={counts.total} subtitle="Total de Estudantes" description="Alunos registados na base" icon="GraduationCap" />
         <DynamicMetricCard title={counts.enrolled} subtitle="Matriculados" description="Com matrícula ativa no ano" icon="CircleCheck" />
         <DynamicMetricCard title={counts.pending} subtitle="Pendentes" description="Aguardam confirmação" icon="Clock" />

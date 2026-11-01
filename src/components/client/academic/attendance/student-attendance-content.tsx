@@ -154,7 +154,7 @@ export function StudentAttendanceContent() {
         ]}
       />
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={`${classRate}%`} subtitle="Assiduidade no tempo" description="Presentes e atrasos nesta aula" icon="CalendarCheck" />
         <DynamicMetricCard title={unjustified} subtitle="Faltas injustificadas" description="Alerta de controlo disciplinar" icon="UserX" colors={unjustified > 10 ? "destructive" : "default"} />
         <DynamicMetricCard title={present} subtitle="Presentes" description={`de ${rollCall.length} aluno(s) nesta turma`} icon="UserCheck" />

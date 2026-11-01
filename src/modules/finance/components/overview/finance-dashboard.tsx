@@ -39,7 +39,7 @@ export function FinanceDashboard({ variant = "operations" }: FinanceDashboardPro
     <div className="flex flex-col gap-4 md:gap-6">
       {variant === "operations" && <QuickActions open={sub?.open ?? 0} />}
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" data-tour="finance-summary">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" data-tour="finance-summary">
         <DynamicMetricCard title={formatCurrency(Number(k.billed))} subtitle="Faturado no ano" icon="Receipt" description={`${k.invoices_total} cobranças · ${k.students_billed} alunos`} />
         <DynamicMetricCard title={formatCurrency(Number(k.collected))} subtitle="Cobrado" icon="Coins" description={k.collection_rate !== null ? `Taxa de cobrança ${k.collection_rate}%` : "Sem faturação"} />
         <DynamicMetricCard title={formatCurrency(Number(k.overdue_amount))} subtitle="Em atraso" icon="TriangleAlert" colors={n(k.overdue_amount) > 0 ? "destructive" : "default"} description={`${k.overdue_count} cobranças · ${k.students_with_debt} alunos devedores`} />
@@ -165,10 +165,10 @@ function ClassCollection({ data }: { data: FinanceOverview["by_class"] }) {
       {data.length === 0 ? <ChartEmpty text="Sem classes com faturação." /> : (
         <ul className="space-y-3 pb-2">
           {data.map((c) => (
-            <li key={c.class_level} className="grid grid-cols-[110px_1fr_auto] items-center gap-3 text-sm">
+            <li key={c.class_level} className="grid grid-cols-[90px_1fr_auto] sm:grid-cols-[110px_1fr_auto] items-center gap-2 sm:gap-3 text-sm">
               <span className="truncate font-medium">{c.class_level}<span className="block text-xs font-normal text-muted-foreground">{c.students} alunos</span></span>
               <RateBar value={c.rate} tone={(c.rate ?? 0) >= 90 ? "success" : (c.rate ?? 0) >= 70 ? "warning" : "danger"} />
-              <span className="w-28 text-right text-xs tabular-nums text-muted-foreground">{formatCurrency(Number(c.outstanding))}</span>
+              <span className="w-20 sm:w-28 text-right text-xs tabular-nums text-muted-foreground truncate">{formatCurrency(Number(c.outstanding))}</span>
             </li>
           ))}
         </ul>
@@ -246,10 +246,10 @@ function ByType({ data }: { data: FinanceOverview["by_type"] }) {
     <ChartCard title="Receita por tipo de cobrança" icon="Layers" description="Propinas, matrículas, serviços e multas">
       <ul className="space-y-3 pb-2">
         {data.map((t) => (
-          <li key={t.type} className="grid grid-cols-[150px_1fr_auto] items-center gap-3 text-sm">
-            <span className="font-medium">{t.label}</span>
+          <li key={t.type} className="grid grid-cols-[100px_1fr_auto] sm:grid-cols-[150px_1fr_auto] items-center gap-2 sm:gap-3 text-sm">
+            <span className="font-medium truncate">{t.label}</span>
             <RateBar value={t.rate} tone={(t.rate ?? 0) >= 90 ? "success" : (t.rate ?? 0) >= 70 ? "warning" : "danger"} />
-            <span className="w-44 text-right text-xs tabular-nums text-muted-foreground">{formatCurrency(Number(t.collected))} de {formatCurrency(Number(t.billed))}</span>
+            <span className="w-28 sm:w-44 text-right text-xs tabular-nums text-muted-foreground truncate">{formatCurrency(Number(t.collected))} de {formatCurrency(Number(t.billed))}</span>
           </li>
         ))}
       </ul>

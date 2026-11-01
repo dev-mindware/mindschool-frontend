@@ -51,7 +51,7 @@ export function FamilyExams() {
   const open = exams.filter((e) => e.is_open && e.delivery === "nativa" && latest(e)?.status !== "confirmada" && e.attempts.length < e.max_attempts).length;
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={exams.length} subtitle="Provas" icon="FileText" description="Publicadas para a turma" />
         <DynamicMetricCard title={exams.filter((e) => e.is_open).length} subtitle="Abertas agora" icon="Play" description="Dentro da janela" />
         <DynamicMetricCard title={open} subtitle="Por fazer" icon="Pencil" colors={open > 0 ? "destructive" : "default"} description="Com tentativas disponíveis" />

@@ -165,7 +165,7 @@ export function GradesPageContent() {
       />
 
       {/* Dynamic Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" data-tour="page-summary">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" data-tour="page-summary">
         <DynamicMetricCard
           title={stats.hasGrades ? `${stats.average.toFixed(1)} / 20` : "—"}
           subtitle="Média da Disciplina"

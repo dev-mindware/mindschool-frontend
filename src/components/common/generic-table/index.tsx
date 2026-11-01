@@ -123,10 +123,16 @@ export function GenericTable<T extends { id: string }>({
                 />
               </PaginationItem>
 
+              {/* Mobile compact page indicator */}
+              <li className="flex sm:hidden items-center px-2 text-xs font-medium text-foreground">
+                {page} / {totalPages}
+              </li>
+
+              {/* Desktop numbered page links */}
               {Array.from({ length: totalPages }, (_, i) => i + 1)
                 .slice(Math.max(0, page - 2), Math.min(totalPages, page + 1))
                 .map((pageNumber) => (
-                  <PaginationItem key={pageNumber}>
+                  <PaginationItem key={pageNumber} className="hidden sm:inline-flex">
                     <PaginationLink
                       href="#"
                       isActive={page === pageNumber}
@@ -141,7 +147,7 @@ export function GenericTable<T extends { id: string }>({
                 ))}
 
               {totalPages > page + 1 && (
-                <PaginationItem>
+                <PaginationItem className="hidden sm:inline-flex">
                   <PaginationEllipsis />
                 </PaginationItem>
               )}

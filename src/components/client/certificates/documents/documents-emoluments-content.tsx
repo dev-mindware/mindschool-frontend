@@ -130,7 +130,7 @@ export function DocumentsEmolumentsContent() {
       </TitleList>
 
       {/* Painel de Métricas Integradas */}
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard
           title={totalEmolumentsProcessed}
           subtitle="Requerimentos Registados"

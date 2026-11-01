@@ -191,7 +191,7 @@ export function EntranceExamsPageContent() {
       />
 
       {/* Cartões de Métricas */}
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-3 [&>*:last-child:nth-child(odd)]:col-span-2 lg:[&>*:last-child:nth-child(odd)]:col-span-1">
         <DynamicMetricCard
           title={entranceExams.length}
           subtitle="Total de Provas Programadas"

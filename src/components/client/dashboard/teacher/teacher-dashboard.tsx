@@ -38,7 +38,7 @@ export function TeacherDashboard() {
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" data-tour="dashboard-summary">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" data-tour="dashboard-summary">
         <DynamicMetricCard title={o.todaysLessons.length} subtitle="Aulas hoje" icon="BookOpen" description={upcomingToday.length > 0 ? `${upcomingToday.length} ainda por dar` : "Sem mais aulas hoje"} />
         <DynamicMetricCard title={next ? next.start : "—"} subtitle="Próxima aula" icon="Clock" description={next ? `${next.subject.name}${next.section ? ` · ${next.section.name}` : ""}` : "Nada agendado para o resto do dia"} />
         <DynamicMetricCard title={weekly} subtitle="Aulas por semana" icon="CalendarRange" description="Segundo o horário publicado" />

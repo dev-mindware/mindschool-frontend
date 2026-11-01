@@ -75,7 +75,7 @@ export function FamilyLibrary({ studentId, ward }: FamilyContext) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={books.data?.length ?? 0} subtitle="Livros no acervo" icon="Library" description="Disponíveis para pedido" />
         <DynamicMetricCard title={open.length} subtitle="Pedidos em aberto" icon="Hourglass" description="A aguardar a biblioteca" />
         <DynamicMetricCard title={activeLoans.length} subtitle="Emprestados" icon="BookOpen" description="Máximo de 3 livros ao mesmo tempo" />

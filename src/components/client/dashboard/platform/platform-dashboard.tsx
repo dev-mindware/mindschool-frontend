@@ -35,7 +35,7 @@ export function PlatformDashboard() {
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" data-tour="dashboard-summary">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" data-tour="dashboard-summary">
         <DynamicMetricCard title={formatCurrency(Number(o.mrr))} subtitle="Receita mensal (MRR)" icon="Wallet" description={`ARR ${formatCurrency(Number(o.arr))}`} />
         <DynamicMetricCard title={schools} subtitle="Escolas" icon="Building2" description={`${statuses.length} estado(s) de subscrição`} />
         <DynamicMetricCard title={pendingOrders.length} subtitle="Comprovativos por rever" icon="FileCheck" colors={pendingOrders.length > 0 ? "destructive" : "default"} description="Subscrições à espera de decisão" />

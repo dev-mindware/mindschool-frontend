@@ -43,7 +43,7 @@ export function MedAuditorDashboard() {
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" data-tour="dashboard-summary">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" data-tour="dashboard-summary">
         <DynamicMetricCard title={published.length} subtitle="Mapas disponíveis" icon="Map" description="Aprovados, exportados ou submetidos" />
         <DynamicMetricCard title={submitted.length} subtitle="Submetidos ao MED" icon="Send" description={submitted[0]?.submission_reference ? `Último protocolo ${submitted[0].submission_reference}` : "Com protocolo de entrega"} />
         <DynamicMetricCard title={latest ? formatIsoDay(latest.created_at) : "—"} subtitle="Último instantâneo" icon="CalendarClock" description={latest ? `${MED_MAP_LABEL[latest.map_type]} · v${latest.version}` : "Sem instantâneos"} />

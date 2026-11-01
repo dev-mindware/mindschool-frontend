@@ -17,7 +17,7 @@ export function SecretaryRequestsContent() {
         <Can permission="request:write"><Button onClick={() => openModal("request-new")} className="gap-2"><Icon name="FilePlus" className="size-4" />Novo requerimento</Button></Can>
       </TitleList>
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={counts.total} subtitle="Processos registados" description="Total tramitado" icon="Files" />
         <DynamicMetricCard title={counts.open} subtitle="Por tratar" description="Submetidos, ainda sem análise" icon="Clock" />
         <DynamicMetricCard title={counts.inReview} subtitle="Em análise" description="A ser tratados pela secretaria" icon="Search" />

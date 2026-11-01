@@ -175,8 +175,8 @@ export function PageWrapper({
           </DropdownMenu>
         </div>
       </header>
-      <div className={`flex flex-col flex-1 ${variant === "counter" ? "w-full max-w-[98%]" : "w-full"} mx-auto space-y-4 md:space-y-6`}>
-        <div className={`@container/main flex flex-1 ${variant === "counter" ? "p-2 md:p-4" : "p-4 md:p-8 lg:p-12"} flex-col gap-2`}>
+      <div className={`flex flex-col flex-1 ${variant === "counter" ? "w-full max-w-[98%]" : "w-full max-w-[1600px]"} mx-auto space-y-4 md:space-y-6`}>
+        <div className={`@container/main flex flex-1 ${variant === "counter" ? "p-2 md:p-4" : "p-3 sm:p-5 lg:p-6"} flex-col gap-2`}>
           {children}
         </div>
       </div>

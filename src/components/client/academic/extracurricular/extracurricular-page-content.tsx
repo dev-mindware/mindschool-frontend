@@ -29,7 +29,7 @@ export function ExtracurricularPageContent() {
         </div>
       </TitleList>
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={metrics.open} subtitle="Atividades abertas" description="Com inscrições a decorrer" icon="Trophy" />
         <DynamicMetricCard title={metrics.enrolled} subtitle="Inscrições ativas" description="Alunos inscritos" icon="Users" />
         <DynamicMetricCard title={metrics.capacity} subtitle="Vagas totais" description="Lotação das atividades abertas" icon="Layers" />

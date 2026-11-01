@@ -37,7 +37,7 @@ export function DinamicBreadcrumb({
               <span key={idx} className="inline-flex items-center gap-1.5 sm:gap-2">
                 <BreadcrumbItem className={!isLast ? "hidden sm:inline-flex" : "inline-flex"}>
                   {isLast ? (
-                    <BreadcrumbPage className="font-medium text-foreground">
+                    <BreadcrumbPage className="font-medium text-foreground max-w-[130px] sm:max-w-none truncate" title={seg.label}>
                       {seg.label}
                     </BreadcrumbPage>
                   ) : seg.href ? (
@@ -91,7 +91,7 @@ export function DinamicBreadcrumb({
         )}
         {subRoute && (
           <BreadcrumbItem className="inline-flex items-center">
-            <BreadcrumbPage className="font-medium text-foreground">
+            <BreadcrumbPage className="font-medium text-foreground max-w-[130px] sm:max-w-none truncate" title={subRoute}>
               {subRoute}
             </BreadcrumbPage>
           </BreadcrumbItem>

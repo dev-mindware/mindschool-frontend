@@ -53,7 +53,7 @@ export function FamilyDashboard() {
 
       {canFinance && (
         <>
-          <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4" data-tour="family-finance">
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" data-tour="family-finance">
             <DynamicMetricCard title={formatCurrency(debt)} subtitle="Em dívida" icon="Wallet" colors={debt > 0 ? "destructive" : "default"} description={debt > 0 ? `${payables.length} fatura(s) por pagar` : "Está tudo em dia"} />
             <DynamicMetricCard title={formatCurrency(overdue)} subtitle="Vencido" icon="TriangleAlert" colors={overdue > 0 ? "destructive" : "default"} description={overdue > 0 ? "Pague para evitar multa de mora" : "Nada em atraso"} />
             <DynamicMetricCard title={formatCurrency(inReview)} subtitle="Em análise" icon="Hourglass" description={open.length ? `${open.length} comprovativo(s) a validar` : "Sem comprovativos pendentes"} />

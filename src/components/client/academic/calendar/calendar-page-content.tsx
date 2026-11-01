@@ -208,7 +208,7 @@ function FullCalendarContent() {
         </div>
       </TitleList>
 
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={c.events.length} subtitle="Eventos no ano" icon="CalendarDays" description="Todos os estados" />
         <DynamicMetricCard title={stat("publicado")} subtitle="Publicados" icon="Send" description="Visíveis conforme a visibilidade" />
         <DynamicMetricCard title={stat("rascunho")} subtitle="Em rascunho" icon="Pencil" description="Aguardam aprovação" />

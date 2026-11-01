@@ -71,7 +71,7 @@ export function FamilyPerformance({ studentId }: FamilyContext) {
 
   return (
     <>
-      <div className="grid grid-cols-2 gap-3 md:gap-4 @5xl/main:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={avg !== null ? avg.toFixed(1) : "—"} subtitle="Média do trimestre" icon="GraduationCap" description={lastTerm ? `${lastTerm.term.sequence}.º Trimestre` : "Sem notas publicadas"} />
         <DynamicMetricCard title={mts.length - negatives} subtitle="Disciplinas positivas" icon="CircleCheck" description="MT igual ou superior a 10" />
         <DynamicMetricCard title={negatives} subtitle="Disciplinas negativas" icon="TriangleAlert" colors={negatives > 0 ? "destructive" : "default"} description="MT inferior a 10" />
