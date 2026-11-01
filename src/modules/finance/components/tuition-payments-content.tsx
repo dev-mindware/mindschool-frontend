@@ -238,7 +238,7 @@ export function TuitionPaymentsContent() {
       )}
 
       {/* Cartões de Métricas Financeiras */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${isError && allFees.length === 0 ? "hidden" : ""}`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 ${isError && allFees.length === 0 ? "hidden" : ""}`} data-tour="page-summary">
         <DynamicMetricCard
           title={formatCurrency(summary.totalCollectedAmount)}
           subtitle="Arrecadação Confirmada"

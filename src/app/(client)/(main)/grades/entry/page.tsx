@@ -3,7 +3,7 @@ import { GradesPageContent } from "@/components/client/grades/grades-page-conten
 
 export default function GradesEntryPage() {
   return (
-    <PageWrapper>
+    <PageWrapper onboardingTourId="grades">
       <GradesPageContent />
     </PageWrapper>
   );

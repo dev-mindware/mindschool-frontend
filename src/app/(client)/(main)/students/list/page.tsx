@@ -3,7 +3,7 @@ import { StudentsPageContent } from "@/components/client/students";
 
 export default function StudentsListPage() {
   return (
-    <PageWrapper>
+    <PageWrapper onboardingTourId="students">
       <StudentsPageContent />
     </PageWrapper>
   );

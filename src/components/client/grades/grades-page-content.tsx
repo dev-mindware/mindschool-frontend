@@ -165,7 +165,7 @@ export function GradesPageContent() {
       />
 
       {/* Dynamic Metric Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4" data-tour="page-summary">
         <DynamicMetricCard
           title={stats.hasGrades ? `${stats.average.toFixed(1)} / 20` : "—"}
           subtitle="Média da Disciplina"
@@ -201,7 +201,7 @@ export function GradesPageContent() {
       </div>
 
       {/* Barra de Filtros e Seleção */}
-      <div className="flex flex-wrap items-end gap-3">
+      <div className="flex flex-wrap items-end gap-3" data-tour="notas-filters">
         {/* Turma (PaginatedSelect) */}
         <div className="w-full sm:w-64 space-y-1.5">
           <Label>Turma Seleccionada</Label>

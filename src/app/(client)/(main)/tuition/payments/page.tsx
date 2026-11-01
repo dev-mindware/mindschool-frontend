@@ -3,7 +3,7 @@ import { TuitionPaymentsContent } from "@/modules/finance/components";
 
 export default function TuitionPaymentsPage() {
   return (
-    <PageWrapper>
+    <PageWrapper onboardingTourId="tuition">
       <TuitionPaymentsContent />
     </PageWrapper>
   );

@@ -494,6 +494,9 @@ export function ChatbotSheet() {
 
   return (
     <Sheet open={isOpen} onOpenChange={setIsOpen}>
+      {/* Espaço fixo para o botão: o texto vai mudando de largura e empurrava «Ver guia» e «Tutoriais» (um clique em «Ver guia» chegou a abrir o MIND).
+          Alinhado à direita, o botão cresce para dentro desta caixa sem mexer nos vizinhos. */}
+      <span className="inline-flex shrink-0 justify-end sm:w-[216px]">
       <ProtectedAction>
         <SheetTrigger asChild>
           <button
@@ -546,6 +549,7 @@ export function ChatbotSheet() {
           </button>
         </SheetTrigger>
       </ProtectedAction>
+      </span>
 
       <SheetContent
         side="right"

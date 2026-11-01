@@ -3,7 +3,7 @@ import { EnrollmentsPageContent } from "@/components/client/enrollments";
 
 export default function StudentEnrollmentsPage() {
   return (
-    <PageWrapper>
+    <PageWrapper onboardingTourId="enrollments">
       <EnrollmentsPageContent />
     </PageWrapper>
   );

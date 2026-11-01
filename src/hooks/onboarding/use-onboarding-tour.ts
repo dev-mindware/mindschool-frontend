@@ -925,10 +925,11 @@ export function useAutoOnboardingTour(
           return;
         }
 
-        if (attempt < 4) {
+        // os alvos (cartões, filtros) só aparecem quando os dados chegam: com a API lenta 4 tentativas (~4 s) não chegavam
+        if (attempt < 12) {
           tryStartTour();
         }
-      }, attempt === 0 ? 700 : 1000);
+      }, attempt === 0 ? 700 : 1500);
 
       timeouts.push(timeout);
     };
