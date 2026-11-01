@@ -13,7 +13,7 @@ interface ApiPautaFull extends ApiPauta {
   rows: Array<ApiPautaRow & { student: { id: string; full_name: string; process_number?: string | null }; complete: boolean }>;
 }
 
-async function termId(term: AssessmentTerm): Promise<string> {
+export async function termId(term: AssessmentTerm): Promise<string> {
   const t = (await gradesService.terms()).find((x) => x.sequence === SEQUENCE_OF_TERM[term]);
   if (!t) throw new Error("Período inexistente.");
   return t.id;

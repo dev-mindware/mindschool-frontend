@@ -11,6 +11,7 @@ import { SEQUENCE_OF_TERM } from "@/services/grades-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import type { AssessmentTerm } from "@/types/grade";
 import { downloadCsv } from "@/utils/export-csv";
+import { ReportExportMenu, type ReportExportItem } from "@/components/shared/report-export-menu";
 import { AbsenceReports } from "./absence-reports";
 
 const TERMS: { value: AssessmentTerm; label: string }[] = [
@@ -25,7 +26,16 @@ const OUTCOME: Record<Outcome, { label: string; variant: "success" | "destructiv
   indefinido: { label: "Indefinido", variant: "secondary" },
 };
 
-const WEEKDAY = ["", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
+/** Relatórios da turma (PDF/Word/Excel) para o director de turma. */
+const exportItems = (sectionId: string, termId: string): ReportExportItem[] => [
+  { model: "lista-nominal", label: "Lista nominal de alunos", params: () => ({ section_id: sectionId }) },
+  { model: "mapa-assiduidade", label: "Mapa de assiduidade", params: () => ({ section_id: sectionId, term_id: termId }) },
+  { model: "pauta-trimestral", label: "Pauta trimestral", params: () => ({ section_id: sectionId, term_id: termId }) },
+  { model: "mapa-aproveitamento", label: "Mapa de aproveitamento", params: () => ({ section_id: sectionId, term_id: termId }) },
+  { model: "horario-turma", label: "Horário da turma", params: () => ({ section_id: sectionId }) },
+];
+
+const WEEKDAY =["", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 
 /** Painel do director de turma (separador da página Turmas): o essencial da turma num só ecrã, por trimestre. */
 export function CoordinationPanel() {
@@ -90,6 +100,11 @@ export function CoordinationPanel() {
           <p className="pb-2 text-xs text-muted-foreground">
             Diretor de turma: <strong>{p.section.homeroom_teacher?.full_name ?? "não definido"}</strong>
           </p>
+        )}
+        {sectionId && term && (
+          <div className="sm:ml-auto">
+            <ReportExportMenu label="Exportar relatórios" items={exportItems(sectionId, term.id)} />
+          </div>
         )}
       </div>
 

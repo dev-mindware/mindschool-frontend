@@ -11,6 +11,7 @@ import { useModal } from "@/stores/modal/use-modal-store";
 import { formatIsoDay } from "@/utils";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { ErrorMessage, SucessMessage } from "@/utils/messages";
+import { ReportExportMenu } from "@/components/shared/report-export-menu";
 import { DosificacaoEditor } from "./dosificacao-editor";
 import { LessonPlanEditor } from "./lesson-plan-editor";
 import { PlanView } from "./plan-view";
@@ -94,6 +95,7 @@ function PlanList({ kind, canWrite, canReview, onNew, onEdit, onView }: { kind: 
       render: (_, p) => (
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="outline" size="sm" onClick={() => onView(p)}>{canReview && p.status === "submetido" ? "Rever" : "Ver"}</Button>
+          <ReportExportMenu items={[{ model: kind === "dosificacao" ? "dosificacao" : "plano-aula", label: noun.charAt(0).toUpperCase() + noun.slice(1), params: () => ({ plan_id: p.id }) }]} />
           {canWrite && (p.status === "rascunho" || p.status === "devolvido") && (
             <>
               <Button variant="outline" size="sm" onClick={() => onEdit(p)}>Editar</Button>

@@ -12,6 +12,8 @@ import { Badge } from "@/components/ui/badge";
 import { LockPautaModal } from "./lock-pauta-modal";
 import { ReopenPautaModal } from "./reopen-pauta-modal";
 import { PautaExportModal } from "./pauta-export-modal";
+import { ReportExportMenu, type ReportExportItem } from "@/components/shared/report-export-menu";
+import { termId } from "@/services/pautas-service";
 
 const SHIFT_LABEL: Record<string, string> = { manha: "Manhã", tarde: "Tarde", noite: "Noite", integral: "Integral" };
 const TERM_LABEL: Record<AssessmentTerm, string> = {
@@ -48,6 +50,21 @@ export function ConsolidatedPautaPageContent() {
     }
     return [];
   }, [pauta?.subjects, isTeacher, myAssignments, sectionId]);
+
+  const exportItems = useMemo<ReportExportItem[]>(() => {
+    const sectionTerm = async () => ({ section_id: sectionId, term_id: await termId(term) });
+    const miniPautas = (pauta?.subjects ?? []).map((s): ReportExportItem => ({
+      key: `mini-${s.sectionSubjectId}`,
+      model: "mini-pauta",
+      label: `Mini-pauta · ${s.name}`,
+      params: async () => ({ ...(await sectionTerm()), section_subject_id: s.sectionSubjectId }),
+    }));
+    return [
+      { model: "pauta-trimestral", label: "Pauta trimestral", params: sectionTerm },
+      { model: "mapa-aproveitamento", label: "Mapa de aproveitamento", params: sectionTerm },
+      ...miniPautas,
+    ];
+  }, [pauta?.subjects, sectionId, term]);
 
   const studentsData: PautaStudentRow[] = useMemo(
     () => (pauta?.students ?? []).map((student, idx) => ({ ...student, id: student.studentId, index: idx + 1 })),
@@ -217,6 +234,7 @@ export function ConsolidatedPautaPageContent() {
           Documento regulamentado pelo Decreto Executivo n.º 424/25 do Ministério da Educação.
         </div>
         <div className="flex items-center gap-2.5">
+          <ReportExportMenu items={exportItems} label="Exportar relatórios" />
           <Button
             size="sm"
             variant="outline"

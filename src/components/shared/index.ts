@@ -7,3 +7,4 @@ export * from "./trial-banner";
 export * from "./tutorials/tutorials-modal";
 export * from "./calendar-view";
 export * from "./chart-card";
+export * from "./report-export-menu";

@@ -5,6 +5,7 @@ import { formatIsoDay } from "@/utils";
 import { Bar, BarChart, CartesianGrid, Cell, Label, Pie, PieChart, XAxis, YAxis } from "recharts";
 import { Button, ChartContainer, ChartTooltip, ChartTooltipContent, DashboardSkeleton, DynamicMetricCard, EmptyState, Icon, type ChartConfig } from "@/components";
 import { ChartCard, ChartEmpty, LegendRow, RateBar } from "@/components/shared/chart-card";
+import { ReportExportMenu, type ReportExportItem } from "@/components/shared/report-export-menu";
 import { useEntitled } from "@/hooks/common/use-entitled";
 import { useFinanceOverview } from "@/modules/finance/hooks/use-tuition-payments";
 import type { FinanceOverview } from "@/modules/finance/services/tuition-payments-service";
@@ -15,6 +16,12 @@ const AGING_COLORS = ["var(--primary)", "#f59e0b", "#f97316", "#ef4444", "#b91c1
 const MONTHS = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 const monthLabel = (ym: string) => `${MONTHS[Number(ym.slice(5, 7)) - 1]} ${ym.slice(2, 4)}`;
 const n = (v: string | number | null | undefined) => Number(v ?? 0);
+
+/** Relatórios financeiros do ano letivo ativo, em PDF, Word ou Excel. */
+const FINANCE_REPORTS: ReportExportItem[] = [
+  { model: "balancete-propinas", label: "Balancete de propinas", params: () => ({}) },
+  { model: "lista-devedores", label: "Lista de devedores", params: () => ({}) },
+];
 
 interface FinanceDashboardProps {
   /** `operations` = painel do módulo de propinas (atalhos); `report` = relatório financeiro (detalhe e indicadores). */
@@ -38,6 +45,9 @@ export function FinanceDashboard({ variant = "operations" }: FinanceDashboardPro
 
   return (
     <div className="flex flex-col gap-4 md:gap-6">
+      <div className="flex justify-end">
+        <ReportExportMenu label="Exportar relatórios" items={FINANCE_REPORTS} />
+      </div>
       {variant === "operations" && <QuickActions open={sub?.open ?? 0} />}
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4" data-tour="finance-summary">
