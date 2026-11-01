@@ -1,4 +1,4 @@
-import { AppSidebar, BreadcrumbProvider, SidebarInset, PlanGate, StepUpDialog, ImpersonationBanner, PlanUpgradeModal } from "@/components";
+import { AppSidebar, BreadcrumbProvider, SidebarInset, PlanGate, StepUpDialog, ImpersonationBanner, PlanUpgradeModal, MobileModuleNavbar } from "@/components";
 import { TrialBanner } from "@/components/shared";
 import { NotificationDetail } from "@/components/shared/notifications";
 import { RouteProtector } from "@/contexts";
@@ -17,7 +17,7 @@ export default function ClientLayout({ children }: Props) {
       <SchoolProvider>
         <FeatureGateProvider>
           <AppSidebar />
-          <SidebarInset>
+          <SidebarInset className="pb-24 md:pb-0">
             <ScrollToTop />
             <ImpersonationBanner />
             <TrialBanner />
@@ -25,6 +25,7 @@ export default function ClientLayout({ children }: Props) {
               <PlanGate>{children}</PlanGate>
             </BreadcrumbProvider>
           </SidebarInset>
+          <MobileModuleNavbar />
           <NotificationDetail />
           <StepUpDialog />
           <PlanUpgradeModal />

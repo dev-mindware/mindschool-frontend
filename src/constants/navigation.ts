@@ -148,3 +148,31 @@ export function deriveBreadcrumb(modules: readonly NavModule[], pathname: string
 export function dedupeCrumbs(crumbs: Crumb[]): Crumb[] {
   return crumbs.filter((c, i) => i === 0 || c.label !== crumbs[i - 1]!.label);
 }
+
+/** Número máximo de módulos visíveis por omissão na navbar mobile compacta. */
+export const MOBILE_NAV_MAX_VISIBLE = 4;
+
+/**
+ * Selecciona os módulos visíveis no estado compacto da navbar mobile (máximo `maxVisible`, por omissão 4).
+ * Se o módulo activo (ou seleccionado) não estiver entre os primeiros `maxVisible`, substitui o último slot
+ * pelo módulo activo, garantindo que o utilizador vê sempre o módulo onde se encontra.
+ */
+export function getCompactVisibleModules(
+  modules: readonly NavModule[],
+  activeModuleId?: ModuleId,
+  maxVisible: number = MOBILE_NAV_MAX_VISIBLE,
+): NavModule[] {
+  if (modules.length <= maxVisible) {
+    return [...modules];
+  }
+  const initialSlice = modules.slice(0, maxVisible);
+  if (!activeModuleId || initialSlice.some((m) => m.id === activeModuleId)) {
+    return initialSlice;
+  }
+  const activeMod = modules.find((m) => m.id === activeModuleId);
+  if (!activeMod) {
+    return initialSlice;
+  }
+  return [...modules.slice(0, Math.max(0, maxVisible - 1)), activeMod];
+}
+

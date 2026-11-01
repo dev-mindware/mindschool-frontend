@@ -1,15 +1,7 @@
 "use client";
-import type React from "react";
+
 import { cn } from "@/lib/utils";
 import { useRouter, useSearchParams } from "next/navigation";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import {
   Pagination,
   PaginationContent,
@@ -19,36 +11,12 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
-import { Checkbox } from "@/components/ui/checkbox";
 import { ListSkeleton } from "@/components/common/skeletons/list-skeleton";
-import { EmptyState } from "@/components/common/empty-state";
+import { DesktopTableView } from "./desktop-table-view";
+import { MobileCardStackView } from "./mobile-card-stack-view";
+import type { Column, DataTableProps, SharedTableViewProps } from "./types";
 
-export interface Column<T> {
-  key: keyof T | string;
-  header: React.ReactNode;
-  render?: (value: any, item: T) => React.ReactNode;
-  className?: string;
-  sortable?: boolean;
-}
-
-export interface DataTableProps<T> {
-  data: T[];
-  columns: Column<T>[];
-  className?: string;
-  emptyMessage?: string;
-  emptyDescription?: string;
-  isLoading?: boolean;
-  route?: string;
-  page?: number;
-  total?: number;
-  totalPages?: number;
-  setPage?: (page: number) => void;
-  goToNextPage?: () => void;
-  goToPreviousPage?: () => void;
-  selectable?: boolean;
-  selectedIds?: string[];
-  onSelectChange?: (selectedIds: string[]) => void;
-}
+export type { Column, DataTableProps };
 
 export function GenericTable<T extends { id: string }>({
   data,
@@ -82,14 +50,7 @@ export function GenericTable<T extends { id: string }>({
     );
   }
 
-  const getValue = (item: T, key: keyof T | string): any => {
-    if (typeof key === "string" && key.includes(".")) {
-      return key.split(".").reduce((obj: any, k) => obj?.[k], item);
-    }
-    return item[key as keyof T];
-  };
-
-  const handleRowDoubleClick = (item: T) => {
+  const handleRowActivate = (item: T) => {
     if (route) router.push(`${route}/${item.id}`);
   };
 
@@ -119,195 +80,26 @@ export function GenericTable<T extends { id: string }>({
   const isSomePageSelected =
     data.some((item) => selectedIds.includes(item.id)) && !isAllPageSelected;
 
+  const sharedProps: SharedTableViewProps<T> = {
+    data,
+    columns,
+    emptyMessage,
+    emptyDescription,
+    route,
+    newId,
+    selectable,
+    selectedIds,
+    isAllPageSelected,
+    isSomePageSelected,
+    onRowActivate: handleRowActivate,
+    onSelectAll: handleSelectAll,
+    onSelectRow: handleSelectRow,
+  };
+
   return (
     <div className={cn("w-full space-y-4", className)}>
-      {/* DESKTOP VIEW: Traditional HTML Table in Card Box (Hidden on Mobile) */}
-      <div className="hidden md:block rounded-xs border border-border bg-card overflow-hidden">
-        <div className="overflow-x-auto">
-          <Table>
-            <TableHeader>
-              <TableRow>
-                {selectable && (
-                  <TableHead className="w-12 text-center">
-                    <Checkbox
-                      checked={
-                        isAllPageSelected
-                          ? true
-                          : isSomePageSelected
-                            ? "indeterminate"
-                            : false
-                      }
-                      onCheckedChange={handleSelectAll}
-                      aria-label="Seleccionar todos"
-                    />
-                  </TableHead>
-                )}
-                {columns.map((column, index) => (
-                  <TableHead
-                    key={index}
-                    className={cn(
-                      "text-left text-xs font-medium text-muted-foreground tracking-wider uppercase",
-                      column.className
-                    )}
-                  >
-                    {column.header || "----------"}
-                  </TableHead>
-                ))}
-              </TableRow>
-            </TableHeader>
-
-            <TableBody>
-              {data.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={columns.length + (selectable ? 1 : 0)}
-                    className="p-4"
-                  >
-                    <EmptyState
-                      icon="Inbox"
-                      title={emptyMessage}
-                      description={emptyDescription}
-                      className="border-none bg-transparent shadow-none my-2"
-                    />
-                  </TableCell>
-                </TableRow>
-              ) : (
-                data.map((item, rowIndex) => (
-                  <TableRow
-                    key={item.id || rowIndex}
-                    className={cn(
-                      "hover:bg-muted/50 transition-colors",
-                      route && "cursor-pointer",
-                      item.id === newId && "animate-pulse-twice",
-                      selectable && selectedIds.includes(item.id) && "bg-muted/30"
-                    )}
-                    onDoubleClick={() => handleRowDoubleClick(item)}
-                  >
-                    {selectable && (
-                      <TableCell
-                        className="w-12 text-center"
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        <Checkbox
-                          checked={selectedIds.includes(item.id)}
-                          onCheckedChange={(checked) =>
-                            handleSelectRow(item.id, Boolean(checked))
-                          }
-                          aria-label={`Seleccionar registo ${item.id}`}
-                        />
-                      </TableCell>
-                    )}
-                    {columns.map((column, colIndex) => (
-                      <TableCell
-                        key={colIndex}
-                        className={cn(
-                          "text-sm text-foreground",
-                          column.className
-                        )}
-                      >
-                        {column.render
-                          ? column.render(getValue(item, column.key), item)
-                          : getValue(item, column.key)}
-                      </TableCell>
-                    ))}
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
-        </div>
-      </div>
-
-      {/* MOBILE VIEW: Full-Width Card Stack (Hidden on Desktop) */}
-      <div className="block md:hidden w-full space-y-3">
-        {data.length === 0 ? (
-          <EmptyState
-            icon="Inbox"
-            title={emptyMessage}
-            description={emptyDescription}
-          />
-        ) : (
-            data.map((item, rowIndex) => {
-              const headerCol = columns[0];
-              const actionCol = columns.find(
-                (c) =>
-                  String(c.header).toLowerCase().includes("acção") ||
-                  String(c.header).toLowerCase().includes("ação") ||
-                  String(c.header).toLowerCase().includes("action") ||
-                  String(c.key).toLowerCase() === "action"
-              );
-
-              const bodyCols = columns.slice(1).filter((c) => c !== actionCol);
-
-              return (
-                <div
-                  key={item.id || rowIndex}
-                  onClick={() => handleRowDoubleClick(item)}
-                  className={cn(
-                    "relative rounded-xs border border-border bg-card p-4 shadow-xs transition-all active:scale-[0.98]",
-                    route && "cursor-pointer",
-                    item.id === newId && "ring-2 ring-primary animate-pulse"
-                  )}
-                >
-                  {/* Card Header: Main Title/Key & Action Badge/Button */}
-                  <div className="flex items-start justify-between gap-2 pb-2">
-                    <div className="flex items-center gap-2 font-medium text-base text-foreground flex-1 line-clamp-1">
-                      {selectable && (
-                        <Checkbox
-                          checked={selectedIds.includes(item.id)}
-                          onCheckedChange={(checked) =>
-                            handleSelectRow(item.id, Boolean(checked))
-                          }
-                          onClick={(e) => e.stopPropagation()}
-                          aria-label={`Seleccionar registo ${item.id}`}
-                        />
-                      )}
-                      {headerCol?.render
-                        ? headerCol.render(getValue(item, headerCol.key), item)
-                        : getValue(item, headerCol?.key || "")}
-                    </div>
-                    {actionCol && (
-                      <div className="shrink-0">
-                        {actionCol.render
-                          ? actionCol.render(getValue(item, actionCol.key), item)
-                          : getValue(item, actionCol.key)}
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Divider */}
-                  {bodyCols.length > 0 && (
-                    <div className="my-2.5 border-t border-border/50" />
-                  )}
-
-                  {/* Card Body Sub-Grid: 2 Columns Key-Value Pairs */}
-                  {bodyCols.length > 0 && (
-                    <div className="grid grid-cols-2 gap-x-3 gap-y-2.5 text-xs">
-                      {bodyCols.map((col, cIdx) => {
-                        const val = col.render
-                          ? col.render(getValue(item, col.key), item)
-                          : getValue(item, col.key);
-                        if (val === undefined || val === null || val === "")
-                          return null;
-
-                        return (
-                          <div key={cIdx} className="flex flex-col space-y-0.5">
-                            <span className="text-[10px] font-medium uppercase tracking-wider text-muted-foreground/80">
-                              {col.header}
-                            </span>
-                            <div className="text-xs font-medium text-foreground truncate">
-                              {val}
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
-                  )}
-                </div>
-              );
-            })
-          )}
-        </div>
+      <DesktopTableView<T> {...sharedProps} />
+      <MobileCardStackView<T> {...sharedProps} />
 
       {/* PAGINATION FOOTER */}
       {totalPages > 1 && (

@@ -49,12 +49,17 @@ export const useOnboardingPreferencesStore =
       (set, get) => ({
         preferencesByScope: {},
         getPreferences: (scope) =>
-          mergeWithDefaults(get().preferencesByScope[scope]),
+          mergeWithDefaults(
+            get().preferencesByScope[scope] ?? get().preferencesByScope["*"],
+          ),
         hydratePreferences: (scope, preferences) =>
           set((state) => ({
             preferencesByScope: {
               ...state.preferencesByScope,
-              [scope]: mergeWithDefaults(preferences),
+              [scope]: mergeWithDefaults({
+                ...state.preferencesByScope["*"],
+                ...preferences,
+              }),
             },
           })),
         setAutoStartEnabled: (scope, enabled) =>

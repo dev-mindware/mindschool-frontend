@@ -733,6 +733,7 @@ export function useOnboardingTour(tourId: OnboardingTourId) {
   const startTour = useCallback(async (mode: OnboardingTourMode = "normal") => {
     if (typeof window === "undefined") return false;
     if (!canUserAccessOnboardingTour(tourId, user)) return false;
+    const initialHref = window.location.href;
     // Garantir que estado residual de tours anteriores está limpo
     activeTourResult = null;
     activeTourMode = mode;
@@ -754,7 +755,10 @@ export function useOnboardingTour(tourId: OnboardingTourId) {
       if (!firstSelector) break;
 
       const preparedTarget = await prepareTarget(firstSelector);
-      if (preparedTarget) {
+      if (window.location.href !== initialHref) {
+        return false;
+      }
+      if (preparedTarget && preparedTarget.isConnected) {
         firstStep.element = preparedTarget;
         break;
       }
@@ -773,7 +777,13 @@ export function useOnboardingTour(tourId: OnboardingTourId) {
       initialStepIndex += 1;
     }
 
-    if (initialStepIndex >= steps.length) return false;
+    if (
+      initialStepIndex >= steps.length ||
+      window.location.href !== initialHref ||
+      document.querySelector('[role="dialog"][data-state="open"]')
+    ) {
+      return false;
+    }
 
     persistTour(
       tourId,
@@ -893,7 +903,10 @@ export function useAutoOnboardingTour(
   const user = useAuthStore((state) => state.user);
   const scope = getScope(user?.id, user?.company?.id);
   const autoStartEnabled = useOnboardingPreferencesStore(
-    (state) => state.preferencesByScope[scope]?.autoStartEnabled ?? true,
+    (state) =>
+      state.preferencesByScope[scope]?.autoStartEnabled ??
+      state.preferencesByScope["*"]?.autoStartEnabled ??
+      true,
   );
   const autoStartRef = useRef(false);
 
@@ -920,6 +933,10 @@ export function useAutoOnboardingTour(
 
         attempt += 1;
         const started = await startTour("normal");
+        if (cancelled) {
+          activeDriver?.destroy();
+          return;
+        }
         if (started) {
           autoStartRef.current = true;
           return;
@@ -939,6 +956,7 @@ export function useAutoOnboardingTour(
     return () => {
       cancelled = true;
       timeouts.forEach((timeout) => window.clearTimeout(timeout));
+      activeDriver?.destroy();
     };
   }, [
     autoStartEnabled,

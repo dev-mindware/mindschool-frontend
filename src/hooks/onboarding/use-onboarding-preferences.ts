@@ -224,8 +224,9 @@ export function useOnboardingPreferencesPersistence(
         .filter((reset) => reset.scope === scope)
         .map((reset) => reset.tourId),
     );
+    const currentLocalPreferences = getPreferences(scope);
     const localSeenTours = Object.fromEntries(
-      Object.entries(getPreferences(scope).seenTours).filter(
+      Object.entries(currentLocalPreferences.seenTours).filter(
         ([tourId]) => !pendingResetTourIds.has(tourId as OnboardingTourId),
       ),
     ) as Partial<Record<OnboardingTourId, "completed" | "skipped">>;
@@ -246,8 +247,15 @@ export function useOnboardingPreferencesPersistence(
         {},
       );
 
+    const isRemote = process.env.NEXT_PUBLIC_ONBOARDING_REMOTE === "true";
+
     hydratePreferences(scope, {
-      ...query.data.preferences,
+      ...(isRemote
+        ? query.data.preferences
+        : {
+            autoStartEnabled: currentLocalPreferences.autoStartEnabled,
+            tourButtonEnabled: currentLocalPreferences.tourButtonEnabled,
+          }),
       seenTours: {
         ...Object.fromEntries(
           Object.entries(seenTours).filter(

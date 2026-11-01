@@ -1,5 +1,5 @@
 import { menuItems } from "@/constants/menu-items";
-import { MAX_PAGES_PER_MODULE, PLACED_KEYS, activeModule, buildNavigation, dedupeCrumbs, deriveBreadcrumb, findLink, linkKey } from "@/constants/navigation";
+import { MAX_PAGES_PER_MODULE, MOBILE_NAV_MAX_VISIBLE, PLACED_KEYS, activeModule, buildNavigation, dedupeCrumbs, deriveBreadcrumb, findLink, getCompactVisibleModules, linkKey } from "@/constants/navigation";
 import { findMatchingMenuItem } from "@/lib/find-menu-item";
 import { getSidebarForUser } from "@/lib/get-sidebar-for-user";
 import type { Role } from "@/types";
@@ -144,6 +144,47 @@ describe("navegação modular", () => {
     it("usa a ligação mais específica", () => {
       expect(findLink(modules, "/tuition/submissions")!.link.name).toBe("Comprovativos");
       expect(findLink(modules, "/tuition")!.link.name).toBe("Visão geral");
+    });
+  });
+
+  describe("navbar mobile (getCompactVisibleModules)", () => {
+    const directorModules = forRole("DIRECTOR_GENERAL").modules;
+
+    it("apresenta no máximo 4 módulos por omissão quando o módulo activo está entre os 4 primeiros", () => {
+      const visible = getCompactVisibleModules(directorModules, "academico");
+      expect(visible).toHaveLength(MOBILE_NAV_MAX_VISIBLE);
+      expect(visible.map((m) => m.id)).toEqual(["inicio", "secretaria", "academico", "avaliacao"]);
+    });
+
+    it("inclui o módulo activo na 4.ª posição quando este se encontra fora dos 4 primeiros", () => {
+      expect(getCompactVisibleModules(directorModules, "financeiro").map((m) => m.id)).toEqual([
+        "inicio",
+        "secretaria",
+        "academico",
+        "financeiro",
+      ]);
+      expect(getCompactVisibleModules(directorModules, "configuracoes").map((m) => m.id)).toEqual([
+        "inicio",
+        "secretaria",
+        "academico",
+        "configuracoes",
+      ]);
+    });
+
+    it("mantém os 4 primeiros quando não há módulo activo (ex.: página de notificações)", () => {
+      expect(getCompactVisibleModules(directorModules, undefined).map((m) => m.id)).toEqual([
+        "inicio",
+        "secretaria",
+        "academico",
+        "avaliacao",
+      ]);
+    });
+
+    it("devolve apenas os módulos existentes quando o papel tem <= 4 módulos (ex.: Encarregado)", () => {
+      const guardianModules = forRole("GUARDIAN").modules;
+      const visible = getCompactVisibleModules(guardianModules, "conta");
+      expect(visible).toHaveLength(3);
+      expect(visible.map((m) => m.id)).toEqual(["acompanhamento", "servicos", "conta"]);
     });
   });
 });
