@@ -97,6 +97,7 @@ export async function proxy(req: NextRequest) {
 
 export const config = {
   matcher: [
-    "/((?!api|_next/static|_next/image|favicon.ico|.*\\.(?:png|svg|jpg|jpeg|gif|json)|\\.well-known).*)",
+    // sw.js, offline.html e o manifesto têm de abrir sem sessão (e sem redirecionamentos), senão o service worker não se regista.
+    "/((?!api|_next/static|_next/image|favicon.ico|sw\\.js|offline\\.html|manifest\\.webmanifest|.*\\.(?:png|svg|jpg|jpeg|gif|json)|\\.well-known).*)",
   ],
 };

@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { formatIsoDay } from "@/utils";
 import { Badge, Button, ButtonOnlyAction, DataList, EmptyState, FormModal, FormTextarea, Input, TitleList, type Column } from "@/components";
 import { useGradeReviews } from "@/hooks/school/use-phase6";
 import { REVIEW_STATUS_LABEL, type ApiReview, type ReviewStatus } from "@/services/phase6-service";
@@ -30,7 +31,7 @@ export function GradeReviewsPageContent() {
     { key: "student.full_name", header: "Aluno", render: (_, r) => <span className="font-medium">{r.student.full_name}</span> },
     { key: "assessment", header: "Avaliação", render: (_, r) => (<div className="flex flex-col"><span>{r.assessment.subject}</span><span className="text-xs text-muted-foreground">{TYPE[r.assessment.type] ?? r.assessment.type} · {r.assessment.date}</span></div>) },
     { key: "grade", header: "Nota", render: (_, r) => <span className="font-mono">{val(r.grade)}{r.new_grade ? ` → ${val(r.new_grade)}` : ""}</span> },
-    { key: "created_at", header: "Pedido em", render: (_, r) => <span className="font-mono text-xs">{r.created_at.slice(0, 10)}</span> },
+    { key: "created_at", header: "Pedido em", render: (_, r) => <span className="font-mono text-xs">{formatIsoDay(r.created_at)}</span> },
     { key: "status", header: "Estado", render: (_, r) => <Badge variant={r.status === "deferido" ? "success" : r.status === "indeferido" ? "destructive" : "outline"}>{REVIEW_STATUS_LABEL[r.status]}</Badge> },
     { key: "action", header: "Ação", render: (_, r) => <ButtonOnlyAction data={r} actions={[{ label: ["pedido", "em_revisao"].includes(r.status) ? "Rever / decidir" : "Ver detalhe", icon: "Eye", onClick: open }]} /> },
   ];

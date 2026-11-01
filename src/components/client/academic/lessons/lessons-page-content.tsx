@@ -26,6 +26,8 @@ import {
   Can,
 } from "@/components";
 import { useAuth } from "@/hooks/auth/use-auth";
+import { useCan } from "@/hooks/auth/use-can";
+import { PlanningPanel } from "../planning";
 import { useLessonSummary, useLessons } from "@/hooks/school/use-lessons";
 import { academicService } from "@/services/academic-service";
 import { LESSON_STATUS_LABEL, type ApiLesson } from "@/services/lessons-service";
@@ -405,6 +407,7 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
 /** Aulas e sumários: vista semanal em calendário com mini Google Keep e gestão pedagógica. */
 export function LessonsPageContent() {
   const { user } = useAuth();
+  const { can } = useCan();
   const [scope, setScope] = useState<"mine" | "all">(
     user?.role === "TEACHER" ? "mine" : "all"
   );
@@ -620,6 +623,7 @@ export function LessonsPageContent() {
           <TabsTrigger value="list">Lista</TabsTrigger>
           <TabsTrigger value="missing">Sumários em falta ({l.missing.length})</TabsTrigger>
           <TabsTrigger value="stats">Cumprimento</TabsTrigger>
+          {can("teaching_plan:read") && <TabsTrigger value="planning">Planeamento</TabsTrigger>}
         </TabsList>
 
         <TabsContent value="week" className="space-y-4">
@@ -740,6 +744,11 @@ export function LessonsPageContent() {
             emptyIcon="Gauge"
           />
         </TabsContent>
+        {can("teaching_plan:read") && (
+          <TabsContent value="planning">
+            <PlanningPanel />
+          </TabsContent>
+        )}
       </Tabs>
 
       <LessonModal lesson={open} />

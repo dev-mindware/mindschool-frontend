@@ -249,7 +249,7 @@ export function AuditPageContent() {
     <div className="space-y-6">
       <TitleList
         title="Livro de Auditoria e Rastreabilidade"
-        suTitle="Registo cronológico de acções e alterações no sistema."
+        suTitle="Registo cronológico de ações e alterações no sistema."
       />
 
       <Tabs

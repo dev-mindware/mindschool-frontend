@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { formatIsoDay } from "@/utils";
 import { Can, Badge, Button, ButtonOnlyAction, DataList, EmptyState, FormCombobox, FormModal, FormTextarea, Icon, Input, PrintDownloadDropdown, TitleList, type Column } from "@/components";
 import { useTeacherCredentials, useTeachersAdmin } from "@/hooks/school/use-admin-school";
 import type { ApiTeacherFull, TeacherStatus } from "@/services/admin-school-service";
@@ -90,7 +91,7 @@ function CredentialsModal({ teacher }: { teacher: ApiTeacherFull | null }) {
           {credentials.length === 0 && <p className="text-muted-foreground">Sem credenciais emitidas.</p>}
           {credentials.map((c) => (
             <div key={c.id} className="flex items-center justify-between rounded-xs border p-2">
-              <span>{c.credential_type === "cartao_fisico" ? "Cartão físico" : "QR da aplicação"} • {c.issued_at.slice(0, 10)}</span>
+              <span>{c.credential_type === "cartao_fisico" ? "Cartão físico" : "QR da aplicação"} • {formatIsoDay(c.issued_at)}</span>
               <span className="flex items-center gap-2">
                 <Badge variant="outline">{c.status}</Badge>
                 {c.status === "activa" && <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => { setBlockId(c.id); setReason(""); openModal("teachers-block-credential"); }}>Bloquear</Button>}

@@ -57,7 +57,7 @@ export function ChangePasswordModal() {
         <Input
           label="Palavra-passe atual"
           type="password"
-          placeholder="Introduza a palavra-passe actual"
+          placeholder="Introduza a palavra-passe atual"
           error={errors.currentPassword?.message}
           {...register("currentPassword")}
           className="h-10 text-xs"

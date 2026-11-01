@@ -43,7 +43,7 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
   };
 
   const persist = (records: Array<{ enrollmentId: string; status: AttendanceStatus; notes?: string }>, ok?: string) =>
-    save.mutate(records, { onSuccess: () => ok && SucessMessage(ok), onError: (e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a chamada.")) });
+    save.mutate(records, { onSuccess: (sent) => (sent === null ? SucessMessage("Sem ligação: a chamada ficou guardada neste dispositivo e segue quando a rede voltar.") : ok && SucessMessage(ok)), onError: (e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a chamada.")) });
 
   const count = (s: AttendanceStatus) => students.filter((x) => x.status === s).length;
   const unmarkedCount = students.filter((x) => !x.status).length;

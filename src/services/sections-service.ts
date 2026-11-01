@@ -38,6 +38,7 @@ export const sectionsService = {
       roomNumber: s.room_number?.trim() || "—",
       capacity: s.capacity,
       currentEnrollmentCount: s.enrolled_count,
+      mainTeacherId: s.homeroom_teacher_id ?? undefined,
       academicYear: s.academic_year?.name || "2026/2027",
       isActive: true,
       createdAt: "",

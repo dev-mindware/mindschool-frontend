@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { formatIsoDay } from "@/utils";
 import { StatusBadge, ButtonOnlyAction, DataList, FormModal, FormTextarea, Input, type Column } from "@/components";
 import { libraryService, type ApiLibraryRequest, type ApiLibraryRequestStatus } from "@/services/library-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
@@ -32,7 +33,7 @@ export function PortalRequestsView() {
   const columns: Column<ApiLibraryRequest>[] = [
     { key: "book_title", header: "Livro", render: (_, r) => (<div><span className="font-medium">{r.book_title}</span><p className="text-xs text-muted-foreground">{r.book_author}</p></div>) },
     { key: "student_name", header: "Aluno", render: (_, r) => (<div><span>{r.student_name}</span>{r.notes && <p className="max-w-xs truncate text-xs text-muted-foreground">{r.notes}</p>}</div>) },
-    { key: "created_at", header: "Pedido em", render: (_, r) => <span className="text-xs">{r.created_at.slice(0, 10)}</span> },
+    { key: "created_at", header: "Pedido em", render: (_, r) => <span className="text-xs">{formatIsoDay(r.created_at)}</span> },
     { key: "status", header: "Estado", render: (_, r) => (<div><StatusBadge status={r.status} map={STATUS} />{r.decision_reason && <p className="mt-1 text-xs text-muted-foreground">{r.decision_reason}</p>}</div>) },
     {
       key: "actions", header: "Ação",

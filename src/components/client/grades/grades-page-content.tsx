@@ -3,6 +3,8 @@
 import { TermsMissingBanner } from "./terms-missing-banner";
 import React, { useState, useMemo } from "react";
 import {
+  Button,
+  Icon,
   TitleList,
   DynamicMetricCard,
   PaginatedSelect,
@@ -17,8 +19,11 @@ import { useQuery } from "@tanstack/react-query";
 import { readRawSettings } from "@/services/school-settings-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { ErrorMessage } from "@/utils/messages";
+import { downloadCsv } from "@/utils/export-csv";
 import { AssessmentTerm } from "@/types/grade";
 import { GradeEntryTable } from "./grade-entry-table";
+import { GradeRulesCard } from "./grade-rules-card";
+import { GradeHistoryDialog } from "./grade-history-dialog";
 
 const TERMS: { value: AssessmentTerm; label: string }[] = [
   { value: "TRIMESTER_1", label: "1.º Trimestre" },
@@ -53,7 +58,7 @@ export function GradesPageContent() {
     return availableSubjects[0]?.id || "";
   }, [pickedSubjectId, availableSubjects]);
 
-  const { sheet: activeSheet, pautaStatus, isLoading, isMissingAssignment, saveGrade } = useGradeSheet(selectedSectionId, selectedSubjectId, selectedTerm);
+  const { sheet: activeSheet, pautaStatus, assessmentIds, isLoading, isMissingAssignment, saveGrade } = useGradeSheet(selectedSectionId, selectedSubjectId, selectedTerm);
 
   // Section Paginated Select
   const [sectionSearch, setSectionSearch] = useState("");
@@ -155,6 +160,26 @@ export function GradesPageContent() {
 
   const selectedSubject = availableSubjects.find((s) => s.id === selectedSubjectId);
 
+  function exportMiniPauta() {
+    if (!activeSheet) return;
+    const grade = (v?: number) => (v === undefined ? "" : v.toFixed(1).replace(".", ","));
+    const termLabel = TERMS.find((t) => t.value === selectedTerm)?.label ?? selectedTerm;
+    downloadCsv(`mini-pauta-${activeSheet.sectionName}-${activeSheet.subjectName}-${selectedTerm}.csv`.replace(/\s+/g, "-"), [
+      [activeSheet.subjectName, activeSheet.sectionName, termLabel],
+      ["N.º", "Nome do estudante", "MAC", "NPP", "MAS", "NPT", "MT", "Resultado"],
+      ...activeSheet.entries.map((e) => [
+        e.studentNumber,
+        e.studentName,
+        grade(e.continuousAssessment),
+        grade(e.teacherTest),
+        grade(e.systematicAverage),
+        grade(e.termExam),
+        grade(e.termAverage),
+        e.termAverage === undefined ? "" : e.termAverage >= passMark ? "Positiva" : "Negativa",
+      ]),
+    ]);
+  }
+
   return (
     <div className="space-y-6">
       <TermsMissingBanner />
@@ -199,6 +224,8 @@ export function GradesPageContent() {
           icon={isPautaClosed ? "ShieldCheck" : activeSheet?.isLocked ? "Lock" : "FileSpreadsheet"}
         />
       </div>
+
+      <GradeRulesCard term={selectedTerm} />
 
       {/* Barra de Filtros e Seleção */}
       <div className="flex flex-wrap items-end gap-3" data-tour="notas-filters">
@@ -245,6 +272,13 @@ export function GradesPageContent() {
             placeholder="Selecione o trimestre..."
           />
         </div>
+
+        <Button variant="outline" size="sm" className="gap-2" disabled={!activeSheet || activeSheet.entries.length === 0} onClick={exportMiniPauta}>
+          <Icon name="Download" className="size-4" />
+          Exportar (Excel/CSV)
+        </Button>
+
+        <GradeHistoryDialog assessmentIds={assessmentIds} cacheKey={`${selectedSectionId}:${selectedSubjectId}:${selectedTerm}:${activeSheet?.updatedAt ?? ""}`} />
       </div>
 
       {/* Tabela de Lançamento */}

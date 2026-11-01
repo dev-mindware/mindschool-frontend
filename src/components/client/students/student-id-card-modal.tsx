@@ -4,7 +4,7 @@ import React, { useEffect, useState } from "react";
 import { GlobalModal, Icon, Skeleton, Tabs, TabsList, TabsTrigger } from "@/components";
 import { Button } from "@/components/ui/button";
 import { studentsService, type StudentCardPreviewData } from "@/services/students-service";
-import { toast } from "sonner";
+import { ErrorMessage, InfoMessage, SucessMessage } from "@/utils/messages";
 import QRCode from "qrcode";
 
 interface StudentIdCardModalProps {
@@ -48,7 +48,7 @@ export function StudentIdCardModal({
       })
       .catch((err) => {
         console.error("Erro ao carregar dados do cartão:", err);
-        toast.error("Não foi possível carregar os dados do cartão.");
+        ErrorMessage("Não foi possível carregar os dados do cartão.");
       })
       .finally(() => {
         if (mounted) setLoading(false);
@@ -63,12 +63,12 @@ export function StudentIdCardModal({
     if (!studentId) return;
     try {
       setDownloading(true);
-      toast.info("A gerar o PDF de alta resolução do cartão de estudante...");
+      InfoMessage("A gerar o PDF de alta resolução do cartão de estudante...");
       await studentsService.downloadCardPdf(studentId, studentName);
-      toast.success("Cartão de estudante descarregado com sucesso!");
+      SucessMessage("Cartão de estudante descarregado com sucesso!");
     } catch (err) {
       console.error("Erro ao descarregar PDF do cartão:", err);
-      toast.error("Erro ao gerar o ficheiro PDF do cartão.");
+      ErrorMessage("Erro ao gerar o ficheiro PDF do cartão.");
     } finally {
       setDownloading(false);
     }

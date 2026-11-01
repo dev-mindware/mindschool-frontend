@@ -3,7 +3,8 @@
 import React, { useMemo, useState } from "react";
 import { TitleList } from "@/components/common/title-list";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
-import { DataList, GlobalModal, type Column } from "@/components";
+import { ConfirmModal, DataList, GlobalModal, type Column } from "@/components";
+import { useModal } from "@/stores/modal/use-modal-store";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Icon } from "@/components/common/icon";
@@ -18,6 +19,7 @@ export function TuitionCollectionsContent() {
 
   const [selectedFee, setSelectedFee] = useState<StudentTuitionFee | null>(null);
   const [isSending, setIsSending] = useState(false);
+  const { openModal } = useModal();
 
   const overdueFees = useMemo(
     () => allFees.filter((f) => f.status === "OVERDUE" || f.status === "PENDING"),
@@ -44,9 +46,7 @@ export function TuitionCollectionsContent() {
   }
 
   // Em lote só as já vencidas: avisar quem ainda está dentro do prazo seria cobrar antes do tempo.
-  const confirmBatch = () => {
-    if (window.confirm(`Enviar agora um lembrete por e-mail a ${lateFees.length} encarregado(s) com propinas vencidas? Cada envio fica registado e não pode ser desfeito.`)) void send(lateFees);
-  };
+  const confirmBatch = () => openModal("collections-batch");
 
   const columns: Column<StudentTuitionFee>[] = [
     {
@@ -353,6 +353,16 @@ export function TuitionCollectionsContent() {
           </div>
         )}
       </GlobalModal>
+
+      <ConfirmModal
+        id="collections-batch"
+        title="Enviar lembretes às propinas vencidas"
+        description={`Enviar agora um lembrete por e-mail a ${lateFees.length} encarregado(s) com propinas vencidas?`}
+        confirmLabel="Enviar lembretes"
+        irreversible
+        effects={["Cada encarregado recebe um e-mail com as propinas vencidas do educando.", "Cada envio fica registado e não pode ser desfeito.", "Só entram as já vencidas: quem ainda está dentro do prazo não é avisado."]}
+        onConfirm={() => send(lateFees)}
+      />
     </div>
   );
 }

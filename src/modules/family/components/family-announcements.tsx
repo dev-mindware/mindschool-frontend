@@ -1,6 +1,7 @@
 "use client";
 
 import { DataList, Icon, type Column } from "@/components";
+import { formatIsoDay } from "@/utils";
 import { usePortal } from "@/modules/family/hooks/use-portal";
 import type { PortalAnnouncement } from "@/modules/family/services/portal-service";
 
@@ -14,7 +15,7 @@ const columns: Column<PortalAnnouncement>[] = [
       </div>
     ),
   },
-  { key: "published_at", header: "Publicado", render: (_, a) => <span className="font-mono text-xs">{a.published_at?.slice(0, 10) ?? "—"}</span> },
+  { key: "published_at", header: "Publicado", render: (_, a) => <span className="font-mono text-xs">{formatIsoDay(a.published_at) ?? "—"}</span> },
 ];
 
 /** Comunicados da escola dirigidos à família (da escola toda ou da turma). */

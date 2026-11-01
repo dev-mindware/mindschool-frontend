@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatIsoDay } from "@/utils";
 import { Badge, Button, DataList, DynamicMetricCard, Icon, MonthCalendar, Tabs, TabsContent, TabsList, TabsTrigger, type CalendarItem, type Column } from "@/components";
 import { usePortal } from "@/modules/family/hooks/use-portal";
 import type { PortalEvent } from "@/modules/family/services/portal-service";
@@ -42,7 +43,7 @@ export function FamilyCalendar() {
   const inMonth = upcoming.filter((e) => e.start_date.slice(0, 7) === today.slice(0, 7)).length;
 
   const columns: Column<PortalEvent>[] = [
-    { key: "start_date", header: "Data", render: (_, e) => <span className="font-mono text-xs">{e.start_date.slice(0, 10)}{e.end_date.slice(0, 10) !== e.start_date.slice(0, 10) && ` → ${e.end_date.slice(0, 10)}`}</span> },
+    { key: "start_date", header: "Data", render: (_, e) => <span className="font-mono text-xs">{formatIsoDay(e.start_date)}{formatIsoDay(e.end_date) !== formatIsoDay(e.start_date) && ` → ${formatIsoDay(e.end_date)}`}</span> },
     { key: "title", header: "Evento", render: (_, e) => (<div><span className="font-medium">{e.title}</span>{e.description && <p className="line-clamp-1 text-xs text-muted-foreground">{e.description}</p>}</div>) },
     { key: "type", header: "Tipo", render: (_, e) => <Badge variant="outline" className="font-normal">{typeLabel(e.type)}</Badge> },
     { key: "location", header: "Local", render: (_, e) => <span className="text-xs text-muted-foreground">{e.location ?? "—"}</span> },

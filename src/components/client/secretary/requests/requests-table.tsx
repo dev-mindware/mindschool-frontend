@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatIsoDay } from "@/utils";
 import { ButtonOnlyAction, DataList, type Column } from "@/components";
 import { useSecretaryRequests } from "@/hooks/school/use-secretary-requests";
 import { REQUEST_STATUS_LABEL, REQUEST_TYPE_LABEL, type ApiRequest, type RequestStatus, type RequestType } from "@/services/secretary-requests-service";
@@ -18,7 +19,7 @@ export function RequestsTable() {
   const student = (id: string | null) => (id ? nameOf.get(id) ?? "—" : "—");
 
   const columns: Column<ApiRequest>[] = [
-    { key: "protocol", header: "Protocolo", render: (_, r) => (<div className="flex flex-col"><span className="font-mono font-medium text-primary">{r.protocol}</span><span className="text-[10px] text-muted-foreground">{r.created_at.slice(0, 10).split("-").reverse().join("/")}</span></div>) },
+    { key: "protocol", header: "Protocolo", render: (_, r) => (<div className="flex flex-col"><span className="font-mono font-medium text-primary">{r.protocol}</span><span className="text-[10px] text-muted-foreground">{formatIsoDay(r.created_at).split("-").reverse().join("/")}</span></div>) },
     { key: "student_id", header: "Aluno", render: (_, r) => <span className="font-medium">{student(r.student_id)}</span> },
     { key: "type", header: "Serviço / assunto", render: (_, r) => (<div className="flex flex-col"><span className="font-medium">{REQUEST_TYPE_LABEL[r.type]}</span><span className="line-clamp-1 text-xs italic text-muted-foreground">{r.subject}</span></div>) },
     { key: "status", header: "Estado", render: (_, r) => <RequestStatusBadge status={r.status} /> },

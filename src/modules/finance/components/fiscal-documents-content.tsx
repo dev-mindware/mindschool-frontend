@@ -86,7 +86,7 @@ export function FiscalDocumentsContent() {
           {d.invoices.map((i) => (
             <li key={i.id}>{i.description ?? TYPE[i.type] ?? i.type} · {formatIsoDay(i.due_date)} · {formatCurrency(Number(i.amount))}</li>
           ))}
-          {d.method && <li className="text-foreground/70">{METHOD[d.method] ?? d.method}{d.paid_at ? ` · ${d.paid_at.slice(0, 10)}` : ""}</li>}
+          {d.method && <li className="text-foreground/70">{METHOD[d.method] ?? d.method}{d.paid_at ? ` · ${formatIsoDay(d.paid_at)}` : ""}</li>}
         </ul>
       ),
     },

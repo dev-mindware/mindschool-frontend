@@ -1,5 +1,6 @@
 "use client";
 import { familyKeys } from "@/modules/family/query-keys";
+import { formatIsoDay } from "@/utils";
 
 import { useState } from "react";
 import Link from "next/link";
@@ -52,7 +53,7 @@ export function FamilyDocuments({ studentId, ward }: FamilyContext) {
     { key: "protocol", header: "Protocolo", render: (_, r) => <span className="font-mono font-medium text-primary">{r.protocol}</span> },
     { key: "type", header: "Documento", render: (_, r) => (<div><p className="font-medium">{REQUEST_TYPE_LABEL[r.type]}</p><p className="text-xs text-muted-foreground">{r.subject}</p></div>) },
     { key: "fee", header: "Taxa", render: (_, r) => (r.fee_amount ? <span className="tabular-nums">{formatCurrency(Number(r.fee_amount))}</span> : <span className="text-xs text-muted-foreground">Gratuito</span>) },
-    { key: "created_at", header: "Data", render: (_, r) => <span className="text-xs">{r.created_at.slice(0, 10)}</span> },
+    { key: "created_at", header: "Data", render: (_, r) => <span className="text-xs">{formatIsoDay(r.created_at)}</span> },
     { key: "status", header: "Estado", render: (_, r) => <Badge variant={TONE[r.status]} className="font-normal">{REQUEST_STATUS_LABEL[r.status]}</Badge> },
     {
       key: "actions", header: "Ação",
@@ -70,7 +71,7 @@ export function FamilyDocuments({ studentId, ward }: FamilyContext) {
   const docColumns: Column<PortalDocument>[] = [
     { key: "document_number", header: "Número", render: (_, d) => <span className="font-mono font-medium">{d.document_number}</span> },
     { key: "type", header: "Tipo", render: (_, d) => d.type },
-    { key: "issued_at", header: "Emitido em", render: (_, d) => <span className="text-xs">{d.issued_at.slice(0, 10)}</span> },
+    { key: "issued_at", header: "Emitido em", render: (_, d) => <span className="text-xs">{formatIsoDay(d.issued_at)}</span> },
     { key: "actions", header: "Ação", render: (_, d) => <ButtonOnlyAction data={d} actions={[{ label: "Abrir PDF", icon: "FileText", onClick: (x) => void portalService.documentPdf(studentId, x.id).then((b) => window.open(URL.createObjectURL(b), "_blank")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Sem PDF."))) }]} /> },
   ];
 

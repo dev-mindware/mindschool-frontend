@@ -13,6 +13,7 @@ import { NuqsAdapter } from "nuqs/adapters/next/app";
 import { Analytics } from "@vercel/analytics/next";
 import { SpeedInsights } from "@vercel/speed-insights/next";
 import { PwaServiceWorkerRegister } from "@/components/shared/pwa-service-worker-register";
+import { OfflineSync } from "@/components/shared/offline-sync";
 import { AppearancePreferences } from "@/components/shared/appearance-preferences";
 
 
@@ -136,6 +137,7 @@ export default function RootLayout({
             <AuthProvider>
               <NuqsAdapter>
                 <PwaServiceWorkerRegister />
+                <OfflineSync />
                 <AppearancePreferences />
                 <SidebarProvider>{children}</SidebarProvider>
                 <CustomToaster />

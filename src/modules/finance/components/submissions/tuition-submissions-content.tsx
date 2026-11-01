@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { formatIsoDay } from "@/utils";
 import { ButtonOnlyAction, DataList, DynamicMetricCard, TitleList, type Column } from "@/components";
 import { useTuitionSubmissions } from "@/modules/finance/hooks/use-tuition-payments";
 import type { ApiSubmission } from "@/modules/finance/services/tuition-payments-service";
@@ -23,7 +24,7 @@ export function TuitionSubmissionsContent() {
   const approved = summary?.by_status["aprovado"]?.count ?? 0;
 
   const columns: Column<ApiSubmission>[] = [
-    { key: "protocol", header: "Protocolo", render: (_, s) => (<div><span className="font-mono text-xs font-semibold text-primary">{s.protocol}</span><div className="text-[11px] text-muted-foreground">{s.created_at.slice(0, 10)}{s.waiting_hours !== null && ` · há ${s.waiting_hours} h`}</div></div>) },
+    { key: "protocol", header: "Protocolo", render: (_, s) => (<div><span className="font-mono text-xs font-semibold text-primary">{s.protocol}</span><div className="text-[11px] text-muted-foreground">{formatIsoDay(s.created_at)}{s.waiting_hours !== null && ` · há ${s.waiting_hours} h`}</div></div>) },
     { key: "student", header: "Aluno", render: (_, s) => (<div><span className="font-medium">{s.student.full_name}</span><div className="text-[11px] text-muted-foreground">por {s.submitted_by.full_name}</div></div>) },
     { key: "items", header: "Faturas", render: (_, s) => <span className="text-xs">{s.items.length === 1 ? s.items[0]!.description : `${s.items.length} faturas`}</span> },
     { key: "total_amount", header: "Valor", render: (_, s) => <span className="font-semibold tabular-nums">{formatCurrency(Number(s.total_amount))}</span> },

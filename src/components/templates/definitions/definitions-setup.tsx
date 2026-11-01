@@ -86,7 +86,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
     {
       id: "subscription",
       label: "Subscrição",
-      description: "Plano actual da escola, faturas e renovação",
+      description: "Plano atual da escola, faturas e renovação",
       icon: "CreditCard",
       component: <SubscriptionManager />,
       category: "general",
@@ -104,7 +104,7 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
     {
       id: "institutional",
       label: "Instituição de Ensino",
-      description: "Identificação oficial no MED, logotipo e direcção",
+      description: "Identificação oficial no MED, logotipo e direção",
       icon: "GraduationCap",
       component: <SchoolInstitutionalSettings />,
       category: "workplace",

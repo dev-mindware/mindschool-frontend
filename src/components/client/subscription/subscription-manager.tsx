@@ -22,7 +22,7 @@ const QUOTA_NAME: Record<string, string> = {
   exports_month: "Exportações este mês", academic_years_active: "Anos letivos ativos", storage_mb: "Armazenamento",
 };
 const QUOTA_NOTE: Record<string, string> = {
-  users: "Conta só quem tem papel interno (direcção, secretaria, financeiro, professor). Encarregados e alunos não contam.",
+  users: "Conta só quem tem papel interno (direção, secretaria, financeiro, professor). Encarregados e alunos não contam.",
   exports_month: "Cada ficheiro exportado (PDF, Excel…) conta uma. O contador recomeça todos os meses.",
   storage_mb: "Fotos, documentos de candidaturas e ficheiros guardados. Ao atingir o limite, novos envios são recusados.",
 };

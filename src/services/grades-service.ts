@@ -33,6 +33,32 @@ export interface GradeSheetResult {
   pautaStatus: ApiPauta["status"];
   sectionSubjectId: string;
   termId: string;
+  /** Avaliação de cada componente (só existe depois da primeira nota lançada). */
+  assessmentIds: Partial<Record<GradeField, string>>;
+}
+
+/** Uma versão de uma nota: o historial mostra cada alteração, quem a registou e quando. */
+export interface GradeVersion {
+  enrollmentId: string;
+  studentName: string;
+  field: GradeField;
+  versionNumber: number;
+  isCurrent: boolean;
+  value?: number;
+  status: GradeState;
+  recordedBy: string;
+  recordedAt: string;
+}
+
+interface ApiGradeVersion {
+  enrollment_id: string;
+  student_name: string;
+  version_number: number;
+  is_current: boolean;
+  numeric_value: string | null;
+  status: GradeState;
+  recorded_by_name: string;
+  recorded_at: string;
 }
 
 export const gradesService = {
@@ -97,6 +123,12 @@ export const gradesService = {
       pautaStatus: pauta.status,
       sectionSubjectId: assignment.id,
       termId: t.id,
+      assessmentIds: Object.fromEntries(
+        (Object.keys(TYPE_OF_FIELD) as GradeField[]).flatMap((f) => {
+          const a = byType.get(TYPE_OF_FIELD[f]);
+          return a ? [[f, a.id] as const] : [];
+        }),
+      ),
       sheet: {
         id: `${sectionId}:${subjectId}:${term}`,
         schoolId: "",
@@ -116,8 +148,34 @@ export const gradesService = {
     };
   },
 
+  /** Historial das notas lançadas nas avaliações dadas (mais recentes primeiro). */
+  history: async (assessmentIds: Partial<Record<GradeField, string>>): Promise<GradeVersion[]> => {
+    const lists = await Promise.all(
+      (Object.entries(assessmentIds) as [GradeField, string][]).map(async ([field, id]) => {
+        const rows = (await api.get<{ data: ApiGradeVersion[] }>(`/s/assessments/${id}/grades/history`)).data.data;
+        return rows.map((r): GradeVersion => ({
+          enrollmentId: r.enrollment_id,
+          studentName: r.student_name,
+          field,
+          versionNumber: r.version_number,
+          isCurrent: r.is_current,
+          value: num(r.numeric_value),
+          status: r.status,
+          recordedBy: r.recorded_by_name,
+          recordedAt: r.recorded_at,
+        }));
+      }),
+    );
+    return lists.flat().sort((a, b) => b.recordedAt.localeCompare(a.recordedAt));
+  },
+
   /** Lanca/corrige uma nota; cria a avaliacao do tipo se ainda nao existir (data dentro do periodo). */
-  saveGrade: async (v: { sectionId: string; subjectId: string; term: AssessmentTerm; enrollmentId: string; field: GradeField; value?: number; status?: GradeState }): Promise<void> => {
+  saveGrade: async (v: { sectionId: string; subjectId: string; term: AssessmentTerm; enrollmentId: string; field: GradeField; value?: number; status?: GradeState; assessmentId?: string }): Promise<void> => {
+    // Com a avaliação já conhecida (folha carregada) lança-se logo, sem consultas prévias: é o que permite guardar sem ligação.
+    if (v.assessmentId) {
+      await api.put(`/s/assessments/${v.assessmentId}/grades`, { grades: [gradeItem(v)] });
+      return;
+    }
     const { term: t, assignment } = await gradesService.resolve(v.sectionId, v.subjectId, v.term);
     if (!t || !assignment) throw new Error("A disciplina não está atribuída a esta turma ou o período não existe.");
     const type = TYPE_OF_FIELD[v.field];
@@ -128,6 +186,11 @@ export const gradesService = {
       const date = today < t.start_date ? t.start_date : today > t.end_date ? t.end_date : today;
       assessment = (await api.post<ApiAssessment>(`/s/sections/${v.sectionId}/subjects/${assignment.id}/assessments`, { term_id: t.id, type, date, weight: 1 })).data;
     }
-    await api.put(`/s/assessments/${assessment.id}/grades`, { grades: [v.status && v.status !== "avaliado" ? { enrollment_id: v.enrollmentId, status: v.status } : { enrollment_id: v.enrollmentId, numeric_value: v.value }] });
+    await api.put(`/s/assessments/${assessment.id}/grades`, { grades: [gradeItem(v)] });
   },
 };
+
+/** Corpo de uma nota na API: valor numérico, ou só o estado (ausente, dispensado, não avaliado). */
+export function gradeItem(v: { enrollmentId: string; value?: number; status?: GradeState }): { enrollment_id: string; numeric_value?: number; status?: GradeState } {
+  return v.status && v.status !== "avaliado" ? { enrollment_id: v.enrollmentId, status: v.status } : { enrollment_id: v.enrollmentId, numeric_value: v.value };
+}

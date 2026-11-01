@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatIsoDay } from "@/utils";
 import { Bar, BarChart, CartesianGrid, Cell, Label, Pie, PieChart, XAxis, YAxis } from "recharts";
 import { Button, ChartContainer, ChartTooltip, ChartTooltipContent, DashboardSkeleton, DynamicMetricCard, EmptyState, Icon, type ChartConfig } from "@/components";
 import { ChartCard, ChartEmpty, LegendRow, RateBar } from "@/components/shared/chart-card";
@@ -227,7 +228,7 @@ function Indicators({ data }: { data: FinanceOverview }) {
     { icon: "CircleCheck", label: "Faturas liquidadas", value: `${k.invoices_paid}/${k.invoices_total}`, hint: "no ano letivo" },
   ];
   return (
-    <ChartCard title="Indicadores de cobrança" icon="Gauge" description={`Ano letivo ${data.academic_year?.name ?? ""} · atualizado a ${data.as_of}`}>
+    <ChartCard title="Indicadores de cobrança" icon="Gauge" description={`Ano letivo ${data.academic_year?.name ?? ""} · atualizado a ${formatIsoDay(data.as_of)}`}>
       <div className="grid grid-cols-2 gap-3 pb-2 lg:grid-cols-4">
         {tiles.map((t) => (
           <div key={t.label} className="rounded-xs border bg-muted/20 p-3">

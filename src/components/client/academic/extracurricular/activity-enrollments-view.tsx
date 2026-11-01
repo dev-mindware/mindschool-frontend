@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { formatIsoDay } from "@/utils";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { ButtonOnlyAction, DataList, type Column } from "@/components";
 import { useExtracurricular } from "@/hooks/school/use-extracurricular";
@@ -18,7 +19,7 @@ export function ActivityEnrollmentsView() {
   const columns: Column<Row>[] = [
     { key: "student_name", header: "Aluno", render: (_, e) => <span className="font-medium">{e.student_name}</span> },
     { key: "activityName", header: "Atividade" },
-    { key: "enrolled_at", header: "Inscrito em", render: (_, e) => <span className="font-mono text-xs">{e.enrolled_at.slice(0, 10)}</span> },
+    { key: "enrolled_at", header: "Inscrito em", render: (_, e) => <span className="font-mono text-xs">{formatIsoDay(e.enrolled_at)}</span> },
     {
       key: "action", header: "Ação",
       render: (_, e) => (

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { formatIsoDay } from "@/utils";
 import { useState } from "react";
 import { Bar, BarChart, CartesianGrid, Cell, Label, Pie, PieChart, XAxis, YAxis } from "recharts";
 import { Badge, Button, ChartContainer, ChartTooltip, ChartTooltipContent, DashboardSkeleton, DynamicMetricCard, EmptyState, FormSelect, Icon, type ChartConfig } from "@/components";
@@ -57,7 +58,7 @@ export function FamilyDashboard() {
             <DynamicMetricCard title={formatCurrency(debt)} subtitle="Em dívida" icon="Wallet" colors={debt > 0 ? "destructive" : "default"} description={debt > 0 ? `${payables.length} fatura(s) por pagar` : "Está tudo em dia"} />
             <DynamicMetricCard title={formatCurrency(overdue)} subtitle="Vencido" icon="TriangleAlert" colors={overdue > 0 ? "destructive" : "default"} description={overdue > 0 ? "Pague para evitar multa de mora" : "Nada em atraso"} />
             <DynamicMetricCard title={formatCurrency(inReview)} subtitle="Em análise" icon="Hourglass" description={open.length ? `${open.length} comprovativo(s) a validar` : "Sem comprovativos pendentes"} />
-            <DynamicMetricCard title={next ? next.due_date : "—"} subtitle="Próximo vencimento" icon="CalendarClock" description={next ? `${next.description} · ${formatCurrency(next.balance)}` : "Sem faturas a vencer"} />
+            <DynamicMetricCard title={next ? formatIsoDay(next.due_date) : "—"} subtitle="Próximo vencimento" icon="CalendarClock" description={next ? `${next.description} · ${formatCurrency(next.balance)}` : "Sem faturas a vencer"} />
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
@@ -137,14 +138,14 @@ export function FamilyDashboard() {
         <ChartCard title="Comunicados da escola" icon="Megaphone" action={<Button asChild size="sm" variant="ghost"><Link href="/familia/comunicados">Ver todos</Link></Button>}>
           {portal.announcements.length === 0 ? <ChartEmpty text="Sem comunicados." /> : (
             <ul className="space-y-3 pb-2">{portal.announcements.slice(0, 4).map((a) => (
-              <li key={a.id} className="text-sm"><span className="font-medium">{a.title}</span><span className="block text-xs text-muted-foreground">{a.published_at?.slice(0, 10)}</span></li>
+              <li key={a.id} className="text-sm"><span className="font-medium">{a.title}</span><span className="block text-xs text-muted-foreground">{formatIsoDay(a.published_at)}</span></li>
             ))}</ul>
           )}
         </ChartCard>
         <ChartCard title="Próximos eventos" icon="CalendarDays" action={<Button asChild size="sm" variant="ghost"><Link href="/familia/calendario">Calendário</Link></Button>}>
           {portal.calendar.length === 0 ? <ChartEmpty text="Sem eventos publicados." /> : (
             <ul className="space-y-3 pb-2">{portal.calendar.filter((e) => e.end_date >= new Date().toISOString().slice(0, 10)).slice(0, 4).map((e) => (
-              <li key={e.id} className="text-sm"><span className="font-medium">{e.title}</span><span className="block text-xs text-muted-foreground">{e.start_date}{e.end_date !== e.start_date ? ` → ${e.end_date}` : ""}{e.location ? ` · ${e.location}` : ""}</span></li>
+              <li key={e.id} className="text-sm"><span className="font-medium">{e.title}</span><span className="block text-xs text-muted-foreground">{formatIsoDay(e.start_date)}{e.end_date !== e.start_date ? ` → ${formatIsoDay(e.end_date)}` : ""}{e.location ? ` · ${e.location}` : ""}</span></li>
             ))}</ul>
           )}
         </ChartCard>

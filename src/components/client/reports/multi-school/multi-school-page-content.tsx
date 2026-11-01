@@ -1,5 +1,5 @@
 'use client';
-import { formatCurrencyCompact } from "@/utils";
+import { formatCurrencyCompact, formatIsoDay } from "@/utils";
 
 import { useState } from 'react';
 import { SucessMessage, ErrorMessage } from '@/utils/messages';
@@ -84,7 +84,7 @@ export function MultiSchoolPageContent() {
   const memberColumns: Column<MemberRow>[] = [
     { key: 'full_name', header: 'Membro', render: (_, m) => (<div><p className="text-sm font-medium">{m.full_name}</p><p className="text-xs text-muted-foreground">{m.email}</p></div>) },
     { key: 'role', header: 'Papel', render: (_, m) => <Badge variant="outline">{GROUP_ROLE_LABEL[m.role]}</Badge> },
-    { key: 'granted_at', header: 'Desde', render: (_, m) => <span className="text-xs">{m.granted_at.slice(0, 10)}</span> },
+    { key: 'granted_at', header: 'Desde', render: (_, m) => <span className="text-xs">{formatIsoDay(m.granted_at)}</span> },
     {
       key: 'actions',
       header: 'Ação',

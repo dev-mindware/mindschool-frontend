@@ -8,6 +8,7 @@ import { Icon } from "@/components/common/icon";
 import { useTuition } from "@/modules/finance/hooks/use-tuition";
 import { useSchoolSettingsStore } from "@/stores/school/school-settings-store";
 import { formatCurrency, formatAxisCurrency } from "@/utils/format-currency";
+import { downloadCsv } from "@/utils/export-csv";
 
 interface MonthlyReportRow {
   id: string;
@@ -52,13 +53,7 @@ export function TuitionReportsContent() {
 
   function handleExportReport() {
     const rows = [["Mês", "Alunos com propina", "Previsto (Kz)", "Arrecadado (Kz)", "Saldo (Kz)"], ...feesByMonth.map((r) => [r.monthLabel, String(r.count), String(r.expected), String(r.collected), String(r.expected - r.collected)])];
-    const csv = "\uFEFF" + rows.map((r) => r.map((c) => `"${c.replace(/"/g, '""')}"`).join(";")).join("\n");
-    const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = "balancete-propinas.csv";
-    a.click();
-    URL.revokeObjectURL(url);
+    downloadCsv("balancete-propinas.csv", rows);
   }
 
   const chartConfig = { expected: { label: "Previsto", color: "color-mix(in oklab, var(--primary) 35%, transparent)" }, collected: { label: "Arrecadado", color: "var(--primary)" } } satisfies ChartConfig;

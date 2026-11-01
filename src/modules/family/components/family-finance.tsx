@@ -31,7 +31,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
   if (live.invoicesForbidden) return <EmptyState icon="Lock" title="Sem autorização" description="Não tem autorização para consultar o financeiro deste educando." />;
 
   const paymentColumns: Column<PortalPayment>[] = [
-    { key: "paid_at", header: "Data", render: (_, p) => <span className="font-mono text-xs">{p.paid_at.slice(0, 10)}</span> },
+    { key: "paid_at", header: "Data", render: (_, p) => <span className="font-mono text-xs">{formatIsoDay(p.paid_at)}</span> },
     { key: "invoice_type", header: "Referente a", render: (_, p) => (<div><span className="font-medium">{TYPE[p.invoice_type] ?? p.invoice_type}</span><p className="text-xs text-muted-foreground">Vencimento {p.invoice_due_date}</p></div>) },
     { key: "amount", header: "Valor", render: (_, p) => <span className="font-semibold tabular-nums">{formatCurrency(p.amount)}</span> },
     { key: "method", header: "Método", render: (_, p) => <span className="text-xs">{METHOD_LABEL[p.method as keyof typeof METHOD_LABEL] ?? p.method.replaceAll("_", " ")}</span> },
@@ -70,7 +70,7 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
           <DynamicMetricCard title={live.payments.length} subtitle="Pagamentos" icon="Receipt" description="Registados na escola" />
           <DynamicMetricCard title={formatCurrency(live.payments.reduce((a, p) => a + Number(p.amount), 0))} subtitle="Total pago" icon="Wallet" description="Soma de todos os pagamentos" />
           <DynamicMetricCard title={settled.length} subtitle="Faturas liquidadas" icon="CircleCheck" description="Totalmente pagas" />
-          <DynamicMetricCard title={live.payments[0] ? live.payments[0].paid_at.slice(0, 10) : "—"} subtitle="Último pagamento" icon="CalendarCheck" description={live.payments[0] ? formatCurrency(live.payments[0].amount) : "Sem pagamentos"} />
+          <DynamicMetricCard title={live.payments[0] ? formatIsoDay(live.payments[0].paid_at) : "—"} subtitle="Último pagamento" icon="CalendarCheck" description={live.payments[0] ? formatCurrency(live.payments[0].amount) : "Sem pagamentos"} />
         </div>
         <DataList<PortalPayment>
           prefix="pagamentos" rows={live.payments} columns={paymentColumns} isLoading={live.paymentsLoading} pageSize={10}

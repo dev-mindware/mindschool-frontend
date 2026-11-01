@@ -1,6 +1,7 @@
 "use client";
 
 import { sortByName } from "@/lib/sort-names";
+import { enqueue, isNetworkError } from "@/lib/offline-queue";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import api from "@/services/api";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
@@ -59,18 +60,27 @@ export function useRollCall(sectionId: string, sectionSubjectId: string | undefi
   });
 
   const save = useMutation({
-    mutationFn: async (records: Array<{ enrollmentId: string; status: AttendanceStatus; notes?: string }>) =>
-      api.put(url, {
-        records: records.map((r) => ({
-          enrollment_id: r.enrollmentId,
-          status: TO_API[r.status],
-          ...(r.notes && r.notes.trim().length >= 3
-            ? { justification: r.notes.trim() }
-            : r.status === "ABSENT_JUSTIFIED"
-              ? { justification: "Falta justificada" }
-              : {}),
-        })),
-      }),
+    // Corre mesmo sem rede (por defeito o react-query pausa-a): é assim que a chamada cai na fila do dispositivo.
+    networkMode: "always",
+    mutationFn: async (records: Array<{ enrollmentId: string; status: AttendanceStatus; notes?: string }>) => {
+      const items = records.map((r) => ({
+        enrollment_id: r.enrollmentId,
+        status: TO_API[r.status],
+        ...(r.notes && r.notes.trim().length >= 3
+          ? { justification: r.notes.trim() }
+          : r.status === "ABSENT_JUSTIFIED"
+            ? { justification: "Falta justificada" }
+            : {}),
+      }));
+      try {
+        return await api.put(url, { records: items });
+      } catch (err) {
+        // Sem ligação: a chamada guarda-se no dispositivo e segue quando a rede voltar (ver OfflineSync).
+        if (!isNetworkError(err) || !schoolId) throw err;
+        enqueue({ kind: "attendance", schoolId, url, arrayKey: "records", items, label: `Chamada de ${date.split("-").reverse().join("/")}` });
+        return null;
+      }
+    },
     onMutate: async (records) => {
       await queryClient.cancelQueries({ queryKey: key });
       const previous = queryClient.getQueryData<RollCallStudent[]>(key);

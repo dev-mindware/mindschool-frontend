@@ -23,7 +23,7 @@ export function ChartCard({ title, icon, description, action, className, childre
   return (
     <Card className={cn("flex h-full flex-col gap-0 py-4", className)}>
       <CardHeader className="px-4 pb-3">
-        <div className="flex items-start justify-between gap-2">
+        <div className="flex flex-wrap items-start justify-between gap-2 sm:flex-nowrap">
           <div className="min-w-0">
             <CardTitle className="flex items-center gap-2 text-base font-semibold">
               <span className="flex size-8 shrink-0 items-center justify-center rounded-xs bg-primary/10 text-primary"><Icon name={icon} className="size-4" /></span>

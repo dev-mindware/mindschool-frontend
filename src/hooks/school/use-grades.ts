@@ -3,9 +3,23 @@
 import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { currentTerm } from "@/lib/current-term";
-import { GradeField, GradeState, gradesService } from "@/services/grades-service";
+import { enqueue, isNetworkError } from "@/lib/offline-queue";
+import { GradeField, GradeSheetResult, GradeState, gradeItem, gradesService } from "@/services/grades-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { AssessmentTerm } from "@/types/grade";
+
+/** Mostra na folha a nota que ficou na fila (as médias só se recalculam quando a nota chegar ao servidor). */
+function showQueuedGrade(cur: GradeSheetResult, v: { enrollmentId: string; field: GradeField; value?: number; status?: GradeState }): GradeSheetResult {
+  return {
+    ...cur,
+    sheet: {
+      ...cur.sheet,
+      entries: cur.sheet.entries.map((e) =>
+        e.id === v.enrollmentId ? { ...e, [v.field]: v.status && v.status !== "avaliado" ? undefined : v.value, statuses: { ...e.statuses, [v.field]: v.status ?? "avaliado" } } : e,
+      ),
+    },
+  };
+}
 
 /** Mini-pauta (disciplina x turma x trimestre) da escola ativa, com lancamento de notas pela API. */
 export function useGradeSheet(sectionId?: string, subjectId?: string, term?: AssessmentTerm) {
@@ -21,9 +35,23 @@ export function useGradeSheet(sectionId?: string, subjectId?: string, term?: Ass
   });
 
   const saveGrade = useMutation({
-    mutationFn: (v: { enrollmentId: string; field: GradeField; value?: number; status?: GradeState }) =>
-      gradesService.saveGrade({ sectionId: sectionId!, subjectId: subjectId!, term: term!, ...v }),
-    onSuccess: () => {
+    // Corre mesmo sem rede (por defeito o react-query pausa-a): é assim que a nota cai na fila do dispositivo.
+    networkMode: "always",
+    mutationFn: async (v: { enrollmentId: string; field: GradeField; value?: number; status?: GradeState }): Promise<"sent" | "queued"> => {
+      const assessmentId = query.data?.assessmentIds[v.field];
+      try {
+        await gradesService.saveGrade({ sectionId: sectionId!, subjectId: subjectId!, term: term!, ...v, assessmentId });
+        return "sent";
+      } catch (err) {
+        // Sem ligação e com a avaliação já criada: a nota guarda-se no dispositivo e segue quando a rede voltar.
+        if (!isNetworkError(err) || !assessmentId || !schoolId) throw err;
+        enqueue({ kind: "grade", schoolId, url: `/s/assessments/${assessmentId}/grades`, arrayKey: "grades", items: [gradeItem(v)], label: "Notas lançadas" });
+        queryClient.setQueryData<GradeSheetResult | null>(key, (cur) => (cur ? showQueuedGrade(cur, v) : cur));
+        return "queued";
+      }
+    },
+    onSuccess: (outcome) => {
+      if (outcome === "queued") return; // sem rede, voltar a pedir a folha só a esvaziaria
       queryClient.invalidateQueries({ queryKey: key });
       queryClient.invalidateQueries({ queryKey: ["pautas", schoolId] });
     },
@@ -32,6 +60,7 @@ export function useGradeSheet(sectionId?: string, subjectId?: string, term?: Ass
   return {
     sheet: query.data?.sheet,
     pautaStatus: query.data?.pautaStatus,
+    assessmentIds: query.data?.assessmentIds ?? {},
     isLoading: query.isLoading,
     isMissingAssignment: query.isSuccess && query.data === null,
     saveGrade,

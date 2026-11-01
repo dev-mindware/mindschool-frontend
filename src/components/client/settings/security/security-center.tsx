@@ -1,5 +1,5 @@
 "use client";
-import { formatDateTime } from "@/utils";
+import { formatDateTime, formatIsoDay } from "@/utils";
 
 import { useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
@@ -30,8 +30,8 @@ export function SecurityCenter() {
 
   const passkeyColumns: Column<ApiPasskey>[] = [
     { key: "device_name", header: "Dispositivo", render: (_, p) => <span className="font-medium">{p.device_name}</span> },
-    { key: "created_at", header: "Criada em", render: (_, p) => <span className="font-mono text-xs">{p.created_at.slice(0, 10)}</span> },
-    { key: "last_used_at", header: "Última utilização", render: (_, p) => <span className="font-mono text-xs">{p.last_used_at ? p.last_used_at.slice(0, 10) : "—"}</span> },
+    { key: "created_at", header: "Criada em", render: (_, p) => <span className="font-mono text-xs">{formatIsoDay(p.created_at)}</span> },
+    { key: "last_used_at", header: "Última utilização", render: (_, p) => <span className="font-mono text-xs">{p.last_used_at ? formatIsoDay(p.last_used_at) : "—"}</span> },
     { key: "backed_up", header: "Cópia", render: (_, p) => (p.backed_up ? <Badge variant="outline">Sincronizada</Badge> : <Badge variant="secondary">Local</Badge>) },
     { key: "action", header: "Ação", render: (_, p) => <ButtonOnlyAction data={p} actions={[{ label: "Remover", icon: "Trash2", variant: "destructive", onClick: (x) => { setPasskey(x); resetFields(); openModal("sec-remove-passkey"); } }]} /> },
   ];
@@ -115,7 +115,7 @@ export function SecurityCenter() {
       </FormModal>
 
       <FormModal id="sec-disable-mfa" title="Desativar segundo factor" description="A conta fica protegida apenas pela palavra-passe." submitLabel="Desativar" isLoading={s.disable.isPending} disabled={!password || code.trim().length < 6} onSubmit={() => s.disable.mutateAsync({ password, code: code.trim() }).then(() => { SucessMessage("Segundo factor desativado."); resetFields(); }).catch(fail)}>
-        <Input label="Palavra-passe *" type="password" placeholder="Digite a sua palavra-passe actual..." value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Input label="Palavra-passe *" type="password" placeholder="Digite a sua palavra-passe atual..." value={password} onChange={(e) => setPassword(e.target.value)} />
         <Input label="Código atual *" startIcon="Hash" placeholder="Ex.: 123456" value={code} onChange={(e) => setCode(e.target.value)} />
       </FormModal>
 
@@ -124,7 +124,7 @@ export function SecurityCenter() {
       </FormModal>
 
       <FormModal id="sec-remove-passkey" title="Remover passkey" description={passkey ? `Remover «${passkey.device_name}»? Confirme com a palavra-passe.` : undefined} submitLabel="Remover" isLoading={s.removePasskey.isPending} disabled={!password} onSubmit={() => (passkey ? s.removePasskey.mutateAsync({ id: passkey.id, password }).then(() => { SucessMessage("Passkey removida."); setPassword(""); }).catch(fail) : undefined)}>
-        <div className="sm:col-span-2"><Input label="Palavra-passe *" type="password" placeholder="Digite a sua palavra-passe actual..." value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+        <div className="sm:col-span-2"><Input label="Palavra-passe *" type="password" placeholder="Digite a sua palavra-passe atual..." value={password} onChange={(e) => setPassword(e.target.value)} /></div>
       </FormModal>
 
       <FormModal id="sec-recovery-codes" title="Códigos de recuperação" description="Guarde-os agora num local seguro." readOnly onSubmit={() => closeModal("sec-recovery-codes")}>

@@ -100,7 +100,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
   const openProof = (s: ApiSubmission) => tuitionPaymentsService.myProofBlob(s.id).then((b) => window.open(URL.createObjectURL(b), "_blank")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Sem comprovativo.")));
 
   const submissionColumns: Column<ApiSubmission>[] = [
-    { key: "protocol", header: "Protocolo", render: (_, s) => (<div><span className="font-mono text-xs font-semibold text-primary">{s.protocol}</span><div className="text-[11px] text-muted-foreground">{s.created_at.slice(0, 10)}</div></div>) },
+    { key: "protocol", header: "Protocolo", render: (_, s) => (<div><span className="font-mono text-xs font-semibold text-primary">{s.protocol}</span><div className="text-[11px] text-muted-foreground">{formatIsoDay(s.created_at)}</div></div>) },
     { key: "items", header: "Faturas", render: (_, s) => <span className="text-xs capitalize">{s.items.length === 1 ? s.items[0]!.description : `${s.items.length} faturas`}</span> },
     { key: "total_amount", header: "Valor", render: (_, s) => <span className="font-semibold tabular-nums">{formatCurrency(s.confirmed_amount ?? s.total_amount)}</span> },
     { key: "method", header: "Método", render: (_, s) => <span className="text-xs">{METHOD_LABEL[s.method]}</span> },
@@ -147,7 +147,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
         <DynamicMetricCard title={formatCurrency(debt)} subtitle="Em dívida" icon="Wallet" colors={debt > 0 ? "destructive" : "default"} description={`${payables.length} fatura(s) por pagar`} />
         <DynamicMetricCard title={formatCurrency(overdue)} subtitle="Vencido" icon="TriangleAlert" colors={overdue > 0 ? "destructive" : "default"} description={overdue > 0 ? "Regularize para evitar multa de mora" : "Nada em atraso"} />
         <DynamicMetricCard title={formatCurrency(inReview)} subtitle="Em análise" icon="Hourglass" description="À espera de validação pela escola. Ainda conta como dívida e a multa pode ser criada até ser aprovado" />
-        <DynamicMetricCard title={next ? next.due_date : "—"} subtitle="Próximo vencimento" icon="CalendarClock" description={next ? `${next.description} · ${formatCurrency(next.balance)}` : "Sem faturas a vencer"} />
+        <DynamicMetricCard title={next ? formatIsoDay(next.due_date) : "—"} subtitle="Próximo vencimento" icon="CalendarClock" description={next ? `${next.description} · ${formatCurrency(next.balance)}` : "Sem faturas a vencer"} />
       </div>
 
       {awaiting.length > 0 && (

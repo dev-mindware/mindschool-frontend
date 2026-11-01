@@ -1,5 +1,6 @@
 "use client";
 import { familyKeys } from "@/modules/family/query-keys";
+import { formatIsoDay } from "@/utils";
 
 import { useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
@@ -55,15 +56,15 @@ export function FamilyLibrary({ studentId, ward }: FamilyContext) {
 
   const requestColumns: Column<PortalLibraryRequest>[] = [
     { key: "book_title", header: "Livro", render: (_, r) => (<div><span className="font-medium">{r.book_title}</span><p className="text-xs text-muted-foreground">{r.book_author}</p></div>) },
-    { key: "created_at", header: "Pedido em", render: (_, r) => <span className="text-xs">{r.created_at.slice(0, 10)}</span> },
+    { key: "created_at", header: "Pedido em", render: (_, r) => <span className="text-xs">{formatIsoDay(r.created_at)}</span> },
     { key: "status", header: "Estado", render: (_, r) => (<div><StatusBadge status={r.status} map={STATUS} />{r.decision_reason && <p className="mt-1 text-xs text-muted-foreground">{r.decision_reason}</p>}{r.loan && <p className="mt-1 text-xs text-muted-foreground">Devolver até {r.loan.due_at}</p>}</div>) },
     { key: "actions", header: "Ação", render: (_, r) => (r.status === "pedido" ? <ButtonOnlyAction data={r} actions={[{ label: "Cancelar pedido", icon: "X", variant: "destructive", onClick: (x) => { setCancelling(x); openModal(CANCEL_MODAL); } }]} /> : null) },
   ];
 
   const loanColumns: Column<PortalLoan>[] = [
     { key: "book_title", header: "Livro", render: (_, l) => (<div><span className="font-medium">{l.book_title}</span><p className="text-xs text-muted-foreground">{l.book_author}</p></div>) },
-    { key: "loaned_at", header: "Levantado", render: (_, l) => <span className="text-xs">{l.loaned_at.slice(0, 10)}</span> },
-    { key: "due_at", header: "Devolver até", render: (_, l) => <span className={`text-xs ${l.overdue ? "font-semibold text-destructive" : ""}`}>{l.status === "devolvido" ? `Devolvido ${l.returned_at?.slice(0, 10)}` : l.due_at}</span> },
+    { key: "loaned_at", header: "Levantado", render: (_, l) => <span className="text-xs">{formatIsoDay(l.loaned_at)}</span> },
+    { key: "due_at", header: "Devolver até", render: (_, l) => <span className={`text-xs ${l.overdue ? "font-semibold text-destructive" : ""}`}>{l.status === "devolvido" ? `Devolvido ${formatIsoDay(l.returned_at)}` : l.due_at}</span> },
     { key: "status", header: "Estado", render: (_, l) => <Badge variant={l.status === "devolvido" ? "secondary" : l.overdue ? "destructive" : "info"} className="font-normal">{l.status === "devolvido" ? "Devolvido" : l.overdue ? "Em atraso" : "Emprestado"}</Badge> },
     {
       key: "actions", header: "Ação",

@@ -1,6 +1,7 @@
 "use client";
 
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { formatIsoDay } from "@/utils";
 import { Badge, ButtonOnlyAction, DataList, type Column } from "@/components";
 import { useLibrary } from "@/hooks/school/use-library";
 import type { ApiLoan } from "@/services/library-service";
@@ -18,7 +19,7 @@ export function LoansManagementView() {
   const columns: Column<ApiLoan>[] = [
     { key: "book_id", header: "Obra", render: (_, l) => <span className="font-medium">{bookById.get(l.book_id)?.title ?? "—"}</span> },
     { key: "student_id", header: "Leitor", render: (_, l) => (<div className="flex flex-col"><span>{readerName(l)}</span><span className="text-xs text-muted-foreground">{l.teacher_id ? "Docente" : "Aluno"}</span></div>) },
-    { key: "loaned_at", header: "Emprestado", render: (_, l) => <span className="font-mono text-xs">{l.loaned_at.slice(0, 10)}</span> },
+    { key: "loaned_at", header: "Emprestado", render: (_, l) => <span className="font-mono text-xs">{formatIsoDay(l.loaned_at)}</span> },
     { key: "due_at", header: "Devolver até", render: (_, l) => <span className="font-mono text-xs">{l.due_at}{l.renewals > 0 ? ` (${l.renewals}×)` : ""}</span> },
     {
       key: "status", header: "Estado",

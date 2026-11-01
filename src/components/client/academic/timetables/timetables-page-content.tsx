@@ -1,6 +1,7 @@
 "use client";
 
 import { useCan } from "@/hooks/auth/use-can";
+import { formatIsoDay } from "@/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
@@ -270,7 +271,7 @@ export function TimetablesPageContent() {
     { key: "effective_date", header: "Em vigor", render: (_, c) => <span className="font-mono text-xs">{c.effective_date}</span> },
     { key: "type", header: "Tipo", render: (_, c) => <Badge variant="outline">{CHANGE_LABEL[c.type] ?? c.type}</Badge> },
     { key: "reason", header: "Motivo" },
-    { key: "created_at", header: "Pedido em", render: (_, c) => <span className="font-mono text-xs">{c.created_at.slice(0, 10)}</span> },
+    { key: "created_at", header: "Pedido em", render: (_, c) => <span className="font-mono text-xs">{formatIsoDay(c.created_at)}</span> },
   ];
 
   const bar = (
