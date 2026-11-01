@@ -141,7 +141,7 @@ export function FamilyDocuments({ studentId, ward }: FamilyContext) {
             : <p>Este documento é <strong>gratuito</strong>: o pedido segue diretamente para a secretaria.</p>}
         </div>
         <div className="sm:col-span-2"><Input label="Finalidade *" value={subject} onChange={(e) => setSubject(e.target.value)} placeholder="Ex.: abertura de conta bancária" /></div>
-        <div className="sm:col-span-2"><FormTextarea label="Observações" value={description} onChange={setDescription} rows={3} /></div>
+        <div className="sm:col-span-2"><FormTextarea label="Observações" value={description} onChange={setDescription} rows={3} placeholder="Informações adicionais ou especificações para a secretaria da escola..." /></div>
       </FormModal>
 
       <ConfirmModal id={CANCEL_MODAL} title="Cancelar pedido" description={cancelling ? `Cancelar o pedido ${cancelling.protocol}?${cancelling.invoice ? " A fatura da taxa será anulada." : ""}` : ""} destructive confirmLabel="Cancelar pedido"

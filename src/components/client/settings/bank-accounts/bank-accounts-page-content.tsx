@@ -100,8 +100,8 @@ export function BankAccountsPageContent() {
         <Input label="Banco *" value={form.bankName} onChange={set("bankName")} placeholder="Ex: BAI, BFA, BIC, Atlântico" />
         <Input label="Titular da conta *" value={form.accountHolder} onChange={set("accountHolder")} placeholder="Nome da escola/entidade" />
         <div className="sm:col-span-2"><Input label="IBAN *" value={form.iban} onChange={(e) => setForm((f) => ({ ...f, iban: formatIban(e.target.value.toUpperCase()) }))} placeholder="AO06 0006 0000 0123 4567 8910 1" error={form.iban && !ibanOk ? "IBAN inválido (AO + 23 dígitos, com dígitos de controlo correctos)" : undefined} /></div>
-        <Input label="N.º de conta" value={form.accountNumber} onChange={set("accountNumber")} />
-        <Input label="SWIFT / BIC" value={form.swift} onChange={set("swift")} />
+        <Input label="N.º de conta" placeholder="Ex.: 000123456789" value={form.accountNumber} onChange={set("accountNumber")} />
+        <Input label="SWIFT / BIC" placeholder="Ex.: BAIAOA22" value={form.swift} onChange={set("swift")} />
         <div className="sm:col-span-2"><FormTextarea label="Instruções ao pagador" value={form.instructions} onChange={(v) => setForm((f) => ({ ...f, instructions: v }))} rows={2} placeholder="Ex: Indique o nome do aluno e o n.º de processo na descrição." /></div>
       </FormModal>
 

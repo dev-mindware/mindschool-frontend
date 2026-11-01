@@ -18,6 +18,7 @@ import {
   TabsContent,
   TabsList,
   TabsTrigger,
+  Textarea,
   TitleList,
   WeekTimetable,
   type Column,
@@ -151,8 +152,10 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
                     <Icon name="CheckCircle2" className="w-4 h-4 text-primary" />
                     Registar a Realização da Aula
                   </h4>
-                  <Input
+                  <Textarea
                     label="Motivo (obrigatório se não realizada)"
+                    placeholder="Indique a fundamentação caso a aula não tenha sido realizada..."
+                    rows={2}
                     value={reason}
                     onChange={(e) => setReason(e.target.value)}
                   />
@@ -198,8 +201,10 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
                     <Icon name="CalendarSync" className="w-4 h-4 text-primary" />
                     Gestão da Aula (Coordenação)
                   </h4>
-                  <Input
-                    label="Motivo (mín. 5 caracteres)"
+                  <Textarea
+                    label="Motivo da substituição (mín. 5 caracteres)"
+                    placeholder="Fundamente a necessidade de substituição ou alteração de aula..."
+                    rows={2}
                     value={mgmtReason}
                     onChange={(e) => setMgmtReason(e.target.value)}
                   />
@@ -304,18 +309,21 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
                   )}
                   <FormTextarea
                     label="Conteúdo leccionado (mín. 10 caracteres)"
+                    placeholder="Descreva os tópicos abordados, exercícios resolvidos e matéria leccionada..."
                     value={content}
                     onChange={setContent}
                     rows={4}
                   />
                   <div className="grid gap-3 sm:grid-cols-2">
                     <Input
-                      label="Objetivos"
+                      label="Objectivos pedagógicos"
+                      placeholder="Ex.: Compreender os conceitos de geometria plana..."
                       value={objectives}
                       onChange={(e) => setObjectives(e.target.value)}
                     />
                     <Input
-                      label="Trabalho de casa"
+                      label="Trabalho de casa (TPC)"
+                      placeholder="Ex.: Exercícios 1 a 6 da página 54..."
                       value={homework}
                       onChange={(e) => setHomework(e.target.value)}
                     />

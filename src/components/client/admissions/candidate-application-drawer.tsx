@@ -482,6 +482,7 @@ export function CandidateApplicationDrawer({
 
               <Input
                 label="Nacionalidade *"
+                placeholder="Ex.: Angolana"
                 value={nationality}
                 onChange={(e) => setNationality(e.target.value)}
                 required

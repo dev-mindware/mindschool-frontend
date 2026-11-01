@@ -14,6 +14,7 @@ import {
   Icon,
   Input,
   InputCurrency,
+  Textarea,
   type Column,
 } from "@/components";
 import { useTuition } from "@/modules/finance/hooks/use-tuition";
@@ -328,11 +329,12 @@ export function CustomEmolumentsSection() {
             />
           </div>
 
-          <Input
+          <Textarea
             label="Descrição / Observações (opcional)"
             value={description}
             onChange={(e) => setDescription(e.target.value)}
-            placeholder="Informações adicionais para a secretaria..."
+            placeholder="Informações adicionais para a secretaria ou orientações para a emissão..."
+            rows={3}
           />
         </div>
       </FormModal>

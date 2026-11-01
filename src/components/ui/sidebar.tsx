@@ -351,12 +351,14 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
 
 function SidebarInput({
   className,
+  placeholder = "Pesquisar...",
   ...props
 }: React.ComponentProps<typeof Input>) {
   return (
     <Input
       data-slot="sidebar-input"
       data-sidebar="input"
+      placeholder={placeholder}
       className={cn("bg-background h-8 w-full shadow-none", className)}
       {...props}
     />

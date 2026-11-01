@@ -67,6 +67,7 @@ export function ChangeEmailModal({ currentEmail }: Props) {
         <Input
           label="Novo email"
           type="email"
+          placeholder="novo-email@escola.ao"
           error={errors.email?.message}
           {...register("email")}
           className="h-10 text-xs"

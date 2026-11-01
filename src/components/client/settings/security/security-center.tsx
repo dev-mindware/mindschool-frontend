@@ -111,20 +111,20 @@ export function SecurityCenter() {
       </FormModal>
 
       <FormModal id="sec-new-codes" title="Novos códigos de recuperação" description="Os códigos anteriores deixam de funcionar. Confirme com o código atual do autenticador." submitLabel="Gerar códigos" isLoading={s.recovery.isPending} disabled={code.trim().length < 6} onSubmit={() => s.recovery.mutateAsync(code.trim()).then((r) => { setCode(""); SucessMessage("Novos códigos gerados."); showCodes(r.recovery_codes); }).catch(fail)}>
-        <div className="sm:col-span-2"><Input label="Código atual *" startIcon="Hash" value={code} onChange={(e) => setCode(e.target.value)} /></div>
+        <div className="sm:col-span-2"><Input label="Código atual *" startIcon="Hash" placeholder="Ex.: 123456" value={code} onChange={(e) => setCode(e.target.value)} /></div>
       </FormModal>
 
       <FormModal id="sec-disable-mfa" title="Desativar segundo factor" description="A conta fica protegida apenas pela palavra-passe." submitLabel="Desativar" isLoading={s.disable.isPending} disabled={!password || code.trim().length < 6} onSubmit={() => s.disable.mutateAsync({ password, code: code.trim() }).then(() => { SucessMessage("Segundo factor desativado."); resetFields(); }).catch(fail)}>
-        <Input label="Palavra-passe *" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />
-        <Input label="Código atual *" startIcon="Hash" value={code} onChange={(e) => setCode(e.target.value)} />
+        <Input label="Palavra-passe *" type="password" placeholder="Digite a sua palavra-passe actual..." value={password} onChange={(e) => setPassword(e.target.value)} />
+        <Input label="Código atual *" startIcon="Hash" placeholder="Ex.: 123456" value={code} onChange={(e) => setCode(e.target.value)} />
       </FormModal>
 
       <FormModal id="sec-add-passkey" title="Registar passkey" description="Dê um nome ao dispositivo e siga as instruções do navegador." submitLabel="Registar" isLoading={s.addPasskey.isPending} disabled={!device.trim()} onSubmit={() => s.addPasskey.mutateAsync(device.trim()).then((r) => { SucessMessage("Passkey registada."); if (r.recovery_codes) showCodes(r.recovery_codes); }).catch(fail)}>
-        <div className="sm:col-span-2"><Input label="Nome do dispositivo *" startIcon="Fingerprint" value={device} onChange={(e) => setDevice(e.target.value)} /></div>
+        <div className="sm:col-span-2"><Input label="Nome do dispositivo *" startIcon="Fingerprint" placeholder="Ex.: MacBook Pro / Telemóvel Pessoal" value={device} onChange={(e) => setDevice(e.target.value)} /></div>
       </FormModal>
 
       <FormModal id="sec-remove-passkey" title="Remover passkey" description={passkey ? `Remover «${passkey.device_name}»? Confirme com a palavra-passe.` : undefined} submitLabel="Remover" isLoading={s.removePasskey.isPending} disabled={!password} onSubmit={() => (passkey ? s.removePasskey.mutateAsync({ id: passkey.id, password }).then(() => { SucessMessage("Passkey removida."); setPassword(""); }).catch(fail) : undefined)}>
-        <div className="sm:col-span-2"><Input label="Palavra-passe *" type="password" value={password} onChange={(e) => setPassword(e.target.value)} /></div>
+        <div className="sm:col-span-2"><Input label="Palavra-passe *" type="password" placeholder="Digite a sua palavra-passe actual..." value={password} onChange={(e) => setPassword(e.target.value)} /></div>
       </FormModal>
 
       <FormModal id="sec-recovery-codes" title="Códigos de recuperação" description="Guarde-os agora num local seguro." readOnly onSubmit={() => closeModal("sec-recovery-codes")}>

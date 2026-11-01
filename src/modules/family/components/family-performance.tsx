@@ -133,7 +133,7 @@ export function FamilyPerformance({ studentId }: FamilyContext) {
 
       <FormModal id={REVIEW_MODAL} title="Pedir reapreciação" description={target ? `${target.subject} — nota ${target.numeric_value ?? target.qualitative_value ?? target.status}` : undefined} submitLabel="Enviar pedido" isLoading={live.requestReview.isPending} disabled={reason.trim().length < 10}
         onSubmit={() => (target ? live.requestReview.mutateAsync({ assessmentId: target.assessment_id, reason: reason.trim() }).then(() => { SucessMessage("Pedido enviado."); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; }) : undefined)}>
-        <div className="sm:col-span-2"><FormTextarea label="Motivo (mín. 10 caracteres) *" value={reason} onChange={setReason} rows={3} /></div>
+        <div className="sm:col-span-2"><FormTextarea label="Motivo (mín. 10 caracteres) *" value={reason} onChange={setReason} rows={3} placeholder="Fundamente detalhadamente o pedido de reapreciação da nota atribuída..." /></div>
       </FormModal>
     </>
   );

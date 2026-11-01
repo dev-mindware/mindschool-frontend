@@ -16,6 +16,7 @@ import {
   SheetFooter,
   SheetHeader,
   SheetTitle,
+  Textarea,
   TitleList,
 } from "@/components";
 import { useSchoolSettingsStore } from "@/stores/school";
@@ -166,33 +167,39 @@ export function SchoolInstitutionalSettings() {
                 <Input
                   label="Nome oficial da instituição *"
                   startIcon="School"
+                  placeholder="Ex.: Colégio Esperança do Saber"
                   value={f.schoolName}
                   onChange={(e) => set("schoolName", e.target.value)}
                 />
               </div>
               <Input
                 label="Código de entidade MED"
+                placeholder="Ex.: MED-2026-00123"
                 value={f.medRegistrationCode}
                 onChange={(e) => set("medRegistrationCode", e.target.value)}
               />
               <Input
                 label="Decreto executivo de criação"
+                placeholder="Ex.: Decreto Executivo n.º 45/21"
                 value={f.decreeNumber}
                 onChange={(e) => set("decreeNumber", e.target.value)}
               />
               <Input
                 label="Data do Diário da República"
+                placeholder="Ex.: 15 de Março de 2021"
                 value={f.gazetteDate}
                 onChange={(e) => set("gazetteDate", e.target.value)}
               />
               <Input
                 label="Série do Diário da República"
+                placeholder="Ex.: I Série, n.º 42"
                 value={f.gazetteSeries}
                 onChange={(e) => set("gazetteSeries", e.target.value)}
               />
               <div className="sm:col-span-2">
                 <Input
                   label="Ciclos de ensino ministrados"
+                  placeholder="Ex.: Ensino Primário e I/II Ciclos do Ensino Secundário Geral"
                   value={f.subTitle ?? ""}
                   onChange={(e) => set("subTitle", e.target.value)}
                 />
@@ -200,29 +207,35 @@ export function SchoolInstitutionalSettings() {
               <Input
                 label="Província"
                 startIcon="MapPin"
+                placeholder="Ex.: Luanda"
                 value={f.province}
                 onChange={(e) => set("province", e.target.value)}
               />
               <Input
                 label="Município"
+                placeholder="Ex.: Belas"
                 value={f.municipality}
                 onChange={(e) => set("municipality", e.target.value)}
               />
               <Input
                 label="Distrito urbano / bairro"
+                placeholder="Ex.: Kilamba / Quenguela"
                 value={f.communeOrDistrict}
                 onChange={(e) => set("communeOrDistrict", e.target.value)}
               />
               <Input
                 label="NIF da instituição"
                 startIcon="Hash"
+                placeholder="Ex.: 5000000001"
                 value={f.taxNumber}
                 error={nifError(f.taxNumber)}
                 onChange={(e) => set("taxNumber", e.target.value)}
               />
               <div className="sm:col-span-2">
-                <Input
+                <Textarea
                   label="Endereço completo"
+                  rows={2}
+                  placeholder="Ex.: Rua Comandante Gika, Bairro Alvalade, Luanda, Angola"
                   value={f.fullAddress}
                   onChange={(e) => set("fullAddress", e.target.value)}
                 />
@@ -230,6 +243,7 @@ export function SchoolInstitutionalSettings() {
               <Input
                 label="Telefone da secretaria"
                 startIcon="Phone"
+                placeholder="Ex.: +244 923 000 111"
                 value={f.phone}
                 onChange={(e) => set("phone", e.target.value)}
               />
@@ -237,18 +251,21 @@ export function SchoolInstitutionalSettings() {
                 label="E-mail institucional"
                 type="email"
                 startIcon="Mail"
+                placeholder="Ex.: secretaria@escola.ao"
                 value={f.email}
                 onChange={(e) => set("email", e.target.value)}
               />
               <Input
                 label="Diretor(a) Geral"
                 startIcon="User"
+                placeholder="Ex.: Dr. Manuel Bento"
                 value={f.directorGeneralName}
                 onChange={(e) => set("directorGeneralName", e.target.value)}
               />
               <Input
                 label="Diretor(a) Pedagógico(a)"
                 startIcon="User"
+                placeholder="Ex.: Prof.ª Ana Paula Silva"
                 value={f.pedagogicDirectorName}
                 onChange={(e) => set("pedagogicDirectorName", e.target.value)}
               />

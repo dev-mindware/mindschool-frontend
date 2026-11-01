@@ -137,6 +137,7 @@ function NewSessionModal() {
       <Input
         label="Capacidade de Vagas *"
         type="quantity"
+        placeholder="Ex.: 30"
         value={f.capacity}
         onChange={(e) => set("capacity", Math.max(1, Number(e.target.value) || 1))}
       />
@@ -211,18 +212,19 @@ function EditSessionModal({ session }: { session: SessionRow | null }) {
       }
     >
       <div className="sm:col-span-2">
-        <Input label="Título da Prova de Acesso *" value={f.title} onChange={(e) => set("title", e.target.value)} />
+        <Input label="Título da Prova de Acesso *" placeholder="Ex.: Prova de Diagnóstico e Admissão - 10.ª Classe" value={f.title} onChange={(e) => set("title", e.target.value)} />
       </div>
       <Input label="Data e Hora da Prova *" type="datetime-local" value={f.when} error={whenInPast ? "A sessão tem de ser no futuro." : undefined} onChange={(e) => set("when", e.target.value)} />
       <Input
         label="Capacidade de Vagas *"
         type="quantity"
+        placeholder="Ex.: 35"
         value={f.capacity}
         error={belowRegistered ? `Já há ${session?.registered} inscritos: as vagas não podem ser menos.` : undefined}
         onChange={(e) => set("capacity", Math.max(1, Number(e.target.value) || 1))}
       />
       <div className="sm:col-span-2">
-        <Input label="Sala / Local da Prova" startIcon="MapPin" value={f.location} onChange={(e) => set("location", e.target.value)} />
+        <Input label="Sala / Local da Prova" startIcon="MapPin" placeholder="Ex.: Sala 12 (Bloco Académico)" value={f.location} onChange={(e) => set("location", e.target.value)} />
       </div>
     </FormModal>
   );

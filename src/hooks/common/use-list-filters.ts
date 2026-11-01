@@ -35,6 +35,14 @@ export function useListFilters(prefix: string, filterKeys: readonly string[], de
   const setSort = useCallback((sort: string | null | undefined) => void setState({ sort: sort ?? "", page: 1 }), [setState]);
   const toggleOrder = useCallback(() => void setState({ order: values["order"] === "asc" ? "desc" : "asc" }), [setState, values]);
 
+  const setBatch = useCallback((patch: Record<string, string | number | null | undefined>) => {
+    const clean: Record<string, string | number> = { page: 1 };
+    for (const [k, v] of Object.entries(patch)) {
+      clean[k] = v ?? "";
+    }
+    void setState(clean);
+  }, [setState]);
+
   const clear = useCallback(() => {
     const reset: Record<string, string | number | null> = { search: "", page: 1, sort: "", order: "asc" };
     for (const k of filterKeys) reset[k] = "";
@@ -51,7 +59,7 @@ export function useListFilters(prefix: string, filterKeys: readonly string[], de
     order: String(values["order"] ?? "asc") as "asc" | "desc",
     pageSize: defaultPageSize,
     get: (key: string) => String(values[key] ?? ""),
-    setFilter, setSearch, setPage, setSort, toggleOrder, clear, activeCount,
+    setFilter, setSearch, setPage, setSort, toggleOrder, setBatch, clear, activeCount,
   };
 }
 

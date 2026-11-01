@@ -53,7 +53,7 @@ export function DocumentFeesSection() {
       <FormModal id={MODAL} title="Taxas de documentos" description="Deixe 0 para os documentos gratuitos." submitLabel="Guardar" isLoading={save.isPending} disabled={!valid}
         onSubmit={() => save.mutateAsync(Object.fromEntries(TYPES.map((t) => [t, Number(draft[t] ?? 0)])) as Record<RequestType, number>).then(() => { SucessMessage("Taxas atualizadas."); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar.")); throw e; })}>
         {TYPES.map((t) => (
-          <div key={t} className="sm:col-span-2"><Input label={`${REQUEST_TYPE_LABEL[t]} (Kz)`} type="number" min={0} value={draft[t] ?? ""} onChange={(e) => setDraft((d) => ({ ...d, [t]: e.target.value }))} /></div>
+          <div key={t} className="sm:col-span-2"><Input label={`${REQUEST_TYPE_LABEL[t]} (Kz)`} type="number" min={0} placeholder="Ex.: 2500 (ou 0 para gratuito)" value={draft[t] ?? ""} onChange={(e) => setDraft((d) => ({ ...d, [t]: e.target.value }))} /></div>
         ))}
       </FormModal>
     </section>

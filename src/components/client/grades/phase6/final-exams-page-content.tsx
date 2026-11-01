@@ -3,7 +3,7 @@
 import { formatIsoDay } from "@/utils/format-date";
 import { useEffect, useState } from "react";
 import { SucessMessage, ErrorMessage, InfoMessage } from "@/utils/messages";
-import { Can, Badge, Button, ButtonOnlyAction, Checkbox, ConfirmModal, DataList, EmptyState, FormModal, FormSelect, Icon, Input, StatusLegend, TitleList, type Column } from "@/components";
+import { Can, Badge, Button, ButtonOnlyAction, Checkbox, ConfirmModal, DataList, EmptyState, FormModal, FormSelect, Icon, Input, StatusLegend, Textarea, TitleList, type Column } from "@/components";
 import { GenericTable } from "@/components/common/generic-table";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useFinalExam, useFinalExams } from "@/hooks/school/use-phase6";
@@ -125,7 +125,13 @@ function ExamModal({ id }: { id: string | null }) {
               </p>
             )}
             {!closed && (
-              <Input label="Motivo das ausências justificadas e anulações (fica registado como prova)" value={justification} onChange={(e) => setJustification(e.target.value)} placeholder="Ex.: atestado médico entregue a 12/11" />
+              <Textarea
+                label="Motivo das ausências justificadas e anulações (fica registado como prova)"
+                value={justification}
+                onChange={(e) => setJustification(e.target.value)}
+                placeholder="Ex.: Atestado médico hospitalar entregue pelo encarregado de educação..."
+                rows={2}
+              />
             )}
             {!closed && (
               <div className="flex flex-wrap gap-2">

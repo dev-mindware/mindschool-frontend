@@ -5,7 +5,7 @@ import { formatCurrencyCompact, formatDate } from "@/utils";
 import { useState } from "react";
 import Link from "next/link";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, FileUpload, FormModal, HelpHint, Icon, Input, PROOF_ACCEPT_PDF_PNG, Progress, StatusLegend, TitleList, type Column } from "@/components";
+import { Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, FileUpload, FormModal, FormTextarea, HelpHint, Icon, Input, PROOF_ACCEPT_PDF_PNG, Progress, StatusLegend, TitleList, type Column } from "@/components";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { useSubscription } from "@/hooks/school/use-subscription";
 import type { ApiOrder } from "@/services/subscription-service";
@@ -141,7 +141,15 @@ export function SubscriptionManager() {
       <ConfirmModal id="sub-cancel-order" destructive title="Cancelar ordem" description="A ordem deixa de ser analisada. Pode criar outra quando quiser." confirmLabel="Cancelar ordem" isLoading={cancelOrder.isPending} onConfirm={() => (order ? cancelOrder.mutateAsync(order.id).then(() => SucessMessage("Ordem cancelada.")).catch(fail) : undefined)} />
 
       <FormModal id="sub-cancel" title="Cancelar subscrição" description="Mantém-se ativa até ao fim do período pago. Indique o motivo (mínimo 5 caracteres)." submitLabel="Agendar cancelamento" isLoading={cancelSubscription.isPending} disabled={reason.trim().length < 5} onSubmit={() => cancelSubscription.mutateAsync(reason.trim()).then(() => SucessMessage("Cancelamento agendado para o fim do período.")).catch(fail)}>
-        <div className="sm:col-span-2"><Input label="Motivo *" value={reason} onChange={(e) => setReason(e.target.value)} /></div>
+        <div className="sm:col-span-2">
+          <FormTextarea
+            label="Motivo do cancelamento *"
+            placeholder="Explique brevemente a razão do cancelamento (mínimo 5 caracteres)..."
+            value={reason}
+            onChange={setReason}
+            rows={3}
+          />
+        </div>
       </FormModal>
     </div>
   );

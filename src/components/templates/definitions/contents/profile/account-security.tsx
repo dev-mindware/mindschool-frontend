@@ -30,6 +30,7 @@ export function AccountSecurity({ user }: AccountSecurityProps) {
               label="Email de acesso"
               disabled
               defaultValue={user.email}
+              placeholder="email@exemplo.ao"
               className="h-10 text-xs bg-muted/40"
             />
           </div>
@@ -49,6 +50,7 @@ export function AccountSecurity({ user }: AccountSecurityProps) {
               type="password"
               value="************"
               disabled
+              placeholder="••••••••••••"
               className="h-10 text-xs bg-muted/40 font-mono"
             />
           </div>

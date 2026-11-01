@@ -115,6 +115,7 @@ export function DropoutRiskInterventionModal({
         <Input
           label="Responsável pelo Registo"
           type="text"
+          placeholder="Ex.: Prof. João Silva (Coordenador Pedagógico)"
           value={intervenorName}
           onChange={(e) => setIntervenorName(e.target.value)}
         />

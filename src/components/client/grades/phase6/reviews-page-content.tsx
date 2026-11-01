@@ -73,8 +73,8 @@ export function GradeReviewsPageContent() {
             {active.decision_note && <p className="rounded-xs border p-2"><span className="text-muted-foreground">Decisão:</span> {active.decision_note}</p>}
             {actionable && (
               <div className="grid gap-3 border-t pt-3 sm:grid-cols-2">
-                <FormTextarea label="Parecer / fundamentação (mín. 10 caracteres para decidir)" value={note} onChange={setNote} />
-                <Input label="Nota corrigida (0-20)" type="quantity" min={0} max={20} step={0.5} value={newValue} onChange={(e) => setNewValue(e.target.value)} />
+                <FormTextarea label="Parecer / fundamentação (mín. 10 caracteres para decidir)" value={note} onChange={setNote} placeholder="Fundamente pedagogicamente a decisão de deferimento ou indeferimento da nota..." />
+                <Input label="Nota corrigida (0-20)" type="quantity" min={0} max={20} step={0.5} value={newValue} onChange={(e) => setNewValue(e.target.value)} placeholder="Ex.: 14.5" />
                 <ul className="list-disc space-y-1 pl-4 text-[11px] text-muted-foreground">
                   <li><strong>Deferir</strong> cria uma nova versão da nota (a anterior fica no histórico) e exige uma nota diferente da atual. Se a pauta estiver fechada, volta a guardar-se uma versão da pauta e a proposta de transição do aluno pode ter de ser revista.</li>
                   <li><strong>Indeferir</strong> mantém a nota. Nos dois casos a justificação (mín. 10 caracteres) fica registada.</li>

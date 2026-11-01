@@ -110,9 +110,9 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
             {actionable ? (
               <div className="space-y-3">
                 {s.status === "submetido" && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => start.mutateAsync(s.id).catch((e) => ErrorMessage(getApiErrorMessage(e, "Falhou.")))}>Marcar como em análise</Button>}
-                <Input label="Valor confirmado (Kz)" type="number" value={confirmed} onChange={(e) => setConfirmed(e.target.value)} error={invalid ? "Entre 0 e o valor declarado" : undefined} />
+                <Input label="Valor confirmado (Kz)" type="number" value={confirmed} onChange={(e) => setConfirmed(e.target.value)} error={invalid ? "Entre 0 e o valor declarado" : undefined} placeholder="Ex.: 35000" />
                 {partial && <p className="text-xs text-amber-700">Pagamento parcial: o restante continua em dívida e a família é informada do valor confirmado.</p>}
-                <FormTextarea label="Motivo (obrigatório para rejeitar ou pedir novo comprovativo)" value={reason} onChange={setReason} rows={2} />
+                <FormTextarea label="Motivo (obrigatório para rejeitar ou pedir novo comprovativo)" value={reason} onChange={setReason} rows={2} placeholder="Ex.: Comprovativo ilegível, montante divergente do extracto bancário..." />
                 <p className="text-xs text-muted-foreground">Confira o valor, a data e a referência no extracto bancário antes de aprovar. Só a aprovação regista o pagamento nas faturas.</p>
                 <ul className="list-disc space-y-1 pl-4 text-[11px] text-muted-foreground">
                   <li><strong>Pedir novo comprovativo:</strong> o pedido continua aberto e a família pode substituir o ficheiro (ex.: foto ilegível).</li>

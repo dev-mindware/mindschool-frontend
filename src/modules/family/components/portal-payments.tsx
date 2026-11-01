@@ -239,7 +239,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
                 {chosen.map((p) => (
                   <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 text-sm">
                     <span className="capitalize">{p.description}<span className="block text-xs text-muted-foreground normal-case">em dívida {formatCurrency(p.available)}</span></span>
-                    <div className="w-40"><Input label="" type="number" value={amounts[p.id] ?? p.available} onChange={(e) => setAmounts((a) => ({ ...a, [p.id]: e.target.value }))} error={Number(amounts[p.id] ?? p.available) > Number(p.available) ? "Excede o valor em dívida" : undefined} /></div>
+                    <div className="w-40"><Input label="" type="number" placeholder="0.00" value={amounts[p.id] ?? p.available} onChange={(e) => setAmounts((a) => ({ ...a, [p.id]: e.target.value }))} error={Number(amounts[p.id] ?? p.available) > Number(p.available) ? "Excede o valor em dívida" : undefined} /></div>
                   </li>
                 ))}
               </ul>
@@ -249,7 +249,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
                 <Input label="Referência da transferência" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="N.º da operação (opcional)" />
                 <Input label="Nome do ordenante" value={payer} onChange={(e) => setPayer(e.target.value)} placeholder="Quem fez o pagamento (opcional)" />
               </div>
-              <FormTextarea label="Nota para a escola" value={notes} onChange={setNotes} rows={2} />
+              <FormTextarea label="Nota para a escola" value={notes} onChange={setNotes} rows={2} placeholder="Observações adicionais para a contabilidade escolar..." />
               <FileUpload value={file} onChange={setFile} accept={PROOF_ACCEPT} maxBytes={8 * 1024 * 1024} label="Anexar o comprovativo" hint="PDF, PNG ou JPEG · máximo 8 MB. Use uma imagem nítida com valor, data e referência." />
             </section>
           </div>

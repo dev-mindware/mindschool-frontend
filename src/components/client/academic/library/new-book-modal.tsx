@@ -22,10 +22,10 @@ export function NewBookModal() {
 
   return (
     <FormModal id="library-new-book" title="Cadastrar Obra" description="Registe uma obra e o número de exemplares." submitLabel="Cadastrar" isLoading={createBook.isPending} onSubmit={submit} disabled={!f.title.trim() || !f.author.trim() || Boolean(isbnError)}>
-      <Input label="Título *" startIcon="BookMarked" value={f.title} onChange={(e) => set("title", e.target.value)} />
-      <Input label="Autor *" startIcon="User" value={f.author} onChange={(e) => set("author", e.target.value)} />
+      <Input label="Título da obra *" startIcon="BookMarked" placeholder="Ex.: Terra Sonâmbula" value={f.title} onChange={(e) => set("title", e.target.value)} />
+      <Input label="Autor principal *" startIcon="User" placeholder="Ex.: Mia Couto" value={f.author} onChange={(e) => set("author", e.target.value)} />
       <Input label="ISBN" startIcon="Hash" placeholder="Ex: 978-989-23-1234-5" value={f.isbn} error={isbnError} onChange={(e) => set("isbn", e.target.value)} />
-      <Input label="Exemplares *" type="quantity" min={1} max={5000} step={1} value={f.copies} onChange={(e) => set("copies", Math.max(1, Math.min(5000, Number(e.target.value) || 1)))} />
+      <Input label="Exemplares disponíveis *" type="quantity" min={1} max={5000} step={1} placeholder="Ex.: 5" value={f.copies} onChange={(e) => set("copies", Math.max(1, Math.min(5000, Number(e.target.value) || 1)))} />
       <Input label="Categoria" startIcon="Folder" placeholder="Ex: Manual do MED" value={f.category} onChange={(e) => set("category", e.target.value)} />
       <Input label="Localização" startIcon="MapPin" placeholder="Estante B, prateleira 3" value={f.location} onChange={(e) => set("location", e.target.value)} />
     </FormModal>

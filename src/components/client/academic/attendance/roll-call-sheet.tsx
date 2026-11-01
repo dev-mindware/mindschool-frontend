@@ -102,7 +102,7 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
               persist([{ enrollmentId: s.id, status: currentStatus, notes: currentNote }]);
             }
           }}
-          placeholder="Adicionar nota..."
+          placeholder="Ex.: Chegou 10 min atrasado, sem farda..."
           className="h-8 min-w-48 text-xs"
         />
       ),

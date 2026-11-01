@@ -33,11 +33,11 @@ function AddUserModal() {
 
   return (
     <FormModal id="settings-add-user" title="Adicionar Utilizador" description="Pessoa nova: «Convite por e-mail» envia-lhe uma ligação para definir a palavra-passe; «Palavra-passe inicial» define-a você e comunica-a (validada pela política de segurança). Pessoa que já tem conta (mesmo e-mail): escolha «Conta existente» e só se atribui o papel." submitLabel="Adicionar" isLoading={grant.isPending} onSubmit={submit} disabled={!email.trim() || (mode === "password" && password.length < 8)}>
-      <Input label="E-mail *" type="email" startIcon="Mail" value={email} onChange={(e) => setEmail(e.target.value)} />
-      {mode !== "existing" && <Input label="Nome * (pessoa nova)" startIcon="User" value={name} onChange={(e) => setName(e.target.value)} />}
+      <Input label="E-mail *" type="email" startIcon="Mail" placeholder="exemplo@escola.ao" value={email} onChange={(e) => setEmail(e.target.value)} />
+      {mode !== "existing" && <Input label="Nome * (pessoa nova)" startIcon="User" placeholder="Ex.: João Manuel da Silva" value={name} onChange={(e) => setName(e.target.value)} />}
       <FormSelect label="Papel *" value={role} onValueChange={(v) => setRole(v as SchoolRole)} options={ASSIGNABLE.map((r) => ({ value: r, label: ROLE_LABEL[r] }))} />
       <FormSelect label="Acesso" value={mode} onValueChange={(v) => setMode(v as "invite" | "password" | "existing")} options={[{ value: "invite", label: "Pessoa nova: convite por e-mail" }, { value: "password", label: "Pessoa nova: palavra-passe inicial" }, { value: "existing", label: "Conta existente: só atribuir o papel" }]} />
-      {mode === "password" && <Input label="Palavra-passe inicial *" type="password" value={password} onChange={(e) => setPassword(e.target.value)} />}
+      {mode === "password" && <Input label="Palavra-passe inicial *" type="password" placeholder="Defina uma palavra-passe forte..." value={password} onChange={(e) => setPassword(e.target.value)} />}
     </FormModal>
   );
 }

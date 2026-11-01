@@ -7,6 +7,7 @@ import {
   Can,
   ConfirmModal,
   FormModal,
+  FormTextarea,
   GenericTable,
   Icon,
   Input,
@@ -58,8 +59,18 @@ function MarkDayModal() {
     <FormModal id="school-days-mark" title="Marcar dia não letivo" description="Use para decretos, calamidades ou encerramentos. Estes dias deixam de ser letivos: o contador de dias letivos desce e a assiduidade já não é exigida (as faltas já lançadas não se apagam). Só se marcam dias dentro do ano letivo; a marca remove-se depois, com «Remover marca»." submitLabel="Marcar" isLoading={mark.isPending} onSubmit={submit} disabled={!f.start || f.title.trim().length < 3 || f.justification.trim().length < 5}>
       <Input label="Início *" type="date" value={f.start} onChange={(e) => set("start", e.target.value)} />
       <Input label="Fim (opcional)" type="date" value={f.end} onChange={(e) => set("end", e.target.value)} />
-      <div className="sm:col-span-2"><Input label="Título *" startIcon="CalendarX" value={f.title} onChange={(e) => set("title", e.target.value)} /></div>
-      <div className="sm:col-span-2"><Input label="Motivo * (mín. 5 caracteres; ex.: decreto, calamidade)" value={f.justification} onChange={(e) => set("justification", e.target.value)} /></div>
+      <div className="sm:col-span-2">
+        <Input label="Título *" startIcon="CalendarX" placeholder="Ex.: Tolerância de Ponto / Luto Nacional" value={f.title} onChange={(e) => set("title", e.target.value)} />
+      </div>
+      <div className="sm:col-span-2">
+        <FormTextarea
+          label="Motivo * (mín. 5 caracteres)"
+          placeholder="Ex.: Decreto executivo n.º 12/26, calamidade pública ou despacho governamental..."
+          value={f.justification}
+          onChange={(v) => set("justification", v)}
+          rows={3}
+        />
+      </div>
     </FormModal>
   );
 }

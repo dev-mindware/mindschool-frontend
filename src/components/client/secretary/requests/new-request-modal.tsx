@@ -30,7 +30,7 @@ export function NewRequestModal({ onSuccess }: { onSuccess?: (r: ApiRequest) => 
       <div className="sm:col-span-2"><StudentSelect label="Aluno (opcional)" students={students} value={studentId} onChange={setStudentId} /></div>
       <div className="sm:col-span-2"><FormSelect label="Serviço solicitado" value={type} onValueChange={(v) => setType(v as RequestType)} options={(Object.keys(REQUEST_TYPE_LABEL) as RequestType[]).map((t) => ({ value: t, label: REQUEST_TYPE_LABEL[t] }))} /></div>
       <div className="sm:col-span-2"><Input label="Assunto / finalidade *" placeholder="Ex: para abertura de conta bancária" value={subject} onChange={(e) => setSubject(e.target.value)} /></div>
-      <FormTextarea label="Observações" value={description} onChange={setDescription} rows={3} />
+      <FormTextarea label="Observações" value={description} onChange={setDescription} rows={3} placeholder="Informações adicionais ou notas para a secretaria..." />
     </FormModal>
   );
 }

@@ -124,6 +124,7 @@ export function ExamGradingPageContent() {
                             step={0.25}
                             min={0}
                             max={a.question.max_score}
+                            placeholder={`Ex.: ${(a.question.max_score / 2).toFixed(1)}`}
                             value={scores[a.answer_id] ?? String(a.score_awarded ?? '')}
                             onChange={(e) => setScores((cur) => ({ ...cur, [a.answer_id!]: e.target.value }))}
                           />

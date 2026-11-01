@@ -431,6 +431,7 @@ export function PoliciesPageContent() {
               min={0}
               max={20}
               step={0.5}
+              placeholder="Ex.: 14.0"
               value={simMac}
               onChange={(e) => setSimMac(Number(e.target.value))}
               className="h-8 text-xs font-semibold"
@@ -443,6 +444,7 @@ export function PoliciesPageContent() {
               min={0}
               max={20}
               step={0.5}
+              placeholder="Ex.: 12.0"
               value={simMas}
               onChange={(e) => setSimMas(Number(e.target.value))}
               className="h-8 text-xs font-semibold"
@@ -455,6 +457,7 @@ export function PoliciesPageContent() {
               min={0}
               max={20}
               step={0.5}
+              placeholder="Ex.: 15.0"
               value={simPp}
               onChange={(e) => setSimPp(Number(e.target.value))}
               className="h-8 text-xs font-semibold"
@@ -650,6 +653,7 @@ export function PoliciesPageContent() {
                 min={0}
                 max={10}
                 step={1}
+                placeholder="Ex.: 1"
                 value={ev.mt_weights.mac}
                 onChange={(e) =>
                   setEv({ mt_weights: { ...ev.mt_weights, mac: Math.max(0, Math.min(10, num(e.target.value))) } })
@@ -661,6 +665,7 @@ export function PoliciesPageContent() {
                 min={0}
                 max={10}
                 step={1}
+                placeholder="Ex.: 1"
                 value={ev.mt_weights.mas}
                 onChange={(e) =>
                   setEv({ mt_weights: { ...ev.mt_weights, mas: Math.max(0, Math.min(10, num(e.target.value))) } })
@@ -672,6 +677,7 @@ export function PoliciesPageContent() {
                 min={0}
                 max={10}
                 step={1}
+                placeholder="Ex.: 1"
                 value={ev.mt_weights.pp}
                 onChange={(e) =>
                   setEv({ mt_weights: { ...ev.mt_weights, pp: Math.max(0, Math.min(10, num(e.target.value))) } })
@@ -711,6 +717,7 @@ export function PoliciesPageContent() {
               min={0}
               max={20}
               step={1}
+              placeholder="Ex.: 10"
               value={ev.pass_mark}
               onChange={(e) => setEv({ pass_mark: Math.max(0, Math.min(20, num(e.target.value))) })}
             />
@@ -720,6 +727,7 @@ export function PoliciesPageContent() {
               min={1}
               max={60}
               step={1}
+              placeholder="Ex.: 10"
               value={ev.review_window_days}
               onChange={(e) => setEv({ review_window_days: Math.max(1, Math.min(60, num(e.target.value))) })}
             />
@@ -729,6 +737,7 @@ export function PoliciesPageContent() {
               min={1}
               max={20}
               step={1}
+              placeholder="Ex.: 3"
               value={ev.council_min_attendees}
               onChange={(e) => setEv({ council_min_attendees: Math.max(1, Math.min(20, num(e.target.value))) })}
             />
@@ -757,6 +766,7 @@ export function PoliciesPageContent() {
                 min={0}
                 max={13}
                 step={1}
+                placeholder="Ex.: 7"
                 value={ev.exception.class_level_min}
                 onChange={(e) => setEv({ exception: { ...ev.exception, class_level_min: Math.max(0, Math.min(13, num(e.target.value))) } })}
               />
@@ -766,6 +776,7 @@ export function PoliciesPageContent() {
                 min={0}
                 max={13}
                 step={1}
+                placeholder="Ex.: 8"
                 value={ev.exception.class_level_max}
                 onChange={(e) => setEv({ exception: { ...ev.exception, class_level_max: Math.max(0, Math.min(13, num(e.target.value))) } })}
               />
@@ -776,6 +787,7 @@ export function PoliciesPageContent() {
               min={0}
               max={10}
               step={1}
+              placeholder="Ex.: 2"
               value={ev.exception.max_subjects}
               onChange={(e) => setEv({ exception: { ...ev.exception, max_subjects: Math.max(0, Math.min(10, num(e.target.value))) } })}
             />
@@ -786,6 +798,7 @@ export function PoliciesPageContent() {
                 min={0}
                 max={20}
                 step={0.5}
+                placeholder="Ex.: 7.0"
                 value={ev.exception.min_mark}
                 onChange={(e) => setEv({ exception: { ...ev.exception, min_mark: Math.max(0, Math.min(20, num(e.target.value))) } })}
               />
@@ -795,6 +808,7 @@ export function PoliciesPageContent() {
                 min={0}
                 max={20}
                 step={0.5}
+                placeholder="Ex.: 9.0"
                 value={ev.exception.max_mark}
                 onChange={(e) => setEv({ exception: { ...ev.exception, max_mark: Math.max(0, Math.min(20, num(e.target.value))) } })}
               />
@@ -823,6 +837,7 @@ export function PoliciesPageContent() {
               min={0}
               max={20}
               step={0.5}
+              placeholder="Ex.: 7.0"
               value={ev.final_exam.admission_min_mfd}
               onChange={(e) =>
                 setEv({
@@ -884,6 +899,7 @@ export function PoliciesPageContent() {
               min={0}
               max={20}
               step={0.5}
+              placeholder="Ex.: 10.0"
               value={d.admission.min_pass_score ?? ""}
               onChange={(e) =>
                 setDraft({
@@ -953,6 +969,7 @@ export function PoliciesPageContent() {
               min={1}
               max={30}
               step={1}
+              placeholder="Ex.: 1"
               value={d.calendar.summary_deadline_days}
               onChange={(e) =>
                 setDraft({
@@ -991,6 +1008,7 @@ export function PoliciesPageContent() {
                 min={0}
                 max={10}
                 step={1}
+                placeholder="Ex.: 1"
                 value={d.risk.weights.frequencia}
                 onChange={(e) =>
                   setDraft({ ...d, risk: { ...d.risk, weights: { ...d.risk.weights, frequencia: Math.max(0, Math.min(10, num(e.target.value))) } } })
@@ -1002,6 +1020,7 @@ export function PoliciesPageContent() {
                 min={0}
                 max={10}
                 step={1}
+                placeholder="Ex.: 1"
                 value={d.risk.weights.desempenho}
                 onChange={(e) =>
                   setDraft({ ...d, risk: { ...d.risk, weights: { ...d.risk.weights, desempenho: Math.max(0, Math.min(10, num(e.target.value))) } } })
@@ -1013,6 +1032,7 @@ export function PoliciesPageContent() {
                 min={0}
                 max={10}
                 step={1}
+                placeholder="Ex.: 1"
                 value={d.risk.weights.financeiro}
                 onChange={(e) =>
                   setDraft({ ...d, risk: { ...d.risk, weights: { ...d.risk.weights, financeiro: Math.max(0, Math.min(10, num(e.target.value))) } } })
@@ -1060,6 +1080,7 @@ export function PoliciesPageContent() {
               min={1}
               max={180}
               step={1}
+              placeholder="Ex.: 30"
               value={d.risk.overdue_days}
               onChange={(e) =>
                 setDraft({ ...d, risk: { ...d.risk, overdue_days: Math.max(1, Math.min(180, num(e.target.value))) } })
@@ -1084,6 +1105,7 @@ export function PoliciesPageContent() {
               min={1}
               max={12}
               step={1}
+              placeholder="Ex.: 10"
               value={d.finance.installments}
               onChange={(e) =>
                 setDraft({ ...d, finance: { ...d.finance, installments: Math.max(1, Math.min(12, num(e.target.value))) } })
@@ -1095,6 +1117,7 @@ export function PoliciesPageContent() {
               min={1}
               max={31}
               step={1}
+              placeholder="Ex.: 20"
               value={d.finance.due_day}
               onChange={(e) =>
                 setDraft({ ...d, finance: { ...d.finance, due_day: Math.max(1, Math.min(31, num(e.target.value))) } })
@@ -1102,6 +1125,7 @@ export function PoliciesPageContent() {
             />
             <Input
               label="Dias de Antecedência para Lembretes (separados por vírgula)"
+              placeholder="Ex.: 3, 7, 15"
               value={d.finance.reminder_days.join(", ")}
               onChange={(e) =>
                 setDraft({ ...d, finance: { ...d.finance, reminder_days: list(e.target.value) } })

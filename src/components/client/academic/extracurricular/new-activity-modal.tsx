@@ -54,14 +54,16 @@ export function NewActivityModal() {
             <div className="sm:col-span-2">
               <Input label="Nome *" startIcon="Trophy" placeholder="Ex: Clube de Xadrez" value={f.name} onChange={(e) => set("name", e.target.value)} />
             </div>
-            <FormTextarea label="Descrição" value={f.description} onChange={(v) => set("description", v)} rows={2} />
+            <div className="sm:col-span-2">
+              <FormTextarea label="Descrição da actividade" placeholder="Descreva os objectivos, dinâmica e plano geral do clube ou actividade..." value={f.description} onChange={(v) => set("description", v)} rows={2} />
+            </div>
             <FormSelect label="Responsável" value={f.teacherId || "none"} onValueChange={(v) => set("teacherId", v === "none" ? "" : v)} options={[{ value: "none", label: "Sem responsável" }, ...teachers.map((t) => ({ value: t.id, label: t.full_name }))]} />
-            <Input label="Lotação *" type="quantity" min={1} max={250} step={1} value={f.capacity} onChange={(e) => set("capacity", Math.max(1, Math.min(250, Number(e.target.value) || 1)))} />
+            <Input label="Lotação *" type="quantity" min={1} max={250} step={1} placeholder="Ex.: 25" value={f.capacity} onChange={(e) => set("capacity", Math.max(1, Math.min(250, Number(e.target.value) || 1)))} />
             <FormSelect label="Dia da semana" value={f.weekday} onValueChange={(v) => set("weekday", v)} options={[{ value: "0", label: "Sem horário fixo" }, ...WEEKDAYS.slice(1).map((d, i) => ({ value: String(i + 1), label: d }))]} />
             <Input label="Início" type="time" value={f.start} onChange={(e) => set("start", e.target.value)} />
             <Input label="Fim" type="time" value={f.end} onChange={(e) => set("end", e.target.value)} />
             <div className="sm:col-span-2">
-              <Input label="Local" startIcon="MapPin" value={f.location} onChange={(e) => set("location", e.target.value)} />
+              <Input label="Local da actividade" startIcon="MapPin" placeholder="Ex.: Campo Polidesportivo / Sala de Música" value={f.location} onChange={(e) => set("location", e.target.value)} />
             </div>
           </div>
 

@@ -1,227 +1,190 @@
 "use client";
 
 import { Skeleton } from "@/components/ui/skeleton";
-import { Card, CardHeader, CardContent, CardTitle } from "@/components/ui/card";
+import { Card, CardHeader, CardContent } from "@/components/ui/card";
 import { DynamicMetricCardSkeleton } from "./dynamic-metric-card-skeleton";
 
+const BAR_HEIGHTS = [38, 62, 50, 78, 64, 88, 72, 46, 82, 68, 76, 92];
+
+/**
+ * Skeleton do Dashboard Escolar (padrão MindGest / nextjs-responsive-ui):
+ * - 1. 4 KPIs em grelha 2x2 no mobile (`grid-cols-2`) e 4 colunas em desktop (`@5xl/main:grid-cols-4`).
+ * - 2. Secção de Gráficos: Gráfico de Barras (`lg:col-span-2`, `h-[260px]`) + Gráfico Donut (`col-span-1`, `h-[190px]` + legenda).
+ * - 3. Secção Operacional: 3 cartões de acompanhamento escolar (Aulas/Alertas, Dívidas/Eventos e Acesso Rápido 2x2).
+ */
 export function DashboardSkeleton() {
-    return (
-        <div className="flex flex-col gap-4 md:gap-6 animate-in fade-in duration-300">
-            {/* 1. Summary Metric Cards (4 cards) */}
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 md:gap-4 @5xl/main:grid-cols-4">
-                {Array.from({ length: 4 }).map((_, idx) => (
-                    <DynamicMetricCardSkeleton key={idx} />
+  return (
+    <div className="flex flex-col gap-4 md:gap-6 animate-in fade-in duration-200">
+      {/* 1. 4 KPIs Principais — Grelha idêntica ao DashboardOverview / FinanceDashboard / TeacherDashboard */}
+      <div className="grid grid-cols-2 gap-3 md:gap-4 @xl/main:grid-cols-2 @5xl/main:grid-cols-4">
+        {Array.from({ length: 4 }).map((_, idx) => (
+          <DynamicMetricCardSkeleton key={idx} />
+        ))}
+      </div>
+
+      {/* 2. Gráficos Principais (BarChart 2/3 + DonutChart 1/3) */}
+      <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
+        {/* Gráfico de Barras Mensal / Turmas (`h-[260px]`) */}
+        <Card className="lg:col-span-2 flex h-full flex-col gap-0 py-4 border shadow-none rounded-xs">
+          <CardHeader className="px-4 pb-3 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <Skeleton className="size-8 rounded-xs bg-primary/10 shrink-0" />
+              <Skeleton className="h-5 w-44 rounded-xs" />
+            </div>
+            <Skeleton className="h-3.5 w-60 max-w-full rounded-xs" />
+          </CardHeader>
+          <CardContent className="flex-1 px-2 pt-2 sm:px-4">
+            <div className="relative h-[260px] w-full flex flex-col justify-between pt-4 pb-2">
+              {/* Linhas horizontais da grelha cartesiana */}
+              <div className="absolute inset-x-0 top-4 bottom-8 flex flex-col justify-between pointer-events-none">
+                {Array.from({ length: 5 }).map((_, i) => (
+                  <div key={i} className="w-full h-px bg-border/50" />
                 ))}
+              </div>
+
+              {/* Barras verticais proporcionais */}
+              <div className="relative flex-1 flex items-end justify-between gap-1.5 sm:gap-3 px-2 pt-4 pb-2">
+                {BAR_HEIGHTS.map((h, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 flex flex-col items-center gap-2 h-full justify-end"
+                  >
+                    <Skeleton
+                      style={{ height: `${h}%` }}
+                      className="w-full max-w-[28px] rounded-t-xs bg-primary/15"
+                    />
+                  </div>
+                ))}
+              </div>
+
+              {/* Legendas do eixo X */}
+              <div className="flex items-center justify-between gap-1.5 px-2 pt-1">
+                {BAR_HEIGHTS.map((_, i) => (
+                  <Skeleton key={i} className="h-2.5 w-5 rounded-xs bg-muted/60" />
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Gráfico Donut (`h-[190px]` + Lista de Legendas) */}
+        <Card className="flex h-full flex-col gap-0 py-4 border shadow-none rounded-xs">
+          <CardHeader className="px-4 pb-3 space-y-1.5">
+            <div className="flex items-center gap-2">
+              <Skeleton className="size-8 rounded-xs bg-primary/10 shrink-0" />
+              <Skeleton className="h-5 w-36 rounded-xs" />
+            </div>
+            <Skeleton className="h-3.5 w-28 rounded-xs" />
+          </CardHeader>
+          <CardContent className="flex-1 px-2 pt-2 sm:px-4 flex flex-col justify-between">
+            <div className="mx-auto h-[190px] w-full flex items-center justify-center">
+              <div className="relative size-[168px] flex items-center justify-center">
+                <div className="absolute inset-0 rounded-full border-[22px] border-primary/15 animate-pulse" />
+                <div className="flex flex-col items-center justify-center gap-1">
+                  <Skeleton className="h-6 w-12 rounded-xs" />
+                  <Skeleton className="h-3 w-10 rounded-xs bg-muted/60" />
+                </div>
+              </div>
             </div>
 
-            {/* 2. Charts Section (Financial Area Chart + Sales Donut) */}
-            <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
-                {/* Financial Area Chart Skeleton */}
-                <Card className="lg:col-span-2 flex flex-col gap-0 py-4 border shadow-none">
-                    <CardHeader className="flex flex-row items-start justify-between gap-2 px-4 pb-3">
-                        <div className="space-y-2">
-                            <div className="flex items-center gap-2">
-                                <Skeleton className="size-8 rounded-xs bg-primary/10" />
-                                <Skeleton className="h-5 w-40" />
-                            </div>
-                            <Skeleton className="h-3.5 w-28 ml-10" />
-                        </div>
-                    </CardHeader>
-                    <CardContent className="flex-1 px-4 pt-2">
-                        <div className="relative h-[280px] w-full flex flex-col justify-between py-3">
-                            <div className="absolute inset-0 flex flex-col justify-between py-2">
-                                {[...Array(5)].map((_, i) => (
-                                    <div key={i} className="w-full h-px bg-muted/40" />
-                                ))}
-                            </div>
-                            <Skeleton className="h-full w-full bg-gradient-to-t from-primary/10 via-primary/5 to-transparent rounded-xs" />
-                        </div>
-                        <div className="flex justify-center gap-6 mt-4">
-                            <div className="flex items-center gap-2">
-                                <Skeleton className="size-3 rounded-full bg-primary/40" />
-                                <Skeleton className="h-3 w-16" />
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Skeleton className="size-3 rounded-full bg-destructive/40" />
-                                <Skeleton className="h-3 w-16" />
-                            </div>
-                            <div className="flex items-center gap-2">
-                                <Skeleton className="size-3 rounded-full bg-green-500/40" />
-                                <Skeleton className="h-3 w-16" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+            <ul className="mt-3 space-y-2">
+              {Array.from({ length: 3 }).map((_, i) => (
+                <li key={i} className="flex items-center justify-between text-xs">
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="size-2.5 rounded-full bg-primary/40" />
+                    <Skeleton className="h-3.5 w-24 rounded-xs" />
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <Skeleton className="h-3.5 w-10 rounded-xs" />
+                    <Skeleton className="h-3 w-8 rounded-xs bg-muted/60" />
+                  </div>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      </div>
 
-                {/* Sales Donut Skeleton */}
-                <Card className="flex flex-col gap-0 py-4 border shadow-none">
-                    <CardHeader className="px-4 pb-2">
-                        <CardTitle className="flex items-center gap-2">
-                            <Skeleton className="size-8 rounded-xs bg-primary/10" />
-                            <Skeleton className="h-5 w-32" />
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="flex flex-1 flex-col justify-center items-center px-4">
-                        <div className="relative size-[190px] flex items-center justify-center my-2">
-                            <div className="absolute inset-0 rounded-full border-[18px] border-muted/30 animate-pulse" />
-                            <div className="flex flex-col items-center justify-center gap-1.5">
-                                <Skeleton className="h-7 w-16 rounded-xs" />
-                                <Skeleton className="h-3 w-12" />
-                            </div>
-                        </div>
-                        <div className="mt-4 flex flex-col gap-2.5 w-full">
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Skeleton className="size-2.5 rounded-full bg-primary/60" />
-                                    <Skeleton className="h-3.5 w-20" />
-                                </div>
-                                <Skeleton className="h-3.5 w-24" />
-                            </div>
-                            <div className="flex items-center justify-between">
-                                <div className="flex items-center gap-2">
-                                    <Skeleton className="size-2.5 rounded-full bg-primary/30" />
-                                    <Skeleton className="h-3.5 w-20" />
-                                </div>
-                                <Skeleton className="h-3.5 w-24" />
-                            </div>
-                        </div>
-                    </CardContent>
-                </Card>
+      {/* 3. Cartões Operacionais Escolares (OverviewSectionCard + QuickLinks) */}
+      <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
+        {/* Cartão 1: Aulas / Alertas de Risco / Pedidos */}
+        <Card className="flex flex-col h-full gap-0 py-4 border shadow-none rounded-xs">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 px-4 pb-3">
+            <div className="flex items-center gap-2">
+              <Skeleton className="size-8 rounded-xs bg-primary/10 shrink-0" />
+              <Skeleton className="h-5 w-36 rounded-xs" />
             </div>
+            <Skeleton className="h-3.5 w-16 rounded-xs" />
+          </CardHeader>
+          <CardContent className="flex-1 px-4">
+            <ul className="divide-y divide-border/60">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <li
+                  key={i}
+                  className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
+                >
+                  <div className="space-y-1.5 min-w-0 flex-1">
+                    <Skeleton className="h-4 w-36 rounded-xs" />
+                    <Skeleton className="h-3 w-24 rounded-xs bg-muted/60" />
+                  </div>
+                  <Skeleton className="h-5 w-16 shrink-0 rounded-full" />
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
 
-            {/* 3. Operational Cards (Clients + Receivables + Stock) */}
-            <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
-                {/* Clients Card Skeleton */}
-                <Card className="p-4 border shadow-none flex flex-col justify-between space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Skeleton className="size-8 rounded-xs bg-primary/10" />
-                            <Skeleton className="h-5 w-24" />
-                        </div>
-                        <Skeleton className="h-4 w-12" />
-                    </div>
-                    <ul className="space-y-3.5">
-                        <li className="flex items-center justify-between">
-                            <Skeleton className="h-4 w-32" />
-                            <Skeleton className="h-4 w-12" />
-                        </li>
-                        <li className="flex items-center justify-between">
-                            <Skeleton className="h-4 w-28" />
-                            <Skeleton className="h-4 w-16" />
-                        </li>
-                        <li className="space-y-1.5">
-                            <div className="flex items-center justify-between">
-                                <Skeleton className="h-4 w-36" />
-                                <Skeleton className="h-4 w-10" />
-                            </div>
-                            <Skeleton className="h-1.5 w-full rounded-full" />
-                        </li>
-                        <li className="flex items-center justify-between">
-                            <Skeleton className="h-4 w-32" />
-                            <Skeleton className="h-4 w-14" />
-                        </li>
-                    </ul>
-                </Card>
-
-                {/* Receivables Card Skeleton */}
-                <Card className="p-4 border shadow-none flex flex-col justify-between space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Skeleton className="size-8 rounded-xs bg-primary/10" />
-                            <Skeleton className="h-5 w-36" />
-                        </div>
-                        <Skeleton className="h-4 w-12" />
-                    </div>
-                    <div>
-                        <Skeleton className="h-8 w-32 mb-3" />
-                        <Skeleton className="h-2 w-full rounded-full mb-4" />
-                        <ul className="space-y-2.5">
-                            {[1, 2, 3].map((i) => (
-                                <li key={i} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Skeleton className="size-2 rounded-full" />
-                                        <Skeleton className="h-3.5 w-24" />
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <Skeleton className="h-3.5 w-16" />
-                                        <Skeleton className="h-3 w-8" />
-                                    </div>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </Card>
-
-                {/* Stock Card Skeleton */}
-                <Card className="p-4 border shadow-none flex flex-col justify-between space-y-4">
-                    <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                            <Skeleton className="size-8 rounded-xs bg-primary/10" />
-                            <Skeleton className="h-5 w-20" />
-                        </div>
-                        <Skeleton className="h-4 w-12" />
-                    </div>
-                    <div>
-                        <Skeleton className="h-3 w-24 mb-1" />
-                        <Skeleton className="h-8 w-36 mb-4" />
-                        <ul className="space-y-2.5">
-                            {[1, 2, 3].map((i) => (
-                                <li key={i} className="flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <Skeleton className="size-2 rounded-full" />
-                                        <Skeleton className="h-3.5 w-24" />
-                                    </div>
-                                    <Skeleton className="h-3.5 w-12" />
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                </Card>
+        {/* Cartão 2: Cobranças / Próximos Eventos */}
+        <Card className="flex flex-col h-full gap-0 py-4 border shadow-none rounded-xs">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 px-4 pb-3">
+            <div className="flex items-center gap-2">
+              <Skeleton className="size-8 rounded-xs bg-primary/10 shrink-0" />
+              <Skeleton className="h-5 w-40 rounded-xs" />
             </div>
+            <Skeleton className="h-3.5 w-16 rounded-xs" />
+          </CardHeader>
+          <CardContent className="flex-1 px-4">
+            <ul className="divide-y divide-border/60">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <li
+                  key={i}
+                  className="flex items-center justify-between gap-3 py-2.5 first:pt-0 last:pb-0"
+                >
+                  <div className="space-y-1.5 min-w-0 flex-1">
+                    <Skeleton className="h-4 w-40 rounded-xs" />
+                    <Skeleton className="h-3 w-28 rounded-xs bg-muted/60" />
+                  </div>
+                  <Skeleton className="h-4 w-20 shrink-0 rounded-xs" />
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
 
-            {/* 4. Activity & Monthly Goal Section */}
-            <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
-                {/* Recent Activity Skeleton */}
-                <Card className="lg:col-span-2 p-4 border shadow-none">
-                    <div className="flex items-center justify-between mb-4">
-                        <div className="flex items-center gap-2">
-                            <Skeleton className="size-8 rounded-xs bg-primary/10" />
-                            <Skeleton className="h-5 w-36" />
-                        </div>
-                        <Skeleton className="h-4 w-16" />
-                    </div>
-                    <ul className="divide-y divide-border">
-                        {[1, 2, 3, 4, 5].map((i) => (
-                            <li key={i} className="flex items-center gap-3 py-2.5 first:pt-0 last:pb-0">
-                                <Skeleton className="size-8 rounded-xs shrink-0" />
-                                <Skeleton className="h-4 flex-1" />
-                                <Skeleton className="h-4 w-20 shrink-0" />
-                                <Skeleton className="h-3 w-16 shrink-0" />
-                            </li>
-                        ))}
-                    </ul>
-                </Card>
-
-                {/* Monthly Goal Skeleton */}
-                <Card className="p-4 border shadow-none flex flex-col justify-between">
-                    <div className="flex items-center gap-2 mb-2">
-                        <Skeleton className="size-8 rounded-xs bg-primary/10" />
-                        <Skeleton className="h-5 w-32" />
-                    </div>
-                    <div className="flex items-center gap-4 py-2">
-                        <div className="relative size-24 shrink-0 flex items-center justify-center">
-                            <div className="size-20 rounded-full border-8 border-muted/40 animate-pulse" />
-                            <Skeleton className="h-5 w-10 absolute" />
-                        </div>
-                        <div className="flex-1 space-y-2">
-                            <Skeleton className="h-5 w-32" />
-                            <Skeleton className="h-3.5 w-24" />
-                            <Skeleton className="h-4 w-16" />
-                        </div>
-                    </div>
-                    <Skeleton className="h-3 w-40" />
-                </Card>
+        {/* Cartão 3: Acesso Rápido (Grelha 2x2 de Atalhos) */}
+        <Card className="flex flex-col h-full gap-0 py-4 border shadow-none rounded-xs">
+          <CardHeader className="flex flex-row items-center justify-between gap-2 px-4 pb-3">
+            <div className="flex items-center gap-2">
+              <Skeleton className="size-8 rounded-xs bg-primary/10 shrink-0" />
+              <Skeleton className="h-5 w-28 rounded-xs" />
             </div>
-        </div>
-    );
+          </CardHeader>
+          <CardContent className="flex-1 px-4">
+            <div className="grid grid-cols-2 gap-2">
+              {Array.from({ length: 4 }).map((_, i) => (
+                <div
+                  key={i}
+                  className="flex items-center gap-2 rounded-xs border border-border p-3"
+                >
+                  <Skeleton className="size-4 rounded-xs bg-primary/20 shrink-0" />
+                  <Skeleton className="h-4 w-20 rounded-xs" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    </div>
+  );
 }
+

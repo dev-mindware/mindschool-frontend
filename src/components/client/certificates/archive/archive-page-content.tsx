@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { Badge, Button, EmptyState, FormModal, FormSelect, Icon, Input, TitleList, type Column } from "@/components";
+import { Badge, Button, EmptyState, FormModal, FormSelect, FormTextarea, Icon, Input, TitleList, type Column } from "@/components";
 import { GenericTable } from "@/components/common/generic-table";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { useArchive } from "@/hooks/school/use-archive";
@@ -46,7 +46,15 @@ function ExtendModal({ item, onSubmit, pending }: { item: ApiArchiveItem | null;
       onSubmit={() => onSubmit(until, reason.trim()).then(() => { setUntil(""); setReason(""); })}
     >
       <Input label="Novo prazo *" type="date" value={until} onChange={(e) => setUntil(e.target.value)} />
-      <div className="sm:col-span-2"><Input label="Motivo * (ex.: processo individual, obrigação legal)" value={reason} onChange={(e) => setReason(e.target.value)} /></div>
+      <div className="sm:col-span-2">
+        <FormTextarea
+          label="Motivo da prorrogação *"
+          placeholder="Ex.: Processo individual em curso, auditoria ou obrigação legal..."
+          value={reason}
+          onChange={setReason}
+          rows={3}
+        />
+      </div>
       <p className="text-xs text-muted-foreground sm:col-span-2">O prazo só pode ser prorrogado, nunca encurtado. Depois dele, o ficheiro é apagado pela limpeza diária.</p>
     </FormModal>
   );

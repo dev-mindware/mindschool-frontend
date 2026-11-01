@@ -170,7 +170,7 @@ export function MultiSchoolPageContent() {
 
       <FormModal id="group-member-add" title="Adicionar membro" description="O utilizador já tem de ter conta na plataforma." submitLabel="Adicionar" isLoading={g.addMember.isPending} disabled={!email.includes('@')}
         onSubmit={() => g.addMember.mutateAsync({ email: email.trim(), role }).then(() => { SucessMessage('Membro adicionado.'); setEmail(''); }).catch((e) => fail(e))}>
-        <div className="sm:col-span-2"><Input label="E-mail do utilizador *" type="email" value={email} onChange={(e) => setEmail(e.target.value)} /></div>
+        <div className="sm:col-span-2"><Input label="E-mail do utilizador *" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="utilizador@exemplo.ao" /></div>
         <div className="sm:col-span-2"><FormSelect label="Papel" value={role} onValueChange={(v) => setRole(v as GroupRole)} options={ROLE_OPTIONS} /></div>
       </FormModal>
 

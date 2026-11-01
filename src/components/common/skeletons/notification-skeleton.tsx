@@ -1,20 +1,19 @@
 import { Skeleton } from "@/components/ui/skeleton";
-import { cn } from "@/lib/utils";
 
 export function NotificationItemSkeleton() {
     return (
-        <div className="flex items-start gap-3 p-4 relative">
-            <Skeleton className="h-10 w-10 rounded-full flex-shrink-0" />
+        <div className="flex items-start gap-3 p-3.5 sm:p-4 relative">
+            <Skeleton className="size-9 sm:size-10 rounded-full shrink-0" />
             <div className="flex-1 min-w-0 space-y-2">
                 <div className="flex items-start justify-between gap-2">
-                    <Skeleton className="h-4 w-48 rounded" />
-                    <Skeleton className="h-2 w-2 rounded-full" />
+                    <Skeleton className="h-4 w-48 max-w-[75%] rounded-xs" />
+                    <Skeleton className="size-2 rounded-full shrink-0 mt-1" />
                 </div>
-                <div className="space-y-1">
-                    <Skeleton className="h-4 w-full rounded" />
-                    <Skeleton className="h-4 w-2/3 rounded" />
+                <div className="space-y-1.5">
+                    <Skeleton className="h-3.5 w-full rounded-xs" />
+                    <Skeleton className="h-3.5 w-2/3 rounded-xs" />
                 </div>
-                <Skeleton className="h-3 w-24 rounded mt-2" />
+                <Skeleton className="h-3 w-24 rounded-xs mt-1.5" />
             </div>
         </div>
     );
@@ -22,7 +21,7 @@ export function NotificationItemSkeleton() {
 
 export function NotificationListSkeleton({ count = 5 }: { count?: number }) {
     return (
-        <div className="bg-card rounded-xs border border-border shadow-sm divide-y divide-border">
+        <div className="bg-card rounded-xs border border-border shadow-xs divide-y divide-border">
             {Array.from({ length: count }).map((_, index) => (
                 <NotificationItemSkeleton key={index} />
             ))}
@@ -32,28 +31,28 @@ export function NotificationListSkeleton({ count = 5 }: { count?: number }) {
 
 export function AllNotificationsSkeleton() {
     return (
-        <div className="space-y-6">
+        <div className="space-y-6 animate-in fade-in duration-200">
             {/* TitleList Skeleton */}
-            <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                    <Skeleton className="h-8 w-48 rounded" />
-                    <Skeleton className="h-5 w-96 rounded" />
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+                <div className="space-y-1.5">
+                    <Skeleton className="h-7 sm:h-8 w-48 rounded-xs" />
+                    <Skeleton className="h-4 w-80 max-w-full rounded-xs" />
                 </div>
-                <div className="flex gap-2">
-                    <Skeleton className="h-10 w-44 rounded-full" />
-                    <Skeleton className="h-10 w-36 rounded-full" />
+                <div className="flex flex-wrap items-center gap-2">
+                    <Skeleton className="h-9 w-40 rounded-xs" />
+                    <Skeleton className="h-9 w-32 rounded-xs" />
                 </div>
             </div>
 
-            <Skeleton className="h-[1px] w-full" />
+            <div className="h-px w-full bg-border/60" />
 
             {/* Toolbar Skeleton */}
-            <div className="flex flex-col sm:flex-row gap-4 items-center justify-between">
-                <Skeleton className="h-10 w-full sm:max-w-md rounded-full" />
-                <div className="flex gap-2 w-full sm:w-auto">
-                    <Skeleton className="h-10 w-24 rounded-full" />
-                    <Skeleton className="h-10 w-24 rounded-full" />
-                    <Skeleton className="h-10 w-24 rounded-full" />
+            <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center justify-between">
+                <Skeleton className="h-9 w-full sm:max-w-sm rounded-xs" />
+                <div className="flex items-center gap-2 overflow-x-auto">
+                    <Skeleton className="h-9 w-24 rounded-xs shrink-0" />
+                    <Skeleton className="h-9 w-24 rounded-xs shrink-0" />
+                    <Skeleton className="h-9 w-24 rounded-xs shrink-0" />
                 </div>
             </div>
 

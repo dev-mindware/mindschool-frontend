@@ -3,6 +3,7 @@
 import { useMemo, useState, type ReactNode } from "react";
 import { icons } from "lucide-react";
 import { Button, DatePicker } from "@/components/ui";
+import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { EmptyState } from "@/components/common/empty-state";
 import { GenericTable, type Column } from "@/components/common/generic-table";
 import { Icon } from "@/components/common/icon";
@@ -12,6 +13,7 @@ import { ListSkeleton } from "@/components/common/skeletons/list-skeleton";
 import { FilterBarSkeleton } from "@/components/common/skeletons/filter-bar-skeleton";
 import { FilterPopover } from "@/components/shared/filters/filter-popover";
 import { useListFilters, type ListFiltersState } from "@/hooks/common/use-list-filters";
+import { cn } from "@/lib/utils";
 import { normalize } from "@/utils/normalize-string";
 
 export interface ListFilterDef<T> {
@@ -76,55 +78,364 @@ interface ListFilterBarProps<T> {
   total?: number;
 }
 
-/** Barra de filtros padrão MindGest: pesquisa + FilterPopover + datas + ordenação, com botão «Limpar». Estado na URL. */
+/** Barra de filtros padrão MindGest: em Desktop usa FilterPopovers inline; em Mobile abre um Bottom Sheet Drawer com rascunho (draft vs applied). */
 export function ListFilterBar<T>({ prefix, f, searchPlaceholder = "Pesquisar...", searchable = true, filters = [], dateFilters = [], sorts = [], toolbar, shown, total }: ListFilterBarProps<T>) {
-  // telemóvel: com muitos filtros ficam atrás do botão «Filtros», para a lista aparecer no primeiro ecrã (antes 9 filtros empurravam o primeiro registo para baixo)
   const [open, setOpen] = useState(false);
-  const collapsible = filters.length + dateFilters.length + (sorts.length > 0 ? 2 : 0) > 3;
-  const hide = collapsible && !open;
+  const [draft, setDraft] = useState<Record<string, string>>({});
+
+  const hasSheetControls = filters.length + dateFilters.length + sorts.length > 0;
+
+  const buildCurrentDraft = () => {
+    const next: Record<string, string> = {
+      sort: f.sort,
+      order: f.order,
+    };
+    for (const def of filters) next[def.key] = f.get(def.key);
+    for (const d of dateFilters) {
+      next[`${d.key}-from`] = f.get(`${d.key}-from`);
+      next[`${d.key}-to`] = f.get(`${d.key}-to`);
+    }
+    return next;
+  };
+
+  const handleOpenChange = (nextOpen: boolean) => {
+    if (nextOpen) {
+      setDraft(buildCurrentDraft());
+    }
+    setOpen(nextOpen);
+  };
+
+  const handleResetDraft = () => {
+    const empty: Record<string, string> = { sort: "", order: "asc" };
+    for (const def of filters) empty[def.key] = "";
+    for (const d of dateFilters) {
+      empty[`${d.key}-from`] = "";
+      empty[`${d.key}-to`] = "";
+    }
+    setDraft(empty);
+  };
+
+  const handleApplyDraft = () => {
+    f.setBatch(draft);
+    setOpen(false);
+  };
+
+  const draftActiveCount = Object.entries(draft).filter(
+    ([k, v]) => k !== "order" && Boolean(v)
+  ).length;
+
+  const appliedSheetCount =
+    filters.filter((def) => Boolean(f.get(def.key))).length +
+    dateFilters.reduce(
+      (acc, d) =>
+        acc +
+        (f.get(`${d.key}-from`) ? 1 : 0) +
+        (f.get(`${d.key}-to`) ? 1 : 0),
+      0
+    ) +
+    (f.sort ? 1 : 0);
+
   return (
-    <div className="w-full flex flex-col gap-4 px-2 sm:px-0" data-tour={`${prefix}-filters`}>
-      {/* telemóvel: grelha de 2 colunas (antes cada filtro ocupava uma linha); ecrã largo: quebra de linha em vez de transbordar à direita */}
-      <div className="grid grid-cols-2 gap-3 sm:flex sm:flex-row sm:flex-wrap sm:items-center">
-        {searchable && <SearchHandlerWrapper search={f.search} setSearch={f.setSearch} className="col-span-2 w-full sm:w-auto sm:min-w-64 sm:flex-1" placeholder={searchPlaceholder} />}
-        {collapsible && (
-          <Button type="button" size="sm" variant="outline" className="col-span-2 h-10 gap-2 sm:hidden" aria-expanded={open} onClick={() => setOpen((v) => !v)}>
-            <Icon name="ListFilter" className="size-4" />
-            {open ? "Esconder filtros" : f.activeCount > 0 ? `Filtros (${f.activeCount})` : "Filtros"}
-          </Button>
-        )}
-        <div className={`${hide ? "hidden sm:contents" : "contents"}`}>
-          {filters.map((def) => (
-            <FilterPopover key={def.key} icon={def.icon} label={def.label} options={def.options} value={f.get(def.key) || null} onChange={(v) => f.setFilter(def.key, v)} />
-          ))}
-          {sorts.length > 0 && (
-            <>
-              <FilterPopover icon="List" label="Ordenar por" options={sorts.map((s) => ({ value: s.value, label: s.label }))} value={f.sort || null} onChange={(v) => f.setSort(v)} />
-              <FilterPopover icon="ArrowDownUp" label="Ordem" options={[{ value: "asc", label: "Crescente" }, { value: "desc", label: "Decrescente" }]} value={f.sort ? f.order : null} onChange={(v) => { if (v && v !== f.order) f.toggleOrder(); }} />
-            </>
+    <div className="w-full flex flex-col gap-3 px-2 sm:px-0" data-tour={`${prefix}-filters`}>
+      {/* MOBILE BAR: Pesquisa + Botão de Drawer Inferior */}
+      <div className="flex flex-col gap-2.5 sm:hidden">
+        <div className="flex items-center gap-2">
+          {searchable && (
+            <SearchHandlerWrapper
+              search={f.search}
+              setSearch={f.setSearch}
+              className="flex-1 min-w-0"
+              placeholder={searchPlaceholder}
+            />
+          )}
+          {hasSheetControls && (
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => handleOpenChange(true)}
+              className={cn(
+                "h-10 shrink-0 gap-2 rounded-xs px-3.5 font-medium",
+                !searchable && "w-full justify-between"
+              )}
+            >
+              <span className="flex items-center gap-2">
+                <Icon name="SlidersHorizontal" className="size-4 text-primary" />
+                <span>Filtros</span>
+              </span>
+              {appliedSheetCount > 0 && (
+                <span className="flex size-5 items-center justify-center rounded-full bg-primary text-[11px] font-semibold text-primary-foreground">
+                  {appliedSheetCount}
+                </span>
+              )}
+            </Button>
           )}
         </div>
-        {toolbar && <div className="col-span-2 sm:col-span-1">{toolbar}</div>}
+        {toolbar && <div className="w-full [&>*]:w-full">{toolbar}</div>}
+      </div>
+
+      {/* MOBILE BOTTOM SHEET DRAWER */}
+      {hasSheetControls && (
+        <Sheet open={open} onOpenChange={handleOpenChange}>
+          <SheetContent
+            side="bottom"
+            className="max-h-[88dvh] flex flex-col gap-0 p-0 rounded-t-xl border-t sm:hidden"
+          >
+            <div className="mx-auto mt-2.5 h-1.5 w-10 shrink-0 rounded-full bg-muted-foreground/25" />
+            <SheetHeader className="flex flex-row items-center justify-between border-b px-4 py-3 space-y-0">
+              <button
+                type="button"
+                onClick={handleResetDraft}
+                disabled={draftActiveCount === 0}
+                className="text-xs font-medium text-destructive transition-opacity hover:underline disabled:opacity-40"
+              >
+                Repor
+              </button>
+              <SheetTitle className="text-base font-semibold text-foreground">
+                Filtros
+              </SheetTitle>
+              <div className="w-10" aria-hidden="true" />
+            </SheetHeader>
+
+            <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 space-y-5">
+              {/* Intervalos de Datas */}
+              {dateFilters.map((d) => (
+                <div key={d.key} className="space-y-2">
+                  <p className="text-xs font-semibold text-foreground">{d.label}</p>
+                  <div className="grid grid-cols-2 gap-2.5">
+                    <DatePicker
+                      value={draft[`${d.key}-from`] ? new Date(draft[`${d.key}-from`]) : undefined}
+                      onChange={(date) =>
+                        setDraft((prev) => ({ ...prev, [`${d.key}-from`]: date ? iso(date) : "" }))
+                      }
+                      placeholder="De..."
+                      className="w-full"
+                      disabledDates={[]}
+                    />
+                    <DatePicker
+                      value={draft[`${d.key}-to`] ? new Date(draft[`${d.key}-to`]) : undefined}
+                      onChange={(date) =>
+                        setDraft((prev) => ({ ...prev, [`${d.key}-to`]: date ? iso(date) : "" }))
+                      }
+                      placeholder="Até..."
+                      className="w-full"
+                      disabledDates={[]}
+                    />
+                  </div>
+                </div>
+              ))}
+
+              {/* Filtros de Categoria / Estado (Pills interactivos) */}
+              {filters.map((def) => {
+                const selectedVal = draft[def.key] ?? "";
+                return (
+                  <div key={def.key} className="space-y-2">
+                    <p className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <Icon name={def.icon} className="size-3.5 text-muted-foreground" />
+                      {def.label}
+                    </p>
+                    <div className="flex flex-wrap gap-2">
+                      {def.options.map((opt) => {
+                        const active = selectedVal === opt.value;
+                        return (
+                          <button
+                            key={opt.value}
+                            type="button"
+                            onClick={() =>
+                              setDraft((prev) => ({
+                                ...prev,
+                                [def.key]: active ? "" : opt.value,
+                              }))
+                            }
+                            className={cn(
+                              "inline-flex items-center gap-1.5 rounded-full border px-3.5 py-1.5 text-xs font-medium transition-colors",
+                              active
+                                ? "border-foreground bg-foreground text-background"
+                                : "border-border bg-background text-foreground hover:bg-muted/60"
+                            )}
+                          >
+                            <span>{opt.label}</span>
+                            {active && <Icon name="Check" className="size-3" />}
+                          </button>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+
+              {/* Ordenação (Radio List estilo Sort Sheet) */}
+              {sorts.length > 0 && (
+                <div className="space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <p className="text-xs font-semibold text-foreground">Ordenar por</p>
+                    {draft["sort"] && (
+                      <div className="inline-flex rounded-xs border border-border p-0.5 bg-muted/30">
+                        <button
+                          type="button"
+                          onClick={() => setDraft((prev) => ({ ...prev, order: "asc" }))}
+                          className={cn(
+                            "px-2 py-0.5 text-[11px] font-medium rounded-xs transition-colors",
+                            draft["order"] === "asc"
+                              ? "bg-background text-foreground shadow-2xs"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          Crescente
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setDraft((prev) => ({ ...prev, order: "desc" }))}
+                          className={cn(
+                            "px-2 py-0.5 text-[11px] font-medium rounded-xs transition-colors",
+                            draft["order"] === "desc"
+                              ? "bg-background text-foreground shadow-2xs"
+                              : "text-muted-foreground"
+                          )}
+                        >
+                          Decrescente
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                  <div className="divide-y divide-border/60 rounded-xs border border-border bg-card">
+                    {sorts.map((s) => {
+                      const isSelected = draft["sort"] === s.value;
+                      return (
+                        <button
+                          key={s.value}
+                          type="button"
+                          onClick={() =>
+                            setDraft((prev) => ({
+                              ...prev,
+                              sort: isSelected ? "" : s.value,
+                            }))
+                          }
+                          className="flex w-full items-center justify-between px-3.5 py-2.5 text-left text-xs font-medium text-foreground transition-colors hover:bg-muted/40"
+                        >
+                          <span>{s.label}</span>
+                          <span
+                            className={cn(
+                              "flex size-4 items-center justify-center rounded-full border",
+                              isSelected
+                                ? "border-[5px] border-foreground"
+                                : "border-muted-foreground/40"
+                            )}
+                          />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              )}
+            </div>
+
+            <div className="shrink-0 border-t bg-background px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] flex flex-col gap-2">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleResetDraft}
+                disabled={draftActiveCount === 0}
+                className="h-10 w-full rounded-xs text-xs font-medium"
+              >
+                Limpar tudo
+              </Button>
+              <Button
+                type="button"
+                onClick={handleApplyDraft}
+                className="h-10 w-full rounded-xs text-xs font-semibold"
+              >
+                {draftActiveCount > 0 ? `Aplicar (${draftActiveCount})` : "Aplicar"}
+              </Button>
+            </div>
+          </SheetContent>
+        </Sheet>
+      )}
+
+      {/* DESKTOP BAR: Pesquisa + Popovers Inline */}
+      <div className="hidden sm:flex sm:flex-row sm:flex-wrap sm:items-center gap-3">
+        {searchable && (
+          <SearchHandlerWrapper
+            search={f.search}
+            setSearch={f.setSearch}
+            className="w-auto min-w-64 flex-1"
+            placeholder={searchPlaceholder}
+          />
+        )}
+        {filters.map((def) => (
+          <FilterPopover
+            key={def.key}
+            icon={def.icon}
+            label={def.label}
+            options={def.options}
+            value={f.get(def.key) || null}
+            onChange={(v) => f.setFilter(def.key, v)}
+          />
+        ))}
+        {sorts.length > 0 && (
+          <>
+            <FilterPopover
+              icon="List"
+              label="Ordenar por"
+              options={sorts.map((s) => ({ value: s.value, label: s.label }))}
+              value={f.sort || null}
+              onChange={(v) => f.setSort(v)}
+            />
+            <FilterPopover
+              icon="ArrowDownUp"
+              label="Ordem"
+              options={[
+                { value: "asc", label: "Crescente" },
+                { value: "desc", label: "Decrescente" },
+              ]}
+              value={f.sort ? f.order : null}
+              onChange={(v) => {
+                if (v && v !== f.order) f.toggleOrder();
+              }}
+            />
+          </>
+        )}
+        {toolbar && <div>{toolbar}</div>}
       </div>
 
       {dateFilters.length > 0 && (
-        <div className={`${hide ? "hidden sm:flex" : "flex"} flex-col sm:flex-row gap-3 flex-wrap`}>
+        <div className="hidden sm:flex flex-row gap-3 flex-wrap">
           {dateFilters.map((d) => (
-            <div key={d.key} className="flex flex-col sm:flex-row gap-3">
-              <DatePicker value={f.get(`${d.key}-from`) ? new Date(f.get(`${d.key}-from`)) : undefined} onChange={(date) => f.setFilter(`${d.key}-from`, date ? iso(date) : "")} placeholder={`${d.label}: depois de..`} className="w-full sm:w-max" disabledDates={[]} />
-              <DatePicker value={f.get(`${d.key}-to`) ? new Date(f.get(`${d.key}-to`)) : undefined} onChange={(date) => f.setFilter(`${d.key}-to`, date ? iso(date) : "")} placeholder={`${d.label}: antes de..`} className="w-full sm:w-max" disabledDates={[]} />
+            <div key={d.key} className="flex flex-row gap-3">
+              <DatePicker
+                value={f.get(`${d.key}-from`) ? new Date(f.get(`${d.key}-from`)) : undefined}
+                onChange={(date) => f.setFilter(`${d.key}-from`, date ? iso(date) : "")}
+                placeholder={`${d.label}: depois de..`}
+                className="w-max"
+                disabledDates={[]}
+              />
+              <DatePicker
+                value={f.get(`${d.key}-to`) ? new Date(f.get(`${d.key}-to`)) : undefined}
+                onChange={(date) => f.setFilter(`${d.key}-to`, date ? iso(date) : "")}
+                placeholder={`${d.label}: antes de..`}
+                className="w-max"
+                disabledDates={[]}
+              />
             </div>
           ))}
         </div>
       )}
 
       {f.activeCount > 0 && (
-        <div className="flex items-center gap-3 justify-center sm:justify-start">
-          <Button size="sm" variant="outline" onClick={f.clear} className="h-10 text-destructive hover:text-destructive w-full sm:w-auto">
-            <Icon name="X" className="w-4 h-4 mr-2" />
-            Limpar
+        <div className="flex items-center gap-3 justify-between sm:justify-start">
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={f.clear}
+            className="h-9 text-xs text-destructive hover:text-destructive"
+          >
+            <Icon name="X" className="w-3.5 h-3.5 mr-1.5" />
+            Limpar filtros
           </Button>
-          {total !== undefined && <span className="text-xs text-muted-foreground">{shown} de {total} registos</span>}
+          {total !== undefined && (
+            <span className="text-xs text-muted-foreground">
+              {shown} de {total} registos
+            </span>
+          )}
         </div>
       )}
     </div>
@@ -181,10 +492,13 @@ export function DataList<T extends { id: string }>({
   if (isLoading) {
     return (
       <div className="mt-6 space-y-6">
-        <FilterBarSkeleton
-          filterCount={Math.min(Math.max(filters.length, 1), 4)}
-          hasSort={sorts.length > 0}
-        />
+        {hasFilters && (
+          <FilterBarSkeleton
+            filterCount={Math.min(filters.length, 4)}
+            hasSort={sorts.length > 0}
+            searchable={Boolean(searchText)}
+          />
+        )}
         <ListSkeleton cols={skeletonCols ?? Math.min(columns.length, 6)} rows={5} />
       </div>
     );

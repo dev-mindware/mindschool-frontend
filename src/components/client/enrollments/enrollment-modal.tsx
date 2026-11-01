@@ -277,6 +277,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
               <Input
                 label="Ano Letivo (o da turma)"
                 startIcon="Calendar"
+                placeholder="Ex.: 2026/2027"
                 value={selectedSection?.academicYear ?? "Escolha a turma"}
                 disabled
               />

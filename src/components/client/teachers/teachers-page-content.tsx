@@ -3,7 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Can, Badge, Button, ButtonOnlyAction, DataList, EmptyState, FormCombobox, FormModal, Icon, Input, PrintDownloadDropdown, TitleList, type Column } from "@/components";
+import { Can, Badge, Button, ButtonOnlyAction, DataList, EmptyState, FormCombobox, FormModal, FormTextarea, Icon, Input, PrintDownloadDropdown, TitleList, type Column } from "@/components";
 import { useTeacherCredentials, useTeachersAdmin } from "@/hooks/school/use-admin-school";
 import type { ApiTeacherFull, TeacherStatus } from "@/services/admin-school-service";
 import { useSchoolSettingsStore } from "@/stores/school/school-settings-store";
@@ -100,7 +100,15 @@ function CredentialsModal({ teacher }: { teacher: ApiTeacherFull | null }) {
         </div>
       </FormModal>
       <FormModal id="teachers-block-credential" title="Bloquear credencial" description="Indique o motivo (mínimo 5 caracteres). A credencial deixa de ser aceite de imediato." submitLabel="Bloquear" isLoading={block.isPending} disabled={reason.trim().length < 5} onSubmit={() => (blockId ? block.mutateAsync({ id: blockId, reason: reason.trim() }).then(() => SucessMessage("Credencial bloqueada.")).catch(fail) : undefined)}>
-        <div className="sm:col-span-2"><Input label="Motivo *" value={reason} onChange={(e) => setReason(e.target.value)} /></div>
+        <div className="sm:col-span-2">
+          <FormTextarea
+            label="Motivo do bloqueio *"
+            placeholder="Ex.: Cartão físico extraviado, furto ou cessação de funções..."
+            value={reason}
+            onChange={setReason}
+            rows={3}
+          />
+        </div>
       </FormModal>
     </>
   );

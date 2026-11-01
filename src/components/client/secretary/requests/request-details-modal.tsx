@@ -3,7 +3,7 @@ import { formatDateTime, formatNumber } from "@/utils";
 
 import { useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Button, FormModal, FormTextarea, Icon, Input, StatusBadge, type StatusStyle } from "@/components";
+import { Button, FormModal, FormTextarea, Icon, StatusBadge, Textarea, type StatusStyle } from "@/components";
 import { useSecretaryRequest, useSecretaryRequests } from "@/hooks/school/use-secretary-requests";
 import { useCertificates, openDocumentPdf } from "@/hooks/school/use-certificates";
 import { useGradeTerms } from "@/hooks/school/use-grades";
@@ -139,7 +139,15 @@ export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: Req
                 </div>
               )}
               <div className="flex items-end gap-2">
-                <div className="flex-1"><Input label="Mensagem ao requerente" value={message} onChange={(e) => setMessage(e.target.value)} /></div>
+                <div className="flex-1">
+                  <Textarea
+                    label="Mensagem ao requerente"
+                    placeholder="Escreva orientações ou esclarecimentos para o requerente..."
+                    rows={2}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                  />
+                </div>
                 <Button type="button" size="sm" variant="secondary" className="h-10" disabled={!message.trim() || comment.isPending} onClick={() => run(comment.mutateAsync({ id: request.id, message: message.trim() }), "Mensagem enviada.", () => setMessage(""))}>Enviar</Button>
               </div>
             </div>

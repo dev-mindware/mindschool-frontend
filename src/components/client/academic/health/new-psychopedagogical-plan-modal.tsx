@@ -24,7 +24,7 @@ export function NewPsychopedagogicalPlanModal() {
     <FormModal id="health-new-case" title="Abrir caso psicopedagógico" description="Confidencial: só perfis autorizados acedem aos casos." submitLabel="Abrir caso" isLoading={openCase.isPending} disabled={!studentId || !summary.trim()} onSubmit={submit}>
       <div className="sm:col-span-2"><StudentSelect label="Aluno *" students={students} value={studentId} onChange={setStudentId} /></div>
       <div className="sm:col-span-2"><FormSelect label="Categoria *" value={category} onValueChange={(v) => setCategory(v as CaseCategory)} options={(Object.keys(CASE_CATEGORY_LABEL) as CaseCategory[]).map((c) => ({ value: c, label: CASE_CATEGORY_LABEL[c] }))} /></div>
-      <FormTextarea label="Resumo da situação *" value={summary} onChange={setSummary} rows={4} />
+      <FormTextarea label="Resumo da situação *" value={summary} onChange={setSummary} rows={4} placeholder="Descreva o contexto pedagógico, comportamental ou emocional observado no aluno..." />
     </FormModal>
   );
 }

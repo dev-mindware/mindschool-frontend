@@ -381,6 +381,7 @@ export function TuitionPlansContent() {
                           type="number"
                           min={1}
                           max={15}
+                          placeholder="5"
                           value={preDueDays}
                           onChange={(e) => setPreDueDays(e.target.value)}
                           className="h-7 px-2 text-xs text-center"

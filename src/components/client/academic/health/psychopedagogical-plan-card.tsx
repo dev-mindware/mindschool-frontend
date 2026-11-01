@@ -36,7 +36,7 @@ export function PsychopedagogicalPlanCard({ caseId }: { caseId: string | null })
           {!closed && (
             <div className="space-y-3 border-t pt-3">
               <Input label="Data da sessão" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-              <FormTextarea label="Notas da sessão (confidenciais)" value={notes} onChange={setNotes} rows={3} />
+              <FormTextarea label="Notas da sessão (confidenciais)" value={notes} onChange={setNotes} rows={3} placeholder="Anotações confidenciais sobre a evolução da sessão com o aluno..." />
               <div className="flex justify-between">
                 <Button size="sm" disabled={!notes.trim() || addSession.isPending} onClick={() => addSession.mutateAsync({ date, notes: notes.trim() }).then(() => { SucessMessage("Sessão registada."); setNotes(""); }).catch(err)}>Registar sessão</Button>
                 <Button size="sm" variant="outline" disabled={setStatus.isPending} onClick={() => setStatus.mutateAsync("encerrado").then(() => SucessMessage("Caso encerrado.")).catch(err)}>Encerrar caso</Button>

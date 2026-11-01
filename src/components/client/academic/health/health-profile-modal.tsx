@@ -65,13 +65,15 @@ export function HealthProfileModal({ studentId }: { studentId: string | null }) 
         <form onSubmit={submit} className="flex flex-col gap-6">
           {data && (
             <div className="grid gap-4 sm:grid-cols-2">
-              <FormSelect label="Grupo sanguíneo" value={form.blood_type} onValueChange={(v) => set("blood_type", v)} options={BLOOD.map((b) => ({ value: b, label: b }))} placeholder="—" />
-              <Input label="Medicação habitual" value={form.medications} onChange={(e) => set("medications", e.target.value)} />
-              <FormTextarea label="Alergias" value={form.allergies} onChange={(v) => set("allergies", v)} rows={2} />
-              <FormTextarea label="Doenças crónicas" value={form.chronic_conditions} onChange={(v) => set("chronic_conditions", v)} rows={2} />
-              <Input label="Contacto de emergência" startIcon="User" value={form.emergency_contact_name} onChange={(e) => set("emergency_contact_name", e.target.value)} />
-              <Input label="Telefone de emergência" startIcon="Phone" value={form.emergency_contact_phone} onChange={(e) => set("emergency_contact_phone", e.target.value)} />
-              <FormTextarea label="Observações" value={form.notes} onChange={(v) => set("notes", v)} rows={2} />
+              <FormSelect label="Grupo sanguíneo" value={form.blood_type} onValueChange={(v) => set("blood_type", v)} options={BLOOD.map((b) => ({ value: b, label: b }))} placeholder="Seleccione o grupo sanguíneo..." />
+              <Input label="Medicação habitual" placeholder="Ex.: Paracetamol SOS, Insulina..." value={form.medications} onChange={(e) => set("medications", e.target.value)} />
+              <FormTextarea label="Alergias" placeholder="Ex.: Penicilina, amendoim, pólen, marisco..." value={form.allergies} onChange={(v) => set("allergies", v)} rows={2} />
+              <FormTextarea label="Doenças crónicas" placeholder="Ex.: Asma brônquica, diabetes tipo 1, epilepsia..." value={form.chronic_conditions} onChange={(v) => set("chronic_conditions", v)} rows={2} />
+              <Input label="Contacto de emergência" startIcon="User" placeholder="Ex.: Maria dos Santos (mãe)" value={form.emergency_contact_name} onChange={(e) => set("emergency_contact_name", e.target.value)} />
+              <Input label="Telefone de emergência" startIcon="Phone" placeholder="Ex.: +244 923 000 111" value={form.emergency_contact_phone} onChange={(e) => set("emergency_contact_phone", e.target.value)} />
+              <div className="sm:col-span-2">
+                <FormTextarea label="Observações clínicas" placeholder="Ex.: Usa óculos graduados; evitar esforços físicos intensos..." value={form.notes} onChange={(v) => set("notes", v)} rows={2} />
+              </div>
               {data.recent_visits.length > 0 && (
                 <div className="space-y-1 border-t pt-3 text-sm sm:col-span-2">
                   <p className="font-semibold">Últimos atendimentos</p>

@@ -5,7 +5,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import {
-  Alert, AlertTitle, AlertDescription, Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, EmptyState, FilterPopover, FormModal, FormSelect, Icon, Input, Tabs, TabsContent, TabsList, TabsTrigger, TitleList, WeekTimetable,
+  Alert, AlertTitle, AlertDescription, Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, EmptyState, FilterPopover, FormModal, FormSelect, FormTextarea, Icon, Input, Tabs, TabsContent, TabsList, TabsTrigger, TitleList, WeekTimetable,
   type Column, type TimetableBlock, type TimetableSlot,
   Can,
 } from "@/components";
@@ -162,7 +162,15 @@ function ChangeModal({ entry, timetableId }: { entry: ApiEntry | null; timetable
       {type === "troca_tempo" && (<><FormSelect label="Novo dia" value={weekday} onValueChange={setWeekday} options={DAYS.map((d) => ({ value: String(d), label: WEEKDAY[d] ?? "" }))} /><Input label="Novo tempo" type="quantity" min={1} max={12} step={1} value={slot} onChange={(e) => setSlot(e.target.value)} /></>)}
       {type === "troca_professor" && <div className="sm:col-span-2"><FormSelect label="Novo professor *" value={teacherId} onValueChange={setTeacherId} options={teachers.map((t) => ({ value: t.id, label: t.full_name }))} /></div>}
       {type === "troca_sala" && <div className="sm:col-span-2"><FormSelect label="Nova sala" value={roomId} onValueChange={setRoomId} options={[{ value: "none", label: "Sem sala" }, ...rooms.map((r) => ({ value: r.id, label: `${r.code} — ${r.name}` }))]} /></div>}
-      <div className="sm:col-span-2"><Input label="Motivo (mín. 5 caracteres) *" value={reason} onChange={(e) => setReason(e.target.value)} /></div>
+      <div className="sm:col-span-2">
+        <FormTextarea
+          label="Motivo da mudança (mín. 5 caracteres) *"
+          placeholder="Descreva a fundamentação pedagógica ou logística para esta alteração de horário..."
+          value={reason}
+          onChange={setReason}
+          rows={3}
+        />
+      </div>
     </FormModal>
   );
 }

@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Badge, Button, ButtonOnlyAction, DataList, EmptyState, FormModal, Input, ListSkeleton, type Column } from "@/components";
+import { Badge, Button, ButtonOnlyAction, DataList, EmptyState, FormModal, ListSkeleton, Textarea, type Column } from "@/components";
 import { useClassAbsences, useEnrollmentAbsences } from "@/hooks/school/use-absences";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -30,7 +30,17 @@ function AbsencesModal({ enrollmentId, name }: { enrollmentId: string | null; na
         {absences.map((a) => (
           <div key={a.id} className="grid items-end gap-3 rounded-xs border p-3 sm:grid-cols-[110px_1fr_auto]">
             <div><p className="font-mono text-xs">{a.date}</p>{a.status === "falta_justificada" ? <Badge variant="outline">Justificada</Badge> : <Badge variant="destructive">Injustificada</Badge>}</div>
-            {a.status === "falta_justificada" ? <p className="text-muted-foreground">{a.justification}</p> : <Input label="Justificação (mín. 5 caracteres)" value={text[a.id] ?? ""} onChange={(e) => setText((c) => ({ ...c, [a.id]: e.target.value }))} />}
+            {a.status === "falta_justificada" ? (
+              <p className="text-muted-foreground">{a.justification}</p>
+            ) : (
+              <Textarea
+                label="Justificação (mín. 5 caracteres)"
+                placeholder="Ex.: Atestado médico hospitalar ou motivo de saúde devidamente comprovado..."
+                rows={2}
+                value={text[a.id] ?? ""}
+                onChange={(e) => setText((c) => ({ ...c, [a.id]: e.target.value }))}
+              />
+            )}
             {a.status !== "falta_justificada" && <Button size="sm" className="h-10" disabled={(text[a.id] ?? "").trim().length < 5 || justify.isPending} onClick={() => justify.mutateAsync({ id: a.id, justification: text[a.id]!.trim() }).then(() => SucessMessage("Falta justificada.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível justificar.")))}>Justificar</Button>}
           </div>
         ))}

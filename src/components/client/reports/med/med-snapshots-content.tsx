@@ -128,7 +128,7 @@ export function MedSnapshotsContent() {
         disabled={reference.trim().length < 3}
         onSubmit={() => (submitting ? submit.mutateAsync({ id: submitting.id, reference: reference.trim() }).then(() => { SucessMessage("Submissão registada."); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; }) : undefined)}
       >
-        <div className="sm:col-span-2"><Input label="Protocolo / referência *" value={reference} onChange={(e) => setReference(e.target.value)} /></div>
+        <div className="sm:col-span-2"><Input label="Protocolo / referência *" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Ex.: PROT-MED/2026/8492" /></div>
       </FormModal>
     </div>
   );

@@ -30,7 +30,9 @@ function NewCouncilModal() {
       <FormSelect label="Tipo" value={kind} onValueChange={(v) => setKind(v as "periodico" | "final")} options={[{ value: "periodico", label: "Periódico (observações)" }, { value: "final", label: "Final (transição)" }]} />
       {kind === "periodico" && <FormSelect label="Trimestre" value={termId || terms[0]?.id || ""} onValueChange={setTermId} options={terms.map((t) => ({ value: t.id, label: `${t.sequence}.º Trimestre` }))} />}
       <div className="sm:col-span-2"><Input label="Data e hora *" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} /></div>
-      <FormTextarea label="Agenda (opcional)" value={agenda} onChange={setAgenda} rows={2} />
+      <div className="sm:col-span-2">
+        <FormTextarea label="Agenda do conselho (opcional)" placeholder="Ex.: Análise do aproveitamento pedagógico, assiduidade e comportamento dos alunos da turma..." value={agenda} onChange={setAgenda} rows={2} />
+      </div>
     </FormModal>
   );
 }
@@ -100,8 +102,8 @@ function CouncilModal({ id }: { id: string | null }) {
         return (
           <div className="space-y-2">
             {isFinal && <FormSelect label="" value={d.outcome ?? ""} onValueChange={(v) => set({ outcome: (v || undefined) as Outcome | undefined })} options={(Object.keys(OUTCOME_LABEL) as Outcome[]).map((o) => ({ value: o, label: OUTCOME_LABEL[o] }))} placeholder="Decidir…" disabled={closed} />}
-            {diverges && <Input label="" disabled={closed} value={d.justification} onChange={(e) => set({ justification: e.target.value })} placeholder="Justificação (diverge da proposta)" />}
-            <Input label="" disabled={closed} value={d.observation} onChange={(e) => set({ observation: e.target.value })} placeholder="Observação" />
+            {diverges && <Input label="" disabled={closed} value={d.justification} onChange={(e) => set({ justification: e.target.value })} placeholder="Fundamentação obrigatória da divergência..." />}
+            <Input label="" disabled={closed} value={d.observation} onChange={(e) => set({ observation: e.target.value })} placeholder="Observações pedagógicas relevantes..." />
           </div>
         );
       },

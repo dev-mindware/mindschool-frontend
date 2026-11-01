@@ -90,7 +90,7 @@ export function StepUpDialog() {
           )}
           <div className="space-y-2">
             <Label htmlFor="stepup-password">Palavra-passe</Label>
-            <Input id="stepup-password" type="password" autoComplete="current-password" autoFocus value={password} onChange={(e) => setPassword(e.target.value)} required />
+            <Input id="stepup-password" type="password" autoComplete="current-password" autoFocus value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Introduza a sua palavra-passe actual" required />
           </div>
           <div className="space-y-2">
             <Label htmlFor="stepup-code">Código do segundo factor <span className="text-muted-foreground">(se ativo)</span></Label>

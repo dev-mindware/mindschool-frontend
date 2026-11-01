@@ -57,6 +57,7 @@ export function ChangePasswordModal() {
         <Input
           label="Palavra-passe atual"
           type="password"
+          placeholder="Introduza a palavra-passe actual"
           error={errors.currentPassword?.message}
           {...register("currentPassword")}
           className="h-10 text-xs"
@@ -64,6 +65,7 @@ export function ChangePasswordModal() {
         <Input
           label="Nova palavra-passe"
           type="password"
+          placeholder="Mínimo de 8 caracteres"
           error={errors.newPassword?.message}
           {...register("newPassword")}
           className="h-10 text-xs"
@@ -71,6 +73,7 @@ export function ChangePasswordModal() {
         <Input
           label="Confirmar nova palavra-passe"
           type="password"
+          placeholder="Repita a nova palavra-passe"
           error={errors.confirmPassword?.message}
           {...register("confirmPassword")}
           className="h-10 text-xs"
