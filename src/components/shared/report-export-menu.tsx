@@ -2,9 +2,7 @@
 
 import { useState } from "react";
 import { Button, Icon } from "@/components";
-import {
-  DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSub, DropdownMenuSubContent, DropdownMenuSubTrigger, DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { REPORT_FORMATS, reportModelsService, type ReportFormat, type ReportModel, type ReportParams } from "@/services/report-models-service";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { ErrorMessage, SucessMessage } from "@/utils/messages";
@@ -25,48 +23,63 @@ interface Props {
   disabled?: boolean;
 }
 
+const FORMAT_SHORT: Record<ReportFormat, string> = { pdf: "PDF", docx: "Word", xlsx: "Excel" };
+
 /** «Exportar»: cada relatório sai em PDF, Word ou Excel, com o mesmo cabeçalho oficial e a mesma grelha. */
 export function ReportExportMenu({ items, label = "Exportar", size = "sm", disabled }: Props) {
-  const [busy, setBusy] = useState(false);
+  const [open, setOpen] = useState(false);
+  const [busy, setBusy] = useState<string | null>(null);
 
   const run = async (item: ReportExportItem, format: ReportFormat) => {
-    setBusy(true);
+    const id = `${item.key ?? item.model}:${format}`;
+    setBusy(id);
     try {
       await reportModelsService.download(item.model, await item.params(), format);
-      SucessMessage(`${item.label} exportado.`);
+      SucessMessage(`Ficheiro gerado: ${item.label}.`);
+      setOpen(false);
     } catch (err) {
       ErrorMessage(getApiErrorMessage(err, "Não foi possível gerar o relatório."));
     } finally {
-      setBusy(false);
+      setBusy(null);
     }
   };
 
-  const formats = (item: ReportExportItem) =>
-    REPORT_FORMATS.map((f) => (
-      <DropdownMenuItem key={f.value} className="cursor-pointer gap-2" onClick={() => void run(item, f.value)}>
-        <Icon name={f.value === "xlsx" ? "FileSpreadsheet" : "FileText"} className="size-4 text-muted-foreground" />
-        {f.label}
-      </DropdownMenuItem>
-    ));
-
   return (
-    <DropdownMenu>
-      <DropdownMenuTrigger asChild>
-        <Button variant="outline" size={size} className="gap-2" disabled={disabled || busy || items.length === 0}>
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button variant="outline" size={size} className="gap-2" disabled={disabled || items.length === 0}>
           <Icon name={busy ? "Loader2" : "Download"} className={busy ? "size-4 animate-spin" : "size-4"} />
           {busy ? "A gerar…" : label}
         </Button>
-      </DropdownMenuTrigger>
-      <DropdownMenuContent align="end" className="min-w-48 max-h-80 overflow-y-auto">
-        {items.length === 1
-          ? formats(items[0]!)
-          : items.map((item) => (
-              <DropdownMenuSub key={item.key ?? item.model}>
-                <DropdownMenuSubTrigger className="cursor-pointer">{item.label}</DropdownMenuSubTrigger>
-                <DropdownMenuSubContent>{formats(item)}</DropdownMenuSubContent>
-              </DropdownMenuSub>
-            ))}
-      </DropdownMenuContent>
-    </DropdownMenu>
+      </PopoverTrigger>
+      <PopoverContent align="end" className="w-[26rem] max-w-[92vw] max-h-80 overflow-y-auto p-1">
+        <ul className="divide-y">
+          {items.map((item) => {
+            const key = item.key ?? item.model;
+            return (
+              <li key={key} className="flex items-center justify-between gap-2 px-2 py-1.5">
+                <span className="min-w-0 text-sm leading-tight">{item.label}</span>
+                <span className="flex shrink-0 gap-1">
+                  {REPORT_FORMATS.map((f) => (
+                    <Button
+                      key={f.value}
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="h-7 px-2 text-xs"
+                      disabled={busy !== null}
+                      aria-label={`${item.label} em ${f.label}`}
+                      onClick={() => void run(item, f.value)}
+                    >
+                      {busy === `${key}:${f.value}` ? <Icon name="Loader2" className="size-3 animate-spin" /> : FORMAT_SHORT[f.value]}
+                    </Button>
+                  ))}
+                </span>
+              </li>
+            );
+          })}
+        </ul>
+      </PopoverContent>
+    </Popover>
   );
 }
