@@ -64,9 +64,12 @@ const mondayOf = (d: Date) => {
 
 function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
   const { record, cancel, substitute, reschedule } = useLessons();
+  const { can } = useCan();
+  // A lista de professores serve para escolher o substituto (gestão); o professor não a lê.
   const { data: teachers = [] } = useQuery({
     queryKey: ["teachers", "lesson-modal"],
     queryFn: academicService.teachers,
+    enabled: can("teacher:read"),
     staleTime: 60 * 1000,
   });
   const { closeModal } = useModal();

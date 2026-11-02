@@ -1,5 +1,5 @@
 import { expect, test } from "@playwright/test";
-import { ACCOUNTS, RUN, apiFind, choose, combo, expectNoScroll, fill, login, openDialog } from "./helpers";
+import { ACCOUNTS, RUN, apiFind, choose, combo, expectNoScroll, fill, findRow, login, openDialog, rowAction } from "./helpers";
 import { png } from "./png";
 
 /**
@@ -27,8 +27,22 @@ test.describe.serial("Utilizadores e professores", () => {
     await d.getByRole("button", { name: "Adicionar" }).click();
     await expect(d).toBeHidden({ timeout: 20_000 });
 
-    const membership = await apiFind<{ user: { email: string }; role: string }>(page, "/memberships", (m) => m.user?.email === email);
+    // O aviso diz a verdade: «Convite enviado.» só se o e-mail saiu; senão avisa que o convite não foi enviado.
+    const toast = page.locator("[data-sonner-toast]").filter({ hasText: /Convite enviado|o convite não foi enviado/i }).first();
+    await expect(toast).toBeVisible({ timeout: 15_000 });
+    const sent = /Convite enviado\./.test((await toast.textContent()) ?? "");
+
+    const membership = await apiFind<{ id: string; user: { email: string; invite_pending?: boolean }; role: string }>(page, "/memberships", (m) => m.user?.email === email);
     expect(membership, "utilizador criado na API").toBeTruthy();
+    expect(membership?.user.invite_pending, "convite pendente até definir a palavra-passe").toBe(true);
+
+    // «Reenviar convite» aparece nos convites pendentes e dá sempre uma resposta clara (enviado ou não).
+    await page.goto("/settings/users");
+    const row = await findRow(page, email);
+    await rowAction(page, row, "Reenviar convite");
+    const feedback = page.locator("[data-sonner-toast]").filter({ hasText: /Convite reenviado|O convite não foi enviado/i }).first();
+    await expect(feedback).toBeVisible({ timeout: 15_000 });
+    expect(/Convite reenviado/.test((await feedback.textContent()) ?? ""), "o reenvio concorda com o primeiro envio").toBe(sent);
   });
 
   test("Professor: criar a ficha do utilizador convidado", async ({ page }) => {

@@ -5,6 +5,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { academicService } from "@/services/academic-service";
 import { sectionsService } from "@/services/sections-service";
 import type { AcademicYearDraft } from "@/lib/academic-year";
+import { useCan } from "@/hooks/auth/use-can";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { EducationCycle, Shift } from "@/types";
 
@@ -26,9 +27,9 @@ function usePaging<T>(items: T[]) {
   };
 }
 
-function useAcademicQuery<T>(key: string, fn: () => Promise<T>) {
+function useAcademicQuery<T>(key: string, fn: () => Promise<T>, allowed = true) {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
-  return { schoolId, ...useQuery({ queryKey: [key, schoolId], queryFn: fn, enabled: Boolean(schoolId), staleTime: 60 * 1000 }) };
+  return { schoolId, ...useQuery({ queryKey: [key, schoolId], queryFn: fn, enabled: Boolean(schoolId) && allowed, staleTime: 60 * 1000 }) };
 }
 
 export function useAcademicSections(searchQuery = "", shiftFilter: Shift | "ALL" = "ALL", cycleFilter: EducationCycle | "ALL" = "ALL") {
@@ -112,7 +113,9 @@ export function useSubjects(searchQuery = "", cycleFilter: EducationCycle | "ALL
 }
 
 export function useTeachers() {
-  return useAcademicQuery("teachers", academicService.teachers);
+  const { can } = useCan();
+  // O professor não lê a lista de colegas (teacher:read é da gestão): a sua ficha vem das atribuições.
+  return useAcademicQuery("teachers", academicService.teachers, can("teacher:read"));
 }
 
 export function useTeacherAssignments(searchQuery = "", sectionFilter = "ALL") {

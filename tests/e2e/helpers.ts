@@ -138,7 +138,8 @@ export async function submitDialog(page: Page, d: Locator, button: string | RegE
 
 /** Filtra a lista pela caixa de pesquisa (as listas são paginadas) e devolve a linha com o texto. */
 export async function findRow(page: Page, text: string): Promise<Locator> {
-  const search = page.getByPlaceholder(/Pesquisar/i).first();
+  // há campos «Pesquisar» escondidos (pesquisa global do cabeçalho em ecrãs estreitos): usa-se o primeiro visível
+  const search = page.getByPlaceholder(/Pesquisar/i).locator("visible=true").first();
   await search.fill(text);
   const row = page.locator("tbody tr", { hasText: text }).first();
   await expect(row, `linha «${text}» na lista`).toBeVisible({ timeout: 15_000 });

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { academicService } from "@/services/academic-service";
 import { examsService, type ApiExam, type ApiExamStatus, type NewQuestion } from "@/services/exams-service";
+import { useCan } from "@/hooks/auth/use-can";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { useGradeTerms } from "./use-grades";
 
@@ -88,7 +89,9 @@ export function useGoogleForm(examId: string | undefined) {
   const queryClient = useQueryClient();
   const key = ["exam-google-form", schoolId, examId];
   const status = useQuery({ queryKey: key, queryFn: () => examsService.formStatus(examId!), enabled: Boolean(schoolId && examId) });
-  const google = useQuery({ queryKey: ["google-status", schoolId], queryFn: examsService.googleStatus, enabled: Boolean(schoolId), staleTime: 60 * 1000 });
+  const { can } = useCan();
+  // A ligação ao Google é gerida pela direção: ao professor basta saber se a prova já tem formulário.
+  const google = useQuery({ queryKey: ["google-status", schoolId], queryFn: examsService.googleStatus, enabled: Boolean(schoolId) && can("integration:google_manage"), staleTime: 60 * 1000 });
   const refresh = () => {
     queryClient.invalidateQueries({ queryKey: key });
     queryClient.invalidateQueries({ queryKey: ["online-exams", schoolId] });

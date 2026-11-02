@@ -57,7 +57,7 @@ test.describe.serial("Finanças: emolumentos e política", () => {
     await rowAction(page, await findRow(page, emolumento), "Eliminar");
     const confirm = page.getByRole("alertdialog").or(page.getByRole("dialog")).last();
     await confirm.getByRole("button", { name: /Eliminar|Confirmar|Sim/ }).last().click();
-    await page.getByPlaceholder(/Pesquisar/i).first().fill(emolumento);
+    await page.getByPlaceholder(/Pesquisar/i).locator("visible=true").first().fill(emolumento);
     await expect(page.locator("tbody tr", { hasText: emolumento })).toHaveCount(0, { timeout: 15_000 });
   });
 

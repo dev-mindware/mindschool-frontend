@@ -14,7 +14,8 @@ export function useMemberships() {
   const refresh = () => qc.invalidateQueries({ queryKey: ["memberships", schoolId] });
   const grant = useMutation({ mutationFn: adminSchoolService.grant, onSuccess: refresh });
   const revoke = useMutation({ mutationFn: adminSchoolService.revoke, onSuccess: refresh });
-  return { members: q.data ?? [], isLoading: q.isLoading, forbidden: forbidden(q.error), grant, revoke };
+  const resendInvite = useMutation({ mutationFn: adminSchoolService.resendInvite });
+  return { members: q.data ?? [], isLoading: q.isLoading, forbidden: forbidden(q.error), grant, revoke, resendInvite };
 }
 
 export function useTeachersAdmin() {

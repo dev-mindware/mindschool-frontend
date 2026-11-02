@@ -4,6 +4,7 @@ import { useMemo } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { healthService, type CaseCategory, type HealthRecordInput } from "@/services/health-service";
 import { studentsService } from "@/services/students-service";
+import { useCan } from "@/hooks/auth/use-can";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 
 const forbidden = (e: unknown) => (e as { response?: { status?: number } } | null)?.response?.status === 403;
@@ -12,9 +13,13 @@ const forbidden = (e: unknown) => (e as { response?: { status?: number } } | nul
 export function useHealth() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const queryClient = useQueryClient();
+  const { can } = useCan();
+  const canVisits = can("health:read");
+  const canCases = can("psycho:read");
 
-  const visitsQ = useQuery({ queryKey: ["health-visits", schoolId], queryFn: healthService.visits, enabled: Boolean(schoolId), staleTime: 15 * 1000, retry: (n, e) => !forbidden(e) && n < 2 });
-  const casesQ = useQuery({ queryKey: ["psycho-cases", schoolId], queryFn: healthService.cases, enabled: Boolean(schoolId), staleTime: 15 * 1000, retry: (n, e) => !forbidden(e) && n < 2 });
+  // Só se pede o que o papel pode ler: o acompanhamento psicopedagógico é confidencial e a secretaria nem o consulta.
+  const visitsQ = useQuery({ queryKey: ["health-visits", schoolId], queryFn: healthService.visits, enabled: Boolean(schoolId) && canVisits, staleTime: 15 * 1000, retry: (n, e) => !forbidden(e) && n < 2 });
+  const casesQ = useQuery({ queryKey: ["psycho-cases", schoolId], queryFn: healthService.cases, enabled: Boolean(schoolId) && canCases, staleTime: 15 * 1000, retry: (n, e) => !forbidden(e) && n < 2 });
   const { data: students = [] } = useQuery({ queryKey: ["students", schoolId], queryFn: () => studentsService.list(), enabled: Boolean(schoolId), staleTime: 60 * 1000 });
   const nameOf = useMemo(() => new Map(students.map((s) => [s.id, s.fullName])), [students]);
 
@@ -32,7 +37,7 @@ export function useHealth() {
   return {
     visits, cases, students, nameOf, addVisit, openCase,
     visitsLoading: visitsQ.isLoading, casesLoading: casesQ.isLoading,
-    visitsForbidden: forbidden(visitsQ.error), casesForbidden: forbidden(casesQ.error),
+    visitsForbidden: !canVisits || forbidden(visitsQ.error), casesForbidden: !canCases || forbidden(casesQ.error),
     metrics: {
       visits: visits.length,
       today: visits.filter((v) => v.visited_at.slice(0, 10) === new Date().toISOString().slice(0, 10)).length,

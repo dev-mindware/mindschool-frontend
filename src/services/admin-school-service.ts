@@ -10,6 +10,16 @@ export const ROLE_LABEL: Record<SchoolRole, string> = {
   encarregado: "Encarregado", aluno: "Aluno", admin_sistema: "Administrador do sistema", auditor_med: "Auditor do MED",
 };
 
+/** Resultado do envio do convite por e-mail: se não saiu, o motivo vem da API. */
+export interface InviteResult { sent: boolean; reason?: "canal_email_nao_configurado" | "email_invalido" | "falha_no_envio" }
+
+/** Frase para o utilizador quando o convite não saiu. */
+export const INVITE_FAILURE: Record<NonNullable<InviteResult["reason"]>, string> = {
+  canal_email_nao_configurado: "O envio de e-mail não está configurado nesta instalação.",
+  email_invalido: "O endereço de e-mail não é válido.",
+  falha_no_envio: "O servidor de e-mail recusou o envio.",
+};
+
 export interface ApiMembership { id: string; role: SchoolRole; is_active: boolean; granted_at: string; user: { id: string; email: string; full_name: string; status: string; invite_pending?: boolean } }
 
 // ---- Professores -------------------------------------------------------------------------------------------------
@@ -65,8 +75,10 @@ const base = (k: ImportKind) => (k === "students" ? "/s/imports" : `/s/imports/$
 
 export const adminSchoolService = {
   memberships: () => fetchAllPages<ApiMembership>("/s/memberships"),
-  grant: async (v: { email: string; role: SchoolRole; fullName?: string; password?: string; invite: boolean }) =>
+  grant: async (v: { email: string; role: SchoolRole; fullName?: string; password?: string; invite: boolean }): Promise<{ id: string; user_id?: string; user?: { id: string }; invite?: InviteResult }> =>
     (await api.post("/s/memberships", { email: v.email, role: v.role, invite: v.invite, ...(v.fullName ? { full_name: v.fullName } : {}), ...(v.password ? { password: v.password } : {}) })).data,
+  /** Novo convite para quem ainda não definiu a palavra-passe: a ligação anterior deixa de funcionar. */
+  resendInvite: async (membershipId: string): Promise<InviteResult> => (await api.post<InviteResult>(`/s/memberships/${membershipId}/resend-invite`)).data,
   revoke: async (id: string) => (await api.delete(`/s/memberships/${id}`)).data,
 
   teachers: () => fetchAllPages<ApiTeacherFull>("/s/teachers"),

@@ -1,10 +1,10 @@
 "use client";
 
 import { useState } from "react";
-import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { SucessMessage, ErrorMessage, WarningMessage } from "@/utils/messages";
 import { Can, Badge, Button, ConfirmModal, DataList, EmptyState, FormModal, FormSelect, Icon, Input, ButtonOnlyAction, StatusLegend, TitleList, type Column } from "@/components";
 import { useMemberships } from "@/hooks/school/use-admin-school";
-import { ROLE_LABEL, type ApiMembership, type SchoolRole } from "@/services/admin-school-service";
+import { INVITE_FAILURE, ROLE_LABEL, type ApiMembership, type SchoolRole } from "@/services/admin-school-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { formatDate } from "@/utils/format-date";
@@ -28,7 +28,15 @@ function AddUserModal() {
         fullName: mode === "existing" ? undefined : name.trim() || undefined,
         password: mode === "password" ? password : undefined,
       })
-      .then(() => { SucessMessage(mode === "invite" ? "Convite enviado." : mode === "existing" ? "Papel atribuído." : "Utilizador criado."); setEmail(""); setName(""); setPassword(""); })
+      .then((res) => {
+        if (mode === "invite" && res.invite && !res.invite.sent) {
+          // A conta existe, mas o e-mail não saiu: não se diz «enviado»; a pessoa fica com «Convite pendente» e o convite pode ser reenviado.
+          WarningMessage(`Utilizador criado, mas o convite não foi enviado. ${INVITE_FAILURE[res.invite.reason ?? "falha_no_envio"]} Reenvie o convite na lista quando o e-mail estiver a funcionar.`);
+        } else {
+          SucessMessage(mode === "invite" ? "Convite enviado." : mode === "existing" ? "Papel atribuído." : "Utilizador criado.");
+        }
+        setEmail(""); setName(""); setPassword("");
+      })
       .catch(fail);
 
   return (
@@ -44,9 +52,15 @@ function AddUserModal() {
 
 /** Utilizadores da escola e os seus papéis: convidar por e-mail (ou definir palavra-passe inicial) e revogar. */
 export function UsersPageContent() {
-  const { members, isLoading, forbidden, revoke } = useMemberships();
+  const { members, isLoading, forbidden, revoke, resendInvite } = useMemberships();
   const { openModal } = useModal();
   const [target, setTarget] = useState<ApiMembership | null>(null);
+
+  const resend = (m: ApiMembership) =>
+    resendInvite.mutateAsync(m.id).then(
+      (res) => (res.sent ? SucessMessage(`Convite reenviado para ${m.user.email}.`) : WarningMessage(`O convite não foi enviado. ${INVITE_FAILURE[res.reason ?? "falha_no_envio"]}`)),
+      (e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível reenviar o convite.")),
+    );
 
   if (forbidden) return <EmptyState icon="Lock" title="Sem acesso" description="O seu perfil não gere utilizadores." />;
 
@@ -57,7 +71,15 @@ export function UsersPageContent() {
     { key: "granted_at", header: "Desde", render: (_, m) => <span className="font-mono text-xs">{formatDate(m.granted_at)}</span> },
     {
       key: "action", header: "Ação",
-      render: (_, m) => m.is_active ? <ButtonOnlyAction data={m} actions={[{ permission: "membership:write", label: "Revogar papel", icon: "UserX", variant: "destructive", onClick: (x) => { setTarget(x); openModal("settings-revoke-user"); } }]} /> : null,
+      render: (_, m) => m.is_active ? (
+        <ButtonOnlyAction
+          data={m}
+          actions={[
+            ...(m.user.invite_pending ? [{ permission: "membership:write", label: "Reenviar convite", icon: "Mail" as const, onClick: (x: ApiMembership) => { void resend(x); } }] : []),
+            { permission: "membership:write", label: "Revogar papel", icon: "UserX", variant: "destructive", onClick: (x) => { setTarget(x); openModal("settings-revoke-user"); } },
+          ]}
+        />
+      ) : null,
     },
   ];
 
