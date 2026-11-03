@@ -85,7 +85,10 @@ export function useSchoolProfile() {
     mutationFn: (p: Partial<SchoolInstitutionalProfile>) =>
       patchSettings(
         {
-          branding: { director_name: p.directorGeneralName || null, pedagogical_director_name: p.pedagogicDirectorName || null },
+          branding: {
+            ...(p.directorGeneralName?.trim() ? { director_name: p.directorGeneralName.trim() } : {}),
+            ...(p.pedagogicDirectorName?.trim() ? { pedagogical_director_name: p.pedagogicDirectorName.trim() } : {}),
+          },
           // os dados legais e de localização ficam guardados na escola (antes só no browser, e perdiam-se)
           institution: {
             sub_title: p.subTitle ?? "", decree_number: p.decreeNumber ?? "", gazette_date: p.gazetteDate ?? "", gazette_series: p.gazetteSeries ?? "",

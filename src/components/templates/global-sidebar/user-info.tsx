@@ -85,8 +85,8 @@ export function UserInfo({ compact = false }: { compact?: boolean }) {
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
-            {/* A subscrição é da escola: encarregados e alunos não a gerem. */}
-            {user.role !== "GUARDIAN" && user.role !== "STUDENT" && (
+            {/* A subscrição é da escola: professores, encarregados e alunos não a gerem. */}
+            {user.role !== "TEACHER" && user.role !== "GUARDIAN" && user.role !== "STUDENT" && (
               <>
                 <DropdownMenuGroup>
                   <Link href="/settings?tab=subscription">

@@ -149,6 +149,8 @@ export function GradesPageContent() {
           title="Lançamento de Notas (MED)"
           suTitle="Lançamento trimestral de notas (MAC, NPP, NPT e MT)."
         />
+        <div data-tour="page-summary" className="hidden" />
+        <div data-tour="notas-filters" className="hidden" />
         <EmptyState
           icon="BookOpen"
           title="Nenhuma Turma Atribuída"

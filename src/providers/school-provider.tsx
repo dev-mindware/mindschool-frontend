@@ -51,6 +51,21 @@ export function SchoolProvider({ children }: { children: ReactNode }) {
 
 export function useSchool(): SchoolContextValue {
   const ctx = useContext(SchoolContext);
-  if (!ctx) throw new Error("useSchool deve ser usado dentro de SchoolProvider");
-  return ctx;
+  if (ctx) return ctx;
+
+  // Fallback seguro quando renderizado fora de SchoolProvider (ex: /unauthorized, testes, ou páginas isoladas)
+  const store = useActiveSchoolStore.getState();
+  const schoolId = store.schoolId;
+  const memberships = store.memberships;
+
+  return {
+    schools: memberships,
+    current: memberships.find((m) => m.schoolId === schoolId) ?? memberships[0],
+    hasMultiple: memberships.length > 1,
+    switchSchool: (id: string) => {
+      if (id === schoolId || !memberships.some((m) => m.schoolId === id)) return;
+      store.selectSchool(id);
+      window.location.assign("/dashboard");
+    },
+  };
 }

@@ -236,14 +236,14 @@ export function DebtorsCard({ debtors, collections }: { debtors: Overview["topDe
 
 export function LessonsCard({ lessons }: { lessons: Overview["todaysLessons"] }) {
   return (
-    <OverviewSectionCard title="As minhas aulas de hoje" icon="BookOpen" href="/academic/lessons">
+    <OverviewSectionCard title="As minhas aulas de hoje" icon="BookOpen" href="/academic/timetables">
       {lessons.length === 0 ? (
         <BlockEmptyState
           icon="BookCheck"
           title="Sem aulas para hoje"
           description="Não constam aulas atribuídas no horário publicado para o dia de hoje."
           actionLabel="Consultar horário semanal"
-          actionHref="/academic/lessons"
+          actionHref="/academic/timetables"
         />
       ) : (
         <ul>{[...lessons].sort((a, b) => a.start.localeCompare(b.start)).map((l, i) => (

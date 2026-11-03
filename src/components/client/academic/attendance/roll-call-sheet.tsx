@@ -27,10 +27,22 @@ const STATUS_LABEL: Record<string, string> = { PRESENT: "Presente", ABSENT_UNJUS
 
 /** Folha de chamada: marcação rápida por aluno (gravada de imediato com optimistic update) com filtros por estado e género. */
 export function RollCallSheet({ classId, sectionSubjectId, className, subjectName, date, timeSlotLabel }: RollCallSheetProps) {
-  const { students, save, isLoading } = useRollCall(classId, sectionSubjectId, date);
-  const canWrite = useCan().can("attendance:write");
+  const { students, save, isLoading, isForbidden } = useRollCall(classId, sectionSubjectId, date);
+  const canWrite = useCan().canAny("absence:write", "attendance:write");
   const [notes, setNotes] = useState<Record<string, string>>({});
   type Row = (typeof students)[number];
+
+  if (isForbidden) {
+    return (
+      <div className="rounded-xs border border-destructive/30 bg-destructive/10 p-6 text-center space-y-2">
+        <Icon name="ShieldAlert" className="mx-auto size-8 text-destructive" />
+        <p className="text-sm font-semibold text-foreground">Acesso Não Autorizado à Chamada</p>
+        <p className="text-xs text-muted-foreground max-w-md mx-auto">
+          Não tem permissão para registar ou consultar a chamada desta disciplina. O registo só pode ser realizado pelo professor atribuído ou pela direcção pedagógica.
+        </p>
+      </div>
+    );
+  }
 
   useEffect(() => {
     setNotes({});

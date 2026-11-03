@@ -78,6 +78,7 @@ export function useSchoolOverview() {
   const requests = useSecretaryRequests(false, staff || teacher);
   const year = useQuery({ queryKey: ["active-year", schoolId], queryFn: academicService.activeYear, enabled: Boolean(schoolId) && onlyOnce, staleTime: 5 * 60 * 1000 });
   const events = useQuery({ queryKey: ["dash-events", schoolId, year.data?.id], queryFn: () => calendarService.events(year.data!.id).catch(() => []), enabled: Boolean(year.data?.id) && hasCalendar, staleTime: 60 * 1000, retry: false });
+  const holidays = useQuery({ queryKey: ["dash-holidays", schoolId, year.data?.id], queryFn: () => calendarService.holidays(year.data!.id).catch(() => ({ data: [], sources: { google: false } })), enabled: Boolean(year.data?.id) && hasCalendar, staleTime: 60 * 1000, retry: false });
   const myTimetable = useQuery({ queryKey: ["dash-my-timetable", schoolId], queryFn: () => dashboardService.myTimetable().catch(() => []), enabled: Boolean(schoolId) && teacher, staleTime: 60 * 1000, retry: false });
 
   const studentsTotal = (students.data ?? []).reduce((a, r) => a + r.total, 0);
@@ -106,7 +107,37 @@ export function useSchoolOverview() {
 
   const today = new Date();
   const todayIso = iso(new Date(today.getTime() - today.getTimezoneOffset() * 60_000));
-  const upcoming = (events.data ?? []).filter((e) => e.status !== "cancelado" && e.end_date >= todayIso).sort((a, b) => a.start_date.localeCompare(b.start_date)).slice(0, 6);
+  const rawEvents = (events.data ?? [])
+    .filter((e) => e.status !== "cancelado" && e.end_date >= todayIso)
+    .map((e) => ({
+      id: e.id,
+      title: e.title,
+      type: e.type,
+      start_date: e.start_date,
+      end_date: e.end_date,
+    }));
+
+  const holidayEvents = (holidays.data?.data ?? [])
+    .filter((h) => h.status !== "rejeitado" && h.date >= todayIso)
+    .map((h) => ({
+      id: `holiday-${h.date}`,
+      title: h.name,
+      type: h.kind === "feriado" ? "feriado_nacional" : "ponte",
+      start_date: h.date,
+      end_date: h.date,
+    }));
+
+  const upcomingMap = new Map<string, { id: string; title: string; type: string; start_date: string; end_date: string }>();
+  for (const item of [...rawEvents, ...holidayEvents]) {
+    const key = `${item.start_date}-${item.title}`;
+    if (!upcomingMap.has(key)) {
+      upcomingMap.set(key, item);
+    }
+  }
+
+  const upcoming = Array.from(upcomingMap.values())
+    .sort((a, b) => a.start_date.localeCompare(b.start_date))
+    .slice(0, 6);
   const weekday = ((today.getDay() + 6) % 7) + 1;
   const todaysLessons = (myTimetable.data ?? []).find((d) => d.weekday === weekday)?.entries ?? [];
 

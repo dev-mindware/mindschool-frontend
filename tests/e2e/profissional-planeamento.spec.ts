@@ -41,6 +41,12 @@ test("professor cria a dosificação e exporta-a em PDF, Word e Excel", async ({
   const terms = (await apiGet<{ data: Term[] }>(page, `/academic-years/${year.id}/terms`)).data;
   const termId = terms.find((t) => t.sequence === 1)?.id ?? terms[0]!.id;
 
+  // Limpa dosificações prévias deste período para garantir idempotência do teste
+  const existingPlans = await apiList<{ id: string; term?: { id: string } }>(page, "/teaching-plans").catch(() => []);
+  for (const p of existingPlans) {
+    await page.request.delete(`${API}/schools/${id}/teaching-plans/${p.id}`).catch(() => undefined);
+  }
+
   const title = `Dosificação ${RUN}`;
   const created = await page.request.post(`${API}/schools/${id}/teaching-plans`, {
     data: {

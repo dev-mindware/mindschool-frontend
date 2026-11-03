@@ -732,6 +732,7 @@ export function useOnboardingTour(tourId: OnboardingTourId) {
 
   const startTour = useCallback(async (mode: OnboardingTourMode = "normal") => {
     if (typeof window === "undefined") return false;
+    if ((window as unknown as { __DISABLE_ONBOARDING__?: boolean }).__DISABLE_ONBOARDING__) return false;
     if (!canUserAccessOnboardingTour(tourId, user)) return false;
     const initialHref = window.location.href;
     // Garantir que estado residual de tours anteriores está limpo
@@ -913,6 +914,7 @@ export function useAutoOnboardingTour(
   useEffect(() => {
     if (
       !enabled ||
+      (typeof window !== "undefined" && Boolean((window as unknown as { __DISABLE_ONBOARDING__?: boolean }).__DISABLE_ONBOARDING__)) ||
       isHydratingPreferences ||
       !autoStartEnabled ||
       !canUserAccessOnboardingTour(tourId, user) ||

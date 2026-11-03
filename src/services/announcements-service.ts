@@ -12,6 +12,9 @@ export interface ApiAnnouncement {
   section_id: string | null;
   status: AnnouncementStatus;
   created_by: string;
+  author_name?: string | null;
+  author_email?: string | null;
+  author_role?: string | null;
   created_at: string;
   published_at: string | null;
 }

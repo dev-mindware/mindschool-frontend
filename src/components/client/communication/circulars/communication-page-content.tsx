@@ -5,6 +5,8 @@ import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { Can, Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, DynamicMetricCard, FormModal, FormSelect, FormTextarea, Icon, Input, TitleList, type Column } from "@/components";
 import { useAnnouncements } from "@/hooks/school/use-announcements";
 import { useSections } from "@/hooks/school/use-sections";
+import { useTeachingScope } from "@/hooks/school/use-teaching-scope";
+import { useAuth } from "@/hooks/auth";
 import type { AnnouncementAudience, AnnouncementStatus, ApiAnnouncement } from "@/services/announcements-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -18,21 +20,39 @@ const fail = (e: unknown): never => { ErrorMessage(getApiErrorMessage(e, "A oper
 
 /** Comunicados da direção e dos professores (API): chegam ao portal dos encarregados quando publicados. */
 export function CommunicationPageContent() {
+  const { user } = useAuth();
   const a = useAnnouncements();
-  const { data: sections = [] } = useSections();
-  const { openModal } = useModal();
+  const { data: allSections = [] } = useSections();
+  const { isTeacher, mySections } = useTeachingScope();
+  const { openModal, closeModal } = useModal();
+
+  const sections = isTeacher ? mySections : allSections;
+  const isManagement = user?.role === "ADMIN" || user?.role === "DIRECTOR_GENERAL" || user?.role === "PEDAGOGIC_DIRECTOR" || user?.role === "SECRETARY" || user?.role === "OWNER" || user?.role === "MANAGER";
+
   const [editing, setEditing] = useState<ApiAnnouncement | null>(null);
   const [viewing, setViewing] = useState<ApiAnnouncement | null>(null);
   const [archiving, setArchiving] = useState<ApiAnnouncement | null>(null);
   const [publishing, setPublishing] = useState<ApiAnnouncement | null>(null);
   const [title, setTitle] = useState("");
   const [body, setBody] = useState("");
-  const [audience, setAudience] = useState<AnnouncementAudience>("escola");
+  const [audience, setAudience] = useState<AnnouncementAudience>(isTeacher ? "turma" : "escola");
   const [sectionId, setSectionId] = useState("");
 
-  const sectionName = (id: string | null) => (id ? sections.find((s) => s.id === id)?.name ?? "—" : "—");
-  const openNew = () => { setEditing(null); setTitle(""); setBody(""); setAudience("escola"); setSectionId(""); openModal("announcement-form"); };
+  const sectionName = (id: string | null) => (id ? allSections.find((s) => s.id === id)?.name ?? "—" : "—");
+  const openNew = () => {
+    setEditing(null);
+    setTitle("");
+    setBody("");
+    setAudience(isTeacher ? "turma" : "escola");
+    setSectionId(isTeacher ? (mySections[0]?.id ?? "") : "");
+    openModal("announcement-form");
+  };
   const openEdit = (x: ApiAnnouncement) => { setEditing(x); setTitle(x.title); setBody(x.body); setAudience(x.audience); setSectionId(x.section_id ?? ""); openModal("announcement-form"); };
+
+  const canArchive = (x: ApiAnnouncement) => {
+    if (isManagement) return true;
+    return Boolean(user?.id && x.created_by === user.id);
+  };
 
   const save = () =>
     (editing
@@ -51,11 +71,11 @@ export function CommunicationPageContent() {
       render: (_, x) => (
         <ButtonOnlyAction data={x} actions={[
           { label: "Ver", icon: "Eye", onClick: (r) => { setViewing(r); openModal("announcement-view"); } },
-          ...(x.status === "rascunho" ? [
+          ...(x.status === "rascunho" && (isManagement || (user?.id && x.created_by === user.id)) ? [
             { permission: "announcement:write", label: "Editar", icon: "Pencil" as const, onClick: openEdit },
             { permission: "announcement:write", label: "Publicar", icon: "Send" as const, onClick: (r: ApiAnnouncement) => { setPublishing(r); openModal("announcement-publish"); } },
           ] : []),
-          ...(x.status !== "arquivado" ? [{ permission: "announcement:write", label: "Arquivar", icon: "Archive" as const, variant: "destructive" as const, onClick: (r: ApiAnnouncement) => { setArchiving(r); openModal("announcement-archive"); } }] : []),
+          ...(x.status !== "arquivado" && canArchive(x) ? [{ permission: "announcement:write", label: "Arquivar", icon: "Archive" as const, variant: "destructive" as const, onClick: (r: ApiAnnouncement) => { setArchiving(r); openModal("announcement-archive"); } }] : []),
         ]} />
       ),
     },
@@ -64,7 +84,17 @@ export function CommunicationPageContent() {
   return (
     <div className="space-y-6">
       <TitleList title="Comunicados" suTitle="Comunicação institucional da direção e dos professores, publicada no portal dos encarregados.">
-        <Can permission="announcement:write"><Button onClick={openNew} className="gap-2 text-xs shadow-xs"><Icon name="Plus" className="size-4" />Novo comunicado</Button></Can>
+        <Can permission="announcement:write">
+          <Button
+            onClick={openNew}
+            disabled={isTeacher && sections.length === 0}
+            title={isTeacher && sections.length === 0 ? "Apenas professores com turmas atribuídas podem criar comunicados." : undefined}
+            className="gap-2 text-xs shadow-xs"
+          >
+            <Icon name="Plus" className="size-4" />
+            Novo comunicado
+          </Button>
+        </Can>
       </TitleList>
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
@@ -105,7 +135,16 @@ export function CommunicationPageContent() {
           <Input label="Título *" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Reunião geral de encarregados de educação" error={title.trim() && !/\p{L}/u.test(title) ? "O título tem de conter letras." : undefined} />
           {(
             <div className={cn("grid grid-cols-1 gap-3", audience === "turma" && "sm:grid-cols-2")}>
-              <FormSelect label="Destinatários" value={audience} onValueChange={(v) => setAudience(v as AnnouncementAudience)} options={[{ value: "escola", label: "Toda a escola" }, { value: "turma", label: "Uma turma" }]} />
+              <FormSelect
+                label="Destinatários"
+                value={audience}
+                onValueChange={(v) => setAudience(v as AnnouncementAudience)}
+                options={
+                  isTeacher
+                    ? [{ value: "turma", label: "Uma turma atribuída" }]
+                    : [{ value: "escola", label: "Toda a escola" }, { value: "turma", label: "Uma turma" }]
+                }
+              />
               {audience === "turma" && <FormSelect label="Turma *" value={sectionId} onValueChange={setSectionId} options={sections.map((s) => ({ value: s.id, label: s.name }))} />}
             </div>
           )}
@@ -114,7 +153,15 @@ export function CommunicationPageContent() {
       </FormModal>
 
       <FormModal id="announcement-view" title={viewing?.title ?? "Comunicado"} description={viewing ? `${AUDIENCE_LABEL[viewing.audience]}${viewing.section_id ? ` — ${sectionName(viewing.section_id)}` : ""} • ${STATUS_LABEL[viewing.status]}` : undefined} size="md" readOnly onSubmit={() => undefined}>
-        {viewing && <div className="sm:col-span-2 whitespace-pre-wrap text-sm leading-relaxed">{viewing.body}</div>}
+        {viewing && (
+          <div className="sm:col-span-2 space-y-4 text-sm leading-relaxed">
+            <div className="rounded-xs border border-border/60 bg-muted/30 p-2.5 text-xs text-muted-foreground flex flex-wrap items-center justify-between gap-2">
+              <span>Publicado por: <strong className="text-foreground">{viewing.author_name || (viewing.created_by ? "Direcção da Escola" : "Autor")}</strong>{viewing.author_role ? ` (${viewing.author_role})` : ""}</span>
+              <span>Criado a {formatIsoDay(viewing.created_at)}</span>
+            </div>
+            <div className="whitespace-pre-wrap">{viewing.body}</div>
+          </div>
+        )}
       </FormModal>
 
       <ConfirmModal id="announcement-publish" title="Publicar comunicado" description={publishing ? `Publicar "${publishing.title}" para ${AUDIENCE_LABEL[publishing.audience].toLowerCase()}?` : ""} confirmLabel="Publicar"
@@ -127,7 +174,19 @@ export function CommunicationPageContent() {
         onConfirm={() => (publishing ? a.publish.mutateAsync(publishing.id).then(() => { SucessMessage("Comunicado publicado."); }).catch(fail) : Promise.resolve())} />
 
       <ConfirmModal id="announcement-archive" title="Arquivar comunicado" description={archiving ? `Arquivar "${archiving.title}"? Deixa de aparecer no portal; os avisos já enviados não se retiram.` : ""} destructive confirmLabel="Arquivar"
-        onConfirm={() => (archiving ? a.archive.mutateAsync(archiving.id).then(() => { SucessMessage("Comunicado arquivado."); }).catch(fail) : Promise.resolve())} />
+        onConfirm={() =>
+          archiving
+            ? a.archive
+                .mutateAsync(archiving.id)
+                .then(() => {
+                  SucessMessage("Comunicado arquivado.");
+                })
+                .catch((err) => {
+                  closeModal("announcement-archive");
+                  fail(err);
+                })
+            : Promise.resolve()
+        } />
     </div>
   );
 }

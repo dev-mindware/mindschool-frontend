@@ -215,8 +215,8 @@ export function FinalExamsPageContent() {
         ]}
         dateFilters={[{ key: "data", label: "Data", getDate: (e) => e.scheduled_date }]}
         sorts={[{ value: "data", label: "Data", compare: (a, b) => a.scheduled_date.localeCompare(b.scheduled_date) }, { value: "disciplina", label: "Disciplina", compare: (a, b) => a.subject.name.localeCompare(b.subject.name) }]}
-        emptyTitle="Sem chamadas"
-        emptyDescription="Crie a primeira chamada de exame."
+        emptyTitle="Sem chamadas de exame"
+        emptyDescription="Ainda não foram criadas chamadas de exame final pela Direcção da escola."
         emptyIcon="GraduationCap"
       />
 

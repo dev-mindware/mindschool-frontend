@@ -10,7 +10,20 @@ interface AttendanceStatsViewProps {
 
 /** Mapa de assiduidade da turma: aulas registadas, presenças, atrasos, faltas e taxas por aluno. */
 export function AttendanceStatsView({ classId, className }: AttendanceStatsViewProps) {
-  const { data: rows = [], isLoading } = useClassAbsences(classId || undefined);
+  const { data: rows = [], isLoading, isError, error } = useClassAbsences(classId || undefined);
+  const isForbidden = (error as any)?.response?.status === 403;
+
+  if (isForbidden) {
+    return (
+      <div className="rounded-xs border border-amber-500/30 bg-amber-500/10 p-6 text-center">
+        <p className="text-sm font-semibold text-foreground">Sem permissão para consultar o mapa geral de assiduidade</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          O resumo de faltas acumuladas desta turma está reservado ao director de turma e à direcção pedagógica.
+        </p>
+      </div>
+    );
+  }
+
   type Row = (typeof rows)[number] & { id: string };
   const data: Row[] = rows.map((r) => ({ ...r, id: r.enrollment_id }));
 

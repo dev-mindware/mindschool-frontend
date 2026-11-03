@@ -6,6 +6,14 @@ import { useAuth } from "@/hooks/auth";
 import { useOnboardingPreferencesStore } from "@/stores";
 import { useOnboardingPreferencesPersistence } from "@/hooks/onboarding/use-onboarding-preferences";
 
+const GROUP_LABELS: Record<string, string> = {
+  setup: "Configuração",
+  core: "Principal",
+  operation: "Operacional",
+  advanced: "Avançado",
+  reporting: "Relatórios",
+};
+
 function getOnboardingScope(userId?: string, companyId?: string) {
   return [companyId || "company", userId || "user"].join(":");
 }
@@ -159,7 +167,7 @@ export function OnboardingPreferences() {
                     <div className="min-w-0">
                       <p className="truncate text-sm font-medium">{tour.title}</p>
                       <p className="text-xs text-muted-foreground">
-                        {tour.status === "completed" ? "Concluído" : "Ignorado"} · {tour.group}
+                        {tour.status === "completed" ? "Concluído" : "Ignorado"} · {GROUP_LABELS[tour.group] || tour.group}
                       </p>
                     </div>
 

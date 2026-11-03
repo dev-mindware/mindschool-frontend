@@ -7,7 +7,7 @@ import { expect, type Locator, type Page } from "@playwright/test";
  * Cada execução cria dados com um sufixo próprio (`RUN`), para não colidir com execuções anteriores nem com dados de demonstração.
  */
 export const API = process.env.E2E_API_URL ?? "http://localhost:3011/api/v1";
-export const APP_ORIGIN = process.env.E2E_APP_ORIGIN ?? `http://localhost:${process.env.PORT ?? 3003}`;
+export const APP_ORIGIN = process.env.E2E_APP_ORIGIN ?? `http://localhost:${process.env.PORT ?? 3001}`;
 export const PASSWORD = process.env.E2E_PASSWORD ?? "TestesEscola2026!";
 
 /** Sufixo único desta execução (4 letras/dígitos), para nomes e códigos. */
@@ -23,7 +23,22 @@ export const ACCOUNTS = {
   aluno: "aluno.essencial@mindschool.ao",
 } as const;
 
+export const ACCOUNTS_PRO = {
+  titular: "titular.pro@mindschool.ao",
+  pedagogico: "pedagogico.pro@mindschool.ao",
+  secretaria: "secretaria.pro@mindschool.ao",
+  financeiro: "financeiro.pro@mindschool.ao",
+  professor: "professor.pro@mindschool.ao",
+  encarregado: "encarregado.pro@mindschool.ao",
+  aluno: "aluno.pro@mindschool.ao",
+} as const;
+
 export async function login(page: Page, email: string): Promise<void> {
+  await page.addInitScript(() => {
+    try {
+      (window as unknown as { __DISABLE_ONBOARDING__?: boolean }).__DISABLE_ONBOARDING__ = true;
+    } catch {}
+  });
   await page.goto("/auth/login");
   await page.getByPlaceholder("exemplo@escola.ao").fill(email);
   const password = page.locator('input[type="password"]').first();
@@ -34,6 +49,19 @@ export async function login(page: Page, email: string): Promise<void> {
   // directamente nela (cookies da própria API, no mesmo contexto do browser).
   const direct = await page.request.post(`${API}/auth/login`, { data: { email, password: PASSWORD }, headers: { Origin: APP_ORIGIN } });
   expect(direct.ok(), `login direto na API → ${direct.status()}`).toBeTruthy();
+}
+
+export async function dismissTour(page: Page): Promise<void> {
+  try {
+    const skipBtn = page.getByRole("button", { name: /Pular|Ignorar guia/i }).or(page.locator(".driver-popover-close-btn"));
+    if (await skipBtn.isVisible({ timeout: 1500 })) {
+      await skipBtn.click();
+    }
+  } catch {}
+  await page.evaluate(() => {
+    document.body.classList.remove("driver-active", "driver-fade", "driver-no-scroll");
+    document.querySelectorAll(".driver-overlay, .driver-popover, .driver-stage").forEach((el) => el.remove());
+  }).catch(() => {});
 }
 
 // ---- API (com a sessão do browser) ------------------------------------------------------------------------------------

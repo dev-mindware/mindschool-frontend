@@ -57,6 +57,10 @@ export function useRollCall(sectionId: string, sectionSubjectId: string | undefi
       })),
     enabled: Boolean(schoolId && sectionId && sectionSubjectId && date),
     staleTime: 10 * 1000,
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status === 403 || error?.response?.status === 401) return false;
+      return failureCount < 2;
+    },
   });
 
   const save = useMutation({
@@ -111,5 +115,12 @@ export function useRollCall(sectionId: string, sectionSubjectId: string | undefi
     },
   });
 
-  return { students: query.data ?? [], isLoading: query.isLoading, isError: query.isError, save };
+  return {
+    students: query.data ?? [],
+    isLoading: query.isLoading,
+    isError: query.isError,
+    error: query.error,
+    isForbidden: (query.error as any)?.response?.status === 403,
+    save,
+  };
 }

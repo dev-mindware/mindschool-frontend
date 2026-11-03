@@ -1,12 +1,21 @@
 "use client";
 
 import { useMemo } from "react";
+import { useAuth } from "@/hooks/auth";
+import { useCan } from "@/hooks/auth/use-can";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { academicService } from "@/services/academic-service";
 import { sectionsService } from "@/services/sections-service";
 import { timetablesService, type NewChange, type Shift } from "@/services/timetables-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { useEntitled } from "@/hooks/common/use-entitled";
+
+export interface TimetableSlot {
+  position: number;
+  start: string;
+  end: string;
+  kind: "aula" | "intervalo";
+}
 
 const SHIFT: Record<string, Shift> = { MORNING: "manha", AFTERNOON: "tarde", EVENING: "noite", DIURNO: "diurno" };
 
@@ -28,7 +37,15 @@ export function useTimetables(timetableId?: string) {
   const entries = useQuery({ queryKey: ["timetable-entries", schoolId, timetableId], queryFn: () => timetablesService.entries(timetableId!), enabled: on && Boolean(timetableId), staleTime: 10 * 1000 });
 
   const subjects = useQuery({ queryKey: ["subjects", schoolId], queryFn: academicService.subjects, enabled: on, staleTime: 60 * 1000 });
-  const teachers = useQuery({ queryKey: ["teachers", schoolId], queryFn: academicService.teachers, enabled: on, staleTime: 60 * 1000 });
+  // O professor não tem permissão teacher:read da gestão: não pede a lista de todos os professores da escola.
+  const { can } = useCan();
+  const teachers = useQuery({
+    queryKey: ["teachers", schoolId],
+    queryFn: academicService.teachers,
+    enabled: on && can("teacher:read"),
+    staleTime: 60 * 1000,
+    retry: false,
+  });
 
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["timetables", schoolId] });
@@ -143,7 +160,7 @@ export function useTimetables(timetableId?: string) {
   const requestChange = useMutation({ mutationFn: (v: NewChange) => timetablesService.requestChange(timetableId!, v), onSuccess: () => { refresh(); qc.invalidateQueries({ queryKey: ["timetable-changes", schoolId] }); } });
   const createBell = useMutation({ mutationFn: timetablesService.createBell, onSuccess: () => qc.invalidateQueries({ queryKey: ["bell-schedules", schoolId] }) });
 
-const DEFAULT_SLOTS: Record<Shift, Array<{ position: number; start: string; end: string; kind: "aula" | "intervalo" }>> = {
+const DEFAULT_SLOTS: Record<Shift, Array<TimetableSlot>> = {
   manha: [
     { position: 1, start: "07:30", end: "08:15", kind: "aula" },
     { position: 2, start: "08:15", end: "09:00", kind: "aula" },
@@ -195,7 +212,7 @@ const DEFAULT_SLOTS: Record<Shift, Array<{ position: number; start: string; end:
 
   /** Tempos de aula do turno da turma (a grelha de campainha mais recente desse turno). */
   const slotsFor = useMemo(
-    () => (sectionShift: string) => {
+    () => (sectionShift: string): TimetableSlot[] => {
       const shift = SHIFT[sectionShift] ?? (sectionShift?.toLowerCase() as Shift) ?? "manha";
       if (shift === "diurno") {
         const diurnoBell = (bells.data ?? []).filter((b) => b.shift === "diurno").sort((a, b) => b.valid_from.localeCompare(a.valid_from))[0];

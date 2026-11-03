@@ -50,7 +50,7 @@ function NewEventModal() {
   const { open, modalData } = useModal();
   const planModal = usePlanUpgradeModal();
   const preset = (modalData["calendar-new-event"] as { date?: string } | undefined)?.date ?? "";
-  const [f, setF] = useState({ type: "atividade_escolar", title: "", start: "", end: "", startTime: "", endTime: "", visibility: "interna" as ApiEvent["visibility"], location: "", justification: "" });
+  const [f, setF] = useState({ type: "actividade_escolar", title: "", start: "", end: "", startTime: "", endTime: "", visibility: "interna" as ApiEvent["visibility"], location: "", justification: "" });
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }));
   const start = f.start || preset;
 

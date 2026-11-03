@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useSections } from "@/hooks/school/use-sections";
 import { useTeacherAssignments } from "@/hooks/school/use-academic";
+import { useTeachingScope } from "@/hooks/school/use-teaching-scope";
 import { useRollCall } from "@/hooks/school/use-roll-call";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { timetablesService } from "@/services/timetables-service";
@@ -41,8 +42,12 @@ const WEEKDAY_NAMES: Record<number, string> = {
 
 export function StudentAttendanceContent() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
-  const { data: sections = [] } = useSections();
-  const { assignments } = useTeacherAssignments();
+  const { isTeacher, mySections, getSubjectsForSection, myAssignments, isLoading: isScopeLoading } = useTeachingScope();
+  const { data: allSections = [] } = useSections();
+  const { assignments: allTeacherAssignments } = useTeacherAssignments();
+
+  const sections = isTeacher ? mySections : allSections;
+  const assignments = isTeacher ? myAssignments : allTeacherAssignments;
 
   const [pickedClassId, setSelectedClassId] = useState("");
   const [pickedSubjectId, setSelectedSubjectId] = useState("");
@@ -122,12 +127,27 @@ export function StudentAttendanceContent() {
     return effectiveSubject?.subjectName || "Disciplina";
   }, [isManualMode, activeTimetableLesson, effectiveSubject]);
 
-  const { students: rollCall } = useRollCall(selectedClassId, effectiveSubjectId || undefined, selectedDate);
+  const { students: rollCall, isForbidden } = useRollCall(selectedClassId, effectiveSubjectId || undefined, selectedDate);
   const marked = rollCall.filter((r) => r.status);
   const classRate = marked.length ? Math.round((marked.filter((r) => r.status === "PRESENT" || r.status === "LATE").length / marked.length) * 100) : 0;
   const justified = rollCall.filter((r) => r.status === "ABSENT_JUSTIFIED").length;
   const present = rollCall.filter((r) => r.status === "PRESENT").length;
   const unjustified = rollCall.filter((r) => r.status === "ABSENT_UNJUSTIFIED").length;
+
+  if (isTeacher && sections.length === 0 && !isScopeLoading) {
+    return (
+      <div className="space-y-6">
+        <TitleList title="Assiduidade & Disciplina" suTitle="Registo diário de presenças, faltas e justificações por turma." />
+        <EmptyState
+          icon="CalendarX2"
+          title="Nenhuma Turma Atribuída"
+          description="A sua conta de professor ainda não possui turmas ou disciplinas atribuídas pela Direcção da escola. Quando a Direcção concluir a sua atribuição lectiva, as turmas e horários ficarão automaticamente disponíveis para registo de presenças."
+        />
+      </div>
+    );
+  }
+
+  const canExportPdf = !isForbidden && rollCall.length > 0 && Boolean(effectiveSubjectId);
 
   return (
     <div className="space-y-6">
@@ -135,6 +155,8 @@ export function StudentAttendanceContent() {
         <Button
           size="sm"
           variant="outline"
+          disabled={!canExportPdf}
+          title={!canExportPdf ? "Apenas disponível para disciplinas atribuídas com alunos matriculados." : undefined}
           onClick={() => setIsExportOpen(true)}
           className="gap-2"
         >

@@ -5,6 +5,7 @@ import { PLAN_BENEFITS } from "@/constants/plan-benefits";
 import { Icon } from "@/components/common/icon";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/hooks/auth";
 
 interface PlanUpgradeGateProps {
   requiredPlan: PlanType;
@@ -16,6 +17,8 @@ export function PlanUpgradeGate({
   featureName,
 }: PlanUpgradeGateProps) {
   const router = useRouter();
+  const { user } = useAuth();
+  const isTeacher = user?.role === "TEACHER";
 
   const benefits = PLAN_BENEFITS[requiredPlan];
   const planLabel = PLAN_LABEL[requiredPlan];
@@ -80,13 +83,19 @@ export function PlanUpgradeGate({
         >
           Ir para o Dashboard
         </Button>
-        <Button
-          onClick={() => router.push("/plans")}
-          className="flex-1 gap-2"
-        >
-          <Icon name="Zap" className="w-4 h-4 fill-current" />
-          Fazer Upgrade
-        </Button>
+        {isTeacher ? (
+          <div className="flex-1 flex items-center justify-center rounded-xs bg-muted/60 px-3 py-2 text-xs font-medium text-muted-foreground border">
+            Peça à Direcção para activar o Plano {planLabel}
+          </div>
+        ) : (
+          <Button
+            onClick={() => router.push("/plans")}
+            className="flex-1 gap-2"
+          >
+            <Icon name="Zap" className="w-4 h-4 fill-current" />
+            Fazer Upgrade
+          </Button>
+        )}
       </div>
     </div>
   );

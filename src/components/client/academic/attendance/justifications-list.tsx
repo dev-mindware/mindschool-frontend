@@ -51,7 +51,20 @@ function AbsencesModal({ enrollmentId, name }: { enrollmentId: string | null; na
 
 /** Justificação de faltas por aluno da turma (secretaria/direcção): converte falta injustificada em justificada, com motivo. */
 export function JustificationsList({ classId }: JustificationsListProps) {
-  const { data: rows = [], isLoading } = useClassAbsences(classId || undefined);
+  const { data: rows = [], isLoading, isError, error } = useClassAbsences(classId || undefined);
+  const isForbidden = (error as any)?.response?.status === 403;
+
+  if (isForbidden) {
+    return (
+      <div className="rounded-xs border border-amber-500/30 bg-amber-500/10 p-6 text-center">
+        <p className="text-sm font-semibold text-foreground">Sem permissão para justificar faltas</p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          A justificação de faltas está reservada ao director de turma e à secretaria da escola.
+        </p>
+      </div>
+    );
+  }
+
   const { openModal } = useModal();
   const [target, setTarget] = useState<{ id: string; name: string } | null>(null);
   type Row = (typeof rows)[number] & { id: string };

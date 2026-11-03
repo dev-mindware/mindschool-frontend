@@ -163,7 +163,7 @@ export function MobileHeaderMenu({ className }: { className?: string }) {
                   Aparência
                 </DropdownMenuItem>
               </Link>
-              {user.role !== "GUARDIAN" && user.role !== "STUDENT" && (
+              {user.role !== "TEACHER" && user.role !== "GUARDIAN" && user.role !== "STUDENT" && (
                 <Link href="/settings?tab=subscription">
                   <DropdownMenuItem className="cursor-pointer">
                     <Icon name="Sparkles" className="size-4" />

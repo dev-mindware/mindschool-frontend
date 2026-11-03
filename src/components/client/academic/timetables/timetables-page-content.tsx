@@ -147,7 +147,14 @@ function RoomModal() {
 
 function ChangeModal({ entry, timetableId }: { entry: ApiEntry | null; timetableId: string }) {
   const { requestChange, rooms, roomsEnabled } = useTimetables(timetableId);
-  const { data: teachers = [] } = useQuery({ queryKey: ["teachers", "change-form"], queryFn: academicService.teachers, staleTime: 60 * 1000 });
+  const { can } = useCan();
+  const { data: teachers = [] } = useQuery({
+    queryKey: ["teachers", "change-form"],
+    queryFn: academicService.teachers,
+    enabled: can("teacher:read"),
+    staleTime: 60 * 1000,
+    retry: false,
+  });
   const [type, setType] = useState<"troca_tempo" | "troca_professor" | "troca_sala" | "anulacao">(roomsEnabled ? "troca_sala" : "troca_tempo");
   const [date, setDate] = useState(new Date().toISOString().slice(0, 10));
   const [reason, setReason] = useState("");
@@ -203,11 +210,15 @@ function TimetableGuide({ hasBells, hasRooms, roomsEnabled, hasYear, creating, o
                 {st.done && <span className="text-[11px] font-medium text-emerald-600 dark:text-emerald-400">Configurado</span>}
               </div>
               <p className="text-xs text-muted-foreground">{st.text}</p>
-              {st.action && st.run && (
+              {st.action && st.run ? (
                 <Can permission="timetable:write" fallback={<p className="text-[11px] text-muted-foreground">Só consulta: este passo é feito pela direção pedagógica.</p>}>
                 <Button size="sm" variant={st.primary ? "default" : "outline"} className="mt-1 h-7 text-xs" disabled={!hasYear || (st.primary && creating)} onClick={st.run}>
                   {st.action}
                 </Button>
+                </Can>
+              ) : (
+                <Can permission="timetable:write" fallback={<p className="text-[11px] text-muted-foreground">Só consulta: este passo é feito pela direção pedagógica.</p>}>
+                  <></>
                 </Can>
               )}
             </div>
@@ -290,7 +301,8 @@ export function TimetablesPageContent() {
             size="sm"
             variant="outline"
             className="gap-1.5"
-            disabled={!current}
+            disabled={!current || current.status !== "publicado"}
+            title={!current ? "Nenhuma versão de horário disponível para exportar." : current.status !== "publicado" ? "Apenas horários com estado «Publicado» podem ser exportados em documento oficial." : undefined}
             onClick={() => setIsExportOpen(true)}
           >
             <Icon name="Download" className="size-4" />
@@ -447,7 +459,11 @@ export function TimetablesPageContent() {
             <EmptyState
               icon="CalendarRange"
               title="Horário escolar ainda não criado"
-              description="Para consultar a grade semanal por professor, crie primeiro a versão do horário no separador «Por turma»."
+              description={
+                canWriteTimetable
+                  ? "Para consultar a grade semanal por professor, crie primeiro a versão do horário no separador «Por turma»."
+                  : "Ainda não existe uma versão do horário escolar publicada pela Direcção da escola."
+              }
             />
           ) : (
             <>

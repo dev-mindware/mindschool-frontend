@@ -2,12 +2,27 @@ import React, { useState, useEffect } from "react";
 import { Button, Icon, Textarea } from "@/components";
 import { TabsContent } from "@/components/ui/tabs";
 import { LocalChatHistoryItem } from "./index";
+import { useAuth } from "@/hooks/auth";
 
-export const QUICK_ACTIONS = [
+export const DEFAULT_QUICK_ACTIONS = [
     { label: "Como estão as propinas em atraso este mês?" },
     { label: "Como lanço as notas do trimestre?" },
     { label: "Que alunos estão em risco de abandono?" },
     { label: "Como emito uma declaração de matrícula?" },
+];
+
+export const TEACHER_QUICK_ACTIONS = [
+    { label: "Como lanço as notas do trimestre?" },
+    { label: "Como fecho as pautas da minha turma?" },
+    { label: "Como registo faltas e atrasos na chamada?" },
+    { label: "Como envio um comunicado para a minha turma?" },
+];
+
+export const GUARDIAN_QUICK_ACTIONS = [
+    { label: "Como consulto as notas e faltas do meu educando?" },
+    { label: "Como envio o comprovativo de pagamento de propina?" },
+    { label: "Como vejo o horário escolar do meu educando?" },
+    { label: "Como justifico uma falta escolar?" },
 ];
 export const SUGGESTION_CHIPS = [
     "Propinas",
@@ -93,6 +108,13 @@ export function ChatTab({
     messageLimit,
     chips = SUGGESTION_CHIPS
 }: ChatTabProps) {
+    const { user } = useAuth();
+    const quickActions =
+        user?.role === "TEACHER"
+            ? TEACHER_QUICK_ACTIONS
+            : user?.role === "GUARDIAN" || user?.role === "STUDENT"
+              ? GUARDIAN_QUICK_ACTIONS
+              : DEFAULT_QUICK_ACTIONS;
     const limitReached = totalMessagesUsed >= messageLimit;
 
     return (
@@ -106,7 +128,7 @@ export function ChatTab({
                 {messages.length === 0 ? (
                     <div className="flex flex-col gap-4 mt-2">
                         <div className="flex flex-col overflow-hidden">
-                            {QUICK_ACTIONS.map((action, index) => (
+                            {quickActions.map((action, index) => (
                                 <Button
                                     key={index}
                                     variant="ghost"

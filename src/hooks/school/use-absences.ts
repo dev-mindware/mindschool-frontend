@@ -32,6 +32,10 @@ export function useClassAbsences(sectionId: string | undefined) {
     queryFn: async () => (await api.get<{ data: AbsenceSummaryRow[] }>(`/s/sections/${sectionId}/attendance-summary`)).data.data,
     enabled: Boolean(schoolId && sectionId),
     staleTime: 20 * 1000,
+    retry: (failureCount, error: any) => {
+      if (error?.response?.status === 403 || error?.response?.status === 401) return false;
+      return failureCount < 2;
+    },
   });
 }
 
