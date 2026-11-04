@@ -55,7 +55,7 @@ export function GuardianDetailsModal({
               </AvatarFallback>
             </Avatar>
             <div className="space-y-1 text-left">
-              <SheetTitle className="text-lg font-bold">{guardian.fullName}</SheetTitle>
+              <SheetTitle className="text-lg font-semibold">{guardian.fullName}</SheetTitle>
               <SheetDescription asChild>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-muted-foreground">BI: {guardian.idDocumentNumber || "Não informado"}</span>

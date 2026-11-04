@@ -123,7 +123,7 @@ export function TuitionPaymentsContent() {
       key: "totalAmount",
       header: "Total",
       render: (_, item) => (
-        <span className="font-bold text-foreground text-xs">{formatCurrency(item.totalAmount)}</span>
+        <span className="font-semibold text-foreground text-xs">{formatCurrency(item.totalAmount)}</span>
       ),
     },
     {

@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { enrollmentsService } from "@/services/enrollments-service";
+import { useCan } from "@/hooks/auth/use-can";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { EnrollmentStatus } from "@/types";
 
@@ -11,13 +12,15 @@ const ITEMS_PER_PAGE = 8;
 /** Matriculas da escola ativa (API). */
 export function useEnrollments(searchQuery = "", statusFilter: EnrollmentStatus | "ALL" = "ALL", sectionFilter = "ALL") {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
+  const { can } = useCan();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: all = [], isLoading, isError } = useQuery({
     queryKey: ["enrollments", schoolId],
     queryFn: () => enrollmentsService.list(),
-    enabled: Boolean(schoolId),
+    // sem permissão de leitura (ex.: professor) nem se pede a lista de matrículas da escola
+    enabled: Boolean(schoolId) && can("enrollment:read"),
     staleTime: 60 * 1000,
   });
 

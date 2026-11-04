@@ -84,7 +84,7 @@ export function TuitionReportsContent() {
       key: "collected",
       header: "Montante Arrecadado",
       render: (_, item) => (
-        <span className="font-bold text-emerald-600 text-xs">{formatCurrency(item.collected)}</span>
+        <span className="font-semibold text-emerald-600 text-xs">{formatCurrency(item.collected)}</span>
       ),
     },
     {

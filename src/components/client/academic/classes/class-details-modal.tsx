@@ -52,7 +52,7 @@ export function ClassDetailsModal({
               <Icon name="DoorOpen" className="size-6" />
             </div>
             <div>
-              <SheetTitle className="text-lg font-bold text-foreground">
+              <SheetTitle className="text-lg font-semibold text-foreground">
                 Turma: {section.name}
               </SheetTitle>
               <SheetDescription asChild>
@@ -130,7 +130,7 @@ export function ClassDetailsModal({
               <span className="font-semibold text-foreground">
                 Ocupação de Vagas na Sala
               </span>
-              <span className="font-bold text-primary">
+              <span className="font-semibold text-primary">
                 {section.currentEnrollmentCount} / {section.capacity} Alunos ({occupancyRate}%)
               </span>
             </div>
@@ -140,18 +140,18 @@ export function ClassDetailsModal({
             <div className="grid grid-cols-3 gap-2 pt-2 text-center text-xs">
               <div className="rounded-xs bg-muted/30 p-3">
                 <span className="block text-muted-foreground">Capacidade Total</span>
-                <span className="text-sm font-bold">{section.capacity}</span>
+                <span className="text-sm font-semibold">{section.capacity}</span>
               </div>
               <div className="rounded-xs bg-muted/30 p-3">
                 <span className="block text-muted-foreground">Matriculados</span>
-                <span className="text-sm font-bold text-primary">
+                <span className="text-sm font-semibold text-primary">
                   {section.currentEnrollmentCount}
                 </span>
               </div>
               <div className="rounded-xs bg-muted/30 p-3">
                 <span className="block text-muted-foreground">Vagas Restantes</span>
                 <span
-                  className={`text-sm font-bold ${
+                  className={`text-sm font-semibold ${
                     availableSpots <= 0 ? "text-destructive" : "text-emerald-600"
                   }`}
                 >

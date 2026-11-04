@@ -533,21 +533,21 @@ function SessionModal({ id }: { id: string | null }) {
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
               <div className="rounded-xs bg-muted/30 p-3 space-y-1">
                 <span className="text-xs text-muted-foreground">Inscritos na Prova</span>
-                <p className="text-lg font-bold text-foreground">
+                <p className="text-lg font-semibold text-foreground">
                   {stats.total} / {session.capacity}
                 </p>
               </div>
               <div className="rounded-xs bg-muted/30 p-3 space-y-1">
                 <span className="text-xs text-muted-foreground">Presentes</span>
-                <p className="text-lg font-bold text-emerald-600">{stats.presentCount}</p>
+                <p className="text-lg font-semibold text-emerald-600">{stats.presentCount}</p>
               </div>
               <div className="rounded-xs bg-muted/30 p-3 space-y-1">
                 <span className="text-xs text-muted-foreground">Aprovados (≥ {minScore})</span>
-                <p className="text-lg font-bold text-primary">{stats.approvedCount}</p>
+                <p className="text-lg font-semibold text-primary">{stats.approvedCount}</p>
               </div>
               <div className="rounded-xs bg-muted/30 p-3 space-y-1">
                 <span className="text-xs text-muted-foreground">Reprovados / Ausentes</span>
-                <p className="text-lg font-bold text-destructive">{stats.rejectedCount}</p>
+                <p className="text-lg font-semibold text-destructive">{stats.rejectedCount}</p>
               </div>
             </div>
 
@@ -614,7 +614,7 @@ function SessionModal({ id }: { id: string | null }) {
 
             {token && (
               <p className="break-all rounded-xs border border-amber-300 bg-amber-50 dark:bg-amber-950/20 p-3 font-mono text-xs text-amber-900 dark:text-amber-200">
-                <span className="font-bold">Token de Acesso:</span> {token}
+                <span className="font-semibold">Token de Acesso:</span> {token}
                 <br />
                 <span className="font-sans text-xs text-amber-700 dark:text-amber-400">
                   Entregue este código ao candidato/encarregado para consulta online do resultado.

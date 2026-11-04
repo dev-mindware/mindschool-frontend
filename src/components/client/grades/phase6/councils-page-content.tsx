@@ -231,6 +231,7 @@ export function CouncilsPageContent() {
         dateFilters={[{ key: "data", label: "Agendado", getDate: (c) => c.scheduled_at }]}
         sorts={[{ value: "data", label: "Data", compare: (a, b) => a.scheduled_at.localeCompare(b.scheduled_at) }, { value: "turma", label: "Turma", compare: (a, b) => sectionName(a).localeCompare(sectionName(b)) }]}
         emptyTitle="Ainda não há conselhos agendados"
+        emptyDescription="Quando a direção agendar um conselho de turma, ele aparece aqui."
         emptyIcon="Users"
       />
 

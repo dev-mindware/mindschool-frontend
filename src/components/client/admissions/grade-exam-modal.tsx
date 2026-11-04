@@ -75,7 +75,7 @@ export function GradeExamModal({
             <Icon name="PenTool" className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-foreground">
+            <h3 className="text-lg font-semibold text-foreground">
               Lançar Nota do Exame de Acesso
             </h3>
             <p className="text-xs text-muted-foreground">

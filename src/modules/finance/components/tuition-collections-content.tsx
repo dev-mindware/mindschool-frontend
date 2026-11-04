@@ -101,7 +101,7 @@ export function TuitionCollectionsContent() {
       key: "totalAmount",
       header: "Montante em Falta",
       render: (_, item) => (
-        <span className="font-bold text-foreground text-xs">{formatCurrency(item.totalAmount)}</span>
+        <span className="font-semibold text-foreground text-xs">{formatCurrency(item.totalAmount)}</span>
       ),
     },
     {

@@ -24,7 +24,7 @@ export function SuccessResetModal({ redirectUrl = "/" }: SuccessResetModalProps)
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600">
             <CheckCircle2 className="h-8 w-8" />
           </div>
-          <span className="text-2xl font-bold">Palavra-passe definida</span>
+          <span className="text-2xl font-semibold">Palavra-passe definida</span>
         </div>
       }
       description={

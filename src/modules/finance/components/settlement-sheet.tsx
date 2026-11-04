@@ -103,7 +103,7 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="flex flex-col gap-6 overflow-y-auto p-6 sm:max-w-lg">
         <SheetHeader className="p-0">
-          <SheetTitle className="text-lg font-bold">Marcar como pago</SheetTitle>
+          <SheetTitle className="text-lg font-semibold">Marcar como pago</SheetTitle>
           <SheetDescription className="text-xs">
             Regista o valor total em dívida e pede a fatura-recibo ao MindGest. Não há pagamento parcial.
           </SheetDescription>
@@ -125,7 +125,7 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
                 <p className="text-xs">
                   {fees.map((f) => `${f.monthLabel} / ${f.year}${(f.penalties?.length ?? 0) > 0 ? " + multa" : ""}`).join(" · ")}
                 </p>
-                <div className="flex justify-between pt-1.5 text-sm font-bold">
+                <div className="flex justify-between pt-1.5 text-sm font-semibold">
                   <span>Total a pagar ({fees.length} {fees.length === 1 ? "cobrança" : "cobranças"})</span>
                   <span className="text-primary tabular-nums">{formatCurrency(total)}</span>
                 </div>

@@ -25,7 +25,7 @@ export function ProfileSettings() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">Perfil</h2>
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">Perfil</h2>
         <p className="mt-1 text-xs text-muted-foreground">Os seus dados na plataforma. Palavra-passe e email de acesso alteram-se na aba «Segurança».</p>
       </div>
       <section className="max-w-xl rounded-xs border bg-card p-5">

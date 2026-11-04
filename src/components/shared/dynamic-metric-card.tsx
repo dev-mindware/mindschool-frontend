@@ -42,7 +42,7 @@ export function DynamicMetricCard({
         <Card
             onClick={onClick}
             className={cn(
-                "h-full flex flex-col justify-between border shadow-none cursor-default text-foreground overflow-hidden transition-all py-0 bg-gradient-to-t from-primary/2 to-card",
+                "h-full flex flex-col justify-between border shadow-none cursor-default text-foreground overflow-hidden transition-all py-0 bg-card",
                 variant === "action" && (isDestructive ? "bg-destructive/5 border-destructive/20 hover:bg-destructive/10 hover:border-destructive/40" : "bg-primary/5 border-primary/20 hover:bg-primary/10 hover:border-primary/40"),
                 isInteractive && "cursor-pointer active:scale-[0.98]",
                 className

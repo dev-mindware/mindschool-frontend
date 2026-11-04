@@ -72,7 +72,7 @@ export function DecisionModal({
             <Icon name="Stamp" className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-foreground">
+            <h3 className="text-lg font-semibold text-foreground">
               Despacho de Admissão
             </h3>
             <p className="text-xs text-muted-foreground">
@@ -102,7 +102,7 @@ export function DecisionModal({
                 <strong>Nota no Exame:</strong>{" "}
                 {application.examScore !== undefined ? (
                   <span
-                    className={`font-bold ${
+                    className={`font-semibold ${
                       application.examScore >= application.minPassingScore
                         ? "text-emerald-600 dark:text-emerald-400"
                         : "text-red-600 dark:text-red-400"

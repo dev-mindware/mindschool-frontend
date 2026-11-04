@@ -86,7 +86,7 @@ function ResetPasswordForm() {
               <MindSchoolLogo size={64} priority />
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold tracking-tight text-foreground">
+              <span className="text-xl font-semibold tracking-tight text-foreground">
                 MindSchool<span className="text-primary">.</span>
               </span>
               <span className="text-[11px] font-medium tracking-wide uppercase text-muted-foreground">
@@ -95,7 +95,7 @@ function ResetPasswordForm() {
             </div>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-2">
             Nova palavra-passe
           </h1>
           <p className="text-sm text-muted-foreground">

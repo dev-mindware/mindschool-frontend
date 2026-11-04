@@ -123,7 +123,7 @@ export function ApplicationDetailsModal({
               </div>
             )}
             <div className="space-y-1 text-left">
-              <SheetTitle className="text-lg font-bold">{application.candidateName}</SheetTitle>
+              <SheetTitle className="text-lg font-semibold">{application.candidateName}</SheetTitle>
               <SheetDescription asChild>
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-xs text-muted-foreground">N.º {application.applicationNumber}</span>

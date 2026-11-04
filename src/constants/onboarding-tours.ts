@@ -200,6 +200,7 @@ export const onboardingTours: Record<OnboardingTourId, TourDefinition> = {
     minPlan: "essencial",
     steps: [
       tourStep("page-title", "Notas do trimestre", "Lance MAC, NPP e NPT por turma e disciplina; a MT calcula-se sozinha com as regras do MED.", { side: "bottom" }),
+      tourStep("notas-empty-state", "Sem turmas atribuídas", "Assim que a Direção Pedagógica atribuir turmas e disciplinas ao seu horário, as pautas ficarão disponíveis aqui.", { side: "bottom" }),
       tourStep("page-summary", "Situação da disciplina", "Média, taxa de positivas, notas em falta e estado da pauta.", { side: "bottom" }),
       tourStep("notas-filters", "Escolher a pauta", "Escolha a turma, a disciplina e o trimestre. As notas ficam guardadas ao lançar; quem fecha a pauta é a Direção.", { side: "bottom" }),
     ],

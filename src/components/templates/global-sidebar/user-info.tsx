@@ -39,10 +39,14 @@ export function UserInfo({ compact = false }: { compact?: boolean }) {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             {compact ? (
-              <button type="button" aria-label="Conta" className="flex size-10 items-center justify-center rounded-xs transition-colors hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 data-[state=open]:bg-white/15">
+              <button
+                type="button"
+                aria-label="Conta"
+                className="flex size-10 items-center justify-center rounded-lg transition-colors text-[var(--rail-foreground)]/70 hover:bg-[var(--rail-hover)] hover:text-[var(--rail-foreground)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50 data-[state=open]:bg-[var(--rail-active-bg)]"
+              >
                 <Avatar className="size-8 rounded-full">
                   <AvatarImage src="" alt={user.name} />
-                  <AvatarFallback className="rounded-full bg-white/20 text-white">{user.name[0]?.toUpperCase() || "U"}</AvatarFallback>
+                  <AvatarFallback className="rounded-full bg-white/20 text-white font-semibold">{user.name[0]?.toUpperCase() || "U"}</AvatarFallback>
                 </Avatar>
               </button>
             ) : (

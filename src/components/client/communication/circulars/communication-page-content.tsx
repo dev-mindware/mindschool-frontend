@@ -85,15 +85,20 @@ export function CommunicationPageContent() {
     <div className="space-y-6">
       <TitleList title="Comunicados" suTitle="Comunicação institucional da direção e dos professores, publicada no portal dos encarregados.">
         <Can permission="announcement:write">
-          <Button
-            onClick={openNew}
-            disabled={isTeacher && sections.length === 0}
-            title={isTeacher && sections.length === 0 ? "Apenas professores com turmas atribuídas podem criar comunicados." : undefined}
-            className="gap-2 text-xs shadow-xs"
+          {/* o motivo vai num <span>: um botão desactivado não recebe o rato, por isso o título nunca aparecia */}
+          <span
+            className="inline-flex"
+            title={isTeacher && sections.length === 0 ? "Só professores com turmas atribuídas podem criar comunicados. Peça à direção para lhe atribuir uma turma." : undefined}
           >
-            <Icon name="Plus" className="size-4" />
-            Novo comunicado
-          </Button>
+            <Button
+              onClick={openNew}
+              disabled={isTeacher && sections.length === 0}
+              className="gap-2 text-xs shadow-xs"
+            >
+              <Icon name="Plus" className="size-4" />
+              Novo comunicado
+            </Button>
+          </span>
         </Can>
       </TitleList>
 

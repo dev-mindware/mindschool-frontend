@@ -213,6 +213,20 @@ function BrandingForm({ branding }: { branding: ApiBranding }) {
   return (
     <div className="space-y-4">
       <TitleList title="Aspecto dos documentos" suTitle="Cabeçalho, logótipo e cor institucional dos documentos." />
+      <div className="flex items-center justify-between p-3.5 bg-primary/5 border border-primary/20 rounded-lg text-xs">
+        <div className="flex items-center gap-2.5">
+          <Icon name="Palette" className="w-4 h-4 text-primary shrink-0" />
+          <span className="text-muted-foreground">
+            Deseja uma personalização profunda com modos visuais (Standard, Apple, Vintage) e pré-visualização em tempo real?
+          </span>
+        </div>
+        <a
+          href="/settings?tab=appearance"
+          className="font-semibold text-primary hover:underline shrink-0 ml-2"
+        >
+          Abrir Aparência & Marca →
+        </a>
+      </div>
       <Separator />
       <div className="space-y-5">
         <RadioGroup

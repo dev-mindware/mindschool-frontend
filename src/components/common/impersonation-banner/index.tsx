@@ -42,9 +42,9 @@ export function ImpersonationBanner() {
   if (!imp || !me.data) return null;
   const s = Math.floor(remaining / 1000);
   return (
-    <div role="alert" className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-amber-500 px-4 py-2 text-sm font-medium text-black shadow">
+    <div role="alert" className="sticky top-0 z-50 flex flex-wrap items-center justify-center gap-x-4 gap-y-1 bg-warning px-4 py-2 text-sm font-medium text-warning-foreground shadow">
       <span className="flex items-center gap-2"><Icon name="UserCog" className="size-4" />A actuar como <strong>{me.data.full_name}</strong> ({me.data.email})</span>
-      <span className="rounded bg-black/15 px-2 py-0.5 text-xs">{imp.write_enabled ? "Leitura e escrita" : "Só leitura"}</span>
+      <span className="rounded bg-warning-foreground/15 px-2 py-0.5 text-xs">{imp.write_enabled ? "Leitura e escrita" : "Só leitura"}</span>
       <span className="tabular-nums text-xs">Termina em {pad(Math.floor(s / 60))}:{pad(s % 60)}</span>
       <span className="hidden max-w-xs truncate text-xs md:inline" title={imp.reason}>Motivo: {imp.reason}</span>
       <Button size="sm" variant="secondary" className="h-7" disabled={leaving} onClick={() => void leave()}>{leaving ? "A terminar…" : "Terminar personificação"}</Button>

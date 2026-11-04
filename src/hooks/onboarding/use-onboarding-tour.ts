@@ -31,6 +31,9 @@ const CONDITIONAL_STEP_MARKERS = [
   "credit-note-client",
   "credit-note-items",
   "credit-note-totals",
+  "page-summary",
+  "notas-filters",
+  "notas-empty-state",
 ];
 
 let activeDriver: Driver | null = null;
@@ -46,7 +49,37 @@ let activeTourMode: OnboardingTourMode = "normal";
 let isTransitioning = false;
 let lastActiveIndex: number | undefined = undefined;
 let activeCompletionHandler: ((lastStepIndex?: number) => void) | null = null;
+let activeSkipHandler: ((lastStepIndex?: number) => void) | null = null;
 let activeCompletionPersisted = false;
+
+function skipActiveTour({
+  scope,
+  tourId,
+  mode,
+  tourVersion,
+  lastStepIndex,
+  markTourSkipped,
+  persistTour,
+}: {
+  scope: string;
+  tourId: OnboardingTourId;
+  mode: OnboardingTourMode;
+  tourVersion: number;
+  lastStepIndex?: number;
+  markTourSkipped: (scope: string, tourId: OnboardingTourId) => void;
+  persistTour: (
+    tourId: OnboardingTourId,
+    status: "skipped",
+    mode: OnboardingTourMode,
+    tourVersion: number,
+    lastStepIndex?: number,
+  ) => void;
+}) {
+  if (activeCompletionPersisted) return;
+  activeCompletionPersisted = true;
+  markTourSkipped(scope, tourId);
+  persistTour(tourId, "skipped", mode, tourVersion, lastStepIndex);
+}
 
 function completeActiveTour({
   scope,
@@ -715,6 +748,9 @@ export function useOnboardingTour(tourId: OnboardingTourId) {
   const markTourCompleted = useOnboardingPreferencesStore(
     (state) => state.markTourCompleted,
   );
+  const markTourSkipped = useOnboardingPreferencesStore(
+    (state) => state.markTourSkipped,
+  );
   const scopedPreferences = useOnboardingPreferencesStore(
     (state) => state.preferencesByScope[scope],
   );
@@ -807,6 +843,17 @@ export function useOnboardingTour(tourId: OnboardingTourId) {
         persistTour,
       });
 
+    activeSkipHandler = (lastStepIndex?: number) =>
+      skipActiveTour({
+        scope,
+        tourId,
+        mode: activeTourMode,
+        tourVersion: onboardingTours[tourId].version,
+        lastStepIndex,
+        markTourSkipped,
+        persistTour,
+      });
+
     activeDriver = driver({
       steps,
       animate: !prefersReducedMotion(),
@@ -828,7 +875,7 @@ export function useOnboardingTour(tourId: OnboardingTourId) {
       onPrevClick: handlePrevClick,
       onCloseClick: (_, __, { driver }) => {
         activeTourResult = "skipped";
-        activeCompletionHandler?.(lastActiveIndex);
+        activeSkipHandler?.(lastActiveIndex);
         driver.destroy();
       },
       onPopoverRender: (popover) => {
@@ -851,9 +898,9 @@ export function useOnboardingTour(tourId: OnboardingTourId) {
         if (result === "completed") {
           activeCompletionHandler?.(steps.length - 1);
         } else if (result === "skipped") {
-          activeCompletionHandler?.(lastActiveIndex);
+          activeSkipHandler?.(lastActiveIndex);
         } else if (tourPreferences.seenTours[tourId] !== "completed") {
-          activeCompletionHandler?.(lastActiveIndex);
+          activeSkipHandler?.(lastActiveIndex);
         }
 
         activeDriver = null;
@@ -861,6 +908,7 @@ export function useOnboardingTour(tourId: OnboardingTourId) {
         activeTourMode = "normal";
         lastActiveIndex = undefined;
         activeCompletionHandler = null;
+        activeSkipHandler = null;
         activeCompletionPersisted = false;
       },
     });

@@ -34,20 +34,20 @@ export function ClearanceCertificateModal() {
         <StudentSelect label="Aluno *" students={students} value={studentId} onChange={setStudentId} />
       </div>
       {student && (
-        <div id="library-clearance-print-content" className="sm:col-span-2 space-y-4 rounded-xs border bg-white p-6 text-sm text-slate-900 print:border-0">
-          <div className="space-y-1 border-b pb-3 text-center">
-            <div className="text-sm font-black uppercase">{profile.schoolName}</div>
-            <div className="text-[11px] text-slate-500">Biblioteca Escolar</div>
+        <div id="library-clearance-print-content" className="sm:col-span-2 space-y-4 rounded-lg border border-border bg-card p-6 text-sm text-card-foreground print:border-0">
+          <div className="space-y-1 border-b border-border pb-3 text-center">
+            <div className="text-sm font-semibold uppercase">{profile.schoolName}</div>
+            <div className="text-[11px] text-muted-foreground">Biblioteca Escolar</div>
           </div>
           {cleared ? (
             <p>Declara-se que o aluno <strong>{student.fullName}</strong> <strong>não tem obras em seu poder</strong> nem pendências com a Biblioteca Escolar, estando livre para os devidos efeitos.</p>
           ) : (
             <div className="space-y-2">
-              <p className="flex items-center gap-1.5 font-semibold text-rose-700"><Icon name="CircleAlert" className="size-4" />{student.fullName} tem {pending.length} obra(s) por devolver:</p>
+              <p className="flex items-center gap-1.5 font-semibold text-destructive"><Icon name="CircleAlert" className="size-4" />{student.fullName} tem {pending.length} obra(s) por devolver:</p>
               <ul className="list-disc pl-5 text-xs">{pending.map((l) => <li key={l.id}>{bookById.get(l.book_id)?.title ?? "Obra"} — devolver até {l.due_at}{l.overdue ? " (em atraso)" : ""}</li>)}</ul>
             </div>
           )}
-          <div className="text-xs text-slate-500">Emitido em {formatDate(new Date())}</div>
+          <div className="text-xs text-muted-foreground">Emitido em {formatDate(new Date())}</div>
         </div>
       )}
     </FormModal>

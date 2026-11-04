@@ -29,11 +29,11 @@ function CardPreview({ payload, name }: { payload: string; name: string }) {
   const { profile } = useSchoolSettingsStore();
   useEffect(() => { if (ref.current) void QRCode.toCanvas(ref.current, payload, { width: 180, margin: 1 }); }, [payload]);
   return (
-    <div className="mx-auto w-64 space-y-2 rounded-xs border-2 border-primary/40 bg-white p-4 text-center text-slate-900">
-      <p className="text-[10px] font-bold uppercase tracking-widest">{profile.schoolName}</p>
-      <canvas ref={ref} className="mx-auto" />
+    <div className="mx-auto w-64 space-y-2 rounded-lg border-2 border-primary/40 bg-card p-4 text-center text-foreground">
+      <p className="text-[10px] font-semibold uppercase tracking-widest">{profile.schoolName}</p>
+      <canvas ref={ref} className="mx-auto rounded-sm bg-white p-1" />
       <p className="text-sm font-semibold">{name}</p>
-      <p className="text-[10px] text-slate-500">Cartão de ponto docente</p>
+      <p className="text-[10px] text-muted-foreground">Cartão de ponto docente</p>
     </div>
   );
 }

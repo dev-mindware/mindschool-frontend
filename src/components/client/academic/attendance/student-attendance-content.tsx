@@ -314,7 +314,7 @@ export function StudentAttendanceContent() {
                         {lesson.start} – {lesson.end}
                       </span>
                     </div>
-                    <span className="mt-1 w-full truncate text-sm font-bold text-foreground">
+                    <span className="mt-1 w-full truncate text-sm font-semibold text-foreground">
                       {lesson.subject.name}
                     </span>
                     <div className="mt-2 flex w-full items-center gap-2 text-[11px] text-muted-foreground">

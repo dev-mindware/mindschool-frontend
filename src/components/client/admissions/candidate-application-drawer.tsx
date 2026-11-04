@@ -396,7 +396,7 @@ export function CandidateApplicationDrawer({
               <Icon name="GraduationCap" className="h-5 w-5" />
             </div>
             <div className="space-y-1 text-left">
-              <SheetTitle className="text-lg font-bold">
+              <SheetTitle className="text-lg font-semibold">
                 Candidatura de Admissão & Prova de Acesso
               </SheetTitle>
               <SheetDescription className="text-xs">

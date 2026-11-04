@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react";
 import { keepPreviousData, useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { CreateStudentInput, studentsService } from "@/services/students-service";
+import { useCan } from "@/hooks/auth/use-can";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { Student, StudentStatus } from "@/types";
 
@@ -14,13 +15,15 @@ const ITEMS_PER_PAGE = 8;
  */
 export function useStudents(searchQuery = "", statusFilter: StudentStatus | "ALL" = "ALL", classFilter = "ALL") {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
+  const { can } = useCan();
   const queryClient = useQueryClient();
   const [currentPage, setCurrentPage] = useState(1);
 
   const { data: all = [], isLoading, isError, error } = useQuery({
     queryKey: ["students", schoolId],
     queryFn: () => studentsService.list(),
-    enabled: Boolean(schoolId),
+    // sem permissão de leitura (ex.: professor) nem se pede a lista: a API devolveria 403 ou dados que o perfil não deve ver
+    enabled: Boolean(schoolId) && can("student:read"),
     placeholderData: keepPreviousData,
     staleTime: 60 * 1000,
   });

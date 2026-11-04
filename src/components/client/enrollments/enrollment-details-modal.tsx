@@ -55,7 +55,7 @@ export function EnrollmentDetailsModal({
               <Icon name="FileCheck2" className="h-6 w-6" />
             </div>
             <div className="space-y-1 text-left">
-              <SheetTitle className="text-lg font-bold">
+              <SheetTitle className="text-lg font-semibold">
                 Boletim de Matrícula: {enrollment.enrollmentNumber}
               </SheetTitle>
               <SheetDescription asChild>

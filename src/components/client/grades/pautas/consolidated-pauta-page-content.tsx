@@ -94,7 +94,7 @@ export function ConsolidatedPautaPageContent() {
         key: `subj_${s.id}`,
         header: (
           <div className="flex flex-col items-center" title={`${s.name}${s.isMySubject ? " (Sua Disciplina)" : ""}`}>
-            <div className={`font-medium truncate max-w-[75px] ${s.isMySubject ? "text-primary font-bold" : "text-foreground"}`}>
+            <div className={`font-medium truncate max-w-[75px] ${s.isMySubject ? "text-primary font-semibold" : "text-foreground"}`}>
               {s.code}
             </div>
             <span className="text-[9px] lowercase font-normal text-muted-foreground">
@@ -188,21 +188,21 @@ export function ConsolidatedPautaPageContent() {
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 p-3.5 rounded-xs border bg-muted/20 text-xs">
         <div>
           <span className="text-muted-foreground">Média Geral da Turma:</span>
-          <p className="text-base font-bold text-foreground">{pauta.students.some((s) => Object.keys(s.subjects).length) ? `${pauta.averageClassScore.toFixed(1)} / 20` : "—"}</p>
+          <p className="text-base font-semibold text-foreground">{pauta.students.some((s) => Object.keys(s.subjects).length) ? `${pauta.averageClassScore.toFixed(1)} / 20` : "—"}</p>
         </div>
         <div>
           <span className="text-muted-foreground">Taxa de Aproveitamento:</span>
-          <p className={`text-base font-bold ${pauta.students.some((s) => Object.keys(s.subjects).length) ? "text-success" : "text-muted-foreground"}`}>{pauta.students.some((s) => Object.keys(s.subjects).length) ? `${pauta.approvalRate.toFixed(1)}%` : "—"}</p>
+          <p className={`text-base font-semibold ${pauta.students.some((s) => Object.keys(s.subjects).length) ? "text-success" : "text-muted-foreground"}`}>{pauta.students.some((s) => Object.keys(s.subjects).length) ? `${pauta.approvalRate.toFixed(1)}%` : "—"}</p>
         </div>
         <div>
           <span className="text-muted-foreground">Notas em Falta:</span>
-          <p className={`text-base font-bold ${pauta.missingGradesCount === 0 ? "text-success" : "text-destructive"}`}>
+          <p className={`text-base font-semibold ${pauta.missingGradesCount === 0 ? "text-success" : "text-destructive"}`}>
             {pauta.missingGradesCount === 0 ? "0 (100% Preenchida)" : `${pauta.missingGradesCount} pendentes`}
           </p>
         </div>
         <div>
           <span className="text-muted-foreground">Estado do Fecho:</span>
-          <p className="text-base font-bold text-foreground">{pauta.isClosed ? "Homologada" : "Aguardando Fecho"}</p>
+          <p className="text-base font-semibold text-foreground">{pauta.isClosed ? "Homologada" : "Aguardando Fecho"}</p>
         </div>
       </div>
 

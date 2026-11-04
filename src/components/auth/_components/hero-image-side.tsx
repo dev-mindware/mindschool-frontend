@@ -255,7 +255,7 @@ export function HeroImageSide({
             {/* Bloco de Título */}
             <div className="relative min-h-[56px] w-full">
               <h2
-                className={`text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-snug drop-shadow-md text-white transition-all duration-500 ease-out ${
+                className={`text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-snug drop-shadow-md text-white transition-all duration-500 ease-out ${
                   isHovered
                     ? "opacity-0 -translate-y-2 pointer-events-none absolute top-0 right-0"
                     : "opacity-100 translate-y-0"
@@ -264,7 +264,7 @@ export function HeroImageSide({
                 {title}
               </h2>
               <h2
-                className={`text-xl sm:text-2xl md:text-3xl font-bold tracking-tight leading-snug drop-shadow-md text-white transition-all duration-500 ease-out ${
+                className={`text-xl sm:text-2xl md:text-3xl font-semibold tracking-tight leading-snug drop-shadow-md text-white transition-all duration-500 ease-out ${
                   isHovered
                     ? "opacity-100 translate-y-0"
                     : "opacity-0 translate-y-2 pointer-events-none absolute top-0 right-0"

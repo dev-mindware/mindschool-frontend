@@ -163,7 +163,7 @@ function PanelLink({
         className={cn(
           "h-10 gap-3 rounded-xs px-3 text-sm transition-colors",
           current
-            ? "bg-sidebar-accent font-medium text-foreground"
+            ? "bg-primary/10 font-medium text-primary"
             : "text-sidebar-foreground/85 hover:bg-sidebar-accent/60",
         )}
       >

@@ -37,7 +37,7 @@ export function UpgradeModal({ feature }: { feature: string }) {
           <p className="text-sm text-muted-foreground mb-2">
             Planos a partir de
           </p>
-          <div className="text-2xl font-bold text-foreground">
+          <div className="text-2xl font-semibold text-foreground">
             5.445,22{" "}
             <span className="text-base font-normal text-muted-foreground">
               kz

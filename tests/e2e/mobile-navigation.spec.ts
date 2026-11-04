@@ -188,7 +188,7 @@ test.describe("Experiência Mobile (< 768px) — Navbar por Módulos, Filtros e 
       name: "Mudar de secção",
     });
     await expect(switcherDialog).toBeVisible();
-    await switcherDialog.getByRole("button", { name: "Aparência" }).click();
+    await switcherDialog.getByRole("button", { name: /Aparência/i }).click();
 
     await page.waitForURL("**/settings?tab=appearance");
 

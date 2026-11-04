@@ -32,7 +32,7 @@ export function PlanUpgradeGate({
       </div>
 
       <div className="max-w-md space-y-3">
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">
           Recurso Exclusivo do Plano {planLabel}
         </h2>
 
@@ -43,8 +43,10 @@ export function PlanUpgradeGate({
               <span className="font-semibold text-foreground">
                 {featureName}
               </span>{" "}
-              não está disponível no plano atual. Atualize a subscrição
-              para desbloquear esta funcionalidade.
+              não está disponível no plano atual.{" "}
+              {isTeacher
+                ? "Peça à Direção para ativar o plano necessário."
+                : "Atualize a subscrição para desbloquear esta funcionalidade."}
             </>
           ) : (
             "Esta página exige um plano de subscrição superior para ser acedida."

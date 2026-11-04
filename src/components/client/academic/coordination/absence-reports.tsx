@@ -118,10 +118,10 @@ function ReportView({ data, request }: { data: AttendanceReportData; request: Re
         <Button variant="outline" size="sm" className="gap-2" onClick={exportCsv}><Icon name="Download" className="size-4" />CSV</Button>
         <Button variant="outline" size="sm" className="gap-2" onClick={exportPdf}><Icon name="FileDown" className="size-4" />PDF</Button>
       </div>
-      <div id="absence-report" className="space-y-3 rounded-sm border bg-white p-4 text-black">
+      <div id="absence-report" className="space-y-3 rounded-lg border border-border bg-card p-4 text-card-foreground">
         <div>
           <h3 className="text-base font-semibold">{title}</h3>
-          <p className="text-xs text-neutral-600">{data.section.class_level} {data.section.name} · {periodText}</p>
+          <p className="text-xs text-muted-foreground">{data.section.class_level} {data.section.name} · {periodText}</p>
         </div>
         {request.kind === "resumo" && <SummaryTable data={data} />}
         {request.kind === "mapa_diario" && <DailyMap data={data} />}
@@ -132,8 +132,8 @@ function ReportView({ data, request }: { data: AttendanceReportData; request: Re
   );
 }
 
-const th = "border border-neutral-300 px-2 py-1 text-left text-xs font-semibold bg-neutral-100";
-const td = "border border-neutral-300 px-2 py-1 text-xs";
+const th = "border border-border px-2 py-1 text-left text-xs font-semibold bg-muted/60 text-foreground";
+const td = "border border-border px-2 py-1 text-xs text-foreground";
 
 function SummaryTable({ data }: { data: AttendanceReportData }) {
   const rows = summarizeStudents(data);
@@ -155,7 +155,7 @@ function SummaryTable({ data }: { data: AttendanceReportData }) {
 
 function DailyMap({ data }: { data: AttendanceReportData }) {
   const days = recordedDays(data);
-  if (days.length === 0) return <p className="text-sm text-neutral-600">Sem registos de chamada neste período.</p>;
+  if (days.length === 0) return <p className="text-sm text-muted-foreground">Sem registos de chamada neste período.</p>;
   return (
     <div className="overflow-x-auto">
       <table className="border-collapse">
@@ -166,7 +166,7 @@ function DailyMap({ data }: { data: AttendanceReportData }) {
           ))}
         </tbody>
       </table>
-      <p className="mt-2 text-[11px] text-neutral-600">P presente · F falta injustificada · FJ falta justificada · At atraso (cada dia resume todos os tempos do aluno).</p>
+      <p className="mt-2 text-[11px] text-muted-foreground">P presente · F falta injustificada · FJ falta justificada · At atraso (cada dia resume todos os tempos do aluno).</p>
     </div>
   );
 }
@@ -197,7 +197,7 @@ function BlankSheet({ data, month }: { data: AttendanceReportData; month: string
           ))}
         </tbody>
       </table>
-      <p className="mt-2 text-[11px] text-neutral-600">Preencher com P, F, FJ ou At. Só dias úteis; feriados e interrupções ficam por conta da escola.</p>
+      <p className="mt-2 text-[11px] text-muted-foreground">Preencher com P, F, FJ ou At. Só dias úteis; feriados e interrupções ficam por conta da escola.</p>
     </div>
   );
 }

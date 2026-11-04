@@ -200,7 +200,7 @@ export function ExamTaker({ examId, submissionId }: { examId: string; submission
       {result && (
         <div className="rounded-xs border bg-card p-5">
           <p className="text-sm text-muted-foreground">Resultado da prova</p>
-          <p className="mt-1 text-3xl font-bold tabular-nums">{result.total_score.toFixed(1)} <span className="text-lg font-normal text-muted-foreground">/ {result.max_score.toFixed(1)}</span></p>
+          <p className="mt-1 text-3xl font-semibold tabular-nums">{result.total_score.toFixed(1)} <span className="text-lg font-normal text-muted-foreground">/ {result.max_score.toFixed(1)}</span></p>
           <p className="mt-2 text-xs text-muted-foreground">
             {result.confirmed ? "Nota confirmada pelo professor; a correção está visível abaixo." : result.pending_manual ? "Nota provisória: há respostas desenvolvidas por corrigir. A correção aparece quando o professor confirmar." : "Nota provisória: aguarda a confirmação do professor."}
           </p>

@@ -30,6 +30,11 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
   const { students, save, isLoading, isForbidden } = useRollCall(classId, sectionSubjectId, date);
   const canWrite = useCan().canAny("absence:write", "attendance:write");
   const [notes, setNotes] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    setNotes({});
+  }, [classId, sectionSubjectId, date]);
+
   type Row = (typeof students)[number];
 
   if (isForbidden) {
@@ -43,10 +48,6 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
       </div>
     );
   }
-
-  useEffect(() => {
-    setNotes({});
-  }, [classId, sectionSubjectId, date]);
 
   const statusOf = (id: string): AttendanceStatus | undefined => students.find((r) => r.id === id)?.status;
   const notesOf = (id: string) => {

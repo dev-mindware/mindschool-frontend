@@ -87,7 +87,7 @@ export function PlanCheckout() {
   return (
     <div className="mx-auto max-w-6xl">
       <div className="mb-6">
-        <h1 className="text-2xl font-bold">Concluir subscrição</h1>
+        <h1 className="text-2xl font-semibold">Concluir subscrição</h1>
         <p className="text-muted-foreground">Plano {plan.name}. Pague por transferência e envie o comprovativo.</p>
       </div>
 

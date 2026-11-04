@@ -403,7 +403,7 @@ export function PoliciesPageContent() {
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Icon name="Calculator" className="size-4 text-primary" />
-            <h4 className="text-xs font-bold uppercase tracking-wider text-primary">
+            <h4 className="text-xs font-semibold uppercase tracking-wider text-primary">
               Simulador Didáctico da Média Trimestral (MT)
             </h4>
           </div>
@@ -464,8 +464,8 @@ export function PoliciesPageContent() {
             />
           </div>
           <div className="rounded-xs bg-card border p-2 text-center space-y-0.5">
-            <p className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground uppercase font-bold">Resultado MT <HelpHint term="mt" /></p>
-            <p className="text-sm font-bold text-foreground">
+            <p className="flex items-center justify-center gap-1 text-[10px] text-muted-foreground uppercase font-semibold">Resultado MT <HelpHint term="mt" /></p>
+            <p className="text-sm font-semibold text-foreground">
               {simResult.roundedMt} valores{" "}
               <span className="text-[10px] font-normal text-muted-foreground">
                 ({simResult.rawMt} real)

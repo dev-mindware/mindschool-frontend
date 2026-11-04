@@ -38,7 +38,7 @@ export function FamilyProfile() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold tracking-tight text-foreground">Perfil</h2>
+        <h2 className="text-2xl font-semibold tracking-tight text-foreground">Perfil</h2>
         <p className="mt-1 text-xs text-muted-foreground">Os seus dados na escola e os contactos que ela usa para os avisos.</p>
       </div>
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">

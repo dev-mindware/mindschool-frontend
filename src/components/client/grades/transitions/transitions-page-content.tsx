@@ -245,7 +245,7 @@ export function TransitionsPageContent() {
 
       {/* Banner Informativo Legal do MED */}
       <div className="p-4 rounded-xs border border-info-border bg-info-muted text-xs text-foreground space-y-1.5">
-        <div className="font-bold flex items-center gap-2 text-sm text-info">
+        <div className="font-semibold flex items-center gap-2 text-sm text-info">
           <Icon name="BookOpen" className="h-4 w-4" />
           Regulamento de Avaliação do Ensino Geral — Decreto Executivo n.º 424/25
         </div>

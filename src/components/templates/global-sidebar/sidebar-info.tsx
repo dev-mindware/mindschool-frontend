@@ -60,7 +60,7 @@ export function SchoolRailButton() {
     <button
       type="button"
       aria-label="Escola ativa"
-      className="flex size-9 items-center justify-center rounded-xs bg-white/95 p-1.5 shadow-sm transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 dark:bg-zinc-900 dark:border dark:border-white/10"
+      className="flex size-9 items-center justify-center rounded-lg bg-[var(--brandbox)] text-[var(--brandbox-foreground)] p-1.5 shadow-sm transition-transform hover:scale-105 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60"
     >
       <MindSchoolLogo size={24} />
     </button>

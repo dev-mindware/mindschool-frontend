@@ -65,7 +65,8 @@ export function TeacherDashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-2">
-        <EventsCard events={o.upcoming} />
+        {/* sem o calendário geral no plano, o cartão diria sempre «sem eventos» (como no painel da direção, não se mostra) */}
+        {o.scope.calendar && <EventsCard events={o.upcoming} />}
         <QuickLinks items={LINKS} />
       </div>
     </div>

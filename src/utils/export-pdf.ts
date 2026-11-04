@@ -36,9 +36,21 @@ export async function downloadElementAsPdf(
     backgroundColor: "#ffffff",
     windowWidth: fullWidth + 100,
     onclone: (_clonedDoc, clonedEl) => {
+      // Forçar tokens de impressão limpos no clone sem alterar o DOM activo do utilizador
+      _clonedDoc.documentElement.classList.remove("dark");
+      _clonedDoc.documentElement.style.setProperty("--background", "#ffffff");
+      _clonedDoc.documentElement.style.setProperty("--foreground", "#000000");
+      _clonedDoc.documentElement.style.setProperty("--card", "#ffffff");
+      _clonedDoc.documentElement.style.setProperty("--card-foreground", "#000000");
+      _clonedDoc.documentElement.style.setProperty("--muted", "#f4f4f5");
+      _clonedDoc.documentElement.style.setProperty("--muted-foreground", "#52525b");
+      _clonedDoc.documentElement.style.setProperty("--border", "rgba(0, 0, 0, 0.4)");
+
       clonedEl.style.overflow = "visible";
       clonedEl.style.width = "max-content";
       clonedEl.style.maxWidth = "none";
+      clonedEl.style.backgroundColor = "#ffffff";
+      clonedEl.style.color = "#000000";
       const tables = clonedEl.querySelectorAll("table");
       tables.forEach((t) => {
         (t as HTMLElement).style.width = "100%";

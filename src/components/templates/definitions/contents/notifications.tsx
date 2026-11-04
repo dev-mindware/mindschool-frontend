@@ -120,7 +120,7 @@ export function Notification() {
   return (
     <section className="space-y-6" data-tour="setup-notifications-content">
       <div className="space-y-1">
-        <h2 className="text-2xl font-bold tracking-tight">Notificações</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Notificações</h2>
         <p className="text-sm text-muted-foreground">
           Configure os alertas deste navegador e a forma como são apresentados.
         </p>

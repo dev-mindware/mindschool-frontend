@@ -403,7 +403,7 @@ export function EmailTemplateEditor() {
               {/* Corpo Renderizado com Estilo de E-mail Escolar */}
               <div className="rounded-xs bg-background p-3.5 border border-border/40 space-y-3">
                 <div className="flex items-center gap-2 border-b border-border/40 pb-2">
-                  <div className="size-7 rounded bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                  <div className="size-7 rounded bg-primary/10 flex items-center justify-center text-primary font-semibold text-xs">
                     FS
                   </div>
                   <div>

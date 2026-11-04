@@ -131,7 +131,7 @@ export function ConvertToEnrollmentModal({
               <Icon name="UserCheck" className="h-5 w-5" />
             </div>
             <div className="space-y-1 text-left">
-              <SheetTitle className="text-lg font-bold">
+              <SheetTitle className="text-lg font-semibold">
                 Matricular candidato aprovado
               </SheetTitle>
               <SheetDescription className="text-xs">
@@ -220,7 +220,7 @@ export function ConvertToEnrollmentModal({
                   Lotação da {currentSection.name} ({currentSection.roomNumber}):
                 </span>
                 <span
-                  className={`font-bold ${
+                  className={`font-semibold ${
                     isFull
                       ? "text-red-600 dark:text-red-400"
                       : "text-emerald-600 dark:text-emerald-400"

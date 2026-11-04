@@ -267,7 +267,7 @@ export function GuardianModal({
     <Sheet open={isOpen} onOpenChange={(open) => !open && discard.request()}>
       <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
         <SheetHeader className="p-6 border-b shrink-0">
-          <SheetTitle className="text-lg font-bold">
+          <SheetTitle className="text-lg font-semibold">
             {guardianToEdit ? 'Editar Encarregado de Educação' : 'Registar Encarregado de Educação'}
           </SheetTitle>
           <SheetDescription className="text-xs">

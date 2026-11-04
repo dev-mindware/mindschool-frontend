@@ -27,25 +27,25 @@ export function RouteManifestPrintModal() {
       onSubmit={() => {}}
     >
       {route && (
-        <div id="transport-manifest-print-content" className="sm:col-span-2 space-y-4 rounded-xs border bg-white p-6 text-sm text-slate-900 print:border-0">
-          <div className="border-b pb-3 text-center">
-            <div className="text-sm font-black uppercase">{profile.schoolName}</div>
-            <div className="text-[11px] text-slate-500">Transporte escolar — {route.name}</div>
-            <div className="text-[11px] text-slate-500">{route.vehicle_plate ?? "Sem viatura"} • {route.driver_name ?? "Sem motorista"}{route.driver_phone ? ` • ${route.driver_phone}` : ""}</div>
+        <div id="transport-manifest-print-content" className="sm:col-span-2 space-y-4 rounded-lg border border-border bg-card p-6 text-sm text-card-foreground print:border-0">
+          <div className="border-b border-border pb-3 text-center">
+            <div className="text-sm font-semibold uppercase">{profile.schoolName}</div>
+            <div className="text-[11px] text-muted-foreground">Transporte escolar — {route.name}</div>
+            <div className="text-[11px] text-muted-foreground">{route.vehicle_plate ?? "Sem viatura"} • {route.driver_name ?? "Sem motorista"}{route.driver_phone ? ` • ${route.driver_phone}` : ""}</div>
           </div>
           {route.stops.map((s) => {
             const list = riders.filter((a) => a.stop_id === s.id);
             return (
               <div key={s.id}>
-                <div className="text-xs font-semibold">{s.order_index}. {s.name}{s.pickup_time ? ` — ${s.pickup_time}` : ""} <span className="font-normal text-slate-500">({list.length})</span></div>
-                <ul className="list-disc pl-5 text-xs text-slate-700">
+                <div className="text-xs font-semibold">{s.order_index}. {s.name}{s.pickup_time ? ` — ${s.pickup_time}` : ""} <span className="font-normal text-muted-foreground">({list.length})</span></div>
+                <ul className="list-disc pl-5 text-xs text-foreground">
                   {list.map((a) => <li key={a.id}>{nameOf.get(a.student_id) ?? "Aluno"}</li>)}
-                  {list.length === 0 && <li className="list-none text-slate-400">—</li>}
+                  {list.length === 0 && <li className="list-none text-muted-foreground">—</li>}
                 </ul>
               </div>
             );
           })}
-          <div className="pt-2 text-xs text-slate-500">{riders.length} passageiro(s) • emitido em {formatDate(new Date())}</div>
+          <div className="pt-2 text-xs text-muted-foreground">{riders.length} passageiro(s) • emitido em {formatDate(new Date())}</div>
         </div>
       )}
     </FormModal>

@@ -149,13 +149,13 @@ export function GradesPageContent() {
           title="Lançamento de Notas (MED)"
           suTitle="Lançamento trimestral de notas (MAC, NPP, NPT e MT)."
         />
-        <div data-tour="page-summary" className="hidden" />
-        <div data-tour="notas-filters" className="hidden" />
-        <EmptyState
-          icon="BookOpen"
-          title="Nenhuma Turma Atribuída"
-          description="Não tem turmas atribuídas no presente ano letivo. Os professores apenas podem lançar notas das turmas e disciplinas que lhes foram formalmente atribuídas pela Direção Pedagógica."
-        />
+        <div data-tour="notas-empty-state">
+          <EmptyState
+            icon="BookOpen"
+            title="Nenhuma Turma Atribuída"
+            description="Não tem turmas atribuídas no presente ano letivo. Os professores apenas podem lançar notas das turmas e disciplinas que lhes foram formalmente atribuídas pela Direção Pedagógica."
+          />
+        </div>
       </div>
     );
   }

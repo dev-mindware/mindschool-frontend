@@ -32,7 +32,7 @@ export function AssignmentsList({ assignments, isLoading }: AssignmentsListProps
       render: (_, item) => (
         <div className="flex items-center gap-2">
           <Avatar className="size-7">
-            <AvatarFallback className="bg-primary/10 text-xs font-bold text-primary">
+            <AvatarFallback className="bg-primary/10 text-xs font-semibold text-primary">
               {item.teacherName.replace(/Prof\.(ª)?\s*(Dr\.(ª)?)?\s*/, "").slice(0, 2).toUpperCase()}
             </AvatarFallback>
           </Avatar>

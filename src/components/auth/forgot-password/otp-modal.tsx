@@ -22,7 +22,7 @@ export function OTPModal({ message }: { message: string }) {
           <div className="flex h-16 w-16 items-center justify-center rounded-full bg-primary/10">
             <MailCheck className="h-8 w-8 text-primary" />
           </div>
-          <span className="text-2xl font-bold">Verifique o seu e-mail</span>
+          <span className="text-2xl font-semibold">Verifique o seu e-mail</span>
         </div>
       }
       description={

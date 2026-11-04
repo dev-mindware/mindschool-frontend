@@ -91,7 +91,7 @@ export function ExamGradingPageContent() {
                 </div>
                 <div className="text-right">
                   <span className="block text-[11px] uppercase text-muted-foreground">Pontuação</span>
-                  <span className="text-xl font-extrabold font-mono">{(detail.total_score ?? 0).toFixed(2)} / {activeExam.total_score.toFixed(2)}</span>
+                  <span className="text-xl font-semibold font-mono">{(detail.total_score ?? 0).toFixed(2)} / {activeExam.total_score.toFixed(2)}</span>
                 </div>
               </div>
 

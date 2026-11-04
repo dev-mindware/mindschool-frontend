@@ -35,7 +35,7 @@ export function TeacherCredentialModal({
           <div className="flex items-center justify-between border-b border-primary-foreground/20 pb-3">
             <div>
               <span className="text-[10px] font-semibold uppercase tracking-wider text-primary-foreground/80">República de Angola</span>
-              <h4 className="text-sm font-bold tracking-tight text-primary-foreground">MINDSCHOOL ANGOLA</h4>
+              <h4 className="text-sm font-semibold tracking-tight text-primary-foreground">MINDSCHOOL ANGOLA</h4>
             </div>
             <div className="flex size-8 items-center justify-center rounded-xs border border-primary-foreground/30 bg-primary-foreground/15 text-xs font-semibold text-primary-foreground">
               MS
@@ -55,12 +55,12 @@ export function TeacherCredentialModal({
           </div>
 
           {/* QR Code de Ponto Físico */}
-          <div className="mx-auto flex max-w-[140px] items-center justify-center rounded-xs bg-white p-3 shadow-xs">
+          <div className="mx-auto flex max-w-[140px] items-center justify-center rounded-lg bg-card border border-border p-3 shadow-xs">
             <div className="text-center">
-              <div className="flex size-24 items-center justify-center rounded bg-slate-950 p-1">
-                <Icon name="QrCode" className="size-20 text-white" />
+              <div className="flex size-24 items-center justify-center rounded bg-foreground p-1">
+                <Icon name="QrCode" className="size-20 text-background" />
               </div>
-              <span className="mt-1 block font-mono text-[9px] font-semibold text-slate-900">
+              <span className="mt-1 block font-mono text-[9px] font-semibold text-foreground">
                 {credential.teacherCode}
               </span>
             </div>

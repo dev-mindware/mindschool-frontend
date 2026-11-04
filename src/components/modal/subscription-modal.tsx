@@ -34,7 +34,7 @@ export function SubscriptionModal() {
           </div>
 
           <div className="text-center">
-            <h2 className="text-2xl font-bold tracking-tight mb-2">
+            <h2 className="text-2xl font-semibold tracking-tight mb-2">
               Subscrição Expirada
             </h2>
             <p className="text-muted-foreground text-sm sm:text-base leading-relaxed">

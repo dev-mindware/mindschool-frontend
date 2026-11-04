@@ -65,7 +65,7 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
     <Sheet open={Boolean(open[SUBMISSION_REVIEW_MODAL])} onOpenChange={(next) => !next && closeModal(SUBMISSION_REVIEW_MODAL)}>
       <SheetContent className="flex flex-col gap-6 overflow-y-auto p-6 sm:max-w-4xl">
         <SheetHeader>
-          <SheetTitle className="flex items-center gap-2 text-lg font-bold">
+          <SheetTitle className="flex items-center gap-2 text-lg font-semibold">
             <Icon name="FileCheck" className="size-5" />
             {`Comprovativo ${s.protocol}`}
           </SheetTitle>

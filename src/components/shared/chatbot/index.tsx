@@ -426,13 +426,11 @@ export function ChatbotSheet() {
           });
         },
         onError: (error) => {
-          // 401/403 do servidor do assistente: dizer a causa certa em vez de «limite de tokens»
+          // 401/403 do servidor do assistente: dizer a causa certa em vez de «limite de tokens».
+          // Qualquer outro erro mostra só a mensagem amigável: o texto técnico do fornecedor de IA (503, JSON, inglês) fica na consola.
           const unauthorized = /erro de autorização/i.test(error?.message ?? "");
-          const retryMessage = unauthorized ? error.message : MIND_RETRY_ERROR_MESSAGE;
-          const detail =
-            !unauthorized && error?.message && error.message !== "Failed to send message to Chatbot"
-              ? `${MIND_RETRY_ERROR_MESSAGE} (${error.message})`
-              : retryMessage;
+          if (!unauthorized && error?.message) console.error("MIND:", error.message);
+          const detail = unauthorized ? error.message : MIND_RETRY_ERROR_MESSAGE;
           ErrorMessage(detail);
           setMessages((prev) => {
             const updated = [...prev];
@@ -446,7 +444,7 @@ export function ChatbotSheet() {
               ...updated,
               {
                 role: "assistant",
-                content: retryMessage,
+                content: detail,
                 created_at: new Date().toISOString(),
                 isTyping: true,
                 failed: true,

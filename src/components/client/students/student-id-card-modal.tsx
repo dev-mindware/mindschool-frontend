@@ -103,7 +103,7 @@ export function StudentIdCardModal({
         data?.school.primaryColor ? (
           <div className="flex items-center gap-1.5 px-2 py-0.5 rounded-full text-[10px] font-medium border bg-muted/40">
             <span
-              className="w-2.5 h-2.5 rounded-full border border-black/10 inline-block"
+              className="w-2.5 h-2.5 rounded-full border border-border inline-block"
               style={{ backgroundColor: data.school.primaryColor }}
             />
             <span className="font-mono text-muted-foreground">{data.school.primaryColor}</span>
@@ -173,7 +173,7 @@ export function StudentIdCardModal({
             </div>
           ) : (
             <div
-              className="relative w-[280px] h-[443px] rounded-xs overflow-hidden border border-slate-200 shadow-xl select-none"
+              className="relative w-[280px] h-[443px] rounded-lg overflow-hidden border border-border shadow-xl select-none"
               style={{ backgroundColor: palette.cardBg }}
             >
               {/* ========================================================= */}
@@ -262,7 +262,7 @@ export function StudentIdCardModal({
                   {/* Topo: Emblema / Logotipo Escolar no canto superior direito */}
                   <div className="flex justify-end pr-1 pt-1">
                     <div
-                      className="w-11 h-11 rounded-full border-2 p-0.5 flex items-center justify-center bg-white shadow-sm"
+                      className="w-11 h-11 rounded-full border-2 p-0.5 flex items-center justify-center bg-card shadow-sm"
                       style={{ borderColor: palette.primary }}
                     >
                       {data?.school.logoUrl ? (
@@ -286,7 +286,7 @@ export function StudentIdCardModal({
                   {/* Título do Cartão */}
                   <div className="mt-2 text-center">
                     <h2
-                      className="text-[11px] font-black tracking-widest uppercase"
+                      className="text-[11px] font-semibold tracking-widest uppercase"
                       style={{ color: palette.dark }}
                     >
                       CARTÃO DE ESTUDANTE
@@ -297,7 +297,7 @@ export function StudentIdCardModal({
                   <div className="mt-3 flex items-center justify-center gap-3 pl-3">
                     {/* Moldura da Foto */}
                     <div
-                      className="w-[112px] h-[138px] rounded-xs overflow-hidden border shadow-sm flex items-center justify-center bg-white"
+                      className="w-[112px] h-[138px] rounded-md overflow-hidden border shadow-sm flex items-center justify-center bg-card"
                       style={{ borderColor: palette.light }}
                     >
                       {data?.student.photoUrl ? (
@@ -343,10 +343,10 @@ export function StudentIdCardModal({
                   {/* Dados do Aluno */}
                   <div className="mt-4 px-3 space-y-1.5 text-[10px]">
                     <div className="flex items-baseline">
-                      <span className="w-16 font-bold" style={{ color: palette.dark }}>
+                      <span className="w-16 font-semibold" style={{ color: palette.dark }}>
                         Nome
                       </span>
-                      <span className="font-bold mr-2" style={{ color: palette.dark }}>
+                      <span className="font-semibold mr-2" style={{ color: palette.dark }}>
                         :
                       </span>
                       <span
@@ -358,10 +358,10 @@ export function StudentIdCardModal({
                     </div>
 
                     <div className="flex items-baseline">
-                      <span className="w-16 font-bold" style={{ color: palette.dark }}>
+                      <span className="w-16 font-semibold" style={{ color: palette.dark }}>
                         Nº Proc.
                       </span>
-                      <span className="font-bold mr-2" style={{ color: palette.dark }}>
+                      <span className="font-semibold mr-2" style={{ color: palette.dark }}>
                         :
                       </span>
                       <span
@@ -373,10 +373,10 @@ export function StudentIdCardModal({
                     </div>
 
                     <div className="flex items-baseline">
-                      <span className="w-16 font-bold" style={{ color: palette.dark }}>
+                      <span className="w-16 font-semibold" style={{ color: palette.dark }}>
                         Turma
                       </span>
-                      <span className="font-bold mr-2" style={{ color: palette.dark }}>
+                      <span className="font-semibold mr-2" style={{ color: palette.dark }}>
                         :
                       </span>
                       <span
@@ -388,10 +388,10 @@ export function StudentIdCardModal({
                     </div>
 
                     <div className="flex items-baseline">
-                      <span className="w-16 font-bold" style={{ color: palette.dark }}>
+                      <span className="w-16 font-semibold" style={{ color: palette.dark }}>
                         Validade
                       </span>
-                      <span className="font-bold mr-2" style={{ color: palette.dark }}>
+                      <span className="font-semibold mr-2" style={{ color: palette.dark }}>
                         :
                       </span>
                       <span
@@ -435,7 +435,7 @@ export function StudentIdCardModal({
                   {/* Cabeçalho do Verso */}
                   <div className="text-center pt-2">
                     <h3
-                      className="text-[10px] font-black uppercase tracking-wider truncate"
+                      className="text-[10px] font-semibold uppercase tracking-wider truncate"
                       style={{ color: palette.dark }}
                     >
                       {data?.school.name || "ESCOLA OFICIAL"}
@@ -457,7 +457,7 @@ export function StudentIdCardModal({
                   {/* QR Code de Validação */}
                   <div className="flex flex-col items-center justify-center my-auto py-2">
                     <div
-                      className="w-24 h-24 p-1.5 rounded-xs border bg-white shadow-sm flex items-center justify-center"
+                      className="w-24 h-24 p-1.5 rounded-md border bg-card shadow-sm flex items-center justify-center"
                       style={{ borderColor: palette.light }}
                     >
                       {qrUrl ? (
@@ -478,7 +478,7 @@ export function StudentIdCardModal({
                   {/* Termos e Condições */}
                   <div className="mt-auto px-1 space-y-1">
                     <span
-                      className="text-[8px] font-bold block uppercase"
+                      className="text-[8px] font-semibold block uppercase"
                       style={{ color: palette.dark }}
                     >
                       Termos e Condições

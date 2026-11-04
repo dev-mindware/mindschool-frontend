@@ -44,7 +44,7 @@ export function StudentDetailsSheet({
             </span>
             <SchoolStatusBadge status={student.status} />
           </div>
-          <SheetTitle className="text-xl font-bold pt-2">{student.fullName}</SheetTitle>
+          <SheetTitle className="text-xl font-semibold pt-2">{student.fullName}</SheetTitle>
           <SheetDescription>
             {[student.currentClassLevel, student.currentSectionName].filter(Boolean).join(" • ") || "Sem matrícula"}
           </SheetDescription>

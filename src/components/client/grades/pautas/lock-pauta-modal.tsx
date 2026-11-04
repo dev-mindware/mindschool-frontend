@@ -70,7 +70,7 @@ export function LockPautaModal({
             <Icon name="Lock" className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-foreground">
+            <h3 className="text-lg font-semibold text-foreground">
               Homologação e Fecho de Pauta Geral
             </h3>
             <p className="text-xs text-muted-foreground">

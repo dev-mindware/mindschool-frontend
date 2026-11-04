@@ -12,7 +12,7 @@ export function DynamicMetricCardSkeleton({ className }: { className?: string })
   return (
     <Card
       className={cn(
-        "h-full flex flex-col justify-between border shadow-none overflow-hidden py-0 bg-gradient-to-t from-primary/2 to-card rounded-xs",
+        "h-full flex flex-col justify-between border shadow-none overflow-hidden py-0 bg-card rounded-xs",
         className
       )}
     >

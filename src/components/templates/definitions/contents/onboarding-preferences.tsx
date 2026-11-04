@@ -61,7 +61,7 @@ export function OnboardingPreferences() {
   return (
     <section className="space-y-6" data-tour="setup-guides-content">
       <div className="space-y-1">
-        <h2 className="text-2xl font-bold tracking-tight">Guias orientados</h2>
+        <h2 className="text-2xl font-semibold tracking-tight">Guias orientados</h2>
         <p className="text-sm text-muted-foreground">
           Defina quando os guias devem aparecer e repita-os sempre que necessário.
         </p>

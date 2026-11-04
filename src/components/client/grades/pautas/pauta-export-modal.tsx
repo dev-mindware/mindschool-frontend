@@ -70,72 +70,72 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
     >
       <div className="space-y-4">
         {/* Folha de Documento Oficial A4 Paisagem (Simulação Física) */}
-        <div className="overflow-x-auto rounded-xs border border-border bg-slate-200/70 p-2 sm:p-5 dark:bg-slate-950/80 shadow-inner">
+        <div className="overflow-x-auto rounded-lg border border-border bg-muted/40 p-2 sm:p-5 shadow-inner">
           <div
             id="pauta-official-print-sheet"
-            className="mx-auto w-full min-w-[1050px] max-w-[1180px] bg-white p-8 text-black shadow-md font-sans"
-            style={{ minHeight: "720px", color: "#000000", backgroundColor: "#ffffff" }}
+            className="mx-auto w-full min-w-[1050px] max-w-[1180px] bg-card p-8 text-card-foreground border border-border shadow-md font-sans print:bg-white print:text-black print:border-black"
+            style={{ minHeight: "720px" }}
           >
             {/* 1. CABEÇALHO OFICIAL INSTITUCIONAL (REPÚBLICA DE ANGOLA) */}
-            <div className="border-b-2 border-black pb-4 text-center">
+            <div className="border-b-2 border-border pb-4 text-center">
               {/* Insígnia / Brasão e Denominação da República */}
               <div className="flex flex-col items-center justify-center">
-                <div className="text-[11px] font-bold tracking-[0.25em] uppercase text-black">
+                <div className="text-[11px] font-semibold tracking-[0.25em] uppercase text-foreground">
                   REPÚBLICA DE ANGOLA
                 </div>
-                <div className="text-[10px] font-semibold uppercase text-black/80 tracking-widest mt-0.5">
+                <div className="text-[10px] font-semibold uppercase text-muted-foreground tracking-widest mt-0.5">
                   MINISTÉRIO DA EDUCAÇÃO
                 </div>
-                <div className="text-[10px] uppercase text-black/70 tracking-wide mt-0.5">
+                <div className="text-[10px] uppercase text-muted-foreground tracking-wide mt-0.5">
                   {governmentLine(profile, "DIRECÇÃO MUNICIPAL DA EDUCAÇÃO DE")}
                 </div>
               </div>
 
               {/* Nome Oficial da Escola */}
               <div className="mt-2.5">
-                <h1 className="text-lg font-black tracking-tight text-black uppercase font-serif">
+                <h1 className="text-lg font-semibold tracking-tight text-foreground uppercase font-serif">
                   {profile.schoolName}
                 </h1>
-                {profile.subTitle && <p className="text-[10px] uppercase text-black/80 font-medium">{profile.subTitle}</p>}
-                <p className="text-[9px] text-black/60 font-mono mt-0.5">{registrationLine(profile)}</p>
+                {profile.subTitle && <p className="text-[10px] uppercase text-muted-foreground font-medium">{profile.subTitle}</p>}
+                <p className="text-[9px] text-muted-foreground font-mono mt-0.5">{registrationLine(profile)}</p>
               </div>
 
               {/* Título Oficial do Documento */}
-              <div className="mt-3.5 inline-block border-y-2 border-black py-1 px-8">
-                <h2 className="text-base font-black tracking-wider uppercase text-black">
+              <div className="mt-3.5 inline-block border-y-2 border-border py-1 px-8">
+                <h2 className="text-base font-semibold tracking-wider uppercase text-foreground">
                   PAUTA CONSOLIDADA DE APROVEITAMENTO ESCOLAR
                 </h2>
-                <div className="text-[11px] font-bold text-black uppercase tracking-wide">
+                <div className="text-[11px] font-semibold text-foreground uppercase tracking-wide">
                   {termName} • REGULAMENTADA PELO DECRETO EXECUTIVO N.º 424/25
                 </div>
               </div>
             </div>
 
             {/* 2. GRELHA DE METADADOS INSTITUCIONAIS */}
-            <div className="grid grid-cols-6 border-b-2 border-black text-xs font-semibold text-black divide-x divide-black bg-slate-50/50">
+            <div className="grid grid-cols-6 border-b-2 border-border text-xs font-semibold text-foreground divide-x divide-border bg-muted/40">
               <div className="py-2 px-3 text-center">
-                <span className="block text-[9px] font-bold uppercase text-black/60">Ano Letivo</span>
-                <span className="font-bold text-black text-sm">{displayYear}</span>
+                <span className="block text-[9px] font-semibold uppercase text-muted-foreground">Ano Lectivo</span>
+                <span className="font-semibold text-foreground text-sm">{displayYear}</span>
               </div>
               <div className="py-2 px-3 text-center">
-                <span className="block text-[9px] font-bold uppercase text-black/60">Classe / Nível</span>
-                <span className="font-bold text-black text-sm">{displayClassLevel}</span>
+                <span className="block text-[9px] font-semibold uppercase text-muted-foreground">Classe / Nível</span>
+                <span className="font-semibold text-foreground text-sm">{displayClassLevel}</span>
               </div>
               <div className="py-2 px-3 text-center">
-                <span className="block text-[9px] font-bold uppercase text-black/60">Turma</span>
-                <span className="font-bold text-black text-sm">{displaySection}</span>
+                <span className="block text-[9px] font-semibold uppercase text-muted-foreground">Turma</span>
+                <span className="font-semibold text-foreground text-sm">{displaySection}</span>
               </div>
               <div className="py-2 px-3 text-center">
-                <span className="block text-[9px] font-bold uppercase text-black/60">Turno</span>
-                <span className="font-bold text-black text-sm">{displayShift}</span>
+                <span className="block text-[9px] font-semibold uppercase text-muted-foreground">Turno</span>
+                <span className="font-semibold text-foreground text-sm">{displayShift}</span>
               </div>
               <div className="py-2 px-3 text-center">
-                <span className="block text-[9px] font-bold uppercase text-black/60">Alunos Avaliados</span>
-                <span className="font-bold text-black text-sm">{totalStudents}</span>
+                <span className="block text-[9px] font-semibold uppercase text-muted-foreground">Alunos Avaliados</span>
+                <span className="font-semibold text-foreground text-sm">{totalStudents}</span>
               </div>
               <div className="py-2 px-3 text-center">
-                <span className="block text-[9px] font-bold uppercase text-black/60">Homologação</span>
-                <span className={`font-bold text-xs uppercase ${pauta.isClosed ? "text-black" : "text-black/80"}`}>
+                <span className="block text-[9px] font-semibold uppercase text-muted-foreground">Homologação</span>
+                <span className="font-semibold text-xs uppercase text-foreground">
                   {pauta.isClosed ? "Homologada" : "Provisória"}
                 </span>
               </div>
@@ -143,23 +143,23 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
 
             {/* 3. TABELA MATRICIAL DE NOTAS (PADRÃO OFICIAL ANGOLANO) */}
             <div className="mt-3">
-              <table className="w-full border-collapse border-2 border-black text-black text-xs">
+              <table className="w-full border-collapse border-2 border-border text-foreground text-xs">
                 <thead>
-                  <tr className="bg-slate-100 font-bold border-b border-black text-center text-[10px]">
-                    <th rowSpan={2} className="border-r border-black p-1.5 w-9 text-center">
+                  <tr className="bg-muted/60 font-semibold border-b border-border text-center text-[10px]">
+                    <th rowSpan={2} className="border-r border-border p-1.5 w-9 text-center">
                       N.º
                     </th>
-                    <th rowSpan={2} className="border-r border-black p-1.5 w-20 text-center font-mono">
+                    <th rowSpan={2} className="border-r border-border p-1.5 w-20 text-center font-mono">
                       N.º Proc.
                     </th>
-                    <th rowSpan={2} className="border-r border-black p-1.5 text-left min-w-[200px]">
+                    <th rowSpan={2} className="border-r border-border p-1.5 text-left min-w-[200px]">
                       Nome Completo do Estudante
                     </th>
                     {pauta.subjects && pauta.subjects.length > 0 ? (
                       pauta.subjects.map((subj) => (
                         <th
                           key={subj.id}
-                          className="border-r border-black p-1 text-center font-bold min-w-[55px]"
+                          className="border-r border-border p-1 text-center font-semibold min-w-[55px]"
                           title={subj.name}
                         >
                           <div className="truncate max-w-[65px] mx-auto text-[10px]">
@@ -168,21 +168,21 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
                         </th>
                       ))
                     ) : (
-                      <th className="border-r border-black p-1">Disciplinas</th>
+                      <th className="border-r border-border p-1">Disciplinas</th>
                     )}
-                    <th rowSpan={2} className="border-r border-black p-1.5 w-16 text-center font-bold bg-slate-200/60">
+                    <th rowSpan={2} className="border-r border-border p-1.5 w-16 text-center font-semibold bg-muted/80">
                       Média MT
                     </th>
-                    <th rowSpan={2} className="border-r border-black p-1.5 w-14 text-center font-bold">
+                    <th rowSpan={2} className="border-r border-border p-1.5 w-14 text-center font-semibold">
                       Def.
                     </th>
-                    <th rowSpan={2} className="p-1.5 w-32 text-center font-bold">
+                    <th rowSpan={2} className="p-1.5 w-32 text-center font-semibold">
                       Deliberação do Conselho
                     </th>
                   </tr>
-                  <tr className="bg-slate-100 font-bold border-b border-black text-center text-[9px]">
+                  <tr className="bg-muted/60 font-semibold border-b border-border text-center text-[9px]">
                     {pauta.subjects?.map((subj) => (
-                      <th key={subj.id} className="border-r border-black py-0.5 px-1 font-semibold text-black/70">
+                      <th key={subj.id} className="border-r border-border py-0.5 px-1 font-semibold text-muted-foreground">
                         MT
                       </th>
                     ))}
@@ -193,7 +193,7 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
                     <tr>
                       <td
                         colSpan={(pauta.subjects?.length || 1) + 6}
-                        className="p-8 text-center text-black/60 italic text-xs"
+                        className="p-8 text-center text-muted-foreground italic text-xs"
                       >
                         Nenhum estudante matriculado nesta turma para o período seleccionado.
                       </td>
@@ -202,20 +202,20 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
                     pauta.students.map((student, idx) => (
                       <tr
                         key={student.studentId}
-                        className={`border-b last:border-b-0 border-black ${idx % 2 === 1 ? "bg-slate-50/70" : "bg-white"}`}
+                        className={`border-b last:border-b-0 border-border ${idx % 2 === 1 ? "bg-muted/30" : "bg-card"}`}
                       >
                         {/* N.º */}
-                        <td className="border-r border-black py-1.5 px-1 text-center font-mono font-bold text-[11px]">
+                        <td className="border-r border-border py-1.5 px-1 text-center font-mono font-semibold text-[11px]">
                           {idx + 1}
                         </td>
 
                         {/* N.º Processo */}
-                        <td className="border-r border-black py-1.5 px-1 text-center font-mono text-[10px] text-black/80">
+                        <td className="border-r border-border py-1.5 px-1 text-center font-mono text-[10px] text-muted-foreground">
                           {student.studentNumber || "—"}
                         </td>
 
                         {/* Nome do Estudante */}
-                        <td className="border-r border-black py-1.5 px-2 font-semibold text-[11px] uppercase tracking-tight text-black">
+                        <td className="border-r border-border py-1.5 px-2 font-semibold text-[11px] uppercase tracking-tight text-foreground">
                           {student.studentName}
                         </td>
 
@@ -226,8 +226,8 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
                           return (
                             <td
                               key={subj.id}
-                              className={`border-r border-black py-1.5 px-1 text-center font-mono text-[11px] ${
-                                isNegative ? "font-bold text-black underline decoration-2" : "text-black"
+                              className={`border-r border-border py-1.5 px-1 text-center font-mono text-[11px] ${
+                                isNegative ? "font-semibold text-destructive underline decoration-2" : "text-foreground"
                               }`}
                             >
                               {mt !== undefined && mt !== null ? mt.toFixed(1) : "—"}
@@ -236,32 +236,32 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
                         })}
 
                         {/* Média MT */}
-                        <td className="border-r border-black py-1.5 px-1 text-center font-mono font-bold text-[11px] bg-slate-100/60">
+                        <td className="border-r border-border py-1.5 px-1 text-center font-mono font-semibold text-[11px] bg-muted/50">
                           {Object.keys(student.subjects).length ? student.termAverageTotal.toFixed(1) : "—"}
                         </td>
 
                         {/* Deficiências */}
-                        <td className="border-r border-black py-1.5 px-1 text-center font-mono text-[11px]">
+                        <td className="border-r border-border py-1.5 px-1 text-center font-mono text-[11px]">
                           {student.failedSubjectsCount > 0 ? (
-                            <span className="font-bold text-black">{student.failedSubjectsCount}</span>
+                            <span className="font-semibold text-foreground">{student.failedSubjectsCount}</span>
                           ) : (
-                            <span className="text-black/60">0</span>
+                            <span className="text-muted-foreground">0</span>
                           )}
                         </td>
 
                         {/* Deliberação */}
-                        <td className="py-1.5 px-2 text-center text-[10px] font-bold uppercase tracking-tight">
+                        <td className="py-1.5 px-2 text-center text-[10px] font-semibold uppercase tracking-tight">
                           {student.transitionStatus === "APPROVED" && (
-                            <span className="text-black">Transita</span>
+                            <span className="text-success font-semibold">Transita</span>
                           )}
                           {student.transitionStatus === "APPROVED_WITH_CONDITIONS" && (
-                            <span className="text-black">Transita (Art. 24.º)</span>
+                            <span className="text-warning font-semibold">Transita (Art. 24.º)</span>
                           )}
                           {student.transitionStatus === "FAILED" && (
-                            <span className="text-black font-black">Não Transita</span>
+                            <span className="text-destructive font-semibold">Não Transita</span>
                           )}
                           {(!student.transitionStatus || student.transitionStatus === "PENDING") && (
-                            <span className="text-black">Sem proposta</span>
+                            <span className="text-muted-foreground">Sem proposta</span>
                           )}
                         </td>
                       </tr>
@@ -272,48 +272,48 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
             </div>
 
             {/* 4. QUADRO DE APURAMENTO ESTATÍSTICO (RESUMO DA TURMA) */}
-            <div className="mt-4 border-2 border-black bg-slate-50 p-2.5">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-black border-b border-black pb-1 mb-2">
+            <div className="mt-4 border-2 border-border bg-muted/40 p-2.5 rounded-md">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-foreground border-b border-border pb-1 mb-2">
                 SÍNTESE ESTATÍSTICA DE APROVEITAMENTO DA TURMA
               </div>
-              <div className="grid grid-cols-6 gap-2 text-center text-xs font-semibold text-black divide-x divide-black/30">
+              <div className="grid grid-cols-6 gap-2 text-center text-xs font-semibold text-foreground divide-x divide-border">
                 <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Estudantes</span>
-                  <span className="font-black text-sm">{totalStudents}</span>
+                  <span className="block text-[9px] text-muted-foreground uppercase">Estudantes</span>
+                  <span className="font-semibold text-sm">{totalStudents}</span>
                 </div>
                 <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Aprovados</span>
-                  <span className="font-black text-sm">
+                  <span className="block text-[9px] text-muted-foreground uppercase">Aprovados</span>
+                  <span className="font-semibold text-sm">
                     {approvedCount} ({totalStudents > 0 ? ((approvedCount / totalStudents) * 100).toFixed(1) : 0}%)
                   </span>
                 </div>
                 <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Exceções Art. 24.º</span>
-                  <span className="font-black text-sm">
+                  <span className="block text-[9px] text-muted-foreground uppercase">Excepções Art. 24.º</span>
+                  <span className="font-semibold text-sm">
                     {conditionalCount} ({totalStudents > 0 ? ((conditionalCount / totalStudents) * 100).toFixed(1) : 0}%)
                   </span>
                 </div>
                 <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Sem proposta</span>
-                  <span className="font-black text-sm">
+                  <span className="block text-[9px] text-muted-foreground uppercase">Sem proposta</span>
+                  <span className="font-semibold text-sm">
                     {pendingCount} ({totalStudents > 0 ? ((pendingCount / totalStudents) * 100).toFixed(1) : 0}%)
                   </span>
                 </div>
                 <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Não Transitam</span>
-                  <span className="font-black text-sm">
+                  <span className="block text-[9px] text-muted-foreground uppercase">Não Transitam</span>
+                  <span className="font-semibold text-sm">
                     {failedCount} ({totalStudents > 0 ? ((failedCount / totalStudents) * 100).toFixed(1) : 0}%)
                   </span>
                 </div>
                 <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Média da Turma</span>
-                  <span className="font-black text-sm">{pauta.students.some((s) => Object.keys(s.subjects).length) ? `${(pauta.averageClassScore ?? 0).toFixed(1)} / 20` : "—"}</span>
+                  <span className="block text-[9px] text-muted-foreground uppercase">Média da Turma</span>
+                  <span className="font-semibold text-sm">{pauta.students.some((s) => Object.keys(s.subjects).length) ? `${(pauta.averageClassScore ?? 0).toFixed(1)} / 20` : "—"}</span>
                 </div>
               </div>
             </div>
 
             {/* 5. MENÇÃO LEGAL E TERMO DE HOMOLOGAÇÃO */}
-            <div className="mt-4 pt-2 border-t border-black text-[10px] text-black/80 flex items-center justify-between">
+            <div className="mt-4 pt-2 border-t border-border text-[10px] text-muted-foreground flex items-center justify-between">
               <span>
                 Documento administrativo oficial lavrado em conformidade com o <strong>Decreto Executivo n.º 424/25</strong> do Ministério da Educação da República de Angola.
               </span>
@@ -323,29 +323,29 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
             </div>
 
             {/* 6. ESPAÇO FORMAL PARA ASSINATURAS E CARIMBO INSTITUCIONAL */}
-            <div className="mt-8 pt-4 grid grid-cols-3 gap-8 text-center text-xs text-black">
+            <div className="mt-8 pt-4 grid grid-cols-3 gap-8 text-center text-xs text-foreground">
               {/* Assinatura Pedagógica */}
               <div className="flex flex-col items-center">
-                <div className="w-56 border-b border-black mb-1.5" />
-                <span className="font-bold text-[11px] uppercase">O Subdirector Pedagógico</span>
-                <span className="text-[10px] text-black/80 mt-0.5">
+                <div className="w-56 border-b border-border mb-1.5" />
+                <span className="font-semibold text-[11px] uppercase">O Subdirector Pedagógico</span>
+                <span className="text-[10px] text-muted-foreground mt-0.5">
                   {profile.pedagogicDirectorName || "Coordenação Pedagógica"}
                 </span>
               </div>
 
               {/* Carimbo da Instituição */}
               <div className="flex flex-col items-center justify-center">
-                <div className="w-24 h-24 rounded-full border border-dashed border-black/40 flex items-center justify-center text-[9px] text-black/40 uppercase tracking-widest text-center p-2">
+                <div className="w-24 h-24 rounded-full border border-dashed border-border flex items-center justify-center text-[9px] text-muted-foreground uppercase tracking-widest text-center p-2">
                   Carimbo Oficial / Selo Branco
                 </div>
               </div>
 
-              {/* Assinatura Direção Geral */}
+              {/* Assinatura Direcção Geral */}
               <div className="flex flex-col items-center">
-                <div className="w-56 border-b border-black mb-1.5" />
-                <span className="font-bold text-[11px] uppercase">O Diretor Geral</span>
-                <span className="text-[10px] text-black/80 mt-0.5">
-                  {profile.directorGeneralName || "Direção da Instituição"}
+                <div className="w-56 border-b border-border mb-1.5" />
+                <span className="font-semibold text-[11px] uppercase">O Director Geral</span>
+                <span className="text-[10px] text-muted-foreground mt-0.5">
+                  {profile.directorGeneralName || "Direcção da Instituição"}
                 </span>
               </div>
             </div>
@@ -397,11 +397,11 @@ export function PautaExportModal({ isOpen, onClose, pauta }: PautaExportModalPro
             visibility: visible !important;
           }
           #pauta-official-print-sheet {
-            position: fixed !important;
+            position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
+            width: 100% !important;
+            height: auto !important;
             margin: 0 !important;
             padding: 8mm !important;
             background: white !important;

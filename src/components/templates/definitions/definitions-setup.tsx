@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { resetScrollSoon } from "@/components/common/scroll-to-top";
 import { Appearance } from "./contents/appearance";
@@ -44,7 +45,8 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
     role,
   );
   const isStaff = isManager || ["SECRETARY", "FINANCIAL"].includes(role);
-  const currentTab = searchParams.get("tab");
+  const rawTab = searchParams.get("tab");
+  const currentTab = rawTab === "branding" ? "appearance" : rawTab;
 
   const allTabs: DefinitionTabItem[] = [
     {
@@ -58,9 +60,9 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
     },
     {
       id: "appearance",
-      label: "Aparência",
-      description: "Tema visual claro ou escuro e preferências de ecrã",
-      icon: "Pencil",
+      label: "Aparência & Marca",
+      description: "Modo visual claro ou escuro, identidade da escola e tipografia",
+      icon: "Palette",
       component: <Appearance />,
       category: "general",
       isVisible: true,
@@ -189,15 +191,21 @@ export function DefSetup({ disabledTabs = [] }: DefSetupProps) {
   const generalTabs = enabledTabs.filter((tab) => tab.category === "general");
   const workplaceTabs = enabledTabs.filter((tab) => tab.category === "workplace");
 
-  if (enabledTabs.length === 0) return null;
-
   const defaultTab = enabledTabs[0]?.id || "appearance";
   const hasValidUrlTab = Boolean(
     currentTab && enabledTabs.some((t) => t.id === currentTab),
   );
   const activeTab = hasValidUrlTab && currentTab ? currentTab : defaultTab;
   const activeTabObj =
-    enabledTabs.find((t) => t.id === activeTab) ?? enabledTabs[0]!;
+    enabledTabs.find((t) => t.id === activeTab) ?? enabledTabs[0];
+
+  useEffect(() => {
+    if (activeTabObj?.label) {
+      document.title = `${activeTabObj.label} · Definições · MindSchool`;
+    }
+  }, [activeTabObj?.label]);
+
+  if (enabledTabs.length === 0) return null;
 
   const handleTabChange = (value: string) => {
     router.push(`?tab=${value}`);

@@ -162,7 +162,7 @@ export function PaginatedSelect({
         </SelectContent>
       </Select>
       {error && (
-        <p className="text-[10px] font-bold text-destructive uppercase tracking-widest mt-1">
+        <p className="text-[10px] font-semibold text-destructive uppercase tracking-widest mt-1">
           {error}
         </p>
       )}

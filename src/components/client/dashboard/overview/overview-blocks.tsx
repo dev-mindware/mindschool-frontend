@@ -93,7 +93,7 @@ export function LevelDonut({ data }: { data: Overview["byLevel"] }) {
                 {data.map((d, i) => <Cell key={d.name} fill={PALETTE[i % PALETTE.length]} />)}
                 <Label content={({ viewBox }) => (viewBox && "cx" in viewBox ? (
                   <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                    <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-2xl font-bold">{total}</tspan>
+                    <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-2xl font-semibold">{total}</tspan>
                     <tspan x={viewBox.cx} y={(viewBox.cy ?? 0) + 20} className="fill-muted-foreground text-xs">Alunos</tspan>
                   </text>
                 ) : null)} />

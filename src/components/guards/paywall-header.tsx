@@ -14,7 +14,7 @@ export function PaywallHeader() {
         <div className="flex items-center justify-between">
           <MindSchoolLogo size={44} />
           <button
-            className="text-foreground cursor-pointer hover:underline font-bold text-base disabled:opacity-50 tracking-wide"
+            className="text-foreground cursor-pointer hover:underline font-semibold text-base disabled:opacity-50 tracking-wide"
             onClick={handleLogout}
             disabled={isLoggingOut}
           >

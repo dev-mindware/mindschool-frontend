@@ -6,7 +6,7 @@ export default function NotFoundPage() {
       <div className="text-center space-y-8 max-w-2xl w-full">
         <div className="relative inline-flex items-center justify-center group">
           <div className="absolute inset-0 bg-primary/10 blur-3xl rounded-full scale-150 group-hover:bg-primary/15 transition-colors duration-500" />
-          <h1 className="text-8xl sm:text-[12rem] font-black text-primary tracking-tighter transition-all duration-700 select-none drop-shadow-2xl group-hover:scale-105">
+          <h1 className="text-8xl sm:text-[12rem] font-semibold text-primary tracking-tighter transition-all duration-700 select-none drop-shadow-2xl group-hover:scale-105">
             404
           </h1>
           <svg
@@ -26,7 +26,7 @@ export default function NotFoundPage() {
         </div>
 
         <div className="space-y-3 relative">
-          <h2 className="text-3xl sm:text-5xl font-black text-foreground tracking-tight sm:tracking-tighter">
+          <h2 className="text-3xl sm:text-5xl font-semibold text-foreground tracking-tight sm:tracking-tighter">
             Página não encontrada
           </h2>
           <p className="text-muted-foreground text-base sm:text-lg max-w-lg mx-auto leading-relaxed">

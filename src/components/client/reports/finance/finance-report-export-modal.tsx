@@ -104,106 +104,106 @@ export function FinanceReportExportModal({ isOpen, onClose }: FinanceReportExpor
     >
       <div className="space-y-4">
         {/* Folha Oficial A4 Retrato */}
-        <div className="overflow-x-auto rounded-xs border border-border bg-slate-200/70 p-2 sm:p-5 dark:bg-slate-950/80 shadow-inner">
+        <div className="overflow-x-auto rounded-lg border border-border bg-muted/40 p-2 sm:p-5 shadow-inner">
           <div
             id="finance-official-print-sheet"
-            className="mx-auto w-full max-w-[850px] bg-white p-8 text-black shadow-md font-sans"
-            style={{ minHeight: "950px", color: "#000000", backgroundColor: "#ffffff" }}
+            className="mx-auto w-full max-w-[850px] bg-card p-8 text-card-foreground border border-border shadow-md font-sans print:bg-white print:text-black print:border-black"
+            style={{ minHeight: "950px" }}
           >
             {/* 1. CABEÇALHO OFICIAL */}
-            <div className="border-b-2 border-black pb-4 text-center">
-              <div className="text-[11px] font-bold tracking-[0.25em] uppercase text-black">
+            <div className="border-b-2 border-border pb-4 text-center">
+              <div className="text-[11px] font-semibold tracking-[0.25em] uppercase text-foreground">
                 REPÚBLICA DE ANGOLA
               </div>
-              <div className="text-[10px] font-semibold uppercase text-black/80 tracking-widest mt-0.5">
+              <div className="text-[10px] font-semibold uppercase text-muted-foreground tracking-widest mt-0.5">
                 MINISTÉRIO DA EDUCAÇÃO
               </div>
-              <div className="text-[10px] uppercase text-black/70 tracking-wide mt-0.5">
+              <div className="text-[10px] uppercase text-muted-foreground tracking-wide mt-0.5">
                 {governmentLine(profile, "ADMINISTRAÇÃO MUNICIPAL DE")}
               </div>
 
               <div className="mt-2.5">
-                <h1 className="text-base font-black tracking-tight text-black uppercase font-serif">
+                <h1 className="text-base font-semibold tracking-tight text-foreground uppercase font-serif">
                   {profile.schoolName}
                 </h1>
-                {profile.subTitle && <p className="text-[10px] uppercase text-black/80 font-medium">{profile.subTitle}</p>}
-                <p className="text-[9px] text-black/60 font-mono mt-0.5">{registrationLine(profile, { nif: true })}</p>
-                {profile.fullAddress && <p className="text-[9px] text-black/60 mt-0.5">{profile.fullAddress}</p>}
+                {profile.subTitle && <p className="text-[10px] uppercase text-muted-foreground font-medium">{profile.subTitle}</p>}
+                <p className="text-[9px] text-muted-foreground font-mono mt-0.5">{registrationLine(profile, { nif: true })}</p>
+                {profile.fullAddress && <p className="text-[9px] text-muted-foreground mt-0.5">{profile.fullAddress}</p>}
               </div>
 
-              <div className="mt-3.5 inline-block border-y-2 border-black py-1 px-8">
-                <h2 className="text-sm font-black tracking-wider uppercase text-black">
+              <div className="mt-3.5 inline-block border-y-2 border-border py-1 px-8">
+                <h2 className="text-sm font-semibold tracking-wider uppercase text-foreground">
                   DEMONSTRAÇÃO FINANCEIRA E BALANCETE DE PROPINAS
                 </h2>
-                <div className="text-[10px] font-bold text-black uppercase tracking-wide">
-                  EXERCÍCIO LETIVO {displayYear} • RELATÓRIO OFICIAL DE ARRECADAÇÃO
+                <div className="text-[10px] font-semibold text-foreground uppercase tracking-wide">
+                  EXERCÍCIO LECTIVO {displayYear} • RELATÓRIO OFICIAL DE ARRECADAÇÃO
                 </div>
               </div>
             </div>
 
             {/* 2. BARRA DE METADADOS */}
-            <div className="grid grid-cols-4 border-b-2 border-black text-xs font-semibold text-black divide-x divide-black bg-slate-50/50">
+            <div className="grid grid-cols-4 border-b-2 border-border text-xs font-semibold text-foreground divide-x divide-border bg-muted/40">
               <div className="py-2 px-3 text-center">
-                <span className="block text-[9px] font-bold uppercase text-black/60">Ano Letivo</span>
-                <span className="font-bold text-black text-xs">{displayYear}</span>
+                <span className="block text-[9px] font-semibold uppercase text-muted-foreground">Ano Lectivo</span>
+                <span className="font-semibold text-foreground text-xs">{displayYear}</span>
               </div>
               <div className="py-2 px-3 text-center">
-                <span className="block text-[9px] font-bold uppercase text-black/60">Moeda</span>
-                <span className="font-bold text-black text-xs">Kwanzas (Kz / AOA)</span>
+                <span className="block text-[9px] font-semibold uppercase text-muted-foreground">Moeda</span>
+                <span className="font-semibold text-foreground text-xs">Kwanzas (Kz / AOA)</span>
               </div>
               <div className="py-2 px-3 text-center">
-                <span className="block text-[9px] font-bold uppercase text-black/60">Data de Emissão</span>
-                <span className="font-bold text-black text-xs">{formatDate(new Date())}</span>
+                <span className="block text-[9px] font-semibold uppercase text-muted-foreground">Data de Emissão</span>
+                <span className="font-semibold text-foreground text-xs">{formatDate(new Date())}</span>
               </div>
               <div className="py-2 px-3 text-center">
-                <span className="block text-[9px] font-bold uppercase text-black/60">Total de Cobranças</span>
-                <span className="font-bold text-black text-xs">{allFees.length} Registos</span>
+                <span className="block text-[9px] font-semibold uppercase text-muted-foreground">Total de Cobranças</span>
+                <span className="font-semibold text-foreground text-xs">{allFees.length} Registos</span>
               </div>
             </div>
 
             {/* 3. QUADRO RESUMO EXECUTIVO */}
-            <div className="mt-4 border-2 border-black bg-slate-50 p-3">
-              <div className="text-[10px] font-bold uppercase tracking-wider text-black border-b border-black pb-1 mb-2">
+            <div className="mt-4 border-2 border-border bg-muted/40 p-3 rounded-md">
+              <div className="text-[10px] font-semibold uppercase tracking-wider text-foreground border-b border-border pb-1 mb-2">
                 SÍNTESE EXECUTIVA DE ARRECADAÇÃO
               </div>
-              <div className="grid grid-cols-4 gap-2 text-center text-xs font-semibold text-black divide-x divide-black/30">
+              <div className="grid grid-cols-4 gap-2 text-center text-xs font-semibold text-foreground divide-x divide-border">
                 <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Total Faturado</span>
-                  <span className="font-black text-sm">{formatCurrency(totalExpected)}</span>
+                  <span className="block text-[9px] text-muted-foreground uppercase">Total Faturado</span>
+                  <span className="font-semibold text-sm">{formatCurrency(totalExpected)}</span>
                 </div>
                 <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Total Cobrado</span>
-                  <span className="font-black text-sm">{formatCurrency(totalCollected)}</span>
+                  <span className="block text-[9px] text-muted-foreground uppercase">Total Cobrado</span>
+                  <span className="font-semibold text-sm">{formatCurrency(totalCollected)}</span>
                 </div>
                 <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Saldo Pendente</span>
-                  <span className="font-black text-sm">{formatCurrency(totalPending)}</span>
+                  <span className="block text-[9px] text-muted-foreground uppercase">Saldo Pendente</span>
+                  <span className="font-semibold text-sm">{formatCurrency(totalPending)}</span>
                 </div>
                 <div>
-                  <span className="block text-[9px] text-black/70 uppercase">Taxa de Cobrança</span>
-                  <span className="font-black text-sm">{collectionRate}%</span>
+                  <span className="block text-[9px] text-muted-foreground uppercase">Taxa de Cobrança</span>
+                  <span className="font-semibold text-sm">{collectionRate}%</span>
                 </div>
               </div>
             </div>
 
             {/* 4. TABELA ANALÍTICA MENSAL */}
             <div className="mt-4">
-              <table className="w-full border-collapse border-2 border-black text-black text-xs">
+              <table className="w-full border-collapse border-2 border-border text-foreground text-xs">
                 <thead>
-                  <tr className="bg-slate-100 font-bold border-b border-black text-center text-[10px]">
-                    <th className="border-r border-black p-1.5 w-12 text-center">Mês</th>
-                    <th className="border-r border-black p-1.5 text-left min-w-[120px]">Designação do Período</th>
-                    <th className="border-r border-black p-1.5 w-24 text-center font-mono">Inscritos</th>
-                    <th className="border-r border-black p-1.5 w-32 text-right font-mono">Faturado (Kz)</th>
-                    <th className="border-r border-black p-1.5 w-32 text-right font-mono">Cobrado (Kz)</th>
-                    <th className="border-r border-black p-1.5 w-32 text-right font-mono">Pendente (Kz)</th>
-                    <th className="p-1.5 w-20 text-center font-bold">Taxa</th>
+                  <tr className="bg-muted/60 font-semibold border-b border-border text-center text-[10px]">
+                    <th className="border-r border-border p-1.5 w-12 text-center">Mês</th>
+                    <th className="border-r border-border p-1.5 text-left min-w-[120px]">Designação do Período</th>
+                    <th className="border-r border-border p-1.5 w-24 text-center font-mono">Inscritos</th>
+                    <th className="border-r border-border p-1.5 w-32 text-right font-mono">Faturado (Kz)</th>
+                    <th className="border-r border-border p-1.5 w-32 text-right font-mono">Cobrado (Kz)</th>
+                    <th className="border-r border-border p-1.5 w-32 text-right font-mono">Pendente (Kz)</th>
+                    <th className="p-1.5 w-20 text-center font-semibold">Taxa</th>
                   </tr>
                 </thead>
                 <tbody>
                   {monthlyData.length === 0 ? (
                     <tr>
-                      <td colSpan={7} className="p-6 text-center text-black/60 italic text-xs">
+                      <td colSpan={7} className="p-6 text-center text-muted-foreground italic text-xs">
                         Nenhum registo de propinas encontrado para o exercício seleccionado.
                       </td>
                     </tr>
@@ -211,44 +211,44 @@ export function FinanceReportExportModal({ isOpen, onClose }: FinanceReportExpor
                     monthlyData.map((m, idx) => (
                       <tr
                         key={m.month}
-                        className={`border-b last:border-b-0 border-black ${idx % 2 === 1 ? "bg-slate-50/70" : "bg-white"}`}
+                        className={`border-b last:border-b-0 border-border ${idx % 2 === 1 ? "bg-muted/30" : "bg-card"}`}
                       >
-                        <td className="border-r border-black py-1.5 px-1 text-center font-mono font-bold text-[10px]">
+                        <td className="border-r border-border py-1.5 px-1 text-center font-mono font-semibold text-[10px]">
                           {String(m.month).padStart(2, "0")}
                         </td>
-                        <td className="border-r border-black py-1.5 px-2 font-semibold text-[11px] text-black">
+                        <td className="border-r border-border py-1.5 px-2 font-semibold text-[11px] text-foreground">
                           {m.monthLabel}
                         </td>
-                        <td className="border-r border-black py-1.5 px-2 text-center font-mono text-[10px]">
+                        <td className="border-r border-border py-1.5 px-2 text-center font-mono text-[10px]">
                           {m.count}
                         </td>
-                        <td className="border-r border-black py-1.5 px-2 text-right font-mono text-[11px]">
+                        <td className="border-r border-border py-1.5 px-2 text-right font-mono text-[11px]">
                           {formatCurrency(m.expected)}
                         </td>
-                        <td className="border-r border-black py-1.5 px-2 text-right font-mono text-[11px] font-bold">
+                        <td className="border-r border-border py-1.5 px-2 text-right font-mono text-[11px] font-semibold">
                           {formatCurrency(m.collected)}
                         </td>
-                        <td className="border-r border-black py-1.5 px-2 text-right font-mono text-[11px]">
+                        <td className="border-r border-border py-1.5 px-2 text-right font-mono text-[11px]">
                           {formatCurrency(m.pending)}
                         </td>
-                        <td className="py-1.5 px-1 text-center font-mono text-[10px] font-bold">
+                        <td className="py-1.5 px-1 text-center font-mono text-[10px] font-semibold">
                           {m.rate}%
                         </td>
                       </tr>
                     ))
                   )}
                   {monthlyData.length > 0 && (
-                    <tr className="border-t-2 border-black bg-slate-100 font-bold text-xs">
-                      <td colSpan={3} className="border-r border-black py-2 px-2 text-left uppercase text-[10px]">
+                    <tr className="border-t-2 border-border bg-muted/60 font-semibold text-xs">
+                      <td colSpan={3} className="border-r border-border py-2 px-2 text-left uppercase text-[10px]">
                         Total Geral Consolidado
                       </td>
-                      <td className="border-r border-black py-2 px-2 text-right font-mono text-[11px]">
+                      <td className="border-r border-border py-2 px-2 text-right font-mono text-[11px]">
                         {formatCurrency(totalExpected)}
                       </td>
-                      <td className="border-r border-black py-2 px-2 text-right font-mono text-[11px]">
+                      <td className="border-r border-border py-2 px-2 text-right font-mono text-[11px]">
                         {formatCurrency(totalCollected)}
                       </td>
-                      <td className="border-r border-black py-2 px-2 text-right font-mono text-[11px]">
+                      <td className="border-r border-border py-2 px-2 text-right font-mono text-[11px]">
                         {formatCurrency(totalPending)}
                       </td>
                       <td className="py-2 px-1 text-center font-mono text-[11px]">
@@ -261,21 +261,21 @@ export function FinanceReportExportModal({ isOpen, onClose }: FinanceReportExpor
             </div>
 
             {/* 5. TERMO DE HOMOLOGAÇÃO E ASSINATURAS */}
-            <div className="mt-5 text-justify text-[10px] leading-relaxed text-black indent-4">
+            <div className="mt-5 text-justify text-[10px] leading-relaxed text-muted-foreground indent-4">
               Certifico para os devidos efeitos administrativos e fiscais que a presente demonstração reflecte a exata situação financeira de faturação e arrecadação de propinas da instituição, com base nos extractos emitidos e conferidos pela tesouraria escolar.
             </div>
 
-            <div className="mt-8 pt-4 grid grid-cols-2 gap-12 text-center text-xs text-black">
+            <div className="mt-8 pt-4 grid grid-cols-2 gap-12 text-center text-xs text-foreground">
               <div className="flex flex-col items-center">
-                <div className="w-56 border-b border-black mb-1.5" />
-                <span className="font-bold text-[10px] uppercase">O Responsável Financeiro</span>
-                <span className="text-[9px] text-black/70 mt-0.5">{profile.administrativeDirectorName || "Tesouraria Escolar"}</span>
+                <div className="w-56 border-b border-border mb-1.5" />
+                <span className="font-semibold text-[10px] uppercase">O Responsável Financeiro</span>
+                <span className="text-[9px] text-muted-foreground mt-0.5">{profile.administrativeDirectorName || "Tesouraria Escolar"}</span>
               </div>
 
               <div className="flex flex-col items-center">
-                <div className="w-56 border-b border-black mb-1.5" />
-                <span className="font-bold text-[10px] uppercase">O Diretor Geral</span>
-                <span className="text-[9px] text-black/70 mt-0.5">{profile.directorGeneralName || "Direção Geral"}</span>
+                <div className="w-56 border-b border-border mb-1.5" />
+                <span className="font-semibold text-[10px] uppercase">O Diretor Geral</span>
+                <span className="text-[9px] text-muted-foreground mt-0.5">{profile.directorGeneralName || "Direção Geral"}</span>
               </div>
             </div>
           </div>
@@ -325,11 +325,11 @@ export function FinanceReportExportModal({ isOpen, onClose }: FinanceReportExpor
             visibility: visible !important;
           }
           #finance-official-print-sheet {
-            position: fixed !important;
+            position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
+            width: 100% !important;
+            height: auto !important;
             margin: 0 !important;
             padding: 10mm !important;
             background: white !important;

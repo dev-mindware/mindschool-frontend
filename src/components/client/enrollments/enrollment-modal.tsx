@@ -167,7 +167,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
       <SheetContent className="w-full sm:max-w-2xl flex flex-col p-0 gap-0">
         <SheetHeader className="p-6 border-b shrink-0">
-          <SheetTitle className="text-lg font-bold">Boletim de Matrícula Digital</SheetTitle>
+          <SheetTitle className="text-lg font-semibold">Boletim de Matrícula Digital</SheetTitle>
           <SheetDescription className="text-xs">
             Efetue a inscrição de novos ingressos ou confirmação anual de alunos existentes
           </SheetDescription>

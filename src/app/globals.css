@@ -71,10 +71,23 @@ body {
   --color-popover: var(--popover);
   --color-card-foreground: var(--card-foreground);
   --color-card: var(--card);
+  --color-rail: var(--rail);
+  --color-rail-foreground: var(--rail-foreground);
+  --color-rail-active: var(--rail-active);
+  --color-rail-active-bg: var(--rail-active-bg);
+  --color-rail-hover: var(--rail-hover);
+  --color-brandbox: var(--brandbox);
+  --color-brandbox-foreground: var(--brandbox-foreground);
+  --radius-xs: var(--radius-xs);
   --radius-sm: calc(var(--radius) - 4px);
   --radius-md: calc(var(--radius) - 2px);
   --radius-lg: var(--radius);
   --radius-xl: calc(var(--radius) + 4px);
+
+  /* O peso máximo permitido no software é semibold (600), nunca bold */
+  --font-weight-bold: 600;
+  --font-weight-extrabold: 600;
+  --font-weight-black: 600;
 
   --color-primary-50: var(--primary-50);
   --color-primary-100: var(--primary-100);
@@ -115,7 +128,8 @@ body {
   --loader-bg: #f9fafb;
 
   --font-family: "Outfit Variable", "Outfit", ui-sans-serif, system-ui, sans-serif;
-  --radius: 0.125rem;
+  --radius: 0.5rem;
+  --radius-xs: 0.375rem;
 
   --background: #fcfcfc;
   --foreground: hsl(0 0% 10%);
@@ -190,6 +204,15 @@ body {
   --sidebar-accent-foreground: hsl(0 0% 10%);
   --sidebar-border: hsl(0 0% 91%);
   --sidebar-ring: var(--primary);
+
+  /* Sidebar Modular (Rail Flutuante) */
+  --rail: color-mix(in oklab, var(--primary) 62%, black);
+  --rail-foreground: #ffffff;
+  --rail-active: #ffffff;
+  --rail-active-bg: rgba(255, 255, 255, 0.20);
+  --rail-hover: rgba(255, 255, 255, 0.10);
+  --brandbox: #ffffff;
+  --brandbox-foreground: var(--primary);
 }
 
 .dark {
@@ -281,7 +304,278 @@ body {
   --sidebar-accent-foreground: #e8eaed;
   --sidebar-border: var(--gray-600);
   --sidebar-ring: var(--primary);
+
+  /* Sidebar Modular (Rail Flutuante) */
+  --rail: rgba(0, 0, 0, 0.45);
+  --rail-foreground: #ffffff;
+  --rail-active: #ffffff;
+  --rail-active-bg: rgba(255, 255, 255, 0.20);
+  --rail-hover: rgba(255, 255, 255, 0.10);
+  --brandbox: rgba(255, 255, 255, 0.10);
+  --brandbox-foreground: #ffffff;
 }
+
+/* UI Mode Radius Directives: rounded-xs apenas no Vintage; modo Apple e Standard com raio normal */
+:root[data-ui-mode="vintage"],
+html[data-ui-mode="vintage"] {
+  --radius: 0.125rem;
+  --radius-xs: 0.125rem;
+  --radius-sm: 0.125rem;
+  --radius-md: 0.125rem;
+  --radius-lg: 0.125rem;
+  --radius-xl: 0.125rem;
+}
+
+/* ==========================================================================
+   Apple Liquid Glass System Mode
+   ========================================================================== */
+
+:root[data-ui-mode="apple"],
+html[data-ui-mode="apple"] {
+  --radius: 0.625rem;
+  --radius-xs: 0.25rem;
+  --radius-sm: 0.375rem;
+  --radius-md: 0.5rem;
+  --radius-lg: 0.75rem;
+  --radius-xl: 1rem;
+  --radius-2xl: 1.25rem;
+}
+
+/* 1. Fundo com Gradiente Líquido usando a cor Primária (Ambient Glow para Liquid Glass) */
+html[data-ui-mode="apple"].dark,
+html[data-ui-mode="apple"].dark body,
+:root[data-ui-mode="apple"].dark body {
+  background-color: #0f0f0f !important;
+  background-image:
+    radial-gradient(circle at 15% 10%, color-mix(in oklab, var(--primary) 8%, transparent) 0%, transparent 50%),
+    radial-gradient(circle at 85% 25%, color-mix(in oklab, var(--primary) 5%, transparent) 0%, transparent 52%),
+    radial-gradient(circle at 50% 60%, color-mix(in oklab, var(--primary) 4%, transparent) 0%, transparent 58%),
+    radial-gradient(circle at 10% 90%, color-mix(in oklab, var(--primary) 5%, transparent) 0%, transparent 50%),
+    radial-gradient(circle at 90% 92%, color-mix(in oklab, var(--primary) 7%, transparent) 0%, transparent 55%) !important;
+  background-attachment: fixed !important;
+  background-size: 100% 100% !important;
+}
+
+html[data-ui-mode="apple"]:not(.dark),
+html[data-ui-mode="apple"]:not(.dark) body,
+:root[data-ui-mode="apple"]:not(.dark) body {
+  background-color: #fcfcfc !important;
+  background-image:
+    radial-gradient(circle at 15% 10%, color-mix(in oklab, var(--primary) 5%, transparent) 0%, transparent 50%),
+    radial-gradient(circle at 85% 25%, color-mix(in oklab, var(--primary) 3.5%, transparent) 0%, transparent 52%),
+    radial-gradient(circle at 50% 60%, color-mix(in oklab, var(--primary) 3%, transparent) 0%, transparent 58%),
+    radial-gradient(circle at 10% 90%, color-mix(in oklab, var(--primary) 3%, transparent) 0%, transparent 50%),
+    radial-gradient(circle at 90% 92%, color-mix(in oklab, var(--primary) 4.5%, transparent) 0%, transparent 55%) !important;
+  background-attachment: fixed !important;
+  background-size: 100% 100% !important;
+}
+
+/* Transparência das camadas estruturais para deixar o gradiente do fundo transparecer */
+html[data-ui-mode="apple"] .group\/sidebar-wrapper,
+html[data-ui-mode="apple"] [data-slot="sidebar-inset"],
+html[data-ui-mode="apple"] main,
+html[data-ui-mode="apple"] main > .bg-background {
+  background-color: transparent !important;
+  background-image: none !important;
+}
+
+/* 2. Vidro Líquido Puro (Liquid Glass): Translucidez Óptica sem Gradientes nos Elementos */
+html[data-ui-mode="apple"].dark .bg-card,
+html[data-ui-mode="apple"].dark [data-slot="card"],
+html[data-ui-mode="apple"].dark [data-tour="setup-active-content"],
+html[data-ui-mode="apple"].dark .bg-sidebar {
+  background-color: rgba(255, 255, 255, 0.05) !important;
+  background-image: none !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  box-shadow: 0 2px 10px -2px rgba(0, 0, 0, 0.16) !important;
+}
+
+html[data-ui-mode="apple"]:not(.dark) .bg-card,
+html[data-ui-mode="apple"]:not(.dark) [data-slot="card"],
+html[data-ui-mode="apple"]:not(.dark) [data-tour="setup-active-content"],
+html[data-ui-mode="apple"]:not(.dark) .bg-sidebar {
+  background-color: rgba(255, 255, 255, 0.70) !important;
+  background-image: none !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.70) !important;
+  box-shadow: 0 2px 8px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* 3. Rail Modular e Topbar com Vidro Líquido e Bordas Neutras */
+html[data-ui-mode="apple"].dark nav[aria-label="Módulos"] {
+  border-radius: 1.25rem !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  background-image: none !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow: 0 3px 12px -3px rgba(0, 0, 0, 0.2) !important;
+}
+
+html[data-ui-mode="apple"]:not(.dark) nav[aria-label="Módulos"] {
+  border-radius: 1.25rem !important;
+  background: rgba(255, 255, 255, 0.75) !important;
+  background-image: none !important;
+  backdrop-filter: blur(28px) saturate(190%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.80) !important;
+  box-shadow: 0 3px 10px -3px rgba(0, 0, 0, 0.06) !important;
+}
+
+/* Header sticky / bg-sidebar: vidro líquido fosco com blur real (estilo visionOS/macOS) */
+html[data-ui-mode="apple"].dark header,
+html[data-ui-mode="apple"].dark header.sticky,
+html[data-ui-mode="apple"].dark header.bg-sidebar {
+  background-color: rgba(18, 18, 20, 0.70) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.25) !important;
+}
+
+html[data-ui-mode="apple"]:not(.dark) header,
+html[data-ui-mode="apple"]:not(.dark) header.sticky,
+html[data-ui-mode="apple"]:not(.dark) header.bg-sidebar {
+  background-color: rgba(255, 255, 255, 0.75) !important;
+  background-image: none !important;
+  -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
+  backdrop-filter: blur(20px) saturate(180%) !important;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08) !important;
+  box-shadow: 0 4px 16px -2px rgba(0, 0, 0, 0.05) !important;
+}
+
+/* Item de menu activo (sidebar): realce suave e harmonioso com a cor primária */
+html[data-ui-mode="apple"] [data-sidebar="menu-button"][data-active="true"],
+html[data-ui-mode="apple"] [data-sidebar="menu-button"].bg-sidebar-accent {
+  background-color: color-mix(in srgb, var(--primary) 12%, transparent) !important;
+  color: var(--primary) !important;
+}
+
+/* Normalizar inputs de pesquisa (remover caixa interna nativa do WebKit/Chromium) */
+input[type="search"] {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  background-color: transparent !important;
+}
+input[type="search"]::-webkit-search-decoration,
+input[type="search"]::-webkit-search-cancel-button,
+input[type="search"]::-webkit-search-results-button,
+input[type="search"]::-webkit-search-results-decoration {
+  -webkit-appearance: none !important;
+  appearance: none !important;
+  display: none !important;
+}
+/* 4. Modais, Diálogos e Menus com Vidro Líquido Flutuante e Bordas Neutras */
+html[data-ui-mode="apple"].dark [role="dialog"],
+html[data-ui-mode="apple"].dark [data-slot="dialog-content"],
+html[data-ui-mode="apple"].dark [data-slot="popover-content"],
+html[data-ui-mode="apple"].dark [data-slot="dropdown-menu-content"],
+html[data-ui-mode="apple"].dark [data-slot="sheet-content"] {
+  border-radius: 1.25rem !important;
+  background: rgba(25, 20, 35, 0.75) !important;
+  background-image: none !important;
+  backdrop-filter: blur(32px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.15) !important;
+  box-shadow: 0 10px 28px -8px rgba(0, 0, 0, 0.35) !important;
+}
+
+html[data-ui-mode="apple"]:not(.dark) [role="dialog"],
+html[data-ui-mode="apple"]:not(.dark) [data-slot="dialog-content"],
+html[data-ui-mode="apple"]:not(.dark) [data-slot="popover-content"],
+html[data-ui-mode="apple"]:not(.dark) [data-slot="dropdown-menu-content"],
+html[data-ui-mode="apple"]:not(.dark) [data-slot="sheet-content"] {
+  border-radius: 1.25rem !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  background-image: none !important;
+  backdrop-filter: blur(32px) saturate(200%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.80) !important;
+  box-shadow: 0 8px 24px -8px rgba(0, 0, 0, 0.10) !important;
+}
+
+/* 5. Resposta Física Instantânea (Skill §1, §3, §4) */
+html[data-ui-mode="apple"] button:not(:disabled):active,
+html[data-ui-mode="apple"] [role="button"]:not([aria-disabled="true"]):active {
+  transform: scale(0.975);
+  transition: transform 120ms cubic-bezier(0.32, 0.72, 0, 1) !important;
+}
+
+html[data-ui-mode="apple"] button,
+html[data-ui-mode="apple"] [role="button"] {
+  transition: transform 200ms cubic-bezier(0.32, 0.72, 0, 1), background-color 200ms cubic-bezier(0.32, 0.72, 0, 1), border-color 200ms cubic-bezier(0.32, 0.72, 0, 1), box-shadow 200ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+/* 6. Inputs: mantêm o aspecto padrão do sistema (o contentor já define borda, raio e fundo) */
+/* 7. Tipografia Óptica (Skill §15) */
+html[data-ui-mode="apple"] h1,
+html[data-ui-mode="apple"] h2,
+html[data-ui-mode="apple"] h3 {
+  letter-spacing: -0.025em;
+}
+
+/* 8. Acessibilidade & Redução de Movimento/Transparência (Skill §14) */
+@media (prefers-reduced-motion: reduce) {
+  html[data-ui-mode="apple"] button:not(:disabled):active,
+  html[data-ui-mode="apple"] [role="button"]:not([aria-disabled="true"]):active {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html[data-ui-mode="apple"] .bg-card,
+  html[data-ui-mode="apple"] [data-slot="card"],
+  html[data-ui-mode="apple"] nav[aria-label="Módulos"],
+  html[data-ui-mode="apple"] [role="dialog"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: var(--card) !important;
+  }
+}
+
+/* 8. Tipografia Óptica (Skill §15) */
+html[data-ui-mode="apple"] h1,
+html[data-ui-mode="apple"] h2,
+html[data-ui-mode="apple"] h3 {
+  letter-spacing: -0.025em;
+}
+
+/* 9. Acessibilidade & Redução de Movimento/Transparência (Skill §14) */
+@media (prefers-reduced-motion: reduce) {
+  html[data-ui-mode="apple"] button:not(:disabled):active,
+  html[data-ui-mode="apple"] [role="button"]:not([aria-disabled="true"]):active {
+    transform: none !important;
+  }
+}
+
+@media (prefers-reduced-transparency: reduce) {
+  html[data-ui-mode="apple"] .bg-card,
+  html[data-ui-mode="apple"] [data-slot="card"],
+  html[data-ui-mode="apple"] nav[aria-label="Módulos"],
+  html[data-ui-mode="apple"] [role="dialog"] {
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    background-color: var(--card) !important;
+  }
+}
+
+@media print {
+  body {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+  }
+  [id$="-print-sheet"],
+  [id$="-ata-sheet"],
+  [id$="-print-content"] {
+    background-color: #ffffff !important;
+    color: #000000 !important;
+    border-color: rgba(0, 0, 0, 0.4) !important;
+  }
+}
+
+/* Tipografia Estrita: máximo peso de fonte em todo o software é font-semibold (600), nunca bold */
+b, strong, th, h1, h2, h3, h4, h5, h6 {
+  font-weight: 600;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -540,7 +834,7 @@ body {
   box-shadow: none !important;
   height: 64px !important;
   font-size: 20px !important;
-  font-weight: 700 !important;
+  font-weight: 600 !important;
   transition: all 0.1s ease !important;
   display: flex !important;
   align-items: center !important;
@@ -725,7 +1019,7 @@ body {
   .fc-popover-header {
     background-color: var(--secondary) !important;
     padding: 10px 14px !important;
-    font-weight: 700 !important;
+    font-weight: 600 !important;
     font-size: 0.9rem !important;
     color: var(--foreground) !important;
     border-bottom: 1px solid var(--border) !important;
@@ -853,8 +1147,8 @@ body {
    ========================================================================== */
 .liquid-glass-base {
   background: color-mix(in srgb, var(--primary) 8%, transparent);
-  backdrop-filter: blur(20px) saturate(180%);
-  -webkit-backdrop-filter: blur(20px) saturate(180%);
+  backdrop-filter: blur(24px) saturate(160%);
+  -webkit-backdrop-filter: blur(24px) saturate(160%);
   border: 1px solid color-mix(in srgb, var(--primary) 25%, transparent);
   box-shadow: 0 4px 24px color-mix(in srgb, var(--primary) 12%, transparent), inset 0 1px 0 color-mix(in srgb, var(--primary) 20%, transparent);
 }
@@ -1087,7 +1381,7 @@ body {
   }
   .mind-button, .fase1, .fase2, .fase3, .fase4, .fase5, .fase6 {
     background: rgba(255, 255, 255, 0.08) !important;
-    backdrop-filter: blur(20px) saturate(180%) !important;
+    backdrop-filter: blur(24px) saturate(160%) !important;
     border: 1px solid rgba(255, 255, 255, 0.2) !important;
     padding: 0 16px !important;
     width: auto !important;
@@ -1124,7 +1418,7 @@ body {
   color: var(--foreground);
   font-family: var(--font-family);
   font-size: 15px;
-  font-weight: 700;
+  font-weight: 600;
   line-height: 1.25;
   margin-bottom: 6px;
 }
@@ -1152,7 +1446,7 @@ body {
   border-radius: 8px;
   font-family: var(--font-family);
   font-size: 12px;
-  font-weight: 700;
+  font-weight: 600;
   text-shadow: none;
 }
 

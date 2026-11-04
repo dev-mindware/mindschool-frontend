@@ -172,7 +172,7 @@ export function AvailablePlans() {
     <div className="mx-auto max-w-7xl px-4 py-8 sm:px-6 lg:px-8">
       {/* Cabeçalho */}
       <div className="mb-10 text-center" data-tour="plans-header">
-        <h1 className="text-3xl font-bold tracking-tight text-foreground sm:text-4xl">
+        <h1 className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
           Escolha o plano da sua escola
         </h1>
         <p className="mx-auto mt-3 max-w-2xl text-base text-muted-foreground sm:text-lg">
@@ -282,13 +282,13 @@ export function AvailablePlans() {
                     </div>
 
                     {/* Título do Plano */}
-                    <h2 className="mt-4 text-3xl font-extrabold tracking-tight text-foreground">
+                    <h2 className="mt-4 text-3xl font-semibold tracking-tight text-foreground">
                       {plan.name}
                     </h2>
 
                     {/* Bloco de Preço */}
                     <div className="mt-4 flex items-baseline gap-1.5">
-                      <span className="text-3xl font-extrabold tracking-tight text-foreground sm:text-4xl">
+                      <span className="text-3xl font-semibold tracking-tight text-foreground sm:text-4xl">
                         {displayPrice}
                       </span>
                       <span className="text-sm font-medium text-muted-foreground">

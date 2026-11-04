@@ -52,6 +52,8 @@ function AbsencesModal({ enrollmentId, name }: { enrollmentId: string | null; na
 /** Justificação de faltas por aluno da turma (secretaria/direcção): converte falta injustificada em justificada, com motivo. */
 export function JustificationsList({ classId }: JustificationsListProps) {
   const { data: rows = [], isLoading, isError, error } = useClassAbsences(classId || undefined);
+  const { openModal } = useModal();
+  const [target, setTarget] = useState<{ id: string; name: string } | null>(null);
   const isForbidden = (error as any)?.response?.status === 403;
 
   if (isForbidden) {
@@ -64,9 +66,6 @@ export function JustificationsList({ classId }: JustificationsListProps) {
       </div>
     );
   }
-
-  const { openModal } = useModal();
-  const [target, setTarget] = useState<{ id: string; name: string } | null>(null);
   type Row = (typeof rows)[number] & { id: string };
   const data: Row[] = rows.filter((r) => r.unjustified_absences + r.justified_absences > 0).map((r) => ({ ...r, id: r.enrollment_id }));
 

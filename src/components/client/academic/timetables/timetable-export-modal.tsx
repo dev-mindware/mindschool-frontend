@@ -200,7 +200,7 @@ export function TimetableExportModal({
 
           <div>
             <Input
-              label="Período Letivo"
+              label="Período Lectivo"
               value={periodLabel}
               onChange={(e) => setPeriodLabel(e.target.value)}
               placeholder="Ex: 1º Semestre ou 1.º Trimestre"
@@ -228,24 +228,24 @@ export function TimetableExportModal({
         </div>
 
         {/* Pré-visualização da Folha Imprimível (A4 Paisagem) */}
-        <div className="overflow-x-auto rounded-xs border border-border bg-slate-100 p-2 sm:p-4 dark:bg-slate-900/60">
+        <div className="overflow-x-auto rounded-lg border border-border bg-muted/40 p-2 sm:p-4">
           <div
             id="timetable-print-sheet"
-            className="mx-auto w-full max-w-[960px] bg-white p-6 font-sans text-black shadow-sm"
+            className="mx-auto w-full max-w-[960px] bg-card p-6 font-sans text-card-foreground border border-border shadow-sm print:bg-white print:text-black print:border-black"
             style={{ minHeight: "560px" }}
           >
             {/* 1. CABEÇALHO INSTITUCIONAL */}
-            <div className="flex items-center justify-between border-b border-black/20 pb-4">
+            <div className="flex items-center justify-between border-b border-border pb-4">
               {/* Logotipo à Esquerda */}
               <div className="flex items-center gap-3">
-                <div className="flex size-12 shrink-0 items-center justify-center rounded bg-black text-xl font-black tracking-tighter text-white">
+                <div className="flex size-12 shrink-0 items-center justify-center rounded-lg bg-primary text-xl font-semibold tracking-tighter text-primary-foreground">
                   {profile.schoolName?.substring(0, 4).toUpperCase() || "ISAF"}
                 </div>
                 <div className="leading-tight">
-                  <div className="text-sm font-bold tracking-tight text-black">
+                  <div className="text-sm font-semibold tracking-tight text-foreground">
                     {profile.schoolName?.substring(0, 4).toUpperCase() || "ISAF"}
                   </div>
-                  <div className="text-[10px] font-semibold uppercase tracking-wide text-black/70">
+                  <div className="text-[10px] font-semibold uppercase tracking-wide text-muted-foreground">
                     {profile.schoolName || "Instituto Superior de Administração e Finanças"}
                   </div>
                 </div>
@@ -253,17 +253,17 @@ export function TimetableExportModal({
 
               {/* Título Central / Direita */}
               <div className="text-right leading-snug">
-                <h1 className="text-base font-bold uppercase tracking-tight text-black">
+                <h1 className="text-base font-semibold uppercase tracking-tight text-foreground">
                   {profile.schoolName || "Instituto Superior de Administração e Finanças"}
                 </h1>
-                <p className="mt-0.5 text-xs font-semibold text-black/80">
+                <p className="mt-0.5 text-xs font-semibold text-muted-foreground">
                   {courseSubtitle || "Licenciatura: Informática de Gestão Financeira"}
                 </p>
               </div>
             </div>
 
             {/* 2. BARRA DE METADADOS */}
-            <div className="flex items-center justify-between border-b border-black px-1 py-2.5 text-xs font-bold text-black">
+            <div className="flex items-center justify-between border-b border-border px-1 py-2.5 text-xs font-semibold text-foreground">
               <div>
                 <span>Ano Académico: </span>
                 <span className="font-normal">{displayYear}</span>
@@ -276,18 +276,18 @@ export function TimetableExportModal({
               </div>
             </div>
 
-            {/* 3. GRELHA HORÁRIA PRINCIPAL (ESTILO TABELA RÍGIDA COM BORDAS PRETAS) */}
-            <div className="mt-3 overflow-hidden border-2 border-black">
-              <table className="w-full border-collapse text-center text-xs text-black">
+            {/* 3. GRELHA HORÁRIA PRINCIPAL */}
+            <div className="mt-3 overflow-hidden border border-border rounded-md">
+              <table className="w-full border-collapse text-center text-xs text-foreground">
                 <thead>
-                  <tr className="border-b border-black bg-slate-100/60 font-bold">
-                    <th className="w-20 border-r border-black p-1 text-center text-[11px] font-semibold">
+                  <tr className="border-b border-border bg-muted/60 font-semibold">
+                    <th className="w-20 border-r border-border p-1 text-center text-[11px] font-semibold">
                       Horas
                     </th>
                     {visibleDays.map((d) => (
                       <th
                         key={d.value}
-                        className="border-r border-black p-1.5 text-center text-xs font-bold last:border-r-0"
+                        className="border-r border-border p-1.5 text-center text-xs font-semibold last:border-r-0"
                       >
                         {d.label}
                       </th>
@@ -299,17 +299,17 @@ export function TimetableExportModal({
                     <tr>
                       <td
                         colSpan={visibleDays.length + 1}
-                        className="p-8 text-center text-xs italic text-black/60"
+                        className="p-8 text-center text-xs italic text-muted-foreground"
                       >
                         Sem tempos de aula configurados nesta turma.
                       </td>
                     </tr>
                   ) : (
                     timeIntervals.map((interval, idx) => (
-                      <tr key={idx} className="border-b border-black last:border-b-0">
-                        <td className="w-20 border-r border-black bg-slate-50/50 px-1 py-1.5 font-mono text-xs font-bold leading-tight">
+                      <tr key={idx} className="border-b border-border last:border-b-0">
+                        <td className="w-20 border-r border-border bg-muted/30 px-1 py-1.5 font-mono text-xs font-semibold leading-tight">
                           <div>{interval.start}</div>
-                          <div className="text-[11px] text-black/80">{interval.end}</div>
+                          <div className="text-[11px] text-muted-foreground">{interval.end}</div>
                         </td>
 
                         {visibleDays.map((day) => {
@@ -317,14 +317,14 @@ export function TimetableExportModal({
                           return (
                             <td
                               key={day.value}
-                              className="h-14 border-r border-black p-0 align-top last:border-r-0"
+                              className="h-14 border-r border-border p-0 align-top last:border-r-0"
                             >
                               {entry ? (
                                 <div className="flex h-full flex-col justify-between">
-                                  <div className="flex flex-1 items-center justify-center p-1 text-xs font-bold leading-tight text-black">
+                                  <div className="flex flex-1 items-center justify-center p-1 text-xs font-semibold leading-tight text-foreground">
                                     {entry.subject.name}
                                   </div>
-                                  <div className="border-t border-black bg-slate-50/80 py-0.5 text-[10px] font-semibold text-black">
+                                  <div className="border-t border-border bg-muted/40 py-0.5 text-[10px] font-semibold text-muted-foreground">
                                     {entry.room?.code || entry.location_label || "—"}
                                   </div>
                                 </div>
@@ -343,13 +343,13 @@ export function TimetableExportModal({
 
             {/* 4. LEGENDA DE DISCIPLINAS E PROFESSORES (RODAPÉ) */}
             {legendItems.length > 0 && (
-              <div className="mt-4 border-t border-black/40 pt-3 text-[11px] text-black">
+              <div className="mt-4 border-t border-border pt-3 text-[11px] text-foreground">
                 <div className="grid grid-cols-1 gap-x-8 gap-y-1 sm:grid-cols-2">
                   <div className="space-y-1">
                     {legendColumns.left.map((item, i) => (
                       <div key={i} className="flex items-baseline justify-between gap-2">
-                        <span className="font-semibold text-black">{item.subject}</span>
-                        <span className="text-right font-medium text-black/90">{item.teacher}</span>
+                        <span className="font-semibold text-foreground">{item.subject}</span>
+                        <span className="text-right font-medium text-muted-foreground">{item.teacher}</span>
                       </div>
                     ))}
                   </div>
@@ -357,8 +357,8 @@ export function TimetableExportModal({
                   <div className="space-y-1">
                     {legendColumns.right.map((item, i) => (
                       <div key={i} className="flex items-baseline justify-between gap-2">
-                        <span className="font-semibold text-black">{item.subject}</span>
-                        <span className="text-right font-medium text-black/90">{item.teacher}</span>
+                        <span className="font-semibold text-foreground">{item.subject}</span>
+                        <span className="text-right font-medium text-muted-foreground">{item.teacher}</span>
                       </div>
                     ))}
                   </div>
@@ -408,11 +408,11 @@ export function TimetableExportModal({
             visibility: visible !important;
           }
           #timetable-print-sheet {
-            position: fixed !important;
+            position: absolute !important;
             left: 0 !important;
             top: 0 !important;
-            width: 100vw !important;
-            height: 100vh !important;
+            width: 100% !important;
+            height: auto !important;
             margin: 0 !important;
             padding: 10mm !important;
             background: white !important;

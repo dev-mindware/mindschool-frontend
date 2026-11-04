@@ -121,7 +121,7 @@ export function FamilyDashboard() {
                     {attRows.map((r, i) => <Cell key={r.name} fill={ATT_COLORS[i]} />)}
                     <Label content={({ viewBox }) => (viewBox && "cx" in viewBox ? (
                       <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                        <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-xl font-bold">{attTotal}</tspan>
+                        <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-xl font-semibold">{attTotal}</tspan>
                         <tspan x={viewBox.cx} y={(viewBox.cy ?? 0) + 18} className="fill-muted-foreground text-xs">Aulas</tspan>
                       </text>
                     ) : null)} />

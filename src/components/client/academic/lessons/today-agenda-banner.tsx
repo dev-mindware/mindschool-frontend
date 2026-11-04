@@ -56,7 +56,7 @@ export function TodayAgendaBanner({
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <h4 className="text-xs font-bold uppercase tracking-wider text-primary">
+              <h4 className="text-xs font-semibold uppercase tracking-wider text-primary">
                 A Sua Agenda de Hoje ({todayLessons.length} aulas)
               </h4>
               <Badge variant="outline" className="border-primary/30 text-[10px] font-medium text-primary">
@@ -92,7 +92,7 @@ export function TodayAgendaBanner({
               <div className="space-y-1.5">
                 <div className="flex items-start justify-between gap-2">
                   <div className="flex min-w-0 items-center gap-1.5">
-                    <span className="font-mono text-[11px] font-bold text-foreground">
+                    <span className="font-mono text-[11px] font-semibold text-foreground">
                       {lesson.start}–{lesson.end}
                     </span>
                     <Badge variant="secondary" className="h-4 px-1.5 py-0 text-[9px]">

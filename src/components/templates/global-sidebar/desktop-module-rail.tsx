@@ -29,10 +29,10 @@ export function DesktopModuleRail({
       className="shrink-0 p-2 group-data-[collapsible=icon]:hidden"
       style={{ width: RAIL_WIDTH }}
     >
-      {/* pílula flutuante: no claro, a cor primária ofuscada; no escuro, quase preto */}
+      {/* pílula flutuante estilizada via tokens semânticos do rail modular */}
       <nav
         aria-label="Módulos"
-        className="flex h-full flex-col items-center justify-between rounded-xs bg-[color-mix(in_oklab,var(--primary)_62%,black)] py-4 text-white shadow-lg dark:bg-black/45"
+        className="flex h-full flex-col items-center justify-between rounded-lg bg-[var(--rail)] py-4 text-[var(--rail-foreground)] shadow-lg"
       >
         <div className="flex flex-col items-center gap-2">
           <div className="mb-6">
@@ -81,10 +81,10 @@ function RailButton({
           aria-label={module.label}
           aria-current={active ? "page" : undefined}
           className={cn(
-            "flex size-11 items-center justify-center rounded-xs transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary/50",
+            "flex size-11 items-center justify-center rounded-lg transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/50",
             active
-              ? "bg-white/20 text-white shadow-sm ring-1 ring-white/25"
-              : "text-white/70 hover:bg-white/10 hover:text-white",
+              ? "bg-[var(--rail-active-bg)] text-[var(--rail-active)] shadow-sm ring-1 ring-white/25"
+              : "text-[var(--rail-foreground)]/70 hover:bg-[var(--rail-hover)] hover:text-[var(--rail-foreground)]",
           )}
         >
           <Icon name={module.icon} className="size-5" />

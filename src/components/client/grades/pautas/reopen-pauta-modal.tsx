@@ -67,7 +67,7 @@ export function ReopenPautaModal({
             <Icon name="RotateCcw" className="h-5 w-5" />
           </div>
           <div>
-            <h3 className="text-lg font-bold text-foreground">
+            <h3 className="text-lg font-semibold text-foreground">
               Reabertura de Pauta Trimestral (Auditoria Obrigatória)
             </h3>
             <p className="text-xs text-muted-foreground">

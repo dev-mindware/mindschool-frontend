@@ -135,7 +135,7 @@ function MethodDonut({ data }: { data: FinanceOverview["by_method"] }) {
                 {rows.map((r, i) => <Cell key={r.name} fill={PALETTE[i % PALETTE.length]} />)}
                 <Label content={({ viewBox }) => (viewBox && "cx" in viewBox ? (
                   <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                    <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-lg font-bold">{formatAxisCurrency(total)}</tspan>
+                    <tspan x={viewBox.cx} y={viewBox.cy} className="fill-foreground text-lg font-semibold">{formatAxisCurrency(total)}</tspan>
                     <tspan x={viewBox.cx} y={(viewBox.cy ?? 0) + 20} className="fill-muted-foreground text-xs">Recebido</tspan>
                   </text>
                 ) : null)} />

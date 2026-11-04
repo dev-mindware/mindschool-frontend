@@ -75,7 +75,7 @@ export function useSchoolOverview() {
 
   // Só os papéis com visão da escola carregam alertas e pedidos (família e outros recebem 403).
   const risk = useDropoutRisk((staff || teacher) && hasRisk);
-  const requests = useSecretaryRequests(false, staff || teacher);
+  const requests = useSecretaryRequests(false, staff);
   const year = useQuery({ queryKey: ["active-year", schoolId], queryFn: academicService.activeYear, enabled: Boolean(schoolId) && onlyOnce, staleTime: 5 * 60 * 1000 });
   const events = useQuery({ queryKey: ["dash-events", schoolId, year.data?.id], queryFn: () => calendarService.events(year.data!.id).catch(() => []), enabled: Boolean(year.data?.id) && hasCalendar, staleTime: 60 * 1000, retry: false });
   const holidays = useQuery({ queryKey: ["dash-holidays", schoolId, year.data?.id], queryFn: () => calendarService.holidays(year.data!.id).catch(() => ({ data: [], sources: { google: false } })), enabled: Boolean(year.data?.id) && hasCalendar, staleTime: 60 * 1000, retry: false });

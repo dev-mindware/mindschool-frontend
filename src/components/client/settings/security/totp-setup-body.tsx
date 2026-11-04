@@ -52,7 +52,7 @@ export function TotpSetupBody({ secret, code, onCode, busy }: { secret: { secret
 
       <Step n={2} title="Leia o código QR com a aplicação">
         <div className="flex flex-wrap items-start gap-4">
-          <div className="rounded-xs border bg-white p-2"><canvas ref={canvas} aria-label="Código QR para o autenticador" /></div>
+          <div className="rounded-lg border border-border bg-card p-2"><canvas ref={canvas} className="rounded-sm bg-white p-1" aria-label="Código QR para o autenticador" /></div>
           <div className="min-w-0 flex-1 space-y-2 text-xs text-muted-foreground">
             <p>Na aplicação, escolha «Adicionar conta» e depois «Ler código QR».</p>
             <p>Não consegue ler? Escreva a chave à mão:</p>

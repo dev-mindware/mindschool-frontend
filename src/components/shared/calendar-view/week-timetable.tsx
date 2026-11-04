@@ -152,7 +152,7 @@ export function WeekTimetable<T>({
                       title={`Clique para agendar aula no ${s.lessonNo ?? s.position}.º tempo (${s.start} – ${s.end})`}
                     >
                       <span className="flex items-center gap-1 text-[11px] font-medium text-muted-foreground/85 group-hover:text-primary transition-colors">
-                        <span className="text-primary/70 group-hover:text-primary font-bold">+</span>
+                        <span className="text-primary/70 group-hover:text-primary font-semibold">+</span>
                         <span>{s.lessonNo ? `${s.lessonNo}.º Tempo` : `${s.start}`}</span>
                       </span>
                       <span className="text-[9px] font-mono text-muted-foreground/60 group-hover:text-primary/80 transition-colors">
