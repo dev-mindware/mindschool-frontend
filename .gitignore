@@ -1,80 +1,109 @@
-# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+# ==============================================================================
+# MINDSCHOOL FRONTEND - GITIGNORE
+# ==============================================================================
 
-# dependencies
-/node_modules
+# Dependências
+node_modules/
 /.pnp
 .pnp.*
 .yarn/*
-!.yarn/patches
-!.yarn/plugins
-!.yarn/releases
-!.yarn/versions
+!/.yarn/patches
+!/.yarn/plugins
+!/.yarn/releases
+!/.yarn/versions
 
-# testing
-/coverage
+# Compilação e Bundles Next.js
+.next/
+out/
+build/
+dist/
+.swc/
+.turbo/
+.cache/
 
-# next.js
-/.next/
-/out/
+# TypeScript & Metadados de Compilação
+*.tsbuildinfo
+tsconfig.tsbuildinfo
+next-env.d.ts
 
-# agent
+# Variáveis de Ambiente
+.env
+.env*.local
+.env.development
+.env.test
+.env.production
+!.env.example
 
-# production
-/build
+# Testes e Relatórios (Playwright, Jest, Cobertura)
+coverage/
+test-results/
+playwright-report/
+blob-report/
+.playwright/
+playwright/.cache/
+pw-*.log
+scratch-*.log
+/tests/
 
-# misc
-.DS_Store
-*.pem
-
-# debug
+# Logs e Ficheiros Temporários de Debug
+*.log
+*.log*
+logs/
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+pnpm-debug.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed )
-.env*
+# Ficheiros Temporários, Backups e Pacotes
+*.tmp
+*.temp
+/tmp/
+.temp/
+.tmp/
+*.bak
+*.swp
+*.swo
+*~
+*.tgz
+*.tar.gz
+*.zip
 
-# vercel
-.vercel
+# Editores e IDEs
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.vs/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 
-# typescript
-*.tsbuildinfo
-next-env.d.ts
-
-/src/generated/prisma
-!.env.example
-
-# Ferramentas de IA / analise local (geradas, nao pertencem ao repositorio)
-/graphify-out/
-.graphify*
-.agents/
-/.serena/
-/.claude/
-/.mcp.json
-
-# logs, editores e sistema
-*.log
-logs
-.idea
-.vscode
+# Sistema Operativo
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
 Thumbs.db
 desktop.ini
-*.swp
-*.bak
-.vs/
-.temp
-.tmp
-/tmp
+*.pem
 
-# testes (Playwright: resultados, relatorios e logs das corridas e2e, suites locais)
-/test-results/
-/playwright-report/
-/blob-report/
-/playwright/.cache/
-pw-*.log
-*.tgz
-/tests/
+# Vercel
+.vercel/
 
-# Exportacao do Notion (documentacao interna; servida publicamente por public/)
+# Ferramentas de IA / Análise Local e Knowledge Graphs
+graphify-out/
+.graphify*
+.agents/
+.serena/
+.claude/
+.mcp.json
+
+# Prisma (se gerado localmente)
+/src/generated/prisma
+
+# Documentação Interna / Exportações Notion
 /public/Documentation/
