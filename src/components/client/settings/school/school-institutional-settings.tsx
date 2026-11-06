@@ -24,7 +24,6 @@ import { useModal } from "@/stores/modal/use-modal-store";
 import { useSchoolProfile } from "@/hooks/school/use-school-profile";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { DocumentBrandingSettings } from "./document-branding-settings";
-import { nifError } from "@/lib/nif";
 
 type Profile = ReturnType<typeof useSchoolSettingsStore.getState>["profile"];
 
@@ -138,7 +137,6 @@ export function SchoolInstitutionalSettings() {
             ["Endereço", profile.fullAddress],
             ["Telefone", profile.phone],
             ["E-mail", profile.email],
-            ["NIF", profile.taxNumber],
           ]}
         />
         <Separator />
@@ -222,14 +220,6 @@ export function SchoolInstitutionalSettings() {
                 placeholder="Ex.: Kilamba / Quenguela"
                 value={f.communeOrDistrict}
                 onChange={(e) => set("communeOrDistrict", e.target.value)}
-              />
-              <Input
-                label="NIF da instituição"
-                startIcon="Hash"
-                placeholder="Ex.: 5000000001"
-                value={f.taxNumber}
-                error={nifError(f.taxNumber)}
-                onChange={(e) => set("taxNumber", e.target.value)}
               />
               <div className="sm:col-span-2">
                 <Textarea

@@ -76,8 +76,7 @@ export function MindgestConsent() {
                         className="mt-0.5"
                       />
                       <span className="font-normal">
-                        <span className="font-medium">{s.name}</span>{" "}
-                        <span className="text-xs text-muted-foreground">NIF {s.nif}</span>
+                        <span className="font-medium">{s.name}</span>
                         {s.already_connected && (
                           <Badge variant="secondary" className="ml-2">
                             Já ligada a {s.connected_company ?? "uma empresa"}

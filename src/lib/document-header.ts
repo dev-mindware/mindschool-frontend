@@ -1,6 +1,6 @@
 import type { SchoolInstitutionalProfile } from "@/types/school-settings";
 
-type Profile = Pick<SchoolInstitutionalProfile, "province" | "municipality" | "taxNumber" | "medRegistrationCode" | "decreeNumber">;
+type Profile = Pick<SchoolInstitutionalProfile, "province" | "municipality" | "medRegistrationCode" | "decreeNumber">;
 
 const join = (parts: Array<string | false | undefined | null>) => parts.filter(Boolean).join(" • ");
 
@@ -12,10 +12,9 @@ export function governmentLine(p: Profile, municipalOffice: string): string {
   ]);
 }
 
-/** NIF, registo MED e decreto da escola; os que não existem ficam de fora. */
-export function registrationLine(p: Profile, opts: { nif?: boolean } = {}): string {
+/** Registo MED e decreto da escola; os que não existem ficam de fora. */
+export function registrationLine(p: Profile): string {
   return join([
-    opts.nif && p.taxNumber && `NIF: ${p.taxNumber}`,
     p.medRegistrationCode && `Registo MED: ${p.medRegistrationCode}`,
     p.decreeNumber,
   ]);

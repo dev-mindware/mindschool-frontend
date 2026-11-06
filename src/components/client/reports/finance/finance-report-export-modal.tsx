@@ -127,7 +127,7 @@ export function FinanceReportExportModal({ isOpen, onClose }: FinanceReportExpor
                   {profile.schoolName}
                 </h1>
                 {profile.subTitle && <p className="text-[10px] uppercase text-muted-foreground font-medium">{profile.subTitle}</p>}
-                <p className="text-[9px] text-muted-foreground font-mono mt-0.5">{registrationLine(profile, { nif: true })}</p>
+                <p className="text-[9px] text-muted-foreground font-mono mt-0.5">{registrationLine(profile)}</p>
                 {profile.fullAddress && <p className="text-[9px] text-muted-foreground mt-0.5">{profile.fullAddress}</p>}
               </div>
 

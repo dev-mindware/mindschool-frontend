@@ -26,7 +26,7 @@ export function ProtocolSlipModal({ request }: { request: ApiRequest | null }) {
           <div className="space-y-1 border-b border-border pb-4 text-center">
             <div className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">República de Angola • Ministério da Educação</div>
             <div className="text-sm font-semibold uppercase">{profile.schoolName}</div>
-            <div className="text-[10px] text-muted-foreground">Secretaria-Geral & Protocolo{profile.taxNumber ? ` • NIF: ${profile.taxNumber}` : ""}</div>
+            <div className="text-[10px] text-muted-foreground">Secretaria-Geral & Protocolo</div>
           </div>
           <div className="rounded-lg border border-border bg-muted/50 p-3">
             <div className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Número de protocolo</div>

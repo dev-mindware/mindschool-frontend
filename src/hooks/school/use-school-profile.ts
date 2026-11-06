@@ -12,7 +12,6 @@ import type { SchoolInstitutionalProfile } from "@/types/school-settings";
 interface ApiSchool {
   id: string;
   name: string;
-  nif: string;
   phone: string | null;
   email: string | null;
   address: string | null;
@@ -62,7 +61,6 @@ export function useSchoolProfile() {
     updateProfile({
       id: school.id,
       schoolName: school.name,
-      taxNumber: school.nif,
       phone: school.phone ?? "",
       email: school.email ?? "",
       fullAddress: school.address ?? "",
@@ -97,7 +95,6 @@ export function useSchoolProfile() {
         },
         {
           name: p.schoolName,
-          ...(p.taxNumber ? { nif: p.taxNumber.trim().toUpperCase() } : {}),
           phone: p.phone ? (p.phone.startsWith("+") ? p.phone : `+244${p.phone.replace(/\s+/g, "")}`) : null,
           email: p.email || null,
           address: p.fullAddress || null,

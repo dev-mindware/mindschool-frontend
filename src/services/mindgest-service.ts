@@ -54,7 +54,7 @@ export interface ApiBackfillResult {
 
 export interface ApiConsentInfo {
   client: { id: string; name: string; redirect_origin: string };
-  schools: Array<{ id: string; name: string; nif: string; already_connected: boolean; connected_company: string | null }>;
+  schools: Array<{ id: string; name: string; already_connected: boolean; connected_company: string | null }>;
 }
 
 export const mindgestService = {

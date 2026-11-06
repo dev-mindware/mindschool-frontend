@@ -9,7 +9,6 @@ export interface SchoolInstitutionalProfile {
   decreeNumber: string; // Decreto Executivo de Criação (ex: "Decreto Executivo n.º 142/18")
   gazetteDate: string; // Data de publicação no Diário da República
   gazetteSeries: string; // Série do Diário da República (ex: "I Série, n.º 84")
-  taxNumber: string; // NIF institucional
   province: string;
   municipality: string;
   communeOrDistrict: string;

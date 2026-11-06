@@ -26,7 +26,6 @@ const DEFAULT_PROFILE: SchoolInstitutionalProfile = {
   decreeNumber: "",
   gazetteDate: "",
   gazetteSeries: "",
-  taxNumber: "",
   province: "",
   municipality: "",
   communeOrDistrict: "",
