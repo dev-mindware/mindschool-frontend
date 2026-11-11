@@ -18,6 +18,58 @@ export function useMemberships() {
   return { members: q.data ?? [], isLoading: q.isLoading, forbidden: forbidden(q.error), grant, revoke, resendInvite };
 }
 
+export function useSchoolRolesAndPermissions() {
+  const schoolId = useActiveSchoolStore((s) => s.schoolId);
+  const qc = useQueryClient();
+  const rolesQuery = useQuery({
+    queryKey: ["school-roles", schoolId],
+    queryFn: adminSchoolService.roles,
+    enabled: Boolean(schoolId),
+    ...opts,
+  });
+  const catalogQuery = useQuery({
+    queryKey: ["permissions-catalog", schoolId],
+    queryFn: adminSchoolService.permissionsCatalog,
+    enabled: Boolean(schoolId),
+    ...opts,
+  });
+  const auditQuery = useQuery({
+    queryKey: ["roles-audit", schoolId],
+    queryFn: () => adminSchoolService.rolesAudit(50),
+    enabled: Boolean(schoolId),
+    ...opts,
+  });
+  const refresh = () => {
+    qc.invalidateQueries({ queryKey: ["school-roles", schoolId] });
+    qc.invalidateQueries({ queryKey: ["roles-audit", schoolId] });
+    qc.invalidateQueries({ queryKey: ["effective-permissions", schoolId] });
+  };
+  const updateRole = useMutation({ mutationFn: adminSchoolService.updateRolePermissions, onSuccess: refresh });
+  const resetRole = useMutation({ mutationFn: adminSchoolService.resetRolePermissions, onSuccess: refresh });
+
+  return {
+    roles: rolesQuery.data?.data ?? [],
+    authzVersion: rolesQuery.data?.authz_version ?? 1,
+    catalog: catalogQuery.data?.data ?? [],
+    modules: catalogQuery.data?.modules ?? [],
+    auditEntries: auditQuery.data?.data ?? [],
+    isLoading: rolesQuery.isLoading || catalogQuery.isLoading,
+    isAuditLoading: auditQuery.isLoading,
+    updateRole,
+    resetRole,
+  };
+}
+
+export function useEffectivePermissions(membershipId: string | null) {
+  const schoolId = useActiveSchoolStore((s) => s.schoolId);
+  return useQuery({
+    queryKey: ["effective-permissions", schoolId, membershipId],
+    queryFn: () => adminSchoolService.effectivePermissions(membershipId!),
+    enabled: Boolean(schoolId && membershipId),
+    ...opts,
+  });
+}
+
 export function useTeachersAdmin() {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const qc = useQueryClient();

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { icons } from "lucide-react";
 import {
@@ -76,6 +76,12 @@ export function SchoolInstitutionalSettings() {
   const set = <K extends keyof Profile>(k: K, v: Profile[K]) => setF((p) => ({ ...p, [k]: v }));
 
   const isSheetOpen = Boolean(open[MODAL_ID]);
+
+  useEffect(() => {
+    if (!isSheetOpen || !f.schoolName) {
+      setF({ ...profile });
+    }
+  }, [profile, isSheetOpen, f.schoolName]);
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();

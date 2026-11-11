@@ -87,7 +87,14 @@ export function useFetchUser({ enabled = true }: UseFetchUserOptions = {}) {
         } finally {
           setUser(null);
           setIsAuthenticating(false);
-          if (typeof window !== "undefined" && !window.location.pathname.startsWith("/auth/")) {
+          const isPublicPage = (path: string) =>
+            path.startsWith("/auth/") ||
+            path.startsWith("/terms") ||
+            path.startsWith("/privacy") ||
+            path.startsWith("/verificar") ||
+            path.startsWith("/unauthorized") ||
+            path === "/";
+          if (typeof window !== "undefined" && !isPublicPage(window.location.pathname)) {
             window.location.replace("/auth/login");
           }
         }
@@ -108,9 +115,16 @@ export function useFetchUser({ enabled = true }: UseFetchUserOptions = {}) {
       if (process.env.NEXT_PUBLIC_BYPASS_AUTH === "true") return;
       setUser(null);
       setIsAuthenticating(false);
+      const isPublicPage = (path: string) =>
+        path.startsWith("/auth/") ||
+        path.startsWith("/terms") ||
+        path.startsWith("/privacy") ||
+        path.startsWith("/verificar") ||
+        path.startsWith("/unauthorized") ||
+        path === "/";
       if (
         typeof window !== "undefined" &&
-        window.location.pathname !== "/auth/login"
+        !isPublicPage(window.location.pathname)
       ) {
         window.location.replace("/auth/login");
       }

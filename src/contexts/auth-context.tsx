@@ -3,7 +3,7 @@
 import { usePathname } from "next/navigation";
 import { useAuthStore } from "@/stores";
 import { SubscriptionGuard } from "@/components/guards/subscription-guard";
-import { AUTH_PAGES } from "@/constants/routes";
+import { PUBLIC_ROUTES, AUTH_PAGES } from "@/constants/routes";
 import { useFetchUser } from "@/hooks";
 import { Loader } from "./loader";
 
@@ -13,6 +13,10 @@ interface AuthProviderProps {
 
 export function AuthProvider({ children }: AuthProviderProps) {
   const pathname = usePathname();
+  const isPublicRoute = PUBLIC_ROUTES.some((path) => {
+    if (path === "/") return pathname === "/";
+    return pathname.startsWith(path);
+  });
   const isAuthRoute = AUTH_PAGES.some((path) => {
     if (path === "/") return pathname === "/";
     return pathname.startsWith(path);
@@ -20,9 +24,9 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const { isAuthenticating } = useAuthStore();
 
   // Só busca user em rotas privadas
-  useFetchUser({ enabled: !isAuthRoute });
+  useFetchUser({ enabled: !isPublicRoute });
 
-  if (isAuthRoute) return <>{children}</>;
+  if (isPublicRoute || isAuthRoute) return <>{children}</>;
   if (isAuthenticating) return <Loader />;
 
   return <SubscriptionGuard>{children}</SubscriptionGuard>;

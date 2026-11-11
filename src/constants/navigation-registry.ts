@@ -134,7 +134,7 @@ export const PAGES: readonly PageDef[] = [
   { name: "Provas Online", url: "/online-exams", icon: "FileSpreadsheet", module: "avaliacao", section: "Provas e acompanhamento", roles: [...MGMT, "PEDAGOGIC_DIRECTOR", "TEACHER"], minPlan: "profissional", feature: "exams_full", teaser: true },
   { name: "Alerta de Risco", url: "/dropout-risk", icon: "TriangleAlert", module: "avaliacao", section: "Provas e acompanhamento", roles: PEDAGOGY_T, minPlan: "profissional", feature: "risk_alerts", teaser: true },
 
-  { name: "Biblioteca Escolar", url: "/academic/library", icon: "Library", module: "vida", section: "Serviços ao aluno", roles: PEDAGOGY_T },
+  { name: "Biblioteca Escolar", url: "/academic/library", icon: "Library", module: "vida", section: "Serviços ao aluno", roles: PEDAGOGY },
   { name: "Saúde & Psicopedagogia", url: "/academic/health-psychology", icon: "HeartPulse", module: "vida", section: "Serviços ao aluno", roles: PEDAGOGY_T, minPlan: "profissional", feature: "school_services" },
   { name: "Transporte Escolar", url: "/academic/transport", icon: "Bus", module: "vida", section: "Serviços ao aluno", roles: PEDAGOGY_T, minPlan: "profissional", feature: "school_services" },
   { name: "Atividades Extracurriculares", url: "/academic/extracurricular", icon: "Trophy", module: "vida", section: "Serviços ao aluno", roles: PEDAGOGY_T, minPlan: "profissional", feature: "school_services" },

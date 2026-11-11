@@ -9,8 +9,7 @@ const BreadcrumbTitleContext = createContext<{
 
 export function useBreadcrumbTitle() {
   const ctx = useContext(BreadcrumbTitleContext)
-  if (!ctx) throw new Error("useBreadcrumbTitle must be used inside BreadcrumbProvider")
-  return ctx
+  return ctx ?? { setTitle: () => {} }
 }
 
 export function BreadcrumbProvider({ children }: { children: React.ReactNode }) {

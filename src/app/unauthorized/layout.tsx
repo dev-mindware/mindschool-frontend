@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { Suspense } from "react";
 import { NotificationDetail } from "@/components/shared/notifications";
 
 export const metadata: Metadata = {
@@ -13,7 +14,9 @@ export default function UnauthorizedLayout({
 }) {
   return (
     <main className="min-h-screen w-full">
-      {children}
+      <Suspense fallback={null}>
+        {children}
+      </Suspense>
       <NotificationDetail />
     </main>
   );

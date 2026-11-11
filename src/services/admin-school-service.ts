@@ -22,6 +22,55 @@ export const INVITE_FAILURE: Record<NonNullable<InviteResult["reason"]>, string>
 
 export interface ApiMembership { id: string; role: SchoolRole; is_active: boolean; granted_at: string; user: { id: string; email: string; full_name: string; status: string; invite_pending?: boolean } }
 
+export interface ApiPermissionCatalogItem {
+  code: string;
+  display_code: string;
+  name: string;
+  description: string;
+  module: string;
+  action: "read" | "create" | "update" | "delete" | "approve" | "export" | "manage";
+  is_sensitive: boolean;
+  status: string;
+  is_assignable: boolean;
+}
+
+export interface ApiSchoolRoleConfig {
+  role: SchoolRole;
+  name: string;
+  description: string;
+  is_protected: boolean;
+  is_customizable: boolean;
+  is_customized: boolean;
+  updated_at: string | null;
+  active_members_count: number;
+  default_permissions: string[];
+  permissions: string[];
+}
+
+export interface ApiEffectivePermissions {
+  membership_id: string;
+  school_id: string;
+  user: { id: string; email: string; full_name: string; status: string };
+  active_roles: Array<{ membership_id: string; role: SchoolRole; role_name: string; granted_at: string }>;
+  authz_version: number;
+  permissions: string[];
+  sources: Array<ApiPermissionCatalogItem & { granted_by_roles: SchoolRole[] }>;
+}
+
+export interface ApiRoleAuditEntry {
+  id: string;
+  school_id: string;
+  action: string;
+  severity: string;
+  entity_type: string;
+  entity_id: string;
+  before: Record<string, unknown> | null;
+  after: Record<string, unknown> | null;
+  reason: string | null;
+  performed_at: string;
+  performed_by: { id: string; full_name: string; email: string } | null;
+}
+
 // ---- Professores -------------------------------------------------------------------------------------------------
 
 export type TeacherStatus = "activo" | "licenca" | "desvinculado";
@@ -80,6 +129,18 @@ export const adminSchoolService = {
   /** Novo convite para quem ainda não definiu a palavra-passe: a ligação anterior deixa de funcionar. */
   resendInvite: async (membershipId: string): Promise<InviteResult> => (await api.post<InviteResult>(`/s/memberships/${membershipId}/resend-invite`)).data,
   revoke: async (id: string) => (await api.delete(`/s/memberships/${id}`)).data,
+  permissionsCatalog: async (): Promise<{ modules: string[]; total: number; data: ApiPermissionCatalogItem[] }> =>
+    (await api.get("/s/permissions")).data,
+  roles: async (): Promise<{ authz_version: number; data: ApiSchoolRoleConfig[] }> =>
+    (await api.get("/s/roles")).data,
+  updateRolePermissions: async (v: { role: SchoolRole; permissions: string[]; reason?: string }) =>
+    (await api.put(`/s/roles/${v.role}/permissions`, { permissions: v.permissions, ...(v.reason ? { reason: v.reason } : {}) })).data,
+  resetRolePermissions: async (v: { role: SchoolRole; reason?: string }) =>
+    (await api.post(`/s/roles/${v.role}/reset`, { ...(v.reason ? { reason: v.reason } : {}) })).data,
+  effectivePermissions: async (membershipId: string): Promise<ApiEffectivePermissions> =>
+    (await api.get<ApiEffectivePermissions>(`/s/memberships/${membershipId}/effective-permissions`)).data,
+  rolesAudit: async (limit = 50): Promise<{ data: ApiRoleAuditEntry[] }> =>
+    (await api.get<{ data: ApiRoleAuditEntry[] }>("/s/roles/audit", { params: { limit } })).data,
 
   teachers: () => fetchAllPages<ApiTeacherFull>("/s/teachers"),
   createTeacher: async (v: { userId: string; documentNumber: string; qualification?: string }) =>
