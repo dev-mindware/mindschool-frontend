@@ -30,7 +30,7 @@ export function FinanceReportContent() {
       <FinanceDashboard variant="report" />
       <TuitionReportsContent />
       <ApiReportsCatalog
-        domains={["financeiro"]}
+        domains={["finance"]}
         title="Relatórios financeiros oficiais"
         description="Dívidas por aluno, recebimentos por período e faturas por estado, exportáveis em Excel, PDF e CSV."
       />

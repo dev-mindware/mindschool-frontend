@@ -15,12 +15,12 @@ const MAX_BUNDLE = 200;
 const ALL = "todos";
 
 const RETENTION_LABEL: Record<RetentionState, string> = {
-  sem_prazo: "Sem prazo (guardado)",
-  em_retencao: "Em retenção",
-  a_expirar: "A expirar",
-  expirado: "Expirado",
+  no_expiry: "Sem prazo (guardado)",
+  retained: "Em retenção",
+  expiring: "A expirar",
+  expired: "Expirado",
 };
-const RETENTION_TONE: Record<RetentionState, "outline" | "warning" | "destructive"> = { sem_prazo: "outline", em_retencao: "outline", a_expirar: "warning", expirado: "destructive" };
+const RETENTION_TONE: Record<RetentionState, "outline" | "warning" | "destructive"> = { no_expiry: "outline", retained: "outline", expiring: "warning", expired: "destructive" };
 
 const DOC_TYPE: Record<string, string> = {
   certificado: "Certificado", declaracao: "Declaração", boletim: "Boletim", historico: "Histórico", cartao: "Cartão",
@@ -137,9 +137,9 @@ export function ArchivePageContent() {
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={s?.total_files ?? 0} subtitle="Ficheiros" icon="Archive" description={`${bytes(s?.total_bytes)} no total`} />
-        <DynamicMetricCard title={s?.retention.em_retencao ?? 0} subtitle="Em retenção" icon="ShieldCheck" description="Com prazo para além do período de aviso" />
-        <DynamicMetricCard title={s?.retention.a_expirar ?? 0} subtitle="A expirar" icon="Clock" description={`Nos próximos ${s?.expiring_days ?? 90} dias`} colors={(s?.retention.a_expirar ?? 0) > 0 ? "destructive" : "default"} />
-        <DynamicMetricCard title={s?.retention.sem_prazo ?? 0} subtitle="Sem prazo" icon="Infinity" description="Guardados até serem removidos" />
+        <DynamicMetricCard title={s?.retention.retained ?? 0} subtitle="Em retenção" icon="ShieldCheck" description="Com prazo para além do período de aviso" />
+        <DynamicMetricCard title={s?.retention.expiring ?? 0} subtitle="A expirar" icon="Clock" description={`Nos próximos ${s?.expiring_days ?? 90} dias`} colors={(s?.retention.expiring ?? 0) > 0 ? "destructive" : "default"} />
+        <DynamicMetricCard title={s?.retention.no_expiry ?? 0} subtitle="Sem prazo" icon="Infinity" description="Guardados até serem removidos" />
       </div>
 
       <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-4">

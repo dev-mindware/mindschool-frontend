@@ -1,6 +1,6 @@
 import api from "./api";
 
-export type RetentionState = "sem_prazo" | "em_retencao" | "a_expirar" | "expirado";
+export type RetentionState = "no_expiry" | "retained" | "expiring" | "expired";
 
 export interface ApiArchiveSummary {
   total_files: number;

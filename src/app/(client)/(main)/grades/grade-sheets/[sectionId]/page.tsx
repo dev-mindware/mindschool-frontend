@@ -7,7 +7,7 @@ export default function ConsolidatedPautaPage() {
       subRoute="Pauta Consolidada"
       segments={[
         { label: "Avaliações & Pautas" },
-        { label: "Pautas Trimestrais", href: "/grades/pautas" },
+        { label: "Pautas Trimestrais", href: "/grades/grade-sheets" },
         { label: "Pauta Consolidada" },
       ]}
     >

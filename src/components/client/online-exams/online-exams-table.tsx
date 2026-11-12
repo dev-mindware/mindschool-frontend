@@ -76,7 +76,7 @@ export function OnlineExamsTable({ exams, isLoading, onOpenQuestions, onOpenGoog
 
   return (
     <DataList<ApiExam>
-      prefix="provas-online"
+      prefix="online-exams"
       rows={exams}
       columns={columns}
       isLoading={isLoading}
@@ -84,17 +84,17 @@ export function OnlineExamsTable({ exams, isLoading, onOpenQuestions, onOpenGoog
       searchPlaceholder="Pesquisar por título, disciplina ou turma"
       searchText={(e) => `${e.title} ${e.context?.subject_name ?? ''} ${e.context?.section_name ?? ''}`}
       filters={[
-        { key: 'estado', label: 'Estado', icon: 'ListFilter', options: [{ value: 'publicada', label: 'Publicadas' }, { value: 'encerrada', label: 'Encerradas' }, { value: 'rascunho', label: 'Rascunhos' }], match: (e, v) => e.status === v },
-        { key: 'realizacao', label: 'Realização', icon: 'Link', options: [{ value: 'nativa', label: 'Plataforma' }, { value: 'google_forms', label: 'Google Forms' }], match: (e, v) => e.delivery === v },
-        { key: 'turma', label: 'Turma', icon: 'Users', options: uniq(exams.map((e) => e.context?.section_name ?? '')).map((v) => ({ value: v, label: v })), match: (e, v) => e.context?.section_name === v },
-        { key: 'disciplina', label: 'Disciplina', icon: 'BookOpen', options: uniq(exams.map((e) => e.context?.subject_name ?? '')).map((v) => ({ value: v, label: v })), match: (e, v) => e.context?.subject_name === v },
-        { key: 'tempo', label: 'Tempo limite', icon: 'Clock', options: [{ value: 'com', label: 'Com tempo limite' }, { value: 'sem', label: 'Sem tempo limite' }], match: (e, v) => (v === 'com' ? Boolean(e.time_limit_minutes) : !e.time_limit_minutes) },
+        { key: 'status', label: 'Estado', icon: 'ListFilter', options: [{ value: 'publicada', label: 'Publicadas' }, { value: 'encerrada', label: 'Encerradas' }, { value: 'rascunho', label: 'Rascunhos' }], match: (e, v) => e.status === v },
+        { key: 'delivery', label: 'Realização', icon: 'Link', options: [{ value: 'nativa', label: 'Plataforma' }, { value: 'google_forms', label: 'Google Forms' }], match: (e, v) => e.delivery === v },
+        { key: 'section', label: 'Turma', icon: 'Users', options: uniq(exams.map((e) => e.context?.section_name ?? '')).map((v) => ({ value: v, label: v })), match: (e, v) => e.context?.section_name === v },
+        { key: 'subject', label: 'Disciplina', icon: 'BookOpen', options: uniq(exams.map((e) => e.context?.subject_name ?? '')).map((v) => ({ value: v, label: v })), match: (e, v) => e.context?.subject_name === v },
+        { key: 'time-limit', label: 'Tempo limite', icon: 'Clock', options: [{ value: 'with', label: 'Com tempo limite' }, { value: 'without', label: 'Sem tempo limite' }], match: (e, v) => (v === 'with' ? Boolean(e.time_limit_minutes) : !e.time_limit_minutes) },
       ]}
-      dateFilters={[{ key: 'abertura', label: 'Abertura', getDate: (e) => e.opens_at }]}
+      dateFilters={[{ key: 'opens', label: 'Abertura', getDate: (e) => e.opens_at }]}
       sorts={[
-        { value: 'abertura', label: 'Data de abertura', compare: (a, b) => a.opens_at.localeCompare(b.opens_at) },
-        { value: 'titulo', label: 'Título', compare: (a, b) => a.title.localeCompare(b.title, 'pt') },
-        { value: 'questoes', label: 'N.º de questões', compare: (a, b) => a.questions.length - b.questions.length },
+        { value: 'opens', label: 'Data de abertura', compare: (a, b) => a.opens_at.localeCompare(b.opens_at) },
+        { value: 'title', label: 'Título', compare: (a, b) => a.title.localeCompare(b.title, 'pt') },
+        { value: 'questions', label: 'N.º de questões', compare: (a, b) => a.questions.length - b.questions.length },
       ]}
       emptyTitle="Nenhuma prova online encontrada"
       emptyDescription="Crie uma prova para a ver aqui."

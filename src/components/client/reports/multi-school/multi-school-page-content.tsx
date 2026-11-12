@@ -123,18 +123,18 @@ export function MultiSchoolPageContent() {
 
       {d && (
         <DataList
-          prefix="escolas"
+          prefix="schools"
           rows={schools}
           columns={schoolColumns}
           isLoading={g.dashboardLoading}
           pageSize={10}
           searchPlaceholder="Pesquisar escola"
           searchText={(s) => s.school.name}
-          filters={[{ key: 'dados', label: 'Dados', icon: 'ListFilter', options: [{ value: 'provisorio', label: 'Provisórios' }, { value: 'consolidado', label: 'Consolidados' }], match: (s, v) => (v === 'provisorio' ? Boolean(s.provisional) : !s.provisional) }]}
+          filters={[{ key: 'data', label: 'Dados', icon: 'ListFilter', options: [{ value: 'provisional', label: 'Provisórios' }, { value: 'consolidated', label: 'Consolidados' }], match: (s, v) => (v === 'provisional' ? Boolean(s.provisional) : !s.provisional) }]}
           sorts={[
-            { value: 'nome', label: 'Escola', compare: (a, b) => a.school.name.localeCompare(b.school.name, 'pt') },
-            ...(hasStudents ? [{ value: 'alunos', label: 'Alunos', compare: (a: (typeof schools)[number], b: (typeof schools)[number]) => (a.enrolled ?? 0) - (b.enrolled ?? 0) }] : []),
-            ...(hasMoney ? [{ value: 'cobranca', label: 'Taxa de cobrança', compare: (a: (typeof schools)[number], b: (typeof schools)[number]) => (a.collection_rate ?? 0) - (b.collection_rate ?? 0) }] : []),
+            { value: 'name', label: 'Escola', compare: (a, b) => a.school.name.localeCompare(b.school.name, 'pt') },
+            ...(hasStudents ? [{ value: 'students', label: 'Alunos', compare: (a: (typeof schools)[number], b: (typeof schools)[number]) => (a.enrolled ?? 0) - (b.enrolled ?? 0) }] : []),
+            ...(hasMoney ? [{ value: 'collection_rate', label: 'Taxa de cobrança', compare: (a: (typeof schools)[number], b: (typeof schools)[number]) => (a.collection_rate ?? 0) - (b.collection_rate ?? 0) }] : []),
           ]}
           emptyTitle="Sem escolas"
           emptyDescription="O grupo ainda não tem escolas associadas."
@@ -152,15 +152,15 @@ export function MultiSchoolPageContent() {
             <Button size="sm" className="gap-1.5" onClick={() => openModal('group-member-add')}><Icon name="UserPlus" className="size-4" />Adicionar membro</Button>
           </div>
           <DataList<MemberRow>
-            prefix="membros"
+            prefix="members"
             rows={members}
             columns={memberColumns}
             pageSize={10}
             searchPlaceholder="Pesquisar por nome ou e-mail"
             searchText={(m) => `${m.full_name} ${m.email}`}
-            filters={[{ key: 'papel', label: 'Papel', icon: 'UserCog', options: ROLE_OPTIONS, match: (m, v) => m.role === v }]}
-            dateFilters={[{ key: 'desde', label: 'Desde', getDate: (m) => m.granted_at }]}
-            sorts={[{ value: 'nome', label: 'Nome', compare: (a, b) => a.full_name.localeCompare(b.full_name, 'pt') }, { value: 'desde', label: 'Data', compare: (a, b) => a.granted_at.localeCompare(b.granted_at) }]}
+            filters={[{ key: 'role', label: 'Papel', icon: 'UserCog', options: ROLE_OPTIONS, match: (m, v) => m.role === v }]}
+            dateFilters={[{ key: 'since', label: 'Desde', getDate: (m) => m.granted_at }]}
+            sorts={[{ value: 'name', label: 'Nome', compare: (a, b) => a.full_name.localeCompare(b.full_name, 'pt') }, { value: 'date', label: 'Data', compare: (a, b) => a.granted_at.localeCompare(b.granted_at) }]}
             emptyTitle="Sem membros"
             emptyDescription="Adicione o primeiro membro do grupo."
             emptyIcon="Users"

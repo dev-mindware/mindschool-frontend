@@ -294,7 +294,7 @@ export function TuitionPaymentsContent() {
       )}
 
       {!(isError && allFees.length === 0) && <DataList<StudentTuitionFee>
-        prefix="propinas"
+        prefix="tuition"
         rows={allFees}
         columns={columns}
         isLoading={isLoading}
@@ -302,17 +302,17 @@ export function TuitionPaymentsContent() {
         searchPlaceholder="Pesquisar por aluno, n.º de processo, encarregado ou comprovativo"
         searchText={(f) => `${f.studentName} ${f.studentNumber} ${f.guardianName} ${f.guardianPhone} ${f.receiptNumber ?? ""}`}
         filters={[
-          { key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "PAID", label: "Liquidada" }, { value: "PENDING", label: "Pendente" }, { value: "OVERDUE", label: "Em atraso" }, { value: "EXEMPT", label: "Isento (bolsa)" }], match: (f, v) => f.status === v },
-          { key: "mes", label: "Mês", icon: "CalendarDays", options: MONTHS.map((m) => ({ value: m.value, label: m.label })), match: (f, v) => f.month === Number(v) },
-          { key: "ano", label: "Ano", icon: "CalendarRange", options: [...new Set(allFees.map((f) => String(f.year)))].sort().map((y) => ({ value: y, label: y })), match: (f, v) => String(f.year) === v },
-          { key: "turma", label: "Turma", icon: "Users", options: [...new Set(allFees.map((f) => f.classSection).filter(Boolean))].sort().map((v) => ({ value: v, label: v })), match: (f, v) => f.classSection === v },
-          { key: "metodo", label: "Método", icon: "CreditCard", options: [{ value: "MULTICAIXA", label: "Multicaixa" }, { value: "TRANSFER", label: "Transferência" }, { value: "CASH", label: "Numerário" }, { value: "EXPRESS", label: "Express" }], match: (f, v) => f.paymentMethod === v },
-          { key: "multa", label: "Multa / desconto", icon: "Percent", options: [{ value: "multa", label: "Com multa" }, { value: "desconto", label: "Com desconto" }], match: (f, v) => (v === "multa" ? f.penaltyAmount > 0 : f.discountAmount > 0) },
+          { key: "status", label: "Estado", icon: "ListFilter", options: [{ value: "PAID", label: "Liquidada" }, { value: "PENDING", label: "Pendente" }, { value: "OVERDUE", label: "Em atraso" }, { value: "EXEMPT", label: "Isento (bolsa)" }], match: (f, v) => f.status === v },
+          { key: "month", label: "Mês", icon: "CalendarDays", options: MONTHS.map((m) => ({ value: m.value, label: m.label })), match: (f, v) => f.month === Number(v) },
+          { key: "year", label: "Ano", icon: "CalendarRange", options: [...new Set(allFees.map((f) => String(f.year)))].sort().map((y) => ({ value: y, label: y })), match: (f, v) => String(f.year) === v },
+          { key: "section", label: "Turma", icon: "Users", options: [...new Set(allFees.map((f) => f.classSection).filter(Boolean))].sort().map((v) => ({ value: v, label: v })), match: (f, v) => f.classSection === v },
+          { key: "method", label: "Método", icon: "CreditCard", options: [{ value: "MULTICAIXA", label: "Multicaixa" }, { value: "TRANSFER", label: "Transferência" }, { value: "CASH", label: "Numerário" }, { value: "EXPRESS", label: "Express" }], match: (f, v) => f.paymentMethod === v },
+          { key: "penalty", label: "Multa / desconto", icon: "Percent", options: [{ value: "penalty", label: "Com multa" }, { value: "discount", label: "Com desconto" }], match: (f, v) => (v === "penalty" ? f.penaltyAmount > 0 : f.discountAmount > 0) },
         ]}
-        dateFilters={[{ key: "vencimento", label: "Vencimento", getDate: (f) => f.dueDate }]}
+        dateFilters={[{ key: "due", label: "Vencimento", getDate: (f) => f.dueDate }]}
         sorts={[
-          { value: "vencimento", label: "Vencimento", compare: (a, b) => a.dueDate.localeCompare(b.dueDate) },
-          { value: "aluno", label: "Aluno", compare: (a, b) => a.studentName.localeCompare(b.studentName, "pt") },
+          { value: "due", label: "Vencimento", compare: (a, b) => a.dueDate.localeCompare(b.dueDate) },
+          { value: "student", label: "Aluno", compare: (a, b) => a.studentName.localeCompare(b.studentName, "pt") },
           { value: "total", label: "Valor total", compare: (a, b) => a.totalAmount - b.totalAmount },
         ]}
         emptyTitle="Nenhuma mensalidade encontrada"

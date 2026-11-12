@@ -34,9 +34,9 @@ export const emailLogColumns = (showSchool = false): Column<ApiEmailLog>[] => [
 ];
 
 export const emailLogFilters = (rows: ApiEmailLog[]) => [
-  { key: "estado", label: "Estado", icon: "ListFilter" as const, options: Object.entries(EMAIL_STATUS).map(([value, c]) => ({ value, label: c.label })), match: (l: ApiEmailLog, v: string) => l.status === v },
-  { key: "grupo", label: "Tipo de email", icon: "Mail" as const, options: [...new Set(rows.map((r) => emailGroup(r.template_code)))].sort().map((v) => ({ value: v, label: v })), match: (l: ApiEmailLog, v: string) => emailGroup(l.template_code) === v },
-  { key: "modelo", label: "Modelo", icon: "FileText" as const, options: [...new Set(rows.map((r) => r.template_code))].sort().map((v) => ({ value: v, label: rows.find((r) => r.template_code === v)?.template_name ?? v })), match: (l: ApiEmailLog, v: string) => l.template_code === v },
+  { key: "status", label: "Estado", icon: "ListFilter" as const, options: Object.entries(EMAIL_STATUS).map(([value, c]) => ({ value, label: c.label })), match: (l: ApiEmailLog, v: string) => l.status === v },
+  { key: "group", label: "Tipo de email", icon: "Mail" as const, options: [...new Set(rows.map((r) => emailGroup(r.template_code)))].sort().map((v) => ({ value: v, label: v })), match: (l: ApiEmailLog, v: string) => emailGroup(l.template_code) === v },
+  { key: "template", label: "Modelo", icon: "FileText" as const, options: [...new Set(rows.map((r) => r.template_code))].sort().map((v) => ({ value: v, label: rows.find((r) => r.template_code === v)?.template_name ?? v })), match: (l: ApiEmailLog, v: string) => l.template_code === v },
 ];
 
 /** Emails enviados pela escola (confirmações de pagamento, lembretes de propinas, comunicados…): auditoria e entrega. */
@@ -63,8 +63,8 @@ export function SchoolEmailsContent() {
         searchPlaceholder="Pesquisar destinatário ou assunto"
         searchText={(l) => `${l.recipient} ${l.subject} ${l.template_code}`}
         filters={emailLogFilters(log)}
-        dateFilters={[{ key: "data", label: "Envio", getDate: (l) => l.created_at }]}
-        sorts={[{ value: "data", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }, { value: "destinatario", label: "Destinatário", compare: (a, b) => a.recipient.localeCompare(b.recipient) }]}
+        dateFilters={[{ key: "date", label: "Envio", getDate: (l) => l.created_at }]}
+        sorts={[{ value: "date", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }, { value: "recipient", label: "Destinatário", compare: (a, b) => a.recipient.localeCompare(b.recipient) }]}
         emptyTitle="Ainda não foram enviados emails"
         emptyDescription="Os emails aparecem aqui assim que a plataforma enviar o primeiro."
         emptyIcon="Mail"

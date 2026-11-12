@@ -261,7 +261,7 @@ export function TransitionsPageContent() {
       </div>
 
       <DataList<ConsolidatedStudentRow>
-        prefix="transicoes"
+        prefix="transitions"
         rows={studentsList}
         columns={columns}
         pageSize={10}
@@ -286,14 +286,14 @@ export function TransitionsPageContent() {
         searchPlaceholder="Pesquisar estudante por nome ou número"
         searchText={(r) => `${r.studentName} ${r.studentNumber}`}
         filters={[
-          { key: "situacao", label: "Situação", icon: "ListFilter", options: [{ value: "APPROVED", label: "Aprovado" }, { value: "APPROVED_WITH_CONDITIONS", label: "Exceção legal" }, { value: "FAILED", label: "Não transita" }], match: (r, v) => r.transitionStatus === v },
-          { key: "deficiencias", label: "Disciplinas negativas", icon: "TriangleAlert", options: [{ value: "0", label: "Nenhuma" }, { value: "1", label: "1" }, { value: "2", label: "2" }, { value: "3", label: "3 ou mais" }], match: (r, v) => (v === "3" ? r.failedSubjectsCount >= 3 : r.failedSubjectsCount === Number(v)) },
-          { key: "media", label: "Média global", icon: "Gauge", options: [{ value: "alta", label: "14 ou mais" }, { value: "media", label: "10 a 13,9" }, { value: "baixa", label: "Abaixo de 10" }], match: (r, v) => (v === "alta" ? r.termAverageTotal >= 14 : v === "media" ? r.termAverageTotal >= 10 && r.termAverageTotal < 14 : r.termAverageTotal < 10) },
+          { key: "status", label: "Situação", icon: "ListFilter", options: [{ value: "APPROVED", label: "Aprovado" }, { value: "APPROVED_WITH_CONDITIONS", label: "Exceção legal" }, { value: "FAILED", label: "Não transita" }], match: (r, v) => r.transitionStatus === v },
+          { key: "failed-subjects", label: "Disciplinas negativas", icon: "TriangleAlert", options: [{ value: "0", label: "Nenhuma" }, { value: "1", label: "1" }, { value: "2", label: "2" }, { value: "3", label: "3 ou mais" }], match: (r, v) => (v === "3" ? r.failedSubjectsCount >= 3 : r.failedSubjectsCount === Number(v)) },
+          { key: "average", label: "Média global", icon: "Gauge", options: [{ value: "high", label: "14 ou mais" }, { value: "medium", label: "10 a 13,9" }, { value: "low", label: "Abaixo de 10" }], match: (r, v) => (v === "high" ? r.termAverageTotal >= 14 : v === "medium" ? r.termAverageTotal >= 10 && r.termAverageTotal < 14 : r.termAverageTotal < 10) },
         ]}
         sorts={[
-          { value: "media", label: "Média global", compare: (a, b) => a.termAverageTotal - b.termAverageTotal },
-          { value: "nome", label: "Nome", compare: (a, b) => a.studentName.localeCompare(b.studentName, "pt") },
-          { value: "negativas", label: "Disciplinas negativas", compare: (a, b) => a.failedSubjectsCount - b.failedSubjectsCount },
+          { value: "average", label: "Média global", compare: (a, b) => a.termAverageTotal - b.termAverageTotal },
+          { value: "name", label: "Nome", compare: (a, b) => a.studentName.localeCompare(b.studentName, "pt") },
+          { value: "failed-subjects", label: "Disciplinas negativas", compare: (a, b) => a.failedSubjectsCount - b.failedSubjectsCount },
         ]}
         emptyTitle="Nenhum estudante para deliberação"
         emptyDescription="Escolha uma turma com pautas fechadas."

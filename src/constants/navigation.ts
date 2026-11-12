@@ -70,7 +70,7 @@ function collectLinks(items: MenuItem[]): Map<string, NavLink> {
 /** Constrói o modelo a partir dos itens JÁ filtrados para o utilizador. */
 export function buildNavigation(items: MenuItem[]): NavigationModel {
   const links = collectLinks(items);
-  const structure = items.some((i) => i.url.startsWith("/familia")) ? FAMILY_STRUCTURE : SCHOOL_STRUCTURE;
+  const structure = items.some((i) => i.url.startsWith("/family")) ? FAMILY_STRUCTURE : SCHOOL_STRUCTURE;
   const placed = new Set<string>();
 
   const modules: NavModule[] = [];

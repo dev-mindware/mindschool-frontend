@@ -49,7 +49,7 @@ export function TuitionSubmissionsContent() {
       </div>
 
       <DataList<ApiSubmission>
-        prefix="comprovativos"
+        prefix="submissions"
         rows={submissions}
         columns={columns}
         isLoading={isLoading}
@@ -59,18 +59,18 @@ export function TuitionSubmissionsContent() {
         searchPlaceholder="Pesquisar por protocolo, aluno, referência ou quem enviou"
         searchText={(s) => `${s.protocol} ${s.student.full_name} ${s.submitted_by.full_name} ${s.reference ?? ""} ${s.payer_name ?? ""}`}
         filters={[
-          { key: "estado", label: "Estado", icon: "ListFilter", options: Object.entries(SUBMISSION_STATUS).map(([value, c]) => ({ value, label: c.label })), match: (s, v) => s.status === v },
-          { key: "aberto", label: "Fila", icon: "Inbox", options: [{ value: "abertos", label: "Por tratar" }, { value: "tratados", label: "Já tratados" }], match: (s, v) => (v === "abertos" ? OPEN_SUBMISSION.includes(s.status) : !OPEN_SUBMISSION.includes(s.status)) },
-          { key: "metodo", label: "Método", icon: "CreditCard", options: Object.entries(METHOD_LABEL).map(([value, label]) => ({ value, label })), match: (s, v) => s.method === v },
-          { key: "banco", label: "Conta de destino", icon: "Landmark", options: uniq(submissions.map((s) => s.bank_account?.bank_name ?? "")).map((v) => ({ value: v, label: v })), match: (s, v) => s.bank_account?.bank_name === v },
-          { key: "valor", label: "Valor", icon: "Coins", options: [{ value: "baixo", label: "Até 50 000 Kz" }, { value: "medio", label: "50 000 – 150 000 Kz" }, { value: "alto", label: "Acima de 150 000 Kz" }], match: (s, v) => { const a = Number(s.total_amount); return v === "baixo" ? a <= 50_000 : v === "medio" ? a > 50_000 && a <= 150_000 : a > 150_000; } },
-          { key: "espera", label: "Espera", icon: "Clock", options: [{ value: "24", label: "Mais de 24 h" }, { value: "48", label: "Mais de 48 h" }], match: (s, v) => (s.waiting_hours ?? 0) > Number(v) },
+          { key: "status", label: "Estado", icon: "ListFilter", options: Object.entries(SUBMISSION_STATUS).map(([value, c]) => ({ value, label: c.label })), match: (s, v) => s.status === v },
+          { key: "queue", label: "Fila", icon: "Inbox", options: [{ value: "open", label: "Por tratar" }, { value: "processed", label: "Já tratados" }], match: (s, v) => (v === "open" ? OPEN_SUBMISSION.includes(s.status) : !OPEN_SUBMISSION.includes(s.status)) },
+          { key: "method", label: "Método", icon: "CreditCard", options: Object.entries(METHOD_LABEL).map(([value, label]) => ({ value, label })), match: (s, v) => s.method === v },
+          { key: "bank", label: "Conta de destino", icon: "Landmark", options: uniq(submissions.map((s) => s.bank_account?.bank_name ?? "")).map((v) => ({ value: v, label: v })), match: (s, v) => s.bank_account?.bank_name === v },
+          { key: "amount", label: "Valor", icon: "Coins", options: [{ value: "low", label: "Até 50 000 Kz" }, { value: "medium", label: "50 000 – 150 000 Kz" }, { value: "high", label: "Acima de 150 000 Kz" }], match: (s, v) => { const a = Number(s.total_amount); return v === "low" ? a <= 50_000 : v === "medium" ? a > 50_000 && a <= 150_000 : a > 150_000; } },
+          { key: "waiting", label: "Espera", icon: "Clock", options: [{ value: "24", label: "Mais de 24 h" }, { value: "48", label: "Mais de 48 h" }], match: (s, v) => (s.waiting_hours ?? 0) > Number(v) },
         ]}
-        dateFilters={[{ key: "enviado", label: "Envio", getDate: (s) => s.created_at }, { key: "pago", label: "Pagamento", getDate: (s) => s.paid_on }]}
+        dateFilters={[{ key: "submitted", label: "Envio", getDate: (s) => s.created_at }, { key: "paid", label: "Pagamento", getDate: (s) => s.paid_on }]}
         sorts={[
-          { value: "data", label: "Data de envio", compare: (a, b) => a.created_at.localeCompare(b.created_at) },
-          { value: "valor", label: "Valor", compare: (a, b) => Number(a.total_amount) - Number(b.total_amount) },
-          { value: "aluno", label: "Aluno", compare: (a, b) => a.student.full_name.localeCompare(b.student.full_name, "pt") },
+          { value: "date", label: "Data de envio", compare: (a, b) => a.created_at.localeCompare(b.created_at) },
+          { value: "amount", label: "Valor", compare: (a, b) => Number(a.total_amount) - Number(b.total_amount) },
+          { value: "student", label: "Aluno", compare: (a, b) => a.student.full_name.localeCompare(b.student.full_name, "pt") },
         ]}
         emptyTitle="Sem comprovativos"
         emptyDescription="Quando uma família submeter um comprovativo no portal, aparece aqui."

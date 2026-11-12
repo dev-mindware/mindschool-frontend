@@ -5,7 +5,7 @@ export default function ReportsAcademicPage() {
   return (
     <PageWrapper>
       <ApiReportsCatalog
-        domains={["academico", "avaliacao", "secretaria", "docentes", "documentos"]}
+        domains={["academic", "evaluation", "secretary", "teaching", "documents"]}
         title="Relatórios académicos oficiais"
         description="Alunos, matrículas, aproveitamento por disciplina, progressão, carga horária e mais — com pré-visualização e exportação em Excel, PDF e CSV."
       />

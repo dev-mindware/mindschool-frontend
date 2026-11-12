@@ -88,14 +88,14 @@ export function FamilyPerformance({ studentId }: FamilyContext) {
 
         <TabsContent value="grades">
           <DataList<GradeRow>
-            prefix="notas" rows={rows} columns={gradeColumns} isLoading={live.gradesLoading} pageSize={12}
+            prefix="grades" rows={rows} columns={gradeColumns} isLoading={live.gradesLoading} pageSize={12}
             searchPlaceholder="Pesquisar disciplina" searchText={(r) => r.subject}
             filters={[
-              { key: "trimestre", label: "Trimestre", icon: "CalendarRange", options: uniq(rows.map((r) => String(r.term))).map((v) => ({ value: v, label: `${v}.º Trimestre` })), match: (r, v) => String(r.term) === v },
-              { key: "situacao", label: "Situação", icon: "ListFilter", options: [{ value: "positiva", label: "Positiva (≥ 10)" }, { value: "negativa", label: "Negativa (< 10)" }, { value: "semnota", label: "Sem nota" }], match: (r, v) => (v === "semnota" ? r.mt === null : r.mt !== null && (v === "positiva" ? r.mt >= 10 : r.mt < 10)) },
-              { key: "disciplina", label: "Disciplina", icon: "BookOpen", options: uniq(rows.map((r) => r.subject)).map((v) => ({ value: v, label: v })), match: (r, v) => r.subject === v },
+              { key: "term", label: "Trimestre", icon: "CalendarRange", options: uniq(rows.map((r) => String(r.term))).map((v) => ({ value: v, label: `${v}.º Trimestre` })), match: (r, v) => String(r.term) === v },
+              { key: "status", label: "Situação", icon: "ListFilter", options: [{ value: "passing", label: "Positiva (≥ 10)" }, { value: "failing", label: "Negativa (< 10)" }, { value: "ungraded", label: "Sem nota" }], match: (r, v) => (v === "ungraded" ? r.mt === null : r.mt !== null && (v === "passing" ? r.mt >= 10 : r.mt < 10)) },
+              { key: "subject", label: "Disciplina", icon: "BookOpen", options: uniq(rows.map((r) => r.subject)).map((v) => ({ value: v, label: v })), match: (r, v) => r.subject === v },
             ]}
-            sorts={[{ value: "disciplina", label: "Disciplina", compare: (a, b) => a.subject.localeCompare(b.subject, "pt") }, { value: "mt", label: "MT", compare: (a, b) => (a.mt ?? -1) - (b.mt ?? -1) }]}
+            sorts={[{ value: "subject", label: "Disciplina", compare: (a, b) => a.subject.localeCompare(b.subject, "pt") }, { value: "mt", label: "MT", compare: (a, b) => (a.mt ?? -1) - (b.mt ?? -1) }]}
             emptyTitle="Sem notas" emptyDescription="Ainda não há notas publicadas." emptyIcon="GraduationCap"
           />
         </TabsContent>
@@ -104,15 +104,15 @@ export function FamilyPerformance({ studentId }: FamilyContext) {
 
         <TabsContent value="reviews">
           <DataList<PortalAssessment & { id: string }>
-            prefix="reapreciacao" rows={reviewRows} columns={reviewColumns} pageSize={10}
+            prefix="grade-reviews" rows={reviewRows} columns={reviewColumns} pageSize={10}
             searchPlaceholder="Pesquisar disciplina" searchText={(a) => `${a.subject} ${TYPE_LABEL[a.type] ?? a.type}`}
             filters={[
-              { key: "tipo", label: "Tipo", icon: "ListFilter", options: Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label })), match: (a, v) => a.type === v },
-              { key: "disciplina", label: "Disciplina", icon: "BookOpen", options: uniq(reviewRows.map((a) => a.subject)).map((v) => ({ value: v, label: v })), match: (a, v) => a.subject === v },
-              { key: "pedido", label: "Reapreciação", icon: "FilePen", options: [{ value: "com", label: "Com pedido" }, { value: "sem", label: "Sem pedido" }], match: (a, v) => (v === "com" ? Boolean(a.review) : !a.review) },
+              { key: "type", label: "Tipo", icon: "ListFilter", options: Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label })), match: (a, v) => a.type === v },
+              { key: "subject", label: "Disciplina", icon: "BookOpen", options: uniq(reviewRows.map((a) => a.subject)).map((v) => ({ value: v, label: v })), match: (a, v) => a.subject === v },
+              { key: "review", label: "Reapreciação", icon: "FilePen", options: [{ value: "with", label: "Com pedido" }, { value: "without", label: "Sem pedido" }], match: (a, v) => (v === "with" ? Boolean(a.review) : !a.review) },
             ]}
-            dateFilters={[{ key: "data", label: "Data", getDate: (a) => a.date }]}
-            sorts={[{ value: "data", label: "Data", compare: (a, b) => a.date.localeCompare(b.date) }, { value: "nota", label: "Nota", compare: (a, b) => (a.numeric_value ?? -1) - (b.numeric_value ?? -1) }]}
+            dateFilters={[{ key: "date", label: "Data", getDate: (a) => a.date }]}
+            sorts={[{ value: "date", label: "Data", compare: (a, b) => a.date.localeCompare(b.date) }, { value: "grade", label: "Nota", compare: (a, b) => (a.numeric_value ?? -1) - (b.numeric_value ?? -1) }]}
             emptyTitle="Sem avaliações" emptyDescription="Ainda não há notas de pautas fechadas." emptyIcon="ClipboardList"
           />
         </TabsContent>
@@ -120,11 +120,11 @@ export function FamilyPerformance({ studentId }: FamilyContext) {
         <TabsContent value="attendance">
           {live.attendanceForbidden ? <EmptyState icon="Lock" title="Sem autorização" description="Não tem autorização para consultar a assiduidade deste educando." /> : (
             <DataList<(typeof attendanceRows)[number]>
-              prefix="presencas" rows={attendanceRows} columns={attendanceColumns} pageSize={12}
+              prefix="attendance" rows={attendanceRows} columns={attendanceColumns} pageSize={12}
               searchPlaceholder="Pesquisar justificação" searchText={(r) => `${r.status} ${r.justification ?? ""}`}
-              filters={[{ key: "estado", label: "Estado", icon: "ListFilter", options: uniq(attendanceRows.map((r) => r.status)).map((v) => ({ value: v, label: v.replace("_", " ") })), match: (r, v) => r.status === v }]}
-              dateFilters={[{ key: "dia", label: "Dia", getDate: (r) => r.date }]}
-              sorts={[{ value: "data", label: "Data", compare: (a, b) => a.date.localeCompare(b.date) }]}
+              filters={[{ key: "status", label: "Estado", icon: "ListFilter", options: uniq(attendanceRows.map((r) => r.status)).map((v) => ({ value: v, label: v.replace("_", " ") })), match: (r, v) => r.status === v }]}
+              dateFilters={[{ key: "day", label: "Dia", getDate: (r) => r.date }]}
+              sorts={[{ value: "date", label: "Data", compare: (a, b) => a.date.localeCompare(b.date) }]}
               emptyTitle="Sem registos" emptyDescription="Ainda não há registos de assiduidade." emptyIcon="CalendarCheck"
             />
           )}

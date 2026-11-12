@@ -23,11 +23,11 @@ export function FamilyAnnouncements() {
   const { announcements } = usePortal(undefined, ["announcements"]);
   return (
     <DataList<PortalAnnouncement>
-      prefix="comunicados" rows={announcements} columns={columns} pageSize={10}
+      prefix="announcements" rows={announcements} columns={columns} pageSize={10}
       searchPlaceholder="Pesquisar comunicado" searchText={(a) => `${a.title} ${a.body}`}
-      filters={[{ key: "destino", label: "Destinatários", icon: "Users", options: [...new Set(announcements.map((a) => a.audience))].map((value) => ({ value, label: value.replaceAll("_", " ") })), match: (a, v) => a.audience === v }]}
-      dateFilters={[{ key: "data", label: "Publicação", getDate: (a) => a.published_at ?? "" }]}
-      sorts={[{ value: "data", label: "Data", compare: (a, b) => (a.published_at ?? "").localeCompare(b.published_at ?? "") }]}
+      filters={[{ key: "audience", label: "Destinatários", icon: "Users", options: [...new Set(announcements.map((a) => a.audience))].map((value) => ({ value, label: value.replaceAll("_", " ") })), match: (a, v) => a.audience === v }]}
+      dateFilters={[{ key: "date", label: "Publicação", getDate: (a) => a.published_at ?? "" }]}
+      sorts={[{ value: "date", label: "Data", compare: (a, b) => (a.published_at ?? "").localeCompare(b.published_at ?? "") }]}
       emptyTitle="Sem comunicados" emptyDescription="A escola ainda não publicou comunicados." emptyIcon="Megaphone"
     />
   );

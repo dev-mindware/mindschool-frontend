@@ -149,7 +149,7 @@ export function GradesPageContent() {
           title="Lançamento de Notas (MED)"
           suTitle="Lançamento trimestral de notas (MAC, NPP, NPT e MT)."
         />
-        <div data-tour="notas-empty-state">
+        <div data-tour="grades-empty-state">
           <EmptyState
             icon="BookOpen"
             title="Nenhuma Turma Atribuída"
@@ -230,7 +230,7 @@ export function GradesPageContent() {
       <GradeRulesCard term={selectedTerm} />
 
       {/* Barra de Filtros e Seleção */}
-      <div className="flex flex-wrap items-end gap-3" data-tour="notas-filters">
+      <div className="flex flex-wrap items-end gap-3" data-tour="grades-filters">
         {/* Turma (PaginatedSelect) */}
         <div className="w-full sm:w-64 space-y-1.5">
           <Label>Turma Seleccionada</Label>

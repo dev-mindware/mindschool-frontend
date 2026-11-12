@@ -28,11 +28,11 @@ const OUTCOME: Record<Outcome, { label: string; variant: "success" | "destructiv
 
 /** Relatórios da turma (PDF/Word/Excel) para o director de turma. */
 const exportItems = (sectionId: string, termId: string): ReportExportItem[] => [
-  { model: "lista-nominal", label: "Lista nominal de alunos", params: () => ({ section_id: sectionId }) },
-  { model: "mapa-assiduidade", label: "Mapa de assiduidade", params: () => ({ section_id: sectionId, term_id: termId }) },
-  { model: "pauta-trimestral", label: "Pauta trimestral", params: () => ({ section_id: sectionId, term_id: termId }) },
-  { model: "mapa-aproveitamento", label: "Mapa de aproveitamento", params: () => ({ section_id: sectionId, term_id: termId }) },
-  { model: "horario-turma", label: "Horário da turma", params: () => ({ section_id: sectionId }) },
+  { model: "class-roster", label: "Lista nominal de alunos", params: () => ({ section_id: sectionId }) },
+  { model: "attendance-summary", label: "Mapa de assiduidade", params: () => ({ section_id: sectionId, term_id: termId }) },
+  { model: "term-grade-sheet", label: "Pauta trimestral", params: () => ({ section_id: sectionId, term_id: termId }) },
+  { model: "performance-summary", label: "Mapa de aproveitamento", params: () => ({ section_id: sectionId, term_id: termId }) },
+  { model: "class-timetable", label: "Horário da turma", params: () => ({ section_id: sectionId }) },
 ];
 
 const WEEKDAY =["", "Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
@@ -161,9 +161,9 @@ function SubjectsTable({ panel }: { panel: SectionPanel }) {
   ];
   return (
     <DataList<SubjectRow>
-      prefix="turma-disciplinas" rows={rows} columns={columns}
+      prefix="section-subjects" rows={rows} columns={columns}
       searchPlaceholder="Pesquisar disciplina ou professor" searchText={(s) => `${s.name} ${s.teacher_name}`}
-      filters={[{ key: "notas", label: "Notas", icon: "ClipboardCheck", options: [{ value: "falta", label: "Com notas por lançar" }, { value: "completo", label: "Completas" }], match: (s, v) => (v === "falta" ? s.missing > 0 : s.missing === 0) }]}
+      filters={[{ key: "grades", label: "Notas", icon: "ClipboardCheck", options: [{ value: "missing", label: "Com notas por lançar" }, { value: "complete", label: "Completas" }], match: (s, v) => (v === "missing" ? s.missing > 0 : s.missing === 0) }]}
       emptyTitle="A turma ainda não tem disciplinas atribuídas" emptyDescription="Atribua as disciplinas em Académico › Professores." emptyIcon="BookOpen"
     />
   );
@@ -190,10 +190,10 @@ function StudentsTable({ panel }: { panel: SectionPanel }) {
     <div className="space-y-2">
       <p className="text-xs text-muted-foreground">Resultado provisório do trimestre: «Indefinido» enquanto houver notas por lançar; nota mínima {panel.pass_mark}.</p>
       <DataList<StudentRow>
-        prefix="turma-alunos" rows={rows} columns={columns}
+        prefix="section-students" rows={rows} columns={columns}
         searchPlaceholder="Pesquisar aluno ou n.º de processo" searchText={(r) => `${r.full_name} ${r.process_number ?? ""}`}
-        filters={[{ key: "resultado", label: "Resultado", icon: "GraduationCap", options: (Object.keys(OUTCOME) as Outcome[]).map((v) => ({ value: v, label: OUTCOME[v].label })), match: (r, v) => r.outcome === v }]}
-        sorts={[{ value: "nome", label: "Nome", compare: (a, b) => a.full_name.localeCompare(b.full_name, "pt") }, { value: "assiduidade", label: "Assiduidade", compare: (a, b) => (a.attendance_rate ?? 101) - (b.attendance_rate ?? 101) }]}
+        filters={[{ key: "outcome", label: "Resultado", icon: "GraduationCap", options: (Object.keys(OUTCOME) as Outcome[]).map((v) => ({ value: v, label: OUTCOME[v].label })), match: (r, v) => r.outcome === v }]}
+        sorts={[{ value: "name", label: "Nome", compare: (a, b) => a.full_name.localeCompare(b.full_name, "pt") }, { value: "attendance", label: "Assiduidade", compare: (a, b) => (a.attendance_rate ?? 101) - (b.attendance_rate ?? 101) }]}
         toolbar={<Button variant="outline" size="sm" className="gap-2" onClick={exportList} disabled={rows.length === 0}><Icon name="Download" className="size-4" />Exportar (Excel/CSV)</Button>}
         emptyTitle="A turma ainda não tem alunos matriculados" emptyDescription="Matricule os alunos em Secretaria › Matrículas." emptyIcon="Users"
       />

@@ -173,7 +173,7 @@ export const onboardingTours: Record<OnboardingTourId, TourDefinition> = {
     steps: [
       tourStep("page-title", "Ficha dos alunos", "Cadastre alunos e consulte a ficha de cada um: dados pessoais, encarregados, documentos e percurso.", { side: "bottom" }),
       tourStep("page-summary", "Resumo", "Alunos registados, matriculados, pendentes e anulações deste ano letivo.", { side: "bottom" }),
-      tourStep("alunos-filters", "Pesquisar e filtrar", "Procure por nome, n.º de processo ou BI e filtre por turma, classe ou estado.", { side: "bottom" }),
+      tourStep("students-filters", "Pesquisar e filtrar", "Procure por nome, n.º de processo ou BI e filtre por turma, classe ou estado.", { side: "bottom" }),
     ],
   }),
 
@@ -187,7 +187,7 @@ export const onboardingTours: Record<OnboardingTourId, TourDefinition> = {
     steps: [
       tourStep("page-title", "Matrículas do ano", "Matricule alunos numa turma do ano letivo; a matrícula gera logo o plano de propinas da escola.", { side: "bottom" }),
       tourStep("page-summary", "Estado das matrículas", "Ativas, pendentes de confirmação, transferidas e anuladas.", { side: "bottom" }),
-      tourStep("matriculas-filters", "Pesquisar e filtrar", "Filtre por turma, classe, estado ou data para encontrar uma matrícula.", { side: "bottom" }),
+      tourStep("enrollments-filters", "Pesquisar e filtrar", "Filtre por turma, classe, estado ou data para encontrar uma matrícula.", { side: "bottom" }),
     ],
   }),
 
@@ -200,9 +200,9 @@ export const onboardingTours: Record<OnboardingTourId, TourDefinition> = {
     minPlan: "essencial",
     steps: [
       tourStep("page-title", "Notas do trimestre", "Lance MAC, NPP e NPT por turma e disciplina; a MT calcula-se sozinha com as regras do MED.", { side: "bottom" }),
-      tourStep("notas-empty-state", "Sem turmas atribuídas", "Assim que a Direção Pedagógica atribuir turmas e disciplinas ao seu horário, as pautas ficarão disponíveis aqui.", { side: "bottom" }),
+      tourStep("grades-empty-state", "Sem turmas atribuídas", "Assim que a Direção Pedagógica atribuir turmas e disciplinas ao seu horário, as pautas ficarão disponíveis aqui.", { side: "bottom" }),
       tourStep("page-summary", "Situação da disciplina", "Média, taxa de positivas, notas em falta e estado da pauta.", { side: "bottom" }),
-      tourStep("notas-filters", "Escolher a pauta", "Escolha a turma, a disciplina e o trimestre. As notas ficam guardadas ao lançar; quem fecha a pauta é a Direção.", { side: "bottom" }),
+      tourStep("grades-filters", "Escolher a pauta", "Escolha a turma, a disciplina e o trimestre. As notas ficam guardadas ao lançar; quem fecha a pauta é a Direção.", { side: "bottom" }),
     ],
   }),
 
@@ -216,7 +216,7 @@ export const onboardingTours: Record<OnboardingTourId, TourDefinition> = {
     steps: [
       tourStep("page-title", "Propinas e mensalidades", "Acompanhe as propinas geradas pelas matrículas e registe pagamentos.", { side: "bottom" }),
       tourStep("page-summary", "Cobrança", "Arrecadado, taxa de cobrança, mensalidades vencidas e previsão a receber.", { side: "bottom" }),
-      tourStep("propinas-filters", "Pesquisar e filtrar", "Filtre por estado, mês, turma ou método. Seleccione as propinas de um aluno e use «Marcar como pago».", { side: "bottom" }),
+      tourStep("tuition-filters", "Pesquisar e filtrar", "Filtre por estado, mês, turma ou método. Seleccione as propinas de um aluno e use «Marcar como pago».", { side: "bottom" }),
     ],
   }),
 

@@ -93,15 +93,15 @@ const fam = (name: string, url: string, icon: string, module: "acompanhamento" |
 export const PAGES: readonly PageDef[] = [
   // Área da família
   { name: "Início", url: "/dashboard", icon: "House", module: "acompanhamento", roles: FAMILY },
-  fam("Aproveitamento", "/familia/aproveitamento", "GraduationCap", "acompanhamento"),
-  fam("Horário", "/familia/horario", "CalendarRange", "acompanhamento"),
-  fam("Calendário", "/familia/calendario", "CalendarDays", "acompanhamento"),
-  fam("Disciplinas", "/familia/disciplinas", "BookOpen", "acompanhamento"),
-  fam("Provas Online", "/familia/provas", "FileText", "acompanhamento"),
-  fam("Financeiro", "/familia/financeiro", "Wallet", "servicos"),
-  fam("Biblioteca", "/familia/biblioteca", "Library", "servicos"),
-  fam("Documentos e Pedidos", "/familia/documentos", "Files", "servicos"),
-  fam("Comunicados", "/familia/comunicados", "Megaphone", "servicos"),
+  fam("Aproveitamento", "/family/performance", "GraduationCap", "acompanhamento"),
+  fam("Horário", "/family/timetable", "CalendarRange", "acompanhamento"),
+  fam("Calendário", "/family/calendar", "CalendarDays", "acompanhamento"),
+  fam("Disciplinas", "/family/subjects", "BookOpen", "acompanhamento"),
+  fam("Provas Online", "/family/exams", "FileText", "acompanhamento"),
+  fam("Financeiro", "/family/finance", "Wallet", "servicos"),
+  fam("Biblioteca", "/family/library", "Library", "servicos"),
+  fam("Documentos e Pedidos", "/family/documents", "Files", "servicos"),
+  fam("Comunicados", "/family/announcements", "Megaphone", "servicos"),
   { name: "Configurações", url: "/settings", icon: "Settings", module: "conta", roles: FAMILY },
 
   // Escola
@@ -126,7 +126,7 @@ export const PAGES: readonly PageDef[] = [
   { name: "Assiduidade Docente", url: "/teachers-attendance", icon: "QrCode", module: "academico", section: "Gestão Académica", roles: PEDAGOGY_T, minPlan: "profissional", feature: "teacher_attendance" },
 
   { name: "Lançamento de Notas", url: "/grades/entry", icon: "PenLine", module: "avaliacao", section: "Avaliações & Pautas", roles: PEDAGOGY_T },
-  { name: "Pautas Trimestrais", url: "/grades/pautas", icon: "Table", module: "avaliacao", section: "Avaliações & Pautas", roles: [...PEDAGOGY_T, "MED_AUDITOR"] },
+  { name: "Pautas Trimestrais", url: "/grades/grade-sheets", icon: "Table", module: "avaliacao", section: "Avaliações & Pautas", roles: [...PEDAGOGY_T, "MED_AUDITOR"] },
   { name: "Reapreciação de Notas", url: "/grades/reviews", icon: "FilePen", module: "avaliacao", section: "Avaliações & Pautas", roles: PEDAGOGY_T },
   { name: "Conselhos de Turma", url: "/grades/councils", icon: "UsersRound", module: "avaliacao", section: "Avaliações & Pautas", roles: PEDAGOGY_T },
   { name: "Exames Finais", url: "/grades/final-exams", icon: "GraduationCap", module: "avaliacao", section: "Avaliações & Pautas", roles: PEDAGOGY_T },
@@ -168,7 +168,7 @@ export const PAGE_PERMISSION: Readonly<Record<string, readonly string[]>> = {
   "/certificates/declarations": ["document:read"], "/certificates/report-cards": ["document:read"], "/certificates/archive": ["document:read"], "/certificates/requests": ["request:read"],
   "/academic/classes": ["section:read"], "/academic/subjects": ["subject:read"], "/academic/assignments": ["teaching:read"],
   "/academic/timetables": ["timetable:read"], "/academic/calendar": ["calendar:read"], "/academic/lessons": ["lesson:read"],  "/academic/attendance": ["absence:read"], "/teachers-attendance": ["attendance:read", "attendance:self"],
-  "/grades/entry": ["assessment:read"], "/grades/pautas": ["pauta:read"], "/grades/reviews": ["grade_review:read"], "/grades/councils": ["council:read"],
+  "/grades/entry": ["assessment:read"], "/grades/grade-sheets": ["pauta:read"], "/grades/reviews": ["grade_review:read"], "/grades/councils": ["council:read"],
   "/grades/final-exams": ["final_exam:read"], "/grades/transitions": ["enrollment:read"], "/online-exams": ["exam:read"], "/dropout-risk": ["risk:read"],
   "/academic/library": ["library:read"], "/academic/health-psychology": ["health:read", "psycho:read"], "/academic/transport": ["transport:read"],
   "/academic/extracurricular": ["activity:read"], "/communication/circulars": ["announcement:read"],

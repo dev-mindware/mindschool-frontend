@@ -9,7 +9,7 @@ import { getApiErrorMessage } from "@/utils/api-error";
 
 const MAX_RENEWALS = 2; // igual ao limite da API
 
-const loanState = (l: ApiLoan) => (l.status === "devolvido" ? "devolvido" : l.overdue ? "atraso" : "curso");
+const loanState = (l: ApiLoan) => (l.status === "devolvido" ? "returned" : l.overdue ? "overdue" : "active");
 
 /** Balcão de empréstimos: devolução e renovação; os atrasos aparecem a vermelho. */
 export function LoansManagementView() {
@@ -23,8 +23,8 @@ export function LoansManagementView() {
     { key: "due_at", header: "Devolver até", render: (_, l) => <span className="font-mono text-xs">{l.due_at}{l.renewals > 0 ? ` (${l.renewals}×)` : ""}</span> },
     {
       key: "status", header: "Estado",
-      render: (_, l) => (loanState(l) === "devolvido" ? <Badge variant="secondary">Devolvido</Badge>
-        : loanState(l) === "atraso" ? <Badge variant="destructive">{l.days_overdue}d em atraso</Badge>
+      render: (_, l) => (loanState(l) === "returned" ? <Badge variant="secondary">Devolvido</Badge>
+        : loanState(l) === "overdue" ? <Badge variant="destructive">{l.days_overdue}d em atraso</Badge>
           : <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">Em curso</Badge>),
     },
     {
@@ -41,18 +41,18 @@ export function LoansManagementView() {
 
   return (
     <DataList<ApiLoan>
-      prefix="emprestimos"
+      prefix="loans"
       rows={loans}
       columns={columns}
       isLoading={isLoading}
       searchPlaceholder="Pesquisar por obra ou leitor"
       searchText={(l) => `${bookById.get(l.book_id)?.title ?? ""} ${readerName(l)}`}
       filters={[
-        { key: "estado", label: "Estado", icon: "Tag", options: [{ value: "curso", label: "Em curso" }, { value: "atraso", label: "Em atraso" }, { value: "devolvido", label: "Devolvido" }], match: (l, v) => loanState(l) === v },
-        { key: "leitor", label: "Tipo de leitor", icon: "Users", options: [{ value: "aluno", label: "Aluno" }, { value: "docente", label: "Docente" }], match: (l, v) => (v === "docente" ? Boolean(l.teacher_id) : Boolean(l.student_id)) },
-        { key: "renovado", label: "Renovações", icon: "RefreshCcw", options: [{ value: "sim", label: "Renovados" }, { value: "nao", label: "Sem renovação" }], match: (l, v) => (v === "sim" ? l.renewals > 0 : l.renewals === 0) },
+        { key: "status", label: "Estado", icon: "Tag", options: [{ value: "active", label: "Em curso" }, { value: "overdue", label: "Em atraso" }, { value: "returned", label: "Devolvido" }], match: (l, v) => loanState(l) === v },
+        { key: "reader", label: "Tipo de leitor", icon: "Users", options: [{ value: "student", label: "Aluno" }, { value: "teacher", label: "Docente" }], match: (l, v) => (v === "teacher" ? Boolean(l.teacher_id) : Boolean(l.student_id)) },
+        { key: "renewed", label: "Renovações", icon: "RefreshCcw", options: [{ value: "yes", label: "Renovados" }, { value: "no", label: "Sem renovação" }], match: (l, v) => (v === "yes" ? l.renewals > 0 : l.renewals === 0) },
       ]}
-      dateFilters={[{ key: "emprestado", label: "Emprestado", getDate: (l) => l.loaned_at }, { key: "devolucao", label: "Devolução", getDate: (l) => l.due_at }]}
+      dateFilters={[{ key: "loaned", label: "Emprestado", getDate: (l) => l.loaned_at }, { key: "due", label: "Devolução", getDate: (l) => l.due_at }]}
       sorts={[
         { value: "loaned", label: "Data do empréstimo", compare: (a, b) => a.loaned_at.localeCompare(b.loaned_at) },
         { value: "due", label: "Prazo de devolução", compare: (a, b) => a.due_at.localeCompare(b.due_at) },

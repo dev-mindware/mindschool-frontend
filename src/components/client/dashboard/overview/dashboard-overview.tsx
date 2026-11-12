@@ -199,7 +199,7 @@ export function DashboardOverview() {
     : [
         { label: "Alunos", href: "/students/list", permission: "student:read", icon: "GraduationCap" as const },
         { label: "Matrículas", href: "/students/enrollments", permission: "enrollment:read", icon: "ClipboardList" as const },
-        { label: "Pautas", href: "/grades/pautas", permission: "pauta:read", icon: "FileCheck" as const },
+        { label: "Pautas", href: "/grades/grade-sheets", permission: "pauta:read", icon: "FileCheck" as const },
         { label: "Propinas", href: "/tuition/invoices", permission: "invoice:read", icon: "Wallet" as const },
       ];
 

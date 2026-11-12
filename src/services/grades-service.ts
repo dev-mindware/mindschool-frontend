@@ -81,7 +81,7 @@ export const gradesService = {
     return { term: t, assignment: asg };
   },
 
-  pauta: async (sectionId: string, termId: string): Promise<ApiPauta> => (await api.get<ApiPauta>(`/s/sections/${sectionId}/pauta/${termId}`)).data,
+  pauta: async (sectionId: string, termId: string): Promise<ApiPauta> => (await api.get<ApiPauta>(`/s/sections/${sectionId}/grade-sheets/${termId}`)).data,
 
   /** Mini-pauta (disciplina x turma x periodo) montada a partir das avaliacoes, notas e mini-pautas calculadas pela API. */
   sheet: async (sectionId: string, subjectId: string, term: AssessmentTerm): Promise<GradeSheetResult | null> => {

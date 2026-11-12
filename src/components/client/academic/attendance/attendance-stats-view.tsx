@@ -41,7 +41,7 @@ export function AttendanceStatsView({ classId, className }: AttendanceStatsViewP
     <div className="space-y-1">
       <p className="text-sm font-semibold">{className || "Turma"}</p>
       <DataList<Row>
-        prefix="mapa-assiduidade"
+        prefix="attendance-stats"
         rows={data}
         columns={columns}
         isLoading={isLoading}
@@ -49,13 +49,13 @@ export function AttendanceStatsView({ classId, className }: AttendanceStatsViewP
         searchPlaceholder="Pesquisar aluno"
         searchText={(r) => r.student.full_name}
         filters={[
-          { key: "risco", label: "Assiduidade", icon: "Gauge", options: [{ value: "abaixo", label: "Abaixo de 75%" }, { value: "ok", label: "75% ou mais" }], match: (r, v) => (v === "abaixo" ? (r.attendance_rate ?? 100) < 75 : (r.attendance_rate ?? 100) >= 75) },
-          { key: "faltas", label: "Faltas", icon: "UserX", options: [{ value: "injustificadas", label: "Com faltas injustificadas" }, { value: "sem", label: "Sem faltas" }], match: (r, v) => (v === "sem" ? r.unjustified_absences + r.justified_absences === 0 : r.unjustified_absences > 0) },
+          { key: "risk", label: "Assiduidade", icon: "Gauge", options: [{ value: "below", label: "Abaixo de 75%" }, { value: "ok", label: "75% ou mais" }], match: (r, v) => (v === "below" ? (r.attendance_rate ?? 100) < 75 : (r.attendance_rate ?? 100) >= 75) },
+          { key: "absences", label: "Faltas", icon: "UserX", options: [{ value: "unjustified", label: "Com faltas injustificadas" }, { value: "none", label: "Sem faltas" }], match: (r, v) => (v === "none" ? r.unjustified_absences + r.justified_absences === 0 : r.unjustified_absences > 0) },
         ]}
         sorts={[
-          { value: "taxa", label: "Assiduidade", compare: (a, b) => (a.attendance_rate ?? 100) - (b.attendance_rate ?? 100) },
-          { value: "injust", label: "Faltas injustificadas", compare: (a, b) => a.unjustified_absences - b.unjustified_absences },
-          { value: "nome", label: "Nome", compare: (a, b) => a.student.full_name.localeCompare(b.student.full_name) },
+          { value: "rate", label: "Assiduidade", compare: (a, b) => (a.attendance_rate ?? 100) - (b.attendance_rate ?? 100) },
+          { value: "unjustified", label: "Faltas injustificadas", compare: (a, b) => a.unjustified_absences - b.unjustified_absences },
+          { value: "name", label: "Nome", compare: (a, b) => a.student.full_name.localeCompare(b.student.full_name) },
         ]}
         emptyTitle="Sem alunos matriculados nesta turma"
         emptyIcon="Users"

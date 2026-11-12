@@ -128,18 +128,18 @@ test.describe.serial("Candidaturas, relatórios e definições", () => {
 test.describe.serial("Portal da família", () => {
   test("Encarregado: vê o educando, as propinas e os documentos", async ({ page }) => {
     await login(page, ACCOUNTS.encarregado);
-    await page.goto("/familia/financeiro");
+    await page.goto("/family/finance");
     await expect(page.locator("main")).toContainText(/Educando/i, { timeout: 20_000 });
     await expect(page.locator("main")).not.toContainText(/Application error|Algo correu mal/i);
-    await page.goto("/familia/horario");
+    await page.goto("/family/timetable");
     await expect(page.locator("main")).not.toBeEmpty();
-    await page.goto("/familia/documentos");
+    await page.goto("/family/documents");
     await expect(page.locator("main")).not.toBeEmpty();
   });
 
   test("Aluno: o portal abre sem bloqueio de plano", async ({ page }) => {
     await login(page, ACCOUNTS.aluno);
-    for (const rota of ["/familia/aproveitamento", "/familia/horario", "/familia/biblioteca", "/familia/calendario"]) {
+    for (const rota of ["/family/performance", "/family/timetable", "/family/library", "/family/calendar"]) {
       await page.goto(rota);
       await expect(page.locator("main")).not.toContainText(/Recurso Exclusivo|Sem acesso/i);
     }

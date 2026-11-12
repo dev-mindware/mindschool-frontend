@@ -218,18 +218,18 @@ export function CouncilsPageContent() {
       </TitleList>
 
       <DataList<CouncilRow>
-        prefix="conselhos"
+        prefix="councils"
         rows={councils}
         columns={columns}
         isLoading={isLoading}
         searchPlaceholder="Pesquisar por turma ou agenda"
         searchText={(c) => `${sectionName(c)} ${c.agenda ?? ""}`}
         filters={[
-          { key: "tipo", label: "Tipo", icon: "Tag", options: [{ value: "periodico", label: "Periódico" }, { value: "final", label: "Final" }], match: (c, v) => c.kind === v },
-          { key: "estado", label: "Estado", icon: "CircleDot", options: [{ value: "agendado", label: "Agendado" }, { value: "encerrado", label: "Encerrado" }], match: (c, v) => (v === "encerrado" ? c.status === "encerrado" : c.status !== "encerrado") },
+          { key: "type", label: "Tipo", icon: "Tag", options: [{ value: "periodico", label: "Periódico" }, { value: "final", label: "Final" }], match: (c, v) => c.kind === v },
+          { key: "status", label: "Estado", icon: "CircleDot", options: [{ value: "agendado", label: "Agendado" }, { value: "encerrado", label: "Encerrado" }], match: (c, v) => (v === "encerrado" ? c.status === "encerrado" : c.status !== "encerrado") },
         ]}
-        dateFilters={[{ key: "data", label: "Agendado", getDate: (c) => c.scheduled_at }]}
-        sorts={[{ value: "data", label: "Data", compare: (a, b) => a.scheduled_at.localeCompare(b.scheduled_at) }, { value: "turma", label: "Turma", compare: (a, b) => sectionName(a).localeCompare(sectionName(b)) }]}
+        dateFilters={[{ key: "date", label: "Agendado", getDate: (c) => c.scheduled_at }]}
+        sorts={[{ value: "date", label: "Data", compare: (a, b) => a.scheduled_at.localeCompare(b.scheduled_at) }, { value: "section", label: "Turma", compare: (a, b) => sectionName(a).localeCompare(sectionName(b)) }]}
         emptyTitle="Ainda não há conselhos agendados"
         emptyDescription="Quando a direção agendar um conselho de turma, ele aparece aqui."
         emptyIcon="Users"

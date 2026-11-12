@@ -23,13 +23,13 @@ export function StudentHealthDirectoryView() {
   return (
     <>
       <DataList<Row>
-        prefix="fichas"
+        prefix="health-records"
         rows={students}
         columns={columns}
         searchPlaceholder="Pesquisar aluno por nome"
         searchText={(s) => s.fullName}
-        filters={[{ key: "classe", label: "Classe", icon: "GraduationCap", options: levels.map((l) => ({ value: l, label: l })), match: (s, v) => s.currentClassLevel === v }]}
-        sorts={[{ value: "nome", label: "Nome", compare: (a, b) => a.fullName.localeCompare(b.fullName) }, { value: "classe", label: "Classe", compare: (a, b) => (a.currentClassLevel ?? "").localeCompare(b.currentClassLevel ?? "", "pt", { numeric: true }) }]}
+        filters={[{ key: "level", label: "Classe", icon: "GraduationCap", options: levels.map((l) => ({ value: l, label: l })), match: (s, v) => s.currentClassLevel === v }]}
+        sorts={[{ value: "name", label: "Nome", compare: (a, b) => a.fullName.localeCompare(b.fullName) }, { value: "level", label: "Classe", compare: (a, b) => (a.currentClassLevel ?? "").localeCompare(b.currentClassLevel ?? "", "pt", { numeric: true }) }]}
         emptyTitle="Nenhum aluno encontrado"
         emptyIcon="Users"
       />

@@ -191,7 +191,7 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
   return (
     <>
       <DataList<AcademicSection>
-        prefix="turmas"
+        prefix="classes"
         rows={sections}
         columns={columns}
         isLoading={isLoading}
@@ -199,18 +199,18 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
         searchPlaceholder="Pesquisar turma, classe, sala ou diretor"
         searchText={(s) => `${s.name} ${s.classLevel} ${s.roomNumber} ${s.mainTeacherName ?? ""}`}
         filters={[
-          { key: "turno", label: "Turno", icon: "Sun", options: [{ value: "MORNING", label: "Manhã" }, { value: "AFTERNOON", label: "Tarde" }, { value: "EVENING", label: "Noite" }], match: (s, v) => s.shift === v },
-          { key: "ciclo", label: "Ciclo", icon: "Layers", options: [{ value: "PRIMARY", label: "Primário" }, { value: "LOWER_SECONDARY", label: "Iº Ciclo" }, { value: "UPPER_SECONDARY", label: "IIº Ciclo / Médio" }], match: (s, v) => s.cycle === v },
-          { key: "classe", label: "Classe", icon: "GraduationCap", options: uniq(sections.map((s) => s.classLevel)).map((v) => ({ value: v, label: v })), match: (s, v) => s.classLevel === v },
-          { key: "ano", label: "Ano letivo", icon: "CalendarRange", options: uniq(sections.map((s) => s.academicYear)).map((v) => ({ value: v, label: v })), match: (s, v) => s.academicYear === v },
-          { key: "lotacao", label: "Lotação", icon: "Gauge", options: [{ value: "cheia", label: "Lotada (≥100%)" }, { value: "alta", label: "Alta (≥85%)" }, { value: "livre", label: "Com vagas (<85%)" }], match: (s, v) => { const r = s.capacity > 0 ? s.currentEnrollmentCount / s.capacity : 0; return v === "cheia" ? r >= 1 : v === "alta" ? r >= 0.85 : r < 0.85; } },
-          { key: "estado", label: "Estado", icon: "ToggleLeft", options: [{ value: "on", label: "Ativas" }, { value: "off", label: "Inactivas" }], match: (s, v) => (v === "on" ? s.isActive : !s.isActive) },
-          { key: "director", label: "Diretor de turma", icon: "UserCheck", options: [{ value: "com", label: "Com diretor" }, { value: "sem", label: "Sem diretor" }], match: (s, v) => (v === "com" ? Boolean(s.mainTeacherId) : !s.mainTeacherId) },
+          { key: "shift", label: "Turno", icon: "Sun", options: [{ value: "MORNING", label: "Manhã" }, { value: "AFTERNOON", label: "Tarde" }, { value: "EVENING", label: "Noite" }], match: (s, v) => s.shift === v },
+          { key: "cycle", label: "Ciclo", icon: "Layers", options: [{ value: "PRIMARY", label: "Primário" }, { value: "LOWER_SECONDARY", label: "Iº Ciclo" }, { value: "UPPER_SECONDARY", label: "IIº Ciclo / Médio" }], match: (s, v) => s.cycle === v },
+          { key: "level", label: "Classe", icon: "GraduationCap", options: uniq(sections.map((s) => s.classLevel)).map((v) => ({ value: v, label: v })), match: (s, v) => s.classLevel === v },
+          { key: "year", label: "Ano letivo", icon: "CalendarRange", options: uniq(sections.map((s) => s.academicYear)).map((v) => ({ value: v, label: v })), match: (s, v) => s.academicYear === v },
+          { key: "occupancy", label: "Lotação", icon: "Gauge", options: [{ value: "full", label: "Lotada (≥100%)" }, { value: "high", label: "Alta (≥85%)" }, { value: "available", label: "Com vagas (<85%)" }], match: (s, v) => { const r = s.capacity > 0 ? s.currentEnrollmentCount / s.capacity : 0; return v === "full" ? r >= 1 : v === "high" ? r >= 0.85 : r < 0.85; } },
+          { key: "status", label: "Estado", icon: "ToggleLeft", options: [{ value: "active", label: "Ativas" }, { value: "inactive", label: "Inactivas" }], match: (s, v) => (v === "active" ? s.isActive : !s.isActive) },
+          { key: "homeroom", label: "Diretor de turma", icon: "UserCheck", options: [{ value: "with", label: "Com diretor" }, { value: "without", label: "Sem diretor" }], match: (s, v) => (v === "with" ? Boolean(s.mainTeacherId) : !s.mainTeacherId) },
         ]}
         sorts={[
-          { value: "nome", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name, "pt") },
-          { value: "lotacao", label: "Lotação", compare: (a, b) => a.currentEnrollmentCount / (a.capacity || 1) - b.currentEnrollmentCount / (b.capacity || 1) },
-          { value: "capacidade", label: "Capacidade", compare: (a, b) => a.capacity - b.capacity },
+          { value: "name", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name, "pt") },
+          { value: "occupancy", label: "Lotação", compare: (a, b) => a.currentEnrollmentCount / (a.capacity || 1) - b.currentEnrollmentCount / (b.capacity || 1) },
+          { value: "capacity", label: "Capacidade", compare: (a, b) => a.capacity - b.capacity },
         ]}
         emptyTitle="Nenhuma turma encontrada"
         emptyDescription="Ajuste os filtros ou crie uma nova turma."

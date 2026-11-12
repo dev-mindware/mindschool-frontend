@@ -30,18 +30,18 @@ export function PsychopedagogicalView() {
     <div className="space-y-2">
       <div className="mt-6 flex justify-end"><Can permission="psycho:write"><Button size="sm" className="gap-1.5" onClick={() => openModal("health-new-case")}><Icon name="Plus" className="size-4" />Abrir caso</Button></Can></div>
       <DataList<ApiCase>
-        prefix="casos"
+        prefix="psycho-cases"
         rows={cases}
         columns={columns}
         isLoading={casesLoading}
         searchPlaceholder="Pesquisar por aluno ou resumo"
         searchText={(c) => `${nameOf.get(c.student_id) ?? ""} ${c.summary}`}
         filters={[
-          { key: "categoria", label: "Categoria", icon: "Tag", options: Object.entries(CASE_CATEGORY_LABEL).map(([value, label]) => ({ value, label })), match: (c, v) => c.category === v },
-          { key: "estado", label: "Estado", icon: "CircleDot", options: Object.entries(CASE_STATUS_LABEL).map(([value, label]) => ({ value, label })), match: (c, v) => c.status === v },
+          { key: "category", label: "Categoria", icon: "Tag", options: Object.entries(CASE_CATEGORY_LABEL).map(([value, label]) => ({ value, label })), match: (c, v) => c.category === v },
+          { key: "status", label: "Estado", icon: "CircleDot", options: Object.entries(CASE_STATUS_LABEL).map(([value, label]) => ({ value, label })), match: (c, v) => c.status === v },
         ]}
-        dateFilters={[{ key: "aberto", label: "Aberto", getDate: (c) => c.opened_at }]}
-        sorts={[{ value: "data", label: "Data de abertura", compare: (a, b) => a.opened_at.localeCompare(b.opened_at) }, { value: "aluno", label: "Aluno", compare: (a, b) => (nameOf.get(a.student_id) ?? "").localeCompare(nameOf.get(b.student_id) ?? "") }]}
+        dateFilters={[{ key: "opened", label: "Aberto", getDate: (c) => c.opened_at }]}
+        sorts={[{ value: "date", label: "Data de abertura", compare: (a, b) => a.opened_at.localeCompare(b.opened_at) }, { value: "student", label: "Aluno", compare: (a, b) => (nameOf.get(a.student_id) ?? "").localeCompare(nameOf.get(b.student_id) ?? "") }]}
         emptyTitle="Sem casos em acompanhamento"
         emptyIcon="BrainCircuit"
       />

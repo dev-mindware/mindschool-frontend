@@ -161,19 +161,19 @@ export function TeachersPageContent() {
       </TitleList>
 
       <DataList<TeacherRow>
-        prefix="docentes"
+        prefix="teachers"
         rows={rows}
         columns={columns}
         isLoading={t.isLoading}
         searchPlaceholder="Pesquisar por nome, e-mail ou documento"
         searchText={(x) => `${x.full_name} ${x.email ?? ""} ${x.document_number}`}
         filters={[
-          { key: "estado", label: "Estado", icon: "Tag", options: [...(Object.keys(STATUS) as TeacherStatus[]).map((s) => ({ value: s, label: STATUS[s] })), { value: "convite", label: "Convite pendente" }, { value: "sem_ficha", label: "Sem ficha" }], match: (x, v) => (v === "sem_ficha" ? Boolean(x.noProfile) : v === "convite" ? Boolean(x.invite_pending) && !x.noProfile : !x.noProfile && x.status === v) },
-          { key: "habilitacao", label: "Habilitação", icon: "GraduationCap", options: [{ value: "com", label: "Com habilitação" }, { value: "sem", label: "Sem habilitação" }], match: (x, v) => (v === "com" ? Boolean(x.academic_qualification) : !x.academic_qualification) },
+          { key: "status", label: "Estado", icon: "Tag", options: [...(Object.keys(STATUS) as TeacherStatus[]).map((s) => ({ value: s, label: STATUS[s] })), { value: "invite_pending", label: "Convite pendente" }, { value: "no_profile", label: "Sem ficha" }], match: (x, v) => (v === "no_profile" ? Boolean(x.noProfile) : v === "invite_pending" ? Boolean(x.invite_pending) && !x.noProfile : !x.noProfile && x.status === v) },
+          { key: "qualification", label: "Habilitação", icon: "GraduationCap", options: [{ value: "with", label: "Com habilitação" }, { value: "without", label: "Sem habilitação" }], match: (x, v) => (v === "with" ? Boolean(x.academic_qualification) : !x.academic_qualification) },
         ]}
         sorts={[
-          { value: "nome", label: "Nome", compare: (a, b) => a.full_name.localeCompare(b.full_name) },
-          { value: "estado", label: "Estado", compare: (a, b) => a.status.localeCompare(b.status) },
+          { value: "name", label: "Nome", compare: (a, b) => a.full_name.localeCompare(b.full_name) },
+          { value: "status", label: "Estado", compare: (a, b) => a.status.localeCompare(b.status) },
         ]}
         emptyTitle="Sem professores"
         emptyDescription="Um professor precisa de duas coisas: a conta de acesso (Definições › Utilizadores e Papéis, papel «Professor») e a ficha de docente. Crie a ficha em «Nova ficha» escolhendo o utilizador que convidou."

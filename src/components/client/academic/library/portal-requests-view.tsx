@@ -47,11 +47,11 @@ export function PortalRequestsView() {
   return (
     <>
       <DataList<ApiLibraryRequest>
-        prefix="pedidos" rows={data} columns={columns} isLoading={isLoading} pageSize={10}
+        prefix="library-requests" rows={data} columns={columns} isLoading={isLoading} pageSize={10}
         searchPlaceholder="Pesquisar livro ou aluno" searchText={(r) => `${r.book_title} ${r.student_name}`}
-        filters={[{ key: "estado", label: "Estado", icon: "ListFilter", options: (Object.keys(STATUS) as ApiLibraryRequestStatus[]).map((s) => ({ value: s, label: STATUS[s].label })), match: (r, v) => r.status === v }]}
-        dateFilters={[{ key: "data", label: "Pedido em", getDate: (r) => r.created_at }]}
-        sorts={[{ value: "data", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }]}
+        filters={[{ key: "status", label: "Estado", icon: "ListFilter", options: (Object.keys(STATUS) as ApiLibraryRequestStatus[]).map((s) => ({ value: s, label: STATUS[s].label })), match: (r, v) => r.status === v }]}
+        dateFilters={[{ key: "date", label: "Pedido em", getDate: (r) => r.created_at }]}
+        sorts={[{ value: "date", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }]}
         emptyTitle="Sem pedidos do portal" emptyDescription="Quando um encarregado ou aluno pedir um livro, o pedido aparece aqui." emptyIcon="Inbox"
       />
 

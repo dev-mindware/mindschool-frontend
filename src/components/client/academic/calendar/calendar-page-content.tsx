@@ -29,18 +29,18 @@ const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação 
 const toneOf = (e: ApiEvent): CalendarItem["tone"] => (e.status === "cancelado" ? "muted" : e.effect === "nao_lectivo" ? "warning" : e.status === "publicado" ? "success" : e.status === "rascunho" ? "muted" : "primary");
 
 const EVENT_FILTERS: ListFilterDef<ApiEvent>[] = [
-  { key: "tipo", label: "Tipo", icon: "Tag", options: Object.entries(EVENT_TYPE_LABEL).map(([value, label]) => ({ value, label })), match: (e, v) => e.type === v },
-  { key: "estado", label: "Estado", icon: "CircleDot", options: Object.entries(STATUS).map(([value, label]) => ({ value, label })), match: (e, v) => e.status === v },
-  { key: "efeito", label: "Efeito", icon: "CalendarX", options: Object.entries(EFFECT).map(([value, label]) => ({ value, label })), match: (e, v) => e.effect === v },
-  { key: "visibilidade", label: "Visibilidade", icon: "Eye", options: Object.entries(VISIBILITY).map(([value, label]) => ({ value, label })), match: (e, v) => e.visibility === v },
-  { key: "origem", label: "Origem", icon: "Globe", options: Object.entries(ORIGIN).map(([value, label]) => ({ value, label })), match: (e, v) => e.origin === v },
+  { key: "type", label: "Tipo", icon: "Tag", options: Object.entries(EVENT_TYPE_LABEL).map(([value, label]) => ({ value, label })), match: (e, v) => e.type === v },
+  { key: "status", label: "Estado", icon: "CircleDot", options: Object.entries(STATUS).map(([value, label]) => ({ value, label })), match: (e, v) => e.status === v },
+  { key: "effect", label: "Efeito", icon: "CalendarX", options: Object.entries(EFFECT).map(([value, label]) => ({ value, label })), match: (e, v) => e.effect === v },
+  { key: "visibility", label: "Visibilidade", icon: "Eye", options: Object.entries(VISIBILITY).map(([value, label]) => ({ value, label })), match: (e, v) => e.visibility === v },
+  { key: "origin", label: "Origem", icon: "Globe", options: Object.entries(ORIGIN).map(([value, label]) => ({ value, label })), match: (e, v) => e.origin === v },
 ];
 const EVENT_SORTS: ListSortDef<ApiEvent>[] = [
-  { value: "data", label: "Data", compare: (a, b) => a.start_date.localeCompare(b.start_date) },
-  { value: "titulo", label: "Título", compare: (a, b) => a.title.localeCompare(b.title) },
-  { value: "estado", label: "Estado", compare: (a, b) => a.status.localeCompare(b.status) },
+  { value: "date", label: "Data", compare: (a, b) => a.start_date.localeCompare(b.start_date) },
+  { value: "title", label: "Título", compare: (a, b) => a.title.localeCompare(b.title) },
+  { value: "status", label: "Estado", compare: (a, b) => a.status.localeCompare(b.status) },
 ];
-const EVENT_DATES = [{ key: "data", label: "Evento", getDate: (e: ApiEvent) => e.start_date }];
+const EVENT_DATES = [{ key: "date", label: "Evento", getDate: (e: ApiEvent) => e.start_date }];
 const eventText = (e: ApiEvent) => `${e.title} ${EVENT_TYPE_LABEL[e.type] ?? e.type} ${e.location ?? ""}`;
 
 import { usePlanUpgradeModal, isPlanRestrictedError } from "@/stores/plan/use-plan-upgrade-modal-store";
@@ -144,8 +144,8 @@ function FullCalendarContent() {
   const [reason, setReason] = useState("");
   const [conflict, setConflict] = useState<{ event: ApiEvent; message: string } | null>(null);
 
-  const f = useListFilters("eventos", [...filterKeysOf(EVENT_FILTERS, EVENT_DATES), "vista"], 10);
-  const view = f.get("vista") === "lista" ? "lista" : "calendario";
+  const f = useListFilters("events", [...filterKeysOf(EVENT_FILTERS, EVENT_DATES), "view"], 10);
+  const view = f.get("view") === "list" ? "list" : "calendar";
   const filtered = useMemo(() => applyListFilters(c.events, f, { searchText: eventText, filters: EVENT_FILTERS, dateFilters: EVENT_DATES, sorts: EVENT_SORTS }), [c.events, f]);
   const items: CalendarItem[] = filtered.map((e) => ({ id: e.id, title: e.title, start: e.start_date, end: e.end_date, tone: toneOf(e), hint: e.start_time?.slice(0, 5) }));
   const nonLective = useMemo(() => {
@@ -223,26 +223,26 @@ function FullCalendarContent() {
         </TabsList>
 
         <TabsContent value="events" className="space-y-4">
-          <Tabs value={view} onValueChange={(v) => f.setFilter("vista", v)} className="mt-6 space-y-4">
+          <Tabs value={view} onValueChange={(v) => f.setFilter("view", v)} className="mt-6 space-y-4">
             <TabsList>
-              <TabsTrigger value="calendario" className="gap-1.5">
+              <TabsTrigger value="calendar" className="gap-1.5">
                 <Icon name="CalendarDays" className="size-4" />
                 Calendário
               </TabsTrigger>
-              <TabsTrigger value="lista" className="gap-1.5">
+              <TabsTrigger value="list" className="gap-1.5">
                 <Icon name="List" className="size-4" />
                 Lista
               </TabsTrigger>
             </TabsList>
 
-            <TabsContent value="calendario" className="space-y-6">
-              <ListFilterBar<ApiEvent> prefix="eventos" f={f} searchPlaceholder="Pesquisar eventos" filters={EVENT_FILTERS} dateFilters={EVENT_DATES} shown={filtered.length} total={c.events.length} />
+            <TabsContent value="calendar" className="space-y-6">
+              <ListFilterBar<ApiEvent> prefix="events" f={f} searchPlaceholder="Pesquisar eventos" filters={EVENT_FILTERS} dateFilters={EVENT_DATES} shown={filtered.length} total={c.events.length} />
               <MonthCalendar items={items} month={month} onMonthChange={setMonth} markedDays={nonLective} onSelectItem={(it) => { const e = c.events.find((x) => x.id === it.id); if (e) open(e); }} onSelectDay={(d) => openModal("calendar-new-event", { date: d })} />
               <p className="text-xs text-muted-foreground">Dias com fundo âmbar são não letivos. Clique num dia para criar um evento e num evento para ver o detalhe.</p>
             </TabsContent>
 
-            <TabsContent value="lista">
-              <DataList<ApiEvent> prefix="eventos" rows={c.events} columns={eventColumns} isLoading={c.eventsLoading} searchPlaceholder="Pesquisar eventos" searchText={eventText} filters={EVENT_FILTERS} dateFilters={EVENT_DATES} sorts={EVENT_SORTS} emptyTitle="Sem eventos" emptyDescription="Importe o calendário nacional ou crie um evento." emptyIcon="CalendarDays" />
+            <TabsContent value="list">
+              <DataList<ApiEvent> prefix="events" rows={c.events} columns={eventColumns} isLoading={c.eventsLoading} searchPlaceholder="Pesquisar eventos" searchText={eventText} filters={EVENT_FILTERS} dateFilters={EVENT_DATES} sorts={EVENT_SORTS} emptyTitle="Sem eventos" emptyDescription="Importe o calendário nacional ou crie um evento." emptyIcon="CalendarDays" />
             </TabsContent>
           </Tabs>
         </TabsContent>
@@ -250,17 +250,17 @@ function FullCalendarContent() {
         <TabsContent value="holidays" className="space-y-2">
           <p className="mt-4 text-xs text-muted-foreground">Compara a regra local, o calendário nacional importado{c.googleHolidays ? " e o Google" : ""}. As divergências são decididas pela Direção; o Google é só um sinal.</p>
           <DataList<ApiHolidayRow & { id: string }>
-            prefix="feriados"
+            prefix="holidays"
             rows={c.holidays.map((h) => ({ ...h, id: `${h.date}-${h.kind}` }))}
             columns={holidayColumns}
             searchPlaceholder="Pesquisar feriado"
             searchText={(h) => h.name}
             filters={[
-              { key: "estado", label: "Estado", icon: "CircleDot", options: Object.entries(HOLIDAY_STATUS).map(([value, label]) => ({ value, label })), match: (h, v) => h.status === v },
-              { key: "tipo", label: "Tipo", icon: "Tag", options: [{ value: "feriado", label: "Feriado" }, { value: "ponte", label: "Ponte" }], match: (h, v) => h.kind === v },
+              { key: "status", label: "Estado", icon: "CircleDot", options: Object.entries(HOLIDAY_STATUS).map(([value, label]) => ({ value, label })), match: (h, v) => h.status === v },
+              { key: "type", label: "Tipo", icon: "Tag", options: [{ value: "feriado", label: "Feriado" }, { value: "ponte", label: "Ponte" }], match: (h, v) => h.kind === v },
             ]}
-            dateFilters={[{ key: "data", label: "Data", getDate: (h) => h.date }]}
-            sorts={[{ value: "data", label: "Data", compare: (a, b) => a.date.localeCompare(b.date) }]}
+            dateFilters={[{ key: "date", label: "Data", getDate: (h) => h.date }]}
+            sorts={[{ value: "date", label: "Data", compare: (a, b) => a.date.localeCompare(b.date) }]}
             emptyTitle="Sem feriados para este ano"
             emptyIcon="CalendarX"
           />

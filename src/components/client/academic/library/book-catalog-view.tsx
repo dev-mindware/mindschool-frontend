@@ -6,7 +6,7 @@ import { useLibrary } from "@/hooks/school/use-library";
 import type { ApiBook } from "@/services/library-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 
-const availability = (b: ApiBook) => (!b.is_active ? "retirado" : b.copies_available > 0 ? "disponivel" : "esgotado");
+const availability = (b: ApiBook) => (!b.is_active ? "withdrawn" : b.copies_available > 0 ? "available" : "unavailable");
 
 export function BookCatalogView() {
   const { allBooks, isLoading } = useLibrary();
@@ -25,30 +25,30 @@ export function BookCatalogView() {
       key: "is_active", header: "Estado",
       render: (_, b) => {
         const a = availability(b);
-        return a === "disponivel" ? <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">Disponível</Badge>
-          : a === "esgotado" ? <Badge variant="destructive">Esgotado</Badge> : <Badge variant="secondary">Retirado</Badge>;
+        return a === "available" ? <Badge variant="outline" className="border-emerald-500/30 bg-emerald-500/10 text-emerald-700">Disponível</Badge>
+          : a === "unavailable" ? <Badge variant="destructive">Esgotado</Badge> : <Badge variant="secondary">Retirado</Badge>;
       },
     },
     {
       key: "action", header: "Ação",
       render: (_, b) => (
-        <ButtonOnlyAction data={b} actions={[{ permission: "library:write", label: availability(b) === "disponivel" ? "Emprestar" : "Emprestar (indisponível: sem exemplares)", icon: "BookOpen", onClick: (x) => openModal("library-new-loan", { bookId: x.id }), className: availability(b) === "disponivel" ? "" : "pointer-events-none opacity-40" }]} />
+        <ButtonOnlyAction data={b} actions={[{ permission: "library:write", label: availability(b) === "available" ? "Emprestar" : "Emprestar (indisponível: sem exemplares)", icon: "BookOpen", onClick: (x) => openModal("library-new-loan", { bookId: x.id }), className: availability(b) === "available" ? "" : "pointer-events-none opacity-40" }]} />
       ),
     },
   ];
 
   return (
     <DataList<ApiBook>
-      prefix="acervo"
+      prefix="books"
       rows={allBooks}
       columns={columns}
       isLoading={isLoading}
       searchPlaceholder="Pesquisar por título, autor ou ISBN"
       searchText={(b) => `${b.title} ${b.author} ${b.isbn ?? ""} ${b.category ?? ""}`}
       filters={[
-        { key: "estado", label: "Estado", icon: "Tag", options: [{ value: "disponivel", label: "Disponível" }, { value: "esgotado", label: "Esgotado" }, { value: "retirado", label: "Retirado" }], match: (b, v) => availability(b) === v },
-        { key: "categoria", label: "Categoria", icon: "Folder", options: categories.map((c) => ({ value: c, label: c })), match: (b, v) => b.category === v },
-        { key: "local", label: "Localização", icon: "MapPin", options: locations.map((c) => ({ value: c, label: c })), match: (b, v) => b.location === v },
+        { key: "status", label: "Estado", icon: "Tag", options: [{ value: "available", label: "Disponível" }, { value: "unavailable", label: "Esgotado" }, { value: "withdrawn", label: "Retirado" }], match: (b, v) => availability(b) === v },
+        { key: "category", label: "Categoria", icon: "Folder", options: categories.map((c) => ({ value: c, label: c })), match: (b, v) => b.category === v },
+        { key: "location", label: "Localização", icon: "MapPin", options: locations.map((c) => ({ value: c, label: c })), match: (b, v) => b.location === v },
       ]}
       sorts={[
         { value: "title", label: "Título", compare: (a, b) => a.title.localeCompare(b.title) },

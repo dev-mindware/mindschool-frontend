@@ -48,7 +48,7 @@ export function GradeRulesCard({ term }: { term: AssessmentTerm }) {
   const deadline = period ? deadlineText(daysUntil(period.end_date)) : null;
 
   return (
-    <div className="flex flex-col gap-3 rounded-sm border bg-card p-3 text-sm sm:flex-row sm:items-start sm:justify-between" data-tour="notas-rules">
+    <div className="flex flex-col gap-3 rounded-sm border bg-card p-3 text-sm sm:flex-row sm:items-start sm:justify-between" data-tour="grades-rules">
       <div className="space-y-1">
         <div className="flex items-center gap-2 font-medium">
           <Icon name="Calculator" className="size-4 text-primary" />

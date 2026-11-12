@@ -96,7 +96,7 @@ describe("MobileModuleNavbar", () => {
 
   it("oculta o botão de expansão quando o papel possui 4 ou menos módulos (ex.: GUARDIAN)", () => {
     currentRole = "GUARDIAN";
-    currentPathname = "/familia/horario";
+    currentPathname = "/family/timetable";
     render(<MobileModuleNavbar />);
 
     expect(screen.getByRole("button", { name: "Acompanhamento" })).toBeTruthy();

@@ -183,7 +183,7 @@ export function FiscalDocumentsContent() {
       </div>
 
       <DataList<ApiFiscalDocumentRow>
-        prefix="fdoc"
+        prefix="fiscal-docs"
         rows={data}
         columns={columns}
         isLoading={isLoading}
@@ -192,11 +192,11 @@ export function FiscalDocumentsContent() {
         pageSize={10}
         searchPlaceholder="Pesquisar aluno, cliente, NIF ou n.º da fatura"
         searchText={(d) => `${d.student?.full_name ?? ""} ${d.customer?.name ?? ""} ${d.customer?.nif ?? ""} ${d.number ?? ""}`}
-        filters={[{ key: "estado", label: "Estado", icon: "ListFilter", options: STATES.map((value) => ({ value, label: FISCAL_STATUS[value].label })), match: (d, v) => d.status === v }]}
-        dateFilters={[{ key: "data", label: "Data", getDate: (d) => d.created_at.slice(0, 10) }]}
+        filters={[{ key: "status", label: "Estado", icon: "ListFilter", options: STATES.map((value) => ({ value, label: FISCAL_STATUS[value].label })), match: (d, v) => d.status === v }]}
+        dateFilters={[{ key: "date", label: "Data", getDate: (d) => d.created_at.slice(0, 10) }]}
         sorts={[
-          { value: "recentes", label: "Mais recentes", compare: (a, b) => b.created_at.localeCompare(a.created_at) },
-          { value: "valor", label: "Valor", compare: (a, b) => Number(a.total) - Number(b.total) },
+          { value: "recent", label: "Mais recentes", compare: (a, b) => b.created_at.localeCompare(a.created_at) },
+          { value: "amount", label: "Valor", compare: (a, b) => Number(a.total) - Number(b.total) },
         ]}
         emptyTitle="Ainda não há faturas"
         emptyDescription="A fatura-recibo nasce quando se marca uma propina como paga (Propinas › Marcar como pago)."

@@ -88,7 +88,7 @@ export function AssignmentsList({ assignments, isLoading }: AssignmentsListProps
   return (
     <>
       <DataList<TeacherAssignment>
-        prefix="atribuicoes"
+        prefix="assignments"
         rows={assignments}
         columns={columns}
         isLoading={isLoading}
@@ -96,17 +96,17 @@ export function AssignmentsList({ assignments, isLoading }: AssignmentsListProps
         searchPlaceholder="Pesquisar por professor, disciplina ou turma"
         searchText={(a) => `${a.teacherName} ${a.subjectName} ${a.sectionName} ${a.teacherEmail ?? ""}`}
         filters={[
-          { key: "professor", label: "Professor", icon: "User", options: uniq(assignments.map((a) => a.teacherName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.teacherName === v },
-          { key: "turma", label: "Turma", icon: "Users", options: uniq(assignments.map((a) => a.sectionName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.sectionName === v },
-          { key: "disciplina", label: "Disciplina", icon: "BookOpen", options: uniq(assignments.map((a) => a.subjectName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.subjectName === v },
-          { key: "ano", label: "Ano letivo", icon: "CalendarRange", options: uniq(assignments.map((a) => a.academicYear)).map((v) => ({ value: v, label: v })), match: (a, v) => a.academicYear === v },
-          { key: "carga", label: "Carga semanal", icon: "Clock", options: [{ value: "baixa", label: "Até 2 h" }, { value: "media", label: "3 a 4 h" }, { value: "alta", label: "5 h ou mais" }], match: (a, v) => (v === "baixa" ? a.weeklyHours <= 2 : v === "media" ? a.weeklyHours >= 3 && a.weeklyHours <= 4 : a.weeklyHours >= 5) },
+          { key: "teacher", label: "Professor", icon: "User", options: uniq(assignments.map((a) => a.teacherName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.teacherName === v },
+          { key: "section", label: "Turma", icon: "Users", options: uniq(assignments.map((a) => a.sectionName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.sectionName === v },
+          { key: "subject", label: "Disciplina", icon: "BookOpen", options: uniq(assignments.map((a) => a.subjectName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.subjectName === v },
+          { key: "year", label: "Ano letivo", icon: "CalendarRange", options: uniq(assignments.map((a) => a.academicYear)).map((v) => ({ value: v, label: v })), match: (a, v) => a.academicYear === v },
+          { key: "workload", label: "Carga semanal", icon: "Clock", options: [{ value: "low", label: "Até 2 h" }, { value: "medium", label: "3 a 4 h" }, { value: "high", label: "5 h ou mais" }], match: (a, v) => (v === "low" ? a.weeklyHours <= 2 : v === "medium" ? a.weeklyHours >= 3 && a.weeklyHours <= 4 : a.weeklyHours >= 5) },
         ]}
-        dateFilters={[{ key: "criada", label: "Atribuição", getDate: (a) => a.createdAt }]}
+        dateFilters={[{ key: "created", label: "Atribuição", getDate: (a) => a.createdAt }]}
         sorts={[
-          { value: "professor", label: "Professor", compare: (a, b) => a.teacherName.localeCompare(b.teacherName, "pt") },
-          { value: "turma", label: "Turma", compare: (a, b) => a.sectionName.localeCompare(b.sectionName, "pt") },
-          { value: "carga", label: "Carga semanal", compare: (a, b) => a.weeklyHours - b.weeklyHours },
+          { value: "teacher", label: "Professor", compare: (a, b) => a.teacherName.localeCompare(b.teacherName, "pt") },
+          { value: "section", label: "Turma", compare: (a, b) => a.sectionName.localeCompare(b.sectionName, "pt") },
+          { value: "workload", label: "Carga semanal", compare: (a, b) => a.weeklyHours - b.weeklyHours },
         ]}
         emptyTitle="Nenhuma atribuição encontrada"
         emptyDescription="Ajuste os filtros ou crie uma nova atribuição."

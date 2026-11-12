@@ -93,7 +93,7 @@ export function PautasPageContent() {
       <PautasTable
         pautas={allPautas}
         toolbar={<FilterPopover label="Trimestre" icon="CalendarRange" options={TERMS} value={selectedTerm} onChange={(val) => val && setSelectedTerm(val as AssessmentTerm)} />}
-        onViewPauta={(item) => router.push(`/grades/pautas/${item.sectionId}?term=${selectedTerm}`)}
+        onViewPauta={(item) => router.push(`/grades/grade-sheets/${item.sectionId}?term=${selectedTerm}`)}
         onLockPauta={(item) => {
           setLockingPauta(item);
           setIsLockOpen(true);

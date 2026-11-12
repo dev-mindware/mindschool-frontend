@@ -108,7 +108,7 @@ test.describe.serial("Comunicação e Biblioteca", () => {
     const ctx = await browser.newContext({ viewport: { width: 1440, height: 800 } });
     const family = await ctx.newPage();
     await login(family, ACCOUNTS.encarregado);
-    await family.goto("/familia/comunicados");
+    await family.goto("/family/announcements");
     await expect(family.getByText(circular).first()).toBeVisible({ timeout: 20_000 });
     await ctx.close();
   });

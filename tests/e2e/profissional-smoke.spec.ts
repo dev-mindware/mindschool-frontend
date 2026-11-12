@@ -13,10 +13,10 @@ const PRO = "Instituto Politécnico Vanguard";
 /** Páginas do Profissional por papel (quem as usa no dia-a-dia). */
 const INCLUDED: Array<{ account: string; label: string; paths: string[] }> = [
   { account: "titular.pro@mindschool.ao", label: "titular", paths: ["/dashboard", "/plans", "/reports/academic", "/reports/finance", "/academic/transport", "/academic/extracurricular", "/academic/health-psychology"] },
-  { account: "pedagogico.pro@mindschool.ao", label: "direção pedagógica", paths: ["/academic/calendar", "/academic/lessons", "/academic/timetables", "/teachers-attendance", "/dropout-risk", "/online-exams", "/grades/pautas", "/reports/academic"] },
+  { account: "pedagogico.pro@mindschool.ao", label: "direção pedagógica", paths: ["/academic/calendar", "/academic/lessons", "/academic/timetables", "/teachers-attendance", "/dropout-risk", "/online-exams", "/grades/grade-sheets", "/reports/academic"] },
   { account: "professor.pro@mindschool.ao", label: "professor", paths: ["/academic/lessons", "/online-exams", "/academic/attendance", "/grades/entry"] },
   { account: "secretaria.pro@mindschool.ao", label: "secretaria", paths: ["/academic/health-psychology", "/academic/transport", "/academic/extracurricular", "/students/list"] },
-  { account: "encarregado.pro@mindschool.ao", label: "encarregado", paths: ["/dashboard", "/familia/aproveitamento", "/familia/horario", "/familia/calendario", "/familia/provas", "/familia/financeiro"] },
+  { account: "encarregado.pro@mindschool.ao", label: "encarregado", paths: ["/dashboard", "/family/performance", "/family/timetable", "/family/calendar", "/family/exams", "/family/finance"] },
 ];
 
 /** Do Enterprise: por endereço directo abrem a página de upgrade, nunca dados. */

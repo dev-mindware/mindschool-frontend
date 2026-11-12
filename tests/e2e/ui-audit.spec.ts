@@ -19,14 +19,14 @@ const SCHOOL = [
   "/certificates/documents", "/certificates/report-cards", "/certificates/archive",
   "/academic/classes", "/academic/subjects", "/academic/assignments", "/academic/timetables", "/academic/calendar", "/academic/lessons",
   "/academic/attendance", "/teachers-attendance",
-  "/grades/entry", "/grades/pautas", "/grades/reviews", "/grades/councils", "/grades/final-exams", "/grades/transitions",
+  "/grades/entry", "/grades/grade-sheets", "/grades/reviews", "/grades/councils", "/grades/final-exams", "/grades/transitions",
   "/online-exams", "/dropout-risk", "/academic/library", "/academic/health-psychology", "/academic/transport", "/academic/extracurricular",
   "/communication/circulars", "/tuition", "/tuition/submissions", "/tuition/payments", "/tuition/invoices", "/tuition/collections", "/tuition/plans", "/plans",
   "/reports/med", "/reports/academic", "/reports/finance", "/reports/bi", "/reports/multi-school", "/settings",
 ];
 const FAMILY = [
-  "/dashboard", "/familia/aproveitamento", "/familia/horario", "/familia/calendario", "/familia/disciplinas", "/familia/provas",
-  "/familia/financeiro", "/familia/biblioteca", "/familia/documentos", "/familia/comunicados", "/settings",
+  "/dashboard", "/family/performance", "/family/timetable", "/family/calendar", "/family/subjects", "/family/exams",
+  "/family/finance", "/family/library", "/family/documents", "/family/announcements", "/settings",
 ];
 
 /** Palavras que em português levam acento e que, sem ele, denunciam texto escrito à pressa. */

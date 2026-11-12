@@ -80,13 +80,13 @@ export function ReportCardsPageContent() {
       </TitleList>
 
       <DataList<Doc>
-        prefix="boletins"
+        prefix="report-cards"
         rows={boletins}
         columns={columns}
         searchPlaceholder="Pesquisar por aluno ou número"
         searchText={(d) => `${d.studentName} ${d.documentNumber}`}
-        dateFilters={[{ key: "emitido", label: "Emitido", getDate: (d) => d.issueDate }]}
-        sorts={[{ value: "data", label: "Data de emissão", compare: (a, b) => a.issueDate.localeCompare(b.issueDate) }, { value: "aluno", label: "Aluno", compare: (a, b) => a.studentName.localeCompare(b.studentName) }]}
+        dateFilters={[{ key: "issued", label: "Emitido", getDate: (d) => d.issueDate }]}
+        sorts={[{ value: "date", label: "Data de emissão", compare: (a, b) => a.issueDate.localeCompare(b.issueDate) }, { value: "student", label: "Aluno", compare: (a, b) => a.studentName.localeCompare(b.studentName) }]}
         emptyTitle="Ainda não há boletins emitidos"
         emptyDescription="Emita o primeiro boletim quando a pauta do período estiver fechada."
         emptyIcon="FileText"

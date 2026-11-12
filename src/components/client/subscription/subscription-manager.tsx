@@ -115,19 +115,19 @@ export function SubscriptionManager() {
           {sub && !sub.cancel_at_period_end && sub.status === "active" && <Button size="sm" variant="ghost" className="text-destructive" onClick={() => { setReason(""); openModal("sub-cancel"); }}>Cancelar subscrição</Button>}
         </div>
         <DataList<ApiOrder>
-          prefix="ordens"
+          prefix="orders"
           rows={orders}
           columns={columns}
           isLoading={isLoading}
           searchPlaceholder="Pesquisar por plano"
           searchText={(o) => `${o.plan.name} ${o.addon_codes.join(" ")}`}
           filters={[
-            { key: "estado", label: "Estado", icon: "Tag", options: Object.entries(ORDER_LABEL).map(([value, label]) => ({ value, label })), match: (o, v) => o.status === v },
-            { key: "periodo", label: "Período", icon: "CalendarRange", options: [{ value: "1", label: "Mensal" }, { value: "3", label: "Trimestral" }, { value: "6", label: "Semestral" }, { value: "12", label: "Anual" }], match: (o, v) => String(o.period_months) === v },
-            { key: "plano", label: "Plano", icon: "Crown", options: (catalog?.plans ?? []).map((p) => ({ value: p.code, label: p.name })), match: (o, v) => o.plan.code === v },
+            { key: "status", label: "Estado", icon: "Tag", options: Object.entries(ORDER_LABEL).map(([value, label]) => ({ value, label })), match: (o, v) => o.status === v },
+            { key: "period", label: "Período", icon: "CalendarRange", options: [{ value: "1", label: "Mensal" }, { value: "3", label: "Trimestral" }, { value: "6", label: "Semestral" }, { value: "12", label: "Anual" }], match: (o, v) => String(o.period_months) === v },
+            { key: "plan", label: "Plano", icon: "Crown", options: (catalog?.plans ?? []).map((p) => ({ value: p.code, label: p.name })), match: (o, v) => o.plan.code === v },
           ]}
-          dateFilters={[{ key: "data", label: "Criada", getDate: (o) => o.created_at }]}
-          sorts={[{ value: "data", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }, { value: "total", label: "Total", compare: (a, b) => Number(a.total_amount) - Number(b.total_amount) }]}
+          dateFilters={[{ key: "date", label: "Criada", getDate: (o) => o.created_at }]}
+          sorts={[{ value: "date", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }, { value: "total", label: "Total", compare: (a, b) => Number(a.total_amount) - Number(b.total_amount) }]}
           emptyTitle="Ainda não há ordens"
           emptyDescription="Escolha um plano para criar a primeira ordem."
           emptyIcon="Receipt"

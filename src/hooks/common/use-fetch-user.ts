@@ -91,7 +91,7 @@ export function useFetchUser({ enabled = true }: UseFetchUserOptions = {}) {
             path.startsWith("/auth/") ||
             path.startsWith("/terms") ||
             path.startsWith("/privacy") ||
-            path.startsWith("/verificar") ||
+            path.startsWith("/verify") ||
             path.startsWith("/unauthorized") ||
             path === "/";
           if (typeof window !== "undefined" && !isPublicPage(window.location.pathname)) {
@@ -119,7 +119,7 @@ export function useFetchUser({ enabled = true }: UseFetchUserOptions = {}) {
         path.startsWith("/auth/") ||
         path.startsWith("/terms") ||
         path.startsWith("/privacy") ||
-        path.startsWith("/verificar") ||
+        path.startsWith("/verify") ||
         path.startsWith("/unauthorized") ||
         path === "/";
       if (

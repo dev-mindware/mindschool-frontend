@@ -16,7 +16,7 @@ const SCHOOL_PAGES = [
   "/dashboard", "/students/admissions", "/admissions/sessions", "/students/list", "/students/enrollments", "/students/guardians",
   "/certificates/documents", "/certificates/report-cards", "/certificates/declarations", "/certificates/requests", "/certificates/archive",
   "/academic/classes", "/academic/subjects", "/academic/timetables", "/academic/calendar", "/academic/attendance", "/academic/library",
-  "/teachers", "/grades/entry", "/grades/pautas", "/grades/reviews", "/grades/councils", "/grades/final-exams", "/grades/transitions",
+  "/teachers", "/grades/entry", "/grades/grade-sheets", "/grades/reviews", "/grades/councils", "/grades/final-exams", "/grades/transitions",
   "/tuition/invoices", "/tuition/payments", "/tuition/plans", "/tuition/submissions", "/communication/circulars",
   "/reports/academic", "/reports/finance", "/reports/med",
   "/settings", "/settings/general", "/settings/users", "/settings/policies", "/settings/security", "/settings/audit", "/settings/imports", "/settings/export",
@@ -24,8 +24,8 @@ const SCHOOL_PAGES = [
 ];
 
 const FAMILY_PAGES = [
-  "/dashboard", "/familia/aproveitamento", "/familia/biblioteca", "/familia/calendario", "/familia/comunicados",
-  "/familia/disciplinas", "/familia/documentos", "/familia/financeiro", "/familia/horario", "/familia/provas", "/settings",
+  "/dashboard", "/family/performance", "/family/library", "/family/calendar", "/family/announcements",
+  "/family/subjects", "/family/documents", "/family/finance", "/family/timetable", "/family/exams", "/settings",
 ];
 
 const ROLES: Array<{ role: string; email: string; pages: string[] }> = [

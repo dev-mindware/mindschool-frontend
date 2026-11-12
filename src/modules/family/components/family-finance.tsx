@@ -73,29 +73,29 @@ export function FamilyFinance({ studentId, ward }: FamilyContext) {
           <DynamicMetricCard title={live.payments[0] ? formatIsoDay(live.payments[0].paid_at) : "—"} subtitle="Último pagamento" icon="CalendarCheck" description={live.payments[0] ? formatCurrency(live.payments[0].amount) : "Sem pagamentos"} />
         </div>
         <DataList<PortalPayment>
-          prefix="pagamentos" rows={live.payments} columns={paymentColumns} isLoading={live.paymentsLoading} pageSize={10}
+          prefix="payments" rows={live.payments} columns={paymentColumns} isLoading={live.paymentsLoading} pageSize={10}
           searchPlaceholder="Pesquisar referência" searchText={(p) => `${p.reference ?? ""} ${TYPE[p.invoice_type] ?? p.invoice_type}`}
           filters={[
-            { key: "tipo", label: "Tipo", icon: "Tag", options: Object.entries(TYPE).map(([value, label]) => ({ value, label })), match: (p, v) => p.invoice_type === v },
-            { key: "metodo", label: "Método", icon: "CreditCard", options: [...new Set(live.payments.map((p) => p.method))].map((value) => ({ value, label: METHOD_LABEL[value as keyof typeof METHOD_LABEL] ?? value.replaceAll("_", " ") })), match: (p, v) => p.method === v },
+            { key: "type", label: "Tipo", icon: "Tag", options: Object.entries(TYPE).map(([value, label]) => ({ value, label })), match: (p, v) => p.invoice_type === v },
+            { key: "method", label: "Método", icon: "CreditCard", options: [...new Set(live.payments.map((p) => p.method))].map((value) => ({ value, label: METHOD_LABEL[value as keyof typeof METHOD_LABEL] ?? value.replaceAll("_", " ") })), match: (p, v) => p.method === v },
           ]}
-          dateFilters={[{ key: "pago", label: "Data de pagamento", getDate: (p) => p.paid_at }]}
-          sorts={[{ value: "data", label: "Data", compare: (a, b) => a.paid_at.localeCompare(b.paid_at) }, { value: "valor", label: "Valor", compare: (a, b) => Number(a.amount) - Number(b.amount) }]}
+          dateFilters={[{ key: "paid", label: "Data de pagamento", getDate: (p) => p.paid_at }]}
+          sorts={[{ value: "date", label: "Data", compare: (a, b) => a.paid_at.localeCompare(b.paid_at) }, { value: "amount", label: "Valor", compare: (a, b) => Number(a.amount) - Number(b.amount) }]}
           emptyTitle="Sem pagamentos" emptyDescription="Os pagamentos confirmados pela escola aparecem aqui, com o comprovativo interno de pagamento. Esse comprovativo não tem valor fiscal: a fatura-recibo (documento fiscal) é emitida pela escola; se precisar dela, peça à secretaria." emptyIcon="Receipt"
         />
       </TabsContent>
 
       <TabsContent value="invoices">
         <DataList<PortalInvoice>
-          prefix="facturas" rows={live.invoices} columns={invoiceColumns} pageSize={10}
+          prefix="invoices" rows={live.invoices} columns={invoiceColumns} pageSize={10}
           searchPlaceholder="Pesquisar fatura" searchText={(i) => `${TYPE[i.type] ?? i.type} ${i.status} ${formatIsoDay(i.due_date)}`}
           filters={[
-            { key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "paga", label: "Liquidadas" }, { value: "aberta", label: "Por pagar" }], match: (i, v) => (v === "paga" ? i.status === "paga" : i.status !== "paga") },
-            { key: "vencida", label: "Vencimento", icon: "Clock", options: [{ value: "vencida", label: "Vencidas" }, { value: "emdia", label: "Em dia" }], match: (i, v) => (v === "vencida" ? i.is_overdue : !i.is_overdue) },
-            { key: "tipo", label: "Tipo", icon: "Tag", options: Object.entries(TYPE).map(([value, label]) => ({ value, label })), match: (i, v) => i.type === v },
+            { key: "status", label: "Estado", icon: "ListFilter", options: [{ value: "paid", label: "Liquidadas" }, { value: "open", label: "Por pagar" }], match: (i, v) => (v === "paid" ? i.status === "paga" : i.status !== "paga") },
+            { key: "overdue", label: "Vencimento", icon: "Clock", options: [{ value: "overdue", label: "Vencidas" }, { value: "current", label: "Em dia" }], match: (i, v) => (v === "overdue" ? i.is_overdue : !i.is_overdue) },
+            { key: "type", label: "Tipo", icon: "Tag", options: Object.entries(TYPE).map(([value, label]) => ({ value, label })), match: (i, v) => i.type === v },
           ]}
-          dateFilters={[{ key: "vencimento", label: "Vencimento", getDate: (i) => i.due_date }]}
-          sorts={[{ value: "vencimento", label: "Vencimento", compare: (a, b) => a.due_date.localeCompare(b.due_date) }, { value: "divida", label: "Em dívida", compare: (a, b) => Number(a.balance) - Number(b.balance) }]}
+          dateFilters={[{ key: "due", label: "Vencimento", getDate: (i) => i.due_date }]}
+          sorts={[{ value: "due", label: "Vencimento", compare: (a, b) => a.due_date.localeCompare(b.due_date) }, { value: "balance", label: "Em dívida", compare: (a, b) => Number(a.balance) - Number(b.balance) }]}
           emptyTitle="Sem faturas" emptyDescription="Não há faturas para este educando." emptyIcon="Wallet"
         />
       </TabsContent>

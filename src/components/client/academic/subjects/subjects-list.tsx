@@ -143,7 +143,7 @@ export function SubjectsList({ subjects, isLoading }: SubjectsListProps) {
   return (
     <>
       <DataList<Subject>
-        prefix="disciplinas"
+        prefix="subjects"
         rows={subjects}
         columns={columns}
         isLoading={isLoading}
@@ -151,14 +151,14 @@ export function SubjectsList({ subjects, isLoading }: SubjectsListProps) {
         searchPlaceholder="Pesquisar por nome, código ou descrição"
         searchText={(s) => `${s.name} ${s.code} ${s.description ?? ""}`}
         filters={[
-          { key: "regime", label: "Regime", icon: "GraduationCap", options: [{ value: "quantitativa", label: "Quantitativa (0–20)" }, { value: "qualitativa", label: "Qualitativa" }, { value: "mista", label: "Mista" }], match: (s, v) => (s.gradingScale ?? "quantitativa") === v },
-          { key: "tipo", label: "Tipo", icon: "Star", options: [{ value: "nuclear", label: "Nuclear" }, { value: "geral", label: "Geral" }], match: (s, v) => (v === "nuclear" ? Boolean(s.isCore) : !s.isCore) },
-          { key: "estado", label: "Estado", icon: "ToggleLeft", options: [{ value: "on", label: "Ativas" }, { value: "off", label: "Inativas" }], match: (s, v) => (v === "on" ? s.isActive : !s.isActive) },
+          { key: "scale", label: "Regime", icon: "GraduationCap", options: [{ value: "quantitativa", label: "Quantitativa (0–20)" }, { value: "qualitativa", label: "Qualitativa" }, { value: "mista", label: "Mista" }], match: (s, v) => (s.gradingScale ?? "quantitativa") === v },
+          { key: "type", label: "Tipo", icon: "Star", options: [{ value: "core", label: "Nuclear" }, { value: "general", label: "Geral" }], match: (s, v) => (v === "core" ? Boolean(s.isCore) : !s.isCore) },
+          { key: "status", label: "Estado", icon: "ToggleLeft", options: [{ value: "active", label: "Ativas" }, { value: "inactive", label: "Inativas" }], match: (s, v) => (v === "active" ? s.isActive : !s.isActive) },
         ]}
         sorts={[
-          { value: "nome", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name, "pt") },
-          { value: "codigo", label: "Código", compare: (a, b) => a.code.localeCompare(b.code) },
-          { value: "carga", label: "Carga semanal", compare: (a, b) => a.weeklyHours - b.weeklyHours },
+          { value: "name", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name, "pt") },
+          { value: "code", label: "Código", compare: (a, b) => a.code.localeCompare(b.code) },
+          { value: "workload", label: "Carga semanal", compare: (a, b) => a.weeklyHours - b.weeklyHours },
         ]}
         emptyTitle="Nenhuma disciplina encontrada"
         emptyDescription="Ajuste os filtros ou cadastre uma disciplina."

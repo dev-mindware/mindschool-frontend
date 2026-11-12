@@ -219,23 +219,23 @@ export function EntranceExamsPageContent() {
           Calendário de Exames de Acesso
         </h3>
         <DataList<EntranceExam>
-          prefix="provas"
+          prefix="exams"
           rows={entranceExams}
           columns={examColumns}
           pageSize={8}
           searchPlaceholder="Pesquisar prova, disciplina ou sala"
           searchText={(e) => `${e.title} ${e.subjectName} ${e.roomNumber}`}
           filters={[
-            { key: "estado", label: "Estado", icon: "ListFilter", options: Object.entries(EXAM_STATUS_CONFIG).map(([value, c]) => ({ value, label: c.label })), match: (e, v) => e.status === v },
-            { key: "classe", label: "Classe", icon: "GraduationCap", options: uniq(entranceExams.map((e) => e.classLevelName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.classLevelName === v },
-            { key: "disciplina", label: "Disciplina", icon: "BookOpen", options: uniq(entranceExams.map((e) => e.subjectName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.subjectName === v },
-            { key: "sala", label: "Sala", icon: "DoorOpen", options: uniq(entranceExams.map((e) => e.roomNumber)).map((v) => ({ value: v, label: v })), match: (e, v) => e.roomNumber === v },
+            { key: "status", label: "Estado", icon: "ListFilter", options: Object.entries(EXAM_STATUS_CONFIG).map(([value, c]) => ({ value, label: c.label })), match: (e, v) => e.status === v },
+            { key: "class", label: "Classe", icon: "GraduationCap", options: uniq(entranceExams.map((e) => e.classLevelName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.classLevelName === v },
+            { key: "subject", label: "Disciplina", icon: "BookOpen", options: uniq(entranceExams.map((e) => e.subjectName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.subjectName === v },
+            { key: "room", label: "Sala", icon: "DoorOpen", options: uniq(entranceExams.map((e) => e.roomNumber)).map((v) => ({ value: v, label: v })), match: (e, v) => e.roomNumber === v },
           ]}
-          dateFilters={[{ key: "data", label: "Data da prova", getDate: (e) => e.examDate }]}
+          dateFilters={[{ key: "date", label: "Data da prova", getDate: (e) => e.examDate }]}
           sorts={[
-            { value: "data", label: "Data", compare: (a, b) => a.examDate.localeCompare(b.examDate) },
-            { value: "titulo", label: "Título", compare: (a, b) => a.title.localeCompare(b.title, "pt") },
-            { value: "inscritos", label: "Inscritos", compare: (a, b) => a.enrolledCandidatesCount - b.enrolledCandidatesCount },
+            { value: "date", label: "Data", compare: (a, b) => a.examDate.localeCompare(b.examDate) },
+            { value: "title", label: "Título", compare: (a, b) => a.title.localeCompare(b.title, "pt") },
+            { value: "enrolled", label: "Inscritos", compare: (a, b) => a.enrolledCandidatesCount - b.enrolledCandidatesCount },
           ]}
           emptyTitle="Nenhuma prova agendada"
           emptyDescription="As provas de acesso aparecem aqui quando forem criadas."
@@ -262,20 +262,20 @@ export function EntranceExamsPageContent() {
           </div>
 
           <DataList<AdmissionApplication>
-            prefix="pauta"
+            prefix="exam-results"
             rows={examCandidates}
             columns={candidateColumns}
             pageSize={10}
             searchPlaceholder="Pesquisar candidato, BI ou n.º de candidatura"
             searchText={(c) => `${c.candidateName} ${c.candidateDocumentNumber} ${c.applicationNumber}`}
             filters={[
-              { key: "resultado", label: "Resultado", icon: "ListFilter", options: [{ value: "aprovado", label: "Aprovado na prova" }, { value: "reprovado", label: "Não apto" }, { value: "pendente", label: "Aguarda correção" }], match: (c, v) => (v === "pendente" ? c.examScore === undefined : c.examScore !== undefined && (v === "aprovado" ? c.examScore >= c.minPassingScore : c.examScore < c.minPassingScore)) },
-              { key: "estado", label: "Estado", icon: "Flag", options: [{ value: "APPROVED", label: "Aprovado" }, { value: "WAITLIST", label: "Lista de espera" }, { value: "REJECTED", label: "Reprovado" }, { value: "UNDER_REVIEW", label: "Em avaliação" }], match: (c, v) => c.status === v },
-              { key: "genero", label: "Género", icon: "User", options: [{ value: "MALE", label: "Masculino" }, { value: "FEMALE", label: "Feminino" }], match: (c, v) => c.candidateGender === v },
+              { key: "result", label: "Resultado", icon: "ListFilter", options: [{ value: "passed", label: "Aprovado na prova" }, { value: "failed", label: "Não apto" }, { value: "pending", label: "Aguarda correção" }], match: (c, v) => (v === "pending" ? c.examScore === undefined : c.examScore !== undefined && (v === "passed" ? c.examScore >= c.minPassingScore : c.examScore < c.minPassingScore)) },
+              { key: "status", label: "Estado", icon: "Flag", options: [{ value: "APPROVED", label: "Aprovado" }, { value: "WAITLIST", label: "Lista de espera" }, { value: "REJECTED", label: "Reprovado" }, { value: "UNDER_REVIEW", label: "Em avaliação" }], match: (c, v) => c.status === v },
+              { key: "gender", label: "Género", icon: "User", options: [{ value: "MALE", label: "Masculino" }, { value: "FEMALE", label: "Feminino" }], match: (c, v) => c.candidateGender === v },
             ]}
             sorts={[
-              { value: "nota", label: "Nota", compare: (a, b) => (a.examScore ?? -1) - (b.examScore ?? -1) },
-              { value: "nome", label: "Nome", compare: (a, b) => a.candidateName.localeCompare(b.candidateName, "pt") },
+              { value: "score", label: "Nota", compare: (a, b) => (a.examScore ?? -1) - (b.examScore ?? -1) },
+              { value: "name", label: "Nome", compare: (a, b) => a.candidateName.localeCompare(b.candidateName, "pt") },
             ]}
             emptyTitle="Sem candidatos nesta prova"
             emptyDescription="Ainda não há candidaturas associadas a esta prova."

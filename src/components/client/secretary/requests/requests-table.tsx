@@ -35,19 +35,19 @@ export function RequestsTable() {
   return (
     <>
       <DataList<ApiRequest>
-        prefix="requerimentos"
+        prefix="secretary-requests"
         rows={all}
         columns={columns}
         isLoading={isLoading}
         searchPlaceholder="Pesquisar por protocolo, aluno ou assunto"
         searchText={(r) => `${r.protocol} ${student(r.student_id)} ${r.subject}`}
         filters={[
-          { key: "estado", label: "Estado", icon: "ListFilter", options: (Object.keys(REQUEST_STATUS_LABEL) as RequestStatus[]).map((s) => ({ value: s, label: REQUEST_STATUS_LABEL[s] })), match: (r, v) => r.status === v },
-          { key: "servico", label: "Serviço", icon: "FileText", options: (Object.keys(REQUEST_TYPE_LABEL) as RequestType[]).map((t) => ({ value: t, label: REQUEST_TYPE_LABEL[t] })), match: (r, v) => r.type === v },
-          { key: "atribuicao", label: "Atribuição", icon: "UserCheck", options: [{ value: "atribuido", label: "Atribuído" }, { value: "livre", label: "Por atribuir" }], match: (r, v) => (v === "atribuido" ? Boolean(r.assigned_to) : !r.assigned_to) },
+          { key: "status", label: "Estado", icon: "ListFilter", options: (Object.keys(REQUEST_STATUS_LABEL) as RequestStatus[]).map((s) => ({ value: s, label: REQUEST_STATUS_LABEL[s] })), match: (r, v) => r.status === v },
+          { key: "service", label: "Serviço", icon: "FileText", options: (Object.keys(REQUEST_TYPE_LABEL) as RequestType[]).map((t) => ({ value: t, label: REQUEST_TYPE_LABEL[t] })), match: (r, v) => r.type === v },
+          { key: "assignment", label: "Atribuição", icon: "UserCheck", options: [{ value: "assigned", label: "Atribuído" }, { value: "unassigned", label: "Por atribuir" }], match: (r, v) => (v === "assigned" ? Boolean(r.assigned_to) : !r.assigned_to) },
         ]}
-        dateFilters={[{ key: "aberto", label: "Aberto", getDate: (r) => r.created_at }]}
-        sorts={[{ value: "data", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }, { value: "protocolo", label: "Protocolo", compare: (a, b) => a.protocol.localeCompare(b.protocol) }, { value: "estado", label: "Estado", compare: (a, b) => a.status.localeCompare(b.status) }]}
+        dateFilters={[{ key: "opened", label: "Aberto", getDate: (r) => r.created_at }]}
+        sorts={[{ value: "date", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }, { value: "protocol", label: "Protocolo", compare: (a, b) => a.protocol.localeCompare(b.protocol) }, { value: "status", label: "Estado", compare: (a, b) => a.status.localeCompare(b.status) }]}
         emptyTitle="Nenhum requerimento encontrado"
         emptyDescription="Abra um novo requerimento."
         emptyIcon="Files"

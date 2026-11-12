@@ -78,7 +78,7 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent, on
   return (
     <>
       <DataList<Student>
-        prefix="alunos"
+        prefix="students"
         rows={students}
         columns={columns}
         isLoading={isLoading}
@@ -87,17 +87,17 @@ export function StudentsList({ students, isLoading, isError, onDeleteStudent, on
         searchPlaceholder="Pesquisar por nome, processo, BI ou encarregado"
         searchText={(s) => `${s.fullName} ${s.studentNumber} ${s.idDocumentNumber} ${s.guardianName} ${s.guardianPhone}`}
         filters={[
-          { key: "estado", label: "Estado", icon: "ListFilter", options: STATUS_OPTIONS, match: (s, v) => s.status === v },
-          { key: "classe", label: "Classe", icon: "GraduationCap", options: levels.map((l) => ({ value: l, label: l })), match: (s, v) => s.currentClassLevel === v },
-          { key: "turma", label: "Turma", icon: "Users", options: [{ value: "__none", label: "Sem turma" }, ...sections.map((l) => ({ value: l, label: l }))], match: (s, v) => (v === "__none" ? !s.currentSectionName : s.currentSectionName === v) },
-          { key: "genero", label: "Género", icon: "User", options: [{ value: "MALE", label: "Masculino" }, { value: "FEMALE", label: "Feminino" }], match: (s, v) => s.gender === v },
-          { key: "ano", label: "Ano letivo", icon: "CalendarRange", options: years.map((l) => ({ value: l, label: l })), match: (s, v) => s.academicYear === v },
+          { key: "status", label: "Estado", icon: "ListFilter", options: STATUS_OPTIONS, match: (s, v) => s.status === v },
+          { key: "class", label: "Classe", icon: "GraduationCap", options: levels.map((l) => ({ value: l, label: l })), match: (s, v) => s.currentClassLevel === v },
+          { key: "section", label: "Turma", icon: "Users", options: [{ value: "__none", label: "Sem turma" }, ...sections.map((l) => ({ value: l, label: l }))], match: (s, v) => (v === "__none" ? !s.currentSectionName : s.currentSectionName === v) },
+          { key: "gender", label: "Género", icon: "User", options: [{ value: "MALE", label: "Masculino" }, { value: "FEMALE", label: "Feminino" }], match: (s, v) => s.gender === v },
+          { key: "year", label: "Ano letivo", icon: "CalendarRange", options: years.map((l) => ({ value: l, label: l })), match: (s, v) => s.academicYear === v },
         ]}
-        dateFilters={[{ key: "registo", label: "Registo", getDate: (s) => s.createdAt }]}
+        dateFilters={[{ key: "registration", label: "Registo", getDate: (s) => s.createdAt }]}
         sorts={[
-          { value: "nome", label: "Nome", compare: (a, b) => a.fullName.localeCompare(b.fullName, "pt") },
-          { value: "processo", label: "N.º de processo", compare: (a, b) => a.studentNumber.localeCompare(b.studentNumber) },
-          { value: "registo", label: "Data de registo", compare: (a, b) => a.createdAt.localeCompare(b.createdAt) },
+          { value: "name", label: "Nome", compare: (a, b) => a.fullName.localeCompare(b.fullName, "pt") },
+          { value: "number", label: "N.º de processo", compare: (a, b) => a.studentNumber.localeCompare(b.studentNumber) },
+          { value: "registration", label: "Data de registo", compare: (a, b) => a.createdAt.localeCompare(b.createdAt) },
         ]}
         emptyTitle="Nenhum aluno encontrado"
         emptyDescription="Ajuste os filtros ou cadastre um novo aluno."

@@ -102,7 +102,7 @@ export function ApiReportsCatalog({ domains, title, description }: ApiReportsCat
         {open && (
           <div className="sm:col-span-2">
             <DataList<PreviewRow>
-              prefix="prev"
+              prefix="report-preview"
               rows={rows}
               columns={columns}
               pageSize={10}

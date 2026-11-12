@@ -41,7 +41,7 @@ export function FamilyDocuments({ studentId, ward }: FamilyContext) {
   const fee = (t: RequestType) => Number(price?.fees[t] ?? 0);
   const mine = requests.all.filter((r) => r.student_id === studentId);
   const awaiting = mine.filter((r) => r.status === "aguarda_pagamento");
-  const payHref = `/familia/financeiro?aluno=${studentId}`;
+  const payHref = `/family/finance?student=${studentId}`;
 
   const startRequest = (t: RequestType) => { setType(t); setSubject(""); setDescription(""); openModal(NEW_MODAL); };
   const send = () =>
@@ -111,25 +111,25 @@ export function FamilyDocuments({ studentId, ward }: FamilyContext) {
 
         <TabsContent value="requests">
           <DataList<ApiRequest>
-            prefix="pedidos" rows={mine} columns={requestColumns} isLoading={requests.isLoading} pageSize={10}
+            prefix="requests" rows={mine} columns={requestColumns} isLoading={requests.isLoading} pageSize={10}
             searchPlaceholder="Pesquisar protocolo ou assunto" searchText={(r) => `${r.protocol} ${r.subject}`}
             filters={[
-              { key: "estado", label: "Estado", icon: "ListFilter", options: (Object.keys(REQUEST_STATUS_LABEL) as RequestStatus[]).map((s) => ({ value: s, label: REQUEST_STATUS_LABEL[s] })), match: (r, v) => r.status === v },
-              { key: "documento", label: "Documento", icon: "FileText", options: TYPES.map((t) => ({ value: t, label: REQUEST_TYPE_LABEL[t] })), match: (r, v) => r.type === v },
+              { key: "status", label: "Estado", icon: "ListFilter", options: (Object.keys(REQUEST_STATUS_LABEL) as RequestStatus[]).map((s) => ({ value: s, label: REQUEST_STATUS_LABEL[s] })), match: (r, v) => r.status === v },
+              { key: "document", label: "Documento", icon: "FileText", options: TYPES.map((t) => ({ value: t, label: REQUEST_TYPE_LABEL[t] })), match: (r, v) => r.type === v },
             ]}
-            dateFilters={[{ key: "aberto", label: "Pedido em", getDate: (r) => r.created_at }]}
-            sorts={[{ value: "data", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }]}
+            dateFilters={[{ key: "requested", label: "Pedido em", getDate: (r) => r.created_at }]}
+            sorts={[{ value: "date", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }]}
             emptyTitle="Sem pedidos" emptyDescription="Ainda não pediu nenhum documento para este educando." emptyIcon="Files"
           />
         </TabsContent>
 
         <TabsContent value="issued">
           <DataList<PortalDocument>
-            prefix="documentos" rows={live.documents} columns={docColumns} pageSize={10}
+            prefix="documents" rows={live.documents} columns={docColumns} pageSize={10}
             searchPlaceholder="Pesquisar documento" searchText={(d) => `${d.document_number} ${d.type}`}
-            filters={[{ key: "tipo", label: "Tipo", icon: "ListFilter", options: [...new Set(live.documents.map((d) => d.type))].map((v) => ({ value: v, label: v })), match: (d, v) => d.type === v }]}
-            dateFilters={[{ key: "emitido", label: "Emissão", getDate: (d) => d.issued_at }]}
-            sorts={[{ value: "data", label: "Data", compare: (a, b) => a.issued_at.localeCompare(b.issued_at) }]}
+            filters={[{ key: "type", label: "Tipo", icon: "ListFilter", options: [...new Set(live.documents.map((d) => d.type))].map((v) => ({ value: v, label: v })), match: (d, v) => d.type === v }]}
+            dateFilters={[{ key: "issued", label: "Emissão", getDate: (d) => d.issued_at }]}
+            sorts={[{ value: "date", label: "Data", compare: (a, b) => a.issued_at.localeCompare(b.issued_at) }]}
             emptyTitle="Sem documentos" emptyDescription="Ainda não foram emitidos documentos." emptyIcon="FileText"
           />
         </TabsContent>

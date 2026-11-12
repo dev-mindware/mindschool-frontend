@@ -113,7 +113,7 @@ export function CertificatesTable({ documents, isLoading, onViewPreview, onDelet
   return (
     <>
       <DataList<OfficialDocumentItem>
-        prefix="documentos"
+        prefix="documents"
         rows={documents}
         columns={columns}
         isLoading={isLoading}
@@ -121,17 +121,17 @@ export function CertificatesTable({ documents, isLoading, onViewPreview, onDelet
         searchPlaceholder="Pesquisar por número, aluno, código ou finalidade"
         searchText={(d) => `${d.documentNumber} ${d.studentName} ${d.studentNumber} ${d.verificationCode} ${d.purpose}`}
         filters={[
-          { key: 'tipo', label: 'Tipo', icon: 'ListFilter', options: Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label })), match: (d, v) => d.documentType === v },
-          { key: 'turma', label: 'Turma', icon: 'Users', options: uniq(documents.map((d) => d.className)).map((v) => ({ value: v, label: v })), match: (d, v) => d.className === v },
-          { key: 'ano', label: 'Ano letivo', icon: 'CalendarRange', options: uniq(documents.map((d) => d.academicYear)).map((v) => ({ value: v, label: v })), match: (d, v) => d.academicYear === v },
-          { key: 'emissor', label: 'Emitido por', icon: 'UserCheck', options: uniq(documents.map((d) => d.issuedBy)).map((v) => ({ value: v, label: v })), match: (d, v) => d.issuedBy === v },
-          { key: 'estado', label: 'Estado', icon: 'Flag', options: uniq(documents.map((d) => d.status)).map((v) => ({ value: v, label: v })), match: (d, v) => d.status === v },
+          { key: 'type', label: 'Tipo', icon: 'ListFilter', options: Object.entries(TYPE_LABEL).map(([value, label]) => ({ value, label })), match: (d, v) => d.documentType === v },
+          { key: 'section', label: 'Turma', icon: 'Users', options: uniq(documents.map((d) => d.className)).map((v) => ({ value: v, label: v })), match: (d, v) => d.className === v },
+          { key: 'year', label: 'Ano letivo', icon: 'CalendarRange', options: uniq(documents.map((d) => d.academicYear)).map((v) => ({ value: v, label: v })), match: (d, v) => d.academicYear === v },
+          { key: 'issuer', label: 'Emitido por', icon: 'UserCheck', options: uniq(documents.map((d) => d.issuedBy)).map((v) => ({ value: v, label: v })), match: (d, v) => d.issuedBy === v },
+          { key: 'status', label: 'Estado', icon: 'Flag', options: uniq(documents.map((d) => d.status)).map((v) => ({ value: v, label: v })), match: (d, v) => d.status === v },
         ]}
-        dateFilters={[{ key: 'emissao', label: 'Emissão', getDate: (d) => d.issueDate }]}
+        dateFilters={[{ key: 'issued', label: 'Emissão', getDate: (d) => d.issueDate }]}
         sorts={[
-          { value: 'data', label: 'Data de emissão', compare: (a, b) => a.issueDate.localeCompare(b.issueDate) },
-          { value: 'aluno', label: 'Aluno', compare: (a, b) => a.studentName.localeCompare(b.studentName, 'pt') },
-          { value: 'numero', label: 'Número', compare: (a, b) => a.documentNumber.localeCompare(b.documentNumber) },
+          { value: 'date', label: 'Data de emissão', compare: (a, b) => a.issueDate.localeCompare(b.issueDate) },
+          { value: 'student', label: 'Aluno', compare: (a, b) => a.studentName.localeCompare(b.studentName, 'pt') },
+          { value: 'number', label: 'Número', compare: (a, b) => a.documentNumber.localeCompare(b.documentNumber) },
         ]}
         emptyTitle="Nenhum documento emitido"
         emptyDescription="Emita um certificado ou declaração para o ver aqui."

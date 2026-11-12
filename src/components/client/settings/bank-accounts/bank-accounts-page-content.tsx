@@ -81,7 +81,7 @@ export function BankAccountsPageContent() {
       </div>
 
       <DataList<ApiBankAccount>
-        prefix="contas"
+        prefix="bank-accounts"
         rows={accounts}
         columns={columns}
         isLoading={isLoading}
@@ -89,8 +89,8 @@ export function BankAccountsPageContent() {
         pageSize={10}
         searchPlaceholder="Pesquisar banco, titular ou IBAN"
         searchText={(a) => `${a.bank_name} ${a.account_holder} ${a.iban} ${a.account_number ?? ""}`}
-        filters={[{ key: "estado", label: "Estado", icon: "ToggleLeft", options: [{ value: "on", label: "Visíveis no portal" }, { value: "off", label: "Inactivas" }], match: (a, v) => (v === "on" ? a.is_active : !a.is_active) }]}
-        sorts={[{ value: "banco", label: "Banco", compare: (a, b) => a.bank_name.localeCompare(b.bank_name, "pt") }, { value: "ordem", label: "Ordem", compare: (a, b) => a.sort_order - b.sort_order }]}
+        filters={[{ key: "status", label: "Estado", icon: "ToggleLeft", options: [{ value: "on", label: "Visíveis no portal" }, { value: "off", label: "Inactivas" }], match: (a, v) => (v === "on" ? a.is_active : !a.is_active) }]}
+        sorts={[{ value: "bank", label: "Banco", compare: (a, b) => a.bank_name.localeCompare(b.bank_name, "pt") }, { value: "order", label: "Ordem", compare: (a, b) => a.sort_order - b.sort_order }]}
         emptyTitle="Ainda não há contas bancárias"
         emptyDescription="Adicione a conta da escola para que os encarregados vejam onde pagar."
         emptyIcon="Landmark"

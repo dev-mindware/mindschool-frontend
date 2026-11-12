@@ -170,7 +170,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
         </div>
         {pay.banks.length === 0 && <p className="rounded-xs border border-dashed p-3 text-xs text-muted-foreground">A escola ainda não indicou os dados bancários para pagamento online. Contacte a secretaria.</p>}
         <DataList<ApiPayable>
-          prefix="pagaveis"
+          prefix="payables"
           rows={payables}
           columns={payableColumns}
           isLoading={pay.isLoading}
@@ -178,11 +178,11 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
           searchPlaceholder="Pesquisar fatura"
           searchText={(p) => `${p.description} ${p.payment_reference}`}
           filters={[
-            { key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "vencida", label: "Vencidas" }, { value: "porpagar", label: "Por pagar" }, { value: "analise", label: "Com comprovativo em análise" }], match: (p, v) => (v === "vencida" ? p.is_overdue : v === "porpagar" ? !p.is_overdue : Number(p.reserved) > 0) },
-            { key: "tipo", label: "Tipo", icon: "Tag", options: [{ value: "propina_mensal", label: "Propinas" }, { value: "matricula", label: "Matrícula" }, { value: "servico_extra", label: "Serviços" }, { value: "multa", label: "Multas" }], match: (p, v) => p.type === v },
+            { key: "status", label: "Estado", icon: "ListFilter", options: [{ value: "overdue", label: "Vencidas" }, { value: "unpaid", label: "Por pagar" }, { value: "in-review", label: "Com comprovativo em análise" }], match: (p, v) => (v === "overdue" ? p.is_overdue : v === "unpaid" ? !p.is_overdue : Number(p.reserved) > 0) },
+            { key: "type", label: "Tipo", icon: "Tag", options: [{ value: "propina_mensal", label: "Propinas" }, { value: "matricula", label: "Matrícula" }, { value: "servico_extra", label: "Serviços" }, { value: "multa", label: "Multas" }], match: (p, v) => p.type === v },
           ]}
-          dateFilters={[{ key: "vencimento", label: "Vencimento", getDate: (p) => p.due_date }]}
-          sorts={[{ value: "vencimento", label: "Vencimento", compare: (a, b) => a.due_date.localeCompare(b.due_date) }, { value: "valor", label: "Valor", compare: (a, b) => Number(a.balance) - Number(b.balance) }]}
+          dateFilters={[{ key: "due", label: "Vencimento", getDate: (p) => p.due_date }]}
+          sorts={[{ value: "due", label: "Vencimento", compare: (a, b) => a.due_date.localeCompare(b.due_date) }, { value: "amount", label: "Valor", compare: (a, b) => Number(a.balance) - Number(b.balance) }]}
           emptyTitle="Sem faturas por pagar"
           emptyDescription="Está tudo em dia. Obrigado!"
           emptyIcon="CircleCheck"
@@ -192,7 +192,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
       <section className="space-y-3">
         <h3 className="text-base font-semibold">Os meus comprovativos</h3>
         <DataList<ApiSubmission>
-          prefix="meus-comprovativos"
+          prefix="my-submissions"
           rows={pay.submissions}
           columns={submissionColumns}
           isLoading={pay.isLoading}
@@ -200,11 +200,11 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
           searchPlaceholder="Pesquisar protocolo"
           searchText={(s) => `${s.protocol} ${s.reference ?? ""}`}
           filters={[
-            { key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "abertos", label: "Em curso" }, { value: "aprovado", label: "Confirmados" }, { value: "rejeitado", label: "Rejeitados" }], match: (s, v) => (v === "abertos" ? OPEN_SUBMISSION.includes(s.status) : s.status === v) },
-            { key: "metodo", label: "Método", icon: "CreditCard", options: Object.entries(METHOD_LABEL).map(([value, label]) => ({ value, label })), match: (s, v) => s.method === v },
+            { key: "status", label: "Estado", icon: "ListFilter", options: [{ value: "open", label: "Em curso" }, { value: "aprovado", label: "Confirmados" }, { value: "rejeitado", label: "Rejeitados" }], match: (s, v) => (v === "open" ? OPEN_SUBMISSION.includes(s.status) : s.status === v) },
+            { key: "method", label: "Método", icon: "CreditCard", options: Object.entries(METHOD_LABEL).map(([value, label]) => ({ value, label })), match: (s, v) => s.method === v },
           ]}
-          dateFilters={[{ key: "enviado", label: "Envio", getDate: (s) => s.created_at }]}
-          sorts={[{ value: "data", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }, { value: "valor", label: "Valor", compare: (a, b) => Number(a.total_amount) - Number(b.total_amount) }]}
+          dateFilters={[{ key: "submitted", label: "Envio", getDate: (s) => s.created_at }]}
+          sorts={[{ value: "date", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }, { value: "amount", label: "Valor", compare: (a, b) => Number(a.total_amount) - Number(b.total_amount) }]}
           emptyTitle="Ainda não enviou comprovativos"
           emptyDescription="Depois de pagar, submeta o comprovativo para a escola validar."
           emptyIcon="FileCheck"

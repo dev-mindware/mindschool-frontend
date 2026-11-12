@@ -79,14 +79,14 @@ export function JustificationsList({ classId }: JustificationsListProps) {
   return (
     <>
       <DataList<Row>
-        prefix="justificacoes"
+        prefix="justifications"
         rows={data}
         columns={columns}
         isLoading={isLoading}
         searchPlaceholder="Pesquisar aluno"
         searchText={(r) => r.student.full_name}
-        filters={[{ key: "pendentes", label: "Faltas", icon: "Tag", options: [{ value: "pendentes", label: "Com injustificadas" }, { value: "justificadas", label: "Todas justificadas" }], match: (r, v) => (v === "pendentes" ? r.unjustified_absences > 0 : r.unjustified_absences === 0) }]}
-        sorts={[{ value: "injust", label: "Faltas injustificadas", compare: (a, b) => a.unjustified_absences - b.unjustified_absences }, { value: "nome", label: "Nome", compare: (a, b) => a.student.full_name.localeCompare(b.student.full_name) }]}
+        filters={[{ key: "pending", label: "Faltas", icon: "Tag", options: [{ value: "pending", label: "Com injustificadas" }, { value: "justified", label: "Todas justificadas" }], match: (r, v) => (v === "pending" ? r.unjustified_absences > 0 : r.unjustified_absences === 0) }]}
+        sorts={[{ value: "unjustified", label: "Faltas injustificadas", compare: (a, b) => a.unjustified_absences - b.unjustified_absences }, { value: "name", label: "Nome", compare: (a, b) => a.student.full_name.localeCompare(b.student.full_name) }]}
         emptyTitle="Nenhum aluno com faltas nesta turma"
         emptyIcon="CircleCheck"
       />

@@ -95,11 +95,11 @@ export function SecurityCenter() {
           <Button size="sm" variant="outline" className="gap-2 text-destructive" onClick={() => openModal("sec-end-all")}><Icon name="LogOut" className="size-4" />Terminar todas</Button>
         </div>
         <DataList<ApiSession>
-          prefix="sessoes"
+          prefix="sessions"
           rows={s.sessions}
           columns={sessionColumns}
-          filters={[{ key: "tipo", label: "Sessão", icon: "Monitor", options: [{ value: "actual", label: "Esta sessão" }, { value: "outras", label: "Outros dispositivos" }], match: (x, v) => (v === "actual" ? x.current : !x.current) }]}
-          sorts={[{ value: "atividade", label: "Última atividade", compare: (a, b) => a.last_active_at.localeCompare(b.last_active_at) }]}
+          filters={[{ key: "type", label: "Sessão", icon: "Monitor", options: [{ value: "current", label: "Esta sessão" }, { value: "others", label: "Outros dispositivos" }], match: (x, v) => (v === "current" ? x.current : !x.current) }]}
+          sorts={[{ value: "activity", label: "Última atividade", compare: (a, b) => a.last_active_at.localeCompare(b.last_active_at) }]}
           emptyTitle="Sem sessões"
           emptyIcon="Monitor"
           skeletonCols={4}

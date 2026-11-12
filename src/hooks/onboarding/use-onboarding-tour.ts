@@ -32,8 +32,8 @@ const CONDITIONAL_STEP_MARKERS = [
   "credit-note-items",
   "credit-note-totals",
   "page-summary",
-  "notas-filters",
-  "notas-empty-state",
+  "grades-filters",
+  "grades-empty-state",
 ];
 
 let activeDriver: Driver | null = null;

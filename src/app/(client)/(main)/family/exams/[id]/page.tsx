@@ -7,17 +7,17 @@ import { ExamTaker } from "@/modules/family/components/exam-taker";
 
 export default function ExamPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
-  const tentativa = useSearchParams().get("tentativa") ?? undefined;
+  const attempt = useSearchParams().get("attempt") ?? undefined;
   return (
     <PageWrapper
       subRoute="Realizar Prova"
       segments={[
         { label: "Acompanhamento" },
-        { label: "Provas Online", href: "/familia/provas" },
+        { label: "Provas Online", href: "/family/exams" },
         { label: "Realizar Prova" },
       ]}
     >
-      <ExamTaker examId={id} {...(tentativa ? { submissionId: tentativa } : {})} />
+      <ExamTaker examId={id} {...(attempt ? { submissionId: attempt } : {})} />
     </PageWrapper>
   );
 }

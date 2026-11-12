@@ -4,16 +4,16 @@ export type ReportFormat = "pdf" | "docx" | "xlsx";
 
 /** Relatórios com modelo comum da API (`/report-models/*`): o mesmo documento em PDF, Word ou Excel. */
 export type ReportModel =
-  | "mini-pauta"
-  | "pauta-trimestral"
-  | "mapa-aproveitamento"
-  | "lista-nominal"
-  | "mapa-assiduidade"
-  | "horario-turma"
-  | "balancete-propinas"
-  | "lista-devedores"
-  | "dosificacao"
-  | "plano-aula";
+  | "subject-grade-sheet"
+  | "term-grade-sheet"
+  | "performance-summary"
+  | "class-roster"
+  | "attendance-summary"
+  | "class-timetable"
+  | "tuition-balance"
+  | "debtors-list"
+  | "curriculum-plan"
+  | "lesson-plan";
 
 export type ReportParams = Partial<Record<"section_id" | "term_id" | "section_subject_id" | "academic_year_id" | "plan_id", string>>;
 

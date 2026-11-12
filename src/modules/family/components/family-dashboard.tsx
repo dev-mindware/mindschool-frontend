@@ -64,7 +64,7 @@ export function FamilyDashboard() {
           <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
             <div className="lg:col-span-2">
               <ChartCard title="Propinas e taxas por pagar" icon="Receipt" description="Pague por transferência e submeta o comprovativo; a escola valida e confirma por email."
-                action={<Button asChild size="sm" className="gap-2"><Link href="/familia/financeiro"><Icon name="Landmark" className="size-4" />Pagar agora</Link></Button>}>
+                action={<Button asChild size="sm" className="gap-2"><Link href="/family/finance"><Icon name="Landmark" className="size-4" />Pagar agora</Link></Button>}>
                 {payables.length === 0 ? <ChartEmpty text="Não há faturas por pagar. Obrigado!" /> : (
                   <ul className="space-y-3 pb-2">
                     {payables.slice(0, 6).map((p) => (
@@ -97,7 +97,7 @@ export function FamilyDashboard() {
 
       <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <ChartCard title="Notas por disciplina" icon="GraduationCap" description={lastTerm ? `Média trimestral — ${lastTerm.term.sequence}.º Trimestre` : "Média trimestral"} action={<Button asChild size="sm" variant="ghost"><Link href="/familia/aproveitamento">Ver notas</Link></Button>}>
+          <ChartCard title="Notas por disciplina" icon="GraduationCap" description={lastTerm ? `Média trimestral — ${lastTerm.term.sequence}.º Trimestre` : "Média trimestral"} action={<Button asChild size="sm" variant="ghost"><Link href="/family/performance">Ver notas</Link></Button>}>
             {gradeRows.length === 0 ? <ChartEmpty text="Ainda não há notas publicadas." /> : (
               <ChartContainer config={gradeConfig} className="aspect-auto h-[240px] w-full">
                 <BarChart data={gradeRows} margin={{ top: 10, right: 12, left: -16, bottom: 0 }}>
@@ -135,14 +135,14 @@ export function FamilyDashboard() {
       </div>
 
       <div className="grid grid-cols-1 gap-4 md:gap-6 lg:grid-cols-2">
-        <ChartCard title="Comunicados da escola" icon="Megaphone" action={<Button asChild size="sm" variant="ghost"><Link href="/familia/comunicados">Ver todos</Link></Button>}>
+        <ChartCard title="Comunicados da escola" icon="Megaphone" action={<Button asChild size="sm" variant="ghost"><Link href="/family/announcements">Ver todos</Link></Button>}>
           {portal.announcements.length === 0 ? <ChartEmpty text="Sem comunicados." /> : (
             <ul className="space-y-3 pb-2">{portal.announcements.slice(0, 4).map((a) => (
               <li key={a.id} className="text-sm"><span className="font-medium">{a.title}</span><span className="block text-xs text-muted-foreground">{formatIsoDay(a.published_at)}</span></li>
             ))}</ul>
           )}
         </ChartCard>
-        <ChartCard title="Próximos eventos" icon="CalendarDays" action={<Button asChild size="sm" variant="ghost"><Link href="/familia/calendario">Calendário</Link></Button>}>
+        <ChartCard title="Próximos eventos" icon="CalendarDays" action={<Button asChild size="sm" variant="ghost"><Link href="/family/calendar">Calendário</Link></Button>}>
           {portal.calendar.length === 0 ? <ChartEmpty text="Sem eventos publicados." /> : (
             <ul className="space-y-3 pb-2">{portal.calendar.filter((e) => e.end_date >= new Date().toISOString().slice(0, 10)).slice(0, 4).map((e) => (
               <li key={e.id} className="text-sm"><span className="font-medium">{e.title}</span><span className="block text-xs text-muted-foreground">{formatIsoDay(e.start_date)}{e.end_date !== e.start_date ? ` → ${formatIsoDay(e.end_date)}` : ""}{e.location ? ` · ${e.location}` : ""}</span></li>

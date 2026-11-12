@@ -131,24 +131,24 @@ export function TeachersAttendanceTable({ logs, onOpenCard, onOpenJustify }: Tea
 
   return (
     <DataList<TeacherAttendanceLog>
-      prefix="docentes"
+      prefix="teacher-attendance"
       rows={logs}
       columns={columns}
       pageSize={10}
       searchPlaceholder="Pesquisar professor, código ou departamento"
       searchText={(l) => `${l.teacherName} ${l.teacherCode} ${l.department}`}
       filters={[
-        { key: 'estado', label: 'Estado', icon: 'ListFilter', options: [{ value: 'PRESENT', label: 'Presentes' }, { value: 'LATE', label: 'Atrasados' }, { value: 'JUSTIFIED_ABSENCE', label: 'Faltas justificadas' }, { value: 'ABSENT', label: 'Ausentes' }, { value: 'ON_DUTY', label: 'Em serviço' }], match: (l, v) => l.status === v },
-        { key: 'departamento', label: 'Departamento', icon: 'Building2', options: uniq(logs.map((l) => l.department)).map((v) => ({ value: v, label: v })), match: (l, v) => l.department === v },
-        { key: 'metodo', label: 'Método de ponto', icon: 'QrCode', options: uniq(logs.map((l) => l.checkInMethod ?? '')).map((v) => ({ value: v, label: v })), match: (l, v) => l.checkInMethod === v },
-        { key: 'aulas', label: 'Aulas', icon: 'BookOpen', options: [{ value: 'completas', label: 'Todas leccionadas' }, { value: 'incompletas', label: 'Com aulas por dar' }], match: (l, v) => (v === 'completas' ? l.completedClassesCount >= l.scheduledClassesCount : l.completedClassesCount < l.scheduledClassesCount) },
-        { key: 'atraso', label: 'Atraso', icon: 'Clock', options: [{ value: 'com', label: 'Com atraso' }, { value: 'sem', label: 'Sem atraso' }], match: (l, v) => (v === 'com' ? (l.delayMinutes ?? 0) > 0 : !(l.delayMinutes ?? 0)) },
+        { key: 'status', label: 'Estado', icon: 'ListFilter', options: [{ value: 'PRESENT', label: 'Presentes' }, { value: 'LATE', label: 'Atrasados' }, { value: 'JUSTIFIED_ABSENCE', label: 'Faltas justificadas' }, { value: 'ABSENT', label: 'Ausentes' }, { value: 'ON_DUTY', label: 'Em serviço' }], match: (l, v) => l.status === v },
+        { key: 'department', label: 'Departamento', icon: 'Building2', options: uniq(logs.map((l) => l.department)).map((v) => ({ value: v, label: v })), match: (l, v) => l.department === v },
+        { key: 'method', label: 'Método de ponto', icon: 'QrCode', options: uniq(logs.map((l) => l.checkInMethod ?? '')).map((v) => ({ value: v, label: v })), match: (l, v) => l.checkInMethod === v },
+        { key: 'classes', label: 'Aulas', icon: 'BookOpen', options: [{ value: 'completed', label: 'Todas leccionadas' }, { value: 'incomplete', label: 'Com aulas por dar' }], match: (l, v) => (v === 'completed' ? l.completedClassesCount >= l.scheduledClassesCount : l.completedClassesCount < l.scheduledClassesCount) },
+        { key: 'delay', label: 'Atraso', icon: 'Clock', options: [{ value: 'with', label: 'Com atraso' }, { value: 'without', label: 'Sem atraso' }], match: (l, v) => (v === 'with' ? (l.delayMinutes ?? 0) > 0 : !(l.delayMinutes ?? 0)) },
       ]}
-      dateFilters={[{ key: 'dia', label: 'Dia', getDate: (l) => l.date }]}
+      dateFilters={[{ key: 'day', label: 'Dia', getDate: (l) => l.date }]}
       sorts={[
-        { value: 'data', label: 'Data', compare: (a, b) => a.date.localeCompare(b.date) },
-        { value: 'professor', label: 'Professor', compare: (a, b) => a.teacherName.localeCompare(b.teacherName, 'pt') },
-        { value: 'atraso', label: 'Minutos de atraso', compare: (a, b) => (a.delayMinutes ?? 0) - (b.delayMinutes ?? 0) },
+        { value: 'date', label: 'Data', compare: (a, b) => a.date.localeCompare(b.date) },
+        { value: 'teacher', label: 'Professor', compare: (a, b) => a.teacherName.localeCompare(b.teacherName, 'pt') },
+        { value: 'delay', label: 'Minutos de atraso', compare: (a, b) => (a.delayMinutes ?? 0) - (b.delayMinutes ?? 0) },
       ]}
       emptyTitle="Nenhum registo de assiduidade docente"
       emptyDescription="Os registos aparecem quando os professores marcam o ponto."

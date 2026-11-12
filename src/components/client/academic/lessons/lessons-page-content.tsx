@@ -498,7 +498,7 @@ export function LessonsPageContent() {
   const lessonFilters = (rows: ApiLesson[]) => ({
     filters: [
       {
-        key: "estado",
+        key: "status",
         label: "Estado",
         icon: "CircleDot" as const,
         options: Object.entries(LESSON_STATUS_LABEL).map(([value, label]) => ({
@@ -508,7 +508,7 @@ export function LessonsPageContent() {
         match: (x: ApiLesson, v: string) => x.status === v,
       },
       {
-        key: "turma",
+        key: "section",
         label: "Turma",
         icon: "Users" as const,
         options: [...new Set(rows.map((x) => x.section.name))].sort().map((s) => ({
@@ -518,7 +518,7 @@ export function LessonsPageContent() {
         match: (x: ApiLesson, v: string) => x.section.name === v,
       },
       {
-        key: "disciplina",
+        key: "subject",
         label: "Disciplina",
         icon: "BookOpen" as const,
         options: [...new Set(rows.map((x) => x.subject.name))].sort().map((s) => ({
@@ -528,7 +528,7 @@ export function LessonsPageContent() {
         match: (x: ApiLesson, v: string) => x.subject.name === v,
       },
       {
-        key: "professor",
+        key: "teacher",
         label: "Professor",
         icon: "GraduationCap" as const,
         options: [...new Set(rows.map((x) => x.teacher.full_name))].sort().map((s) => ({
@@ -538,16 +538,16 @@ export function LessonsPageContent() {
         match: (x: ApiLesson, v: string) => x.teacher.full_name === v,
       },
     ],
-    dateFilters: [{ key: "data", label: "Aula", getDate: (x: ApiLesson) => x.date }],
+    dateFilters: [{ key: "date", label: "Aula", getDate: (x: ApiLesson) => x.date }],
     sorts: [
       {
-        value: "data",
+        value: "date",
         label: "Data",
         compare: (a: ApiLesson, b: ApiLesson) =>
           `${a.date}${a.start}`.localeCompare(`${b.date}${b.start}`),
       },
       {
-        value: "turma",
+        value: "section",
         label: "Turma",
         compare: (a: ApiLesson, b: ApiLesson) => a.section.name.localeCompare(b.section.name),
       },
@@ -683,7 +683,7 @@ export function LessonsPageContent() {
 
         <TabsContent value="list">
           <DataList<ApiLesson>
-            prefix="aulas"
+            prefix="lessons"
             rows={l.lessons}
             columns={columns}
             isLoading={l.isLoading}
@@ -696,7 +696,7 @@ export function LessonsPageContent() {
         </TabsContent>
         <TabsContent value="missing">
           <DataList<ApiLesson>
-            prefix="sumarios-falta"
+            prefix="missing-summaries"
             rows={l.missing}
             columns={columns}
             searchPlaceholder="Pesquisar"
@@ -709,36 +709,36 @@ export function LessonsPageContent() {
         </TabsContent>
         <TabsContent value="stats">
           <DataList<(typeof l.stats)[number] & { id: string }>
-            prefix="cumprimento"
+            prefix="lesson-compliance"
             rows={l.stats.map((s) => ({ ...s, id: s.section_subject_id }))}
             columns={statColumns}
             searchPlaceholder="Pesquisar por turma, disciplina ou professor"
             searchText={(s) => `${s.section} ${s.subject} ${s.teacher}`}
             filters={[
               {
-                key: "nivel",
+                key: "level",
                 label: "Cumprimento",
                 icon: "Gauge",
                 options: [
-                  { value: "baixo", label: "Abaixo de 70%" },
-                  { value: "medio", label: "70% a 90%" },
-                  { value: "alto", label: "Acima de 90%" },
+                  { value: "low", label: "Abaixo de 70%" },
+                  { value: "medium", label: "70% a 90%" },
+                  { value: "high", label: "Acima de 90%" },
                 ],
                 match: (s, v) => {
                   const r = s.compliance_rate ?? 0;
-                  return v === "baixo" ? r < 70 : v === "medio" ? r >= 70 && r <= 90 : r > 90;
+                  return v === "low" ? r < 70 : v === "medium" ? r >= 70 && r <= 90 : r > 90;
                 },
               },
             ]}
             sorts={[
               {
-                value: "taxa",
+                value: "rate",
                 label: "Cumprimento",
                 compare: (a, b) =>
                   (a.compliance_rate ?? 0) - (b.compliance_rate ?? 0),
               },
               {
-                value: "turma",
+                value: "section",
                 label: "Turma",
                 compare: (a, b) => a.section.localeCompare(b.section),
               },

@@ -235,7 +235,7 @@ export function TimetablesPageContent() {
   const tt = useTimetables(timetableId || undefined);
   const { timetables, sections, entries, slotsFor, bells, hasYear } = tt;
   const { openModal, closeModal } = useModal();
-  const f = useListFilters("horario", ["turma", "professor", "disciplina", "sala"]);
+  const f = useListFilters("timetable", ["section", "teacher", "subject", "room"]);
 
   useEffect(() => {
     if (!timetableId && timetables.length > 0) setTimetableId((timetables.find((t) => t.status === "publicado") ?? timetables[0]!).id);
@@ -257,12 +257,12 @@ export function TimetablesPageContent() {
   const [entryToEdit, setEntryToEdit] = useState<ApiEntry | null>(null);
   const [report, setReport] = useState<ApiValidation | null>(null);
 
-  const section = sections.find((s) => s.id === (f.get("turma") || sections[0]?.id));
+  const section = sections.find((s) => s.id === (f.get("section") || sections[0]?.id));
   const teachers = useMemo(() => [...new Map(entries.map((e) => [e.teacher.id, e.teacher.full_name])).entries()], [entries]);
-  const teacher = f.get("professor") || teachers[0]?.[0];
+  const teacher = f.get("teacher") || teachers[0]?.[0];
   const subjects = useMemo(() => [...new Set(entries.map((e) => e.subject.name))].sort(), [entries]);
   const roomCodes = useMemo(() => [...new Set(entries.map((e) => e.room?.code).filter((c): c is string => Boolean(c)))].sort(), [entries]);
-  const narrow = (list: ApiEntry[]) => list.filter((e) => (!f.get("disciplina") || e.subject.name === f.get("disciplina")) && (!f.get("sala") || e.room?.code === f.get("sala")));
+  const narrow = (list: ApiEntry[]) => list.filter((e) => (!f.get("subject") || e.subject.name === f.get("subject")) && (!f.get("room") || e.room?.code === f.get("room")));
 
   const sectionEntries = narrow(entries.filter((e) => e.section.id === section?.id));
   const teacherEntries = narrow(entries.filter((e) => e.teacher.id === teacher));
@@ -287,9 +287,9 @@ export function TimetablesPageContent() {
 
   const bar = (
     <div className="flex flex-wrap gap-4">
-      <FilterPopover icon="Users" label="Disciplina" options={subjects.map((s) => ({ value: s, label: s }))} value={f.get("disciplina") || null} onChange={(v) => f.setFilter("disciplina", v)} />
-      <FilterPopover icon="DoorOpen" label="Sala" options={roomCodes.map((s) => ({ value: s, label: s }))} value={f.get("sala") || null} onChange={(v) => f.setFilter("sala", v)} />
-      {(f.get("disciplina") || f.get("sala")) && <Button size="sm" variant="outline" className="h-10 text-destructive" onClick={() => { f.setFilter("disciplina", ""); f.setFilter("sala", ""); }}><Icon name="X" className="size-4 mr-2" />Limpar</Button>}
+      <FilterPopover icon="Users" label="Disciplina" options={subjects.map((s) => ({ value: s, label: s }))} value={f.get("subject") || null} onChange={(v) => f.setFilter("subject", v)} />
+      <FilterPopover icon="DoorOpen" label="Sala" options={roomCodes.map((s) => ({ value: s, label: s }))} value={f.get("room") || null} onChange={(v) => f.setFilter("room", v)} />
+      {(f.get("subject") || f.get("room")) && <Button size="sm" variant="outline" className="h-10 text-destructive" onClick={() => { f.setFilter("subject", ""); f.setFilter("room", ""); }}><Icon name="X" className="size-4 mr-2" />Limpar</Button>}
     </div>
   );
 
@@ -383,7 +383,7 @@ export function TimetablesPageContent() {
                     <FormSelect
                       label="Turma"
                       value={section?.id ?? ""}
-                      onValueChange={(v) => f.setFilter("turma", v)}
+                      onValueChange={(v) => f.setFilter("section", v)}
                       options={sections.map((s) => ({ value: s.id, label: `${s.classLevel} ${s.name} (${SHIFT_LABEL[SHIFT_OF[s.shift] ?? "manha"]})` }))}
                     />
                   </div>
@@ -468,7 +468,7 @@ export function TimetablesPageContent() {
           ) : (
             <>
               <div className="mt-6 flex flex-wrap items-end gap-4">
-                <div className="w-72"><FormSelect label="Professor" value={teacher ?? ""} onValueChange={(v) => f.setFilter("professor", v)} options={teachers.map(([id, name]) => ({ value: id, label: name }))} /></div>
+                <div className="w-72"><FormSelect label="Professor" value={teacher ?? ""} onValueChange={(v) => f.setFilter("teacher", v)} options={teachers.map(([id, name]) => ({ value: id, label: name }))} /></div>
                 {bar}
               </div>
               {teachers.length === 0 ? (
@@ -503,13 +503,13 @@ export function TimetablesPageContent() {
         {tt.roomsEnabled && <TabsContent value="rooms">
           <div className="mt-6 flex justify-end"><Can permission="timetable:write"><Button size="sm" className="gap-1.5" onClick={() => openModal("tt-new-room")}><Icon name="Plus" className="size-4" />Nova sala</Button></Can></div>
           <DataList<ApiRoom>
-            prefix="salas"
+            prefix="rooms"
             rows={tt.rooms}
             columns={roomColumns}
             searchPlaceholder="Pesquisar sala"
             searchText={(r) => `${r.code} ${r.name}`}
-            filters={[{ key: "estado", label: "Estado", icon: "Tag", options: [{ value: "activa", label: "Ativa" }, { value: "inactiva", label: "Inactiva" }], match: (r, v) => (v === "activa" ? r.is_active : !r.is_active) }]}
-            sorts={[{ value: "codigo", label: "Código", compare: (a, b) => a.code.localeCompare(b.code) }, { value: "lotacao", label: "Lotação", compare: (a, b) => (a.capacity ?? 0) - (b.capacity ?? 0) }]}
+            filters={[{ key: "status", label: "Estado", icon: "Tag", options: [{ value: "active", label: "Ativa" }, { value: "inactive", label: "Inactiva" }], match: (r, v) => (v === "active" ? r.is_active : !r.is_active) }]}
+            sorts={[{ value: "code", label: "Código", compare: (a, b) => a.code.localeCompare(b.code) }, { value: "capacity", label: "Lotação", compare: (a, b) => (a.capacity ?? 0) - (b.capacity ?? 0) }]}
             emptyTitle="Sem salas registadas"
             emptyIcon="DoorOpen"
           />
@@ -517,14 +517,14 @@ export function TimetablesPageContent() {
 
         <TabsContent value="changes">
           <DataList<ApiChange>
-            prefix="mudancas"
+            prefix="timetable-changes"
             rows={tt.changes}
             columns={changeColumns}
             searchPlaceholder="Pesquisar por motivo"
             searchText={(c) => c.reason}
-            filters={[{ key: "tipo", label: "Tipo", icon: "Tag", options: Object.entries(CHANGE_LABEL).map(([value, label]) => ({ value, label })), match: (c, v) => c.type === v }]}
-            dateFilters={[{ key: "vigor", label: "Em vigor", getDate: (c) => c.effective_date }]}
-            sorts={[{ value: "data", label: "Data de efeito", compare: (a, b) => a.effective_date.localeCompare(b.effective_date) }]}
+            filters={[{ key: "type", label: "Tipo", icon: "Tag", options: Object.entries(CHANGE_LABEL).map(([value, label]) => ({ value, label })), match: (c, v) => c.type === v }]}
+            dateFilters={[{ key: "effective", label: "Em vigor", getDate: (c) => c.effective_date }]}
+            sorts={[{ value: "date", label: "Data de efeito", compare: (a, b) => a.effective_date.localeCompare(b.effective_date) }]}
             emptyTitle="Sem mudanças pedidas"
             emptyDescription="As mudanças a um horário publicado aparecem aqui."
             emptyIcon="History"

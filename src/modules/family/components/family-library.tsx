@@ -91,33 +91,33 @@ export function FamilyLibrary({ studentId, ward }: FamilyContext) {
         </TabsList>
         <TabsContent value="catalog">
           <DataList<PortalBook>
-            prefix="livros" rows={books.data ?? []} columns={bookColumns} isLoading={books.isLoading} pageSize={10}
+            prefix="books" rows={books.data ?? []} columns={bookColumns} isLoading={books.isLoading} pageSize={10}
             searchPlaceholder="Pesquisar por título ou autor" searchText={(b) => `${b.title} ${b.author} ${b.category ?? ""}`}
             filters={[
-              { key: "categoria", label: "Categoria", icon: "Tag", options: [...new Set((books.data ?? []).map((b) => b.category).filter((c): c is string => Boolean(c)))].map((v) => ({ value: v, label: v })), match: (b, v) => b.category === v },
-              { key: "disponivel", label: "Disponibilidade", icon: "CircleCheck", options: [{ value: "sim", label: "Com exemplares" }, { value: "nao", label: "Sem exemplares" }], match: (b, v) => (v === "sim" ? b.copies_available > 0 : b.copies_available === 0) },
+              { key: "category", label: "Categoria", icon: "Tag", options: [...new Set((books.data ?? []).map((b) => b.category).filter((c): c is string => Boolean(c)))].map((v) => ({ value: v, label: v })), match: (b, v) => b.category === v },
+              { key: "available", label: "Disponibilidade", icon: "CircleCheck", options: [{ value: "yes", label: "Com exemplares" }, { value: "no", label: "Sem exemplares" }], match: (b, v) => (v === "yes" ? b.copies_available > 0 : b.copies_available === 0) },
             ]}
-            sorts={[{ value: "titulo", label: "Título", compare: (a, b) => a.title.localeCompare(b.title, "pt") }, { value: "autor", label: "Autor", compare: (a, b) => a.author.localeCompare(b.author, "pt") }]}
+            sorts={[{ value: "title", label: "Título", compare: (a, b) => a.title.localeCompare(b.title, "pt") }, { value: "author", label: "Autor", compare: (a, b) => a.author.localeCompare(b.author, "pt") }]}
             emptyTitle="Sem livros" emptyDescription="A biblioteca ainda não tem livros no acervo." emptyIcon="Library"
           />
         </TabsContent>
         <TabsContent value="requests">
           <DataList<PortalLibraryRequest>
-            prefix="pedidos-livros" rows={requests} columns={requestColumns} isLoading={mine.isLoading} pageSize={10}
+            prefix="book-requests" rows={requests} columns={requestColumns} isLoading={mine.isLoading} pageSize={10}
             searchPlaceholder="Pesquisar livro" searchText={(r) => `${r.book_title} ${r.book_author}`}
-            filters={[{ key: "estado", label: "Estado", icon: "ListFilter", options: (Object.keys(STATUS) as LibraryRequestStatus[]).map((s) => ({ value: s, label: STATUS[s].label })), match: (r, v) => r.status === v }]}
-            dateFilters={[{ key: "data", label: "Pedido em", getDate: (r) => r.created_at }]}
-            sorts={[{ value: "data", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }]}
+            filters={[{ key: "status", label: "Estado", icon: "ListFilter", options: (Object.keys(STATUS) as LibraryRequestStatus[]).map((s) => ({ value: s, label: STATUS[s].label })), match: (r, v) => r.status === v }]}
+            dateFilters={[{ key: "date", label: "Pedido em", getDate: (r) => r.created_at }]}
+            sorts={[{ value: "date", label: "Data", compare: (a, b) => a.created_at.localeCompare(b.created_at) }]}
             emptyTitle="Sem pedidos" emptyDescription="Procure no catálogo e peça o livro ou manual de que precisa." emptyIcon="BookPlus"
           />
         </TabsContent>
         <TabsContent value="loans">
           <DataList<PortalLoan>
-            prefix="emprestimos" rows={loans} columns={loanColumns} isLoading={mine.isLoading} pageSize={10}
+            prefix="loans" rows={loans} columns={loanColumns} isLoading={mine.isLoading} pageSize={10}
             searchPlaceholder="Pesquisar livro" searchText={(l) => `${l.book_title} ${l.book_author}`}
-            filters={[{ key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "emprestado", label: "Emprestados" }, { value: "devolvido", label: "Devolvidos" }, { value: "atraso", label: "Em atraso" }], match: (l, v) => (v === "atraso" ? l.overdue : l.status === v) }]}
-            dateFilters={[{ key: "data", label: "Levantado em", getDate: (l) => l.loaned_at }]}
-            sorts={[{ value: "devolucao", label: "Devolução", compare: (a, b) => a.due_at.localeCompare(b.due_at) }]}
+            filters={[{ key: "status", label: "Estado", icon: "ListFilter", options: [{ value: "emprestado", label: "Emprestados" }, { value: "devolvido", label: "Devolvidos" }, { value: "overdue", label: "Em atraso" }], match: (l, v) => (v === "overdue" ? l.overdue : l.status === v) }]}
+            dateFilters={[{ key: "date", label: "Levantado em", getDate: (l) => l.loaned_at }]}
+            sorts={[{ value: "due", label: "Devolução", compare: (a, b) => a.due_at.localeCompare(b.due_at) }]}
             emptyTitle="Sem empréstimos" emptyDescription="Quando a biblioteca aprovar um pedido, o empréstimo aparece aqui." emptyIcon="BookOpen"
           />
         </TabsContent>

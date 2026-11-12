@@ -64,14 +64,14 @@ export function FamilyCalendar() {
         <TabsContent value="month"><MonthCalendar items={items} month={month} onMonthChange={setMonth} /></TabsContent>
         <TabsContent value="agenda">
           <DataList<PortalEvent>
-            prefix="agenda" rows={calendar} columns={columns} pageSize={12}
+            prefix="calendar" rows={calendar} columns={columns} pageSize={12}
             searchPlaceholder="Pesquisar evento" searchText={(e) => `${e.title} ${e.description ?? ""} ${e.location ?? ""}`}
             filters={[
-              { key: "tipo", label: "Tipo", icon: "Tag", options: [...new Set(calendar.map((e) => e.type))].map((value) => ({ value, label: typeLabel(value) })), match: (e, v) => e.type === v },
-              { key: "aulas", label: "Aulas", icon: "School", options: [{ value: "lectivo", label: "Letivo" }, { value: "sem", label: "Sem aulas" }], match: (e, v) => (v === "sem" ? e.effect === "non_lective" : e.effect !== "non_lective") },
+              { key: "type", label: "Tipo", icon: "Tag", options: [...new Set(calendar.map((e) => e.type))].map((value) => ({ value, label: typeLabel(value) })), match: (e, v) => e.type === v },
+              { key: "classes", label: "Aulas", icon: "School", options: [{ value: "lective", label: "Letivo" }, { value: "none", label: "Sem aulas" }], match: (e, v) => (v === "none" ? e.effect === "non_lective" : e.effect !== "non_lective") },
             ]}
-            dateFilters={[{ key: "data", label: "Data", getDate: (e) => e.start_date }]}
-            sorts={[{ value: "data", label: "Data", compare: (a, b) => a.start_date.localeCompare(b.start_date) }]}
+            dateFilters={[{ key: "date", label: "Data", getDate: (e) => e.start_date }]}
+            sorts={[{ value: "date", label: "Data", compare: (a, b) => a.start_date.localeCompare(b.start_date) }]}
             emptyTitle="Sem eventos" emptyDescription="Ainda não há eventos publicados." emptyIcon="CalendarDays"
           />
         </TabsContent>

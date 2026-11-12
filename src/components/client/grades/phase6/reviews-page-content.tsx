@@ -43,22 +43,22 @@ export function GradeReviewsPageContent() {
       <TitleList title="Reapreciação de Notas" suTitle="Pedidos de revisão de prova e recálculo de médias." />
 
       <DataList<ApiReview>
-        prefix="reapreciacoes"
+        prefix="grade-reviews"
         rows={reviews}
         columns={columns}
         isLoading={isLoading}
         searchPlaceholder="Pesquisar por aluno ou disciplina"
         searchText={(r) => `${r.student.full_name} ${r.assessment.subject} ${r.reason}`}
         filters={[
-          { key: "estado", label: "Estado", icon: "Tag", options: (Object.keys(REVIEW_STATUS_LABEL) as ReviewStatus[]).map((s) => ({ value: s, label: REVIEW_STATUS_LABEL[s] })), match: (r, v) => r.status === v },
-          { key: "disciplina", label: "Disciplina", icon: "BookOpen", options: subjects.map((s) => ({ value: s, label: s })), match: (r, v) => r.assessment.subject === v },
-          { key: "tipo", label: "Tipo de avaliação", icon: "ClipboardList", options: Object.entries(TYPE).map(([value, label]) => ({ value, label })), match: (r, v) => r.assessment.type === v },
+          { key: "status", label: "Estado", icon: "Tag", options: (Object.keys(REVIEW_STATUS_LABEL) as ReviewStatus[]).map((s) => ({ value: s, label: REVIEW_STATUS_LABEL[s] })), match: (r, v) => r.status === v },
+          { key: "subject", label: "Disciplina", icon: "BookOpen", options: subjects.map((s) => ({ value: s, label: s })), match: (r, v) => r.assessment.subject === v },
+          { key: "type", label: "Tipo de avaliação", icon: "ClipboardList", options: Object.entries(TYPE).map(([value, label]) => ({ value, label })), match: (r, v) => r.assessment.type === v },
         ]}
-        dateFilters={[{ key: "pedido", label: "Pedido", getDate: (r) => r.created_at }]}
+        dateFilters={[{ key: "requested", label: "Pedido", getDate: (r) => r.created_at }]}
         sorts={[
-          { value: "data", label: "Data do pedido", compare: (a, b) => a.created_at.localeCompare(b.created_at) },
-          { value: "aluno", label: "Aluno", compare: (a, b) => a.student.full_name.localeCompare(b.student.full_name) },
-          { value: "estado", label: "Estado", compare: (a, b) => a.status.localeCompare(b.status) },
+          { value: "date", label: "Data do pedido", compare: (a, b) => a.created_at.localeCompare(b.created_at) },
+          { value: "student", label: "Aluno", compare: (a, b) => a.student.full_name.localeCompare(b.student.full_name) },
+          { value: "status", label: "Estado", compare: (a, b) => a.status.localeCompare(b.status) },
         ]}
         emptyTitle="Sem pedidos"
         emptyDescription="Os pedidos de reapreciação aparecem aqui."

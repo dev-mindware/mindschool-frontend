@@ -95,7 +95,7 @@ function PlanList({ kind, canWrite, canReview, onNew, onEdit, onView }: { kind: 
       render: (_, p) => (
         <div className="flex flex-wrap justify-end gap-2">
           <Button variant="outline" size="sm" onClick={() => onView(p)}>{canReview && p.status === "submetido" ? "Rever" : "Ver"}</Button>
-          <ReportExportMenu items={[{ model: kind === "dosificacao" ? "dosificacao" : "plano-aula", label: noun.charAt(0).toUpperCase() + noun.slice(1), params: () => ({ plan_id: p.id }) }]} />
+          <ReportExportMenu items={[{ model: kind === "dosificacao" ? "curriculum-plan" : "lesson-plan", label: noun.charAt(0).toUpperCase() + noun.slice(1), params: () => ({ plan_id: p.id }) }]} />
           {canWrite && (p.status === "rascunho" || p.status === "devolvido") && (
             <>
               <Button variant="outline" size="sm" onClick={() => onEdit(p)}>Editar</Button>
@@ -113,15 +113,15 @@ function PlanList({ kind, canWrite, canReview, onNew, onEdit, onView }: { kind: 
   return (
     <div className="space-y-3">
       <DataList<TeachingPlan>
-        prefix={`planos-${kind}`}
+        prefix={kind === "dosificacao" ? "curriculum-plans" : "lesson-plans"}
         rows={plans}
         columns={columns}
         isLoading={isLoading}
         isError={isError}
         searchPlaceholder="Pesquisar plano, disciplina ou professor"
         searchText={(p) => `${p.title} ${p.subject.name} ${p.section.name} ${p.teacher.full_name}`}
-        filters={[{ key: "estado", label: "Estado", icon: "CircleDot", options: (Object.keys(STATUS) as PlanStatus[]).map((v) => ({ value: v, label: STATUS[v].label })), match: (p, v) => p.status === v }]}
-        sorts={[{ value: "atualizado", label: "Atualização", compare: (a, b) => a.updated_at.localeCompare(b.updated_at) }]}
+        filters={[{ key: "status", label: "Estado", icon: "CircleDot", options: (Object.keys(STATUS) as PlanStatus[]).map((v) => ({ value: v, label: STATUS[v].label })), match: (p, v) => p.status === v }]}
+        sorts={[{ value: "updated", label: "Atualização", compare: (a, b) => a.updated_at.localeCompare(b.updated_at) }]}
         toolbar={canWrite ? <Button size="sm" className="gap-2" onClick={onNew}><Icon name="Plus" className="size-4" />{kind === "dosificacao" ? "Nova dosificação" : "Novo plano de aula"}</Button> : undefined}
         emptyTitle={canWrite ? `Ainda não tem nenhuma ${noun}` : `Não há ${nounPlural} à espera de revisão`}
         emptyDescription={canWrite ? "Crie a primeira: a IA propõe um rascunho e você revê." : "Quando um professor submeter, aparece aqui."}

@@ -672,7 +672,7 @@ function RolesAuditTab() {
 
   return (
     <DataList<ApiRoleAuditEntry>
-      prefix="auditoria-papeis"
+      prefix="role-audit"
       rows={auditEntries}
       columns={columns}
       isLoading={isAuditLoading}
@@ -859,7 +859,7 @@ export function UsersPageContent() {
           />
 
           <DataList<ApiMembership>
-            prefix="utilizadores"
+            prefix="users"
             rows={members}
             columns={columns}
             isLoading={isLoading}
@@ -867,7 +867,7 @@ export function UsersPageContent() {
             searchText={(m) => `${m.user.full_name} ${m.user.email}`}
             filters={[
               {
-                key: "papel",
+                key: "role",
                 label: "Papel",
                 icon: "Shield",
                 options: (Object.keys(ROLE_LABEL) as SchoolRole[]).map((r) => ({
@@ -877,45 +877,45 @@ export function UsersPageContent() {
                 match: (m, v) => m.role === v,
               },
               {
-                key: "estado",
+                key: "status",
                 label: "Estado",
                 icon: "Tag",
                 options: [
-                  { value: "activo", label: "Ativo" },
-                  { value: "revogado", label: "Revogado" },
+                  { value: "active", label: "Ativo" },
+                  { value: "revoked", label: "Revogado" },
                 ],
-                match: (m, v) => (v === "activo" ? m.is_active : !m.is_active),
+                match: (m, v) => (v === "active" ? m.is_active : !m.is_active),
               },
               {
-                key: "conta",
+                key: "account",
                 label: "Conta",
                 icon: "User",
                 options: [
-                  { value: "activo", label: "Conta ativa" },
-                  { value: "bloqueado", label: "Conta bloqueada" },
+                  { value: "active", label: "Conta ativa" },
+                  { value: "blocked", label: "Conta bloqueada" },
                 ],
                 match: (m, v) =>
-                  v === "bloqueado"
+                  v === "blocked"
                     ? m.user.status === "bloqueado"
                     : m.user.status !== "bloqueado",
               },
             ]}
             dateFilters={[
-              { key: "desde", label: "Atribuído", getDate: (m) => m.granted_at },
+              { key: "since", label: "Atribuído", getDate: (m) => m.granted_at },
             ]}
             sorts={[
               {
-                value: "nome",
+                value: "name",
                 label: "Nome",
                 compare: (a, b) => a.user.full_name.localeCompare(b.user.full_name),
               },
               {
-                value: "papel",
+                value: "role",
                 label: "Papel",
                 compare: (a, b) => a.role.localeCompare(b.role),
               },
               {
-                value: "data",
+                value: "date",
                 label: "Data de atribuição",
                 compare: (a, b) => a.granted_at.localeCompare(b.granted_at),
               },

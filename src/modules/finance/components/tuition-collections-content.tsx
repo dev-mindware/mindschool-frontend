@@ -186,7 +186,7 @@ export function TuitionCollectionsContent() {
       </div>
 
       <DataList<StudentTuitionFee>
-        prefix="cobrancas"
+        prefix="collections"
         rows={overdueFees}
         columns={columns}
         isLoading={isLoading}
@@ -197,7 +197,7 @@ export function TuitionCollectionsContent() {
         }
         filters={[
           {
-            key: "estado",
+            key: "status",
             label: "Estado",
             icon: "ListFilter",
             options: [
@@ -207,7 +207,7 @@ export function TuitionCollectionsContent() {
             match: (f, v) => f.status === v,
           },
           {
-            key: "mes",
+            key: "month",
             label: "Mês",
             icon: "CalendarDays",
             options: [
@@ -227,7 +227,7 @@ export function TuitionCollectionsContent() {
             match: (f, v) => f.month === Number(v),
           },
           {
-            key: "turma",
+            key: "section",
             label: "Turma",
             icon: "Users",
             options: [...new Set(overdueFees.map((f) => f.classSection).filter(Boolean))]
@@ -240,38 +240,38 @@ export function TuitionCollectionsContent() {
             label: "E-mail",
             icon: "Mail",
             options: [
-              { value: "com", label: "Com e-mail registado" },
-              { value: "sem", label: "Sem e-mail registado" },
+              { value: "with", label: "Com e-mail registado" },
+              { value: "without", label: "Sem e-mail registado" },
             ],
-            match: (f, v) => (v === "com" ? Boolean(f.guardianEmail) : !f.guardianEmail),
+            match: (f, v) => (v === "with" ? Boolean(f.guardianEmail) : !f.guardianEmail),
           },
           {
-            key: "valor",
+            key: "amount",
             label: "Montante",
             icon: "Coins",
             options: [
-              { value: "baixo", label: "Até 20 000 Kz" },
-              { value: "medio", label: "20 000 – 60 000 Kz" },
-              { value: "alto", label: "Acima de 60 000 Kz" },
+              { value: "low", label: "Até 20 000 Kz" },
+              { value: "medium", label: "20 000 – 60 000 Kz" },
+              { value: "high", label: "Acima de 60 000 Kz" },
             ],
             match: (f, v) =>
-              v === "baixo"
+              v === "low"
                 ? f.totalAmount <= 20000
-                : v === "medio"
+                : v === "medium"
                 ? f.totalAmount > 20000 && f.totalAmount <= 60000
                 : f.totalAmount > 60000,
           },
         ]}
-        dateFilters={[{ key: "vencimento", label: "Vencimento", getDate: (f) => f.dueDate }]}
+        dateFilters={[{ key: "due", label: "Vencimento", getDate: (f) => f.dueDate }]}
         sorts={[
           {
-            value: "vencimento",
+            value: "due",
             label: "Vencimento",
             compare: (a, b) => a.dueDate.localeCompare(b.dueDate),
           },
-          { value: "valor", label: "Montante", compare: (a, b) => a.totalAmount - b.totalAmount },
+          { value: "amount", label: "Montante", compare: (a, b) => a.totalAmount - b.totalAmount },
           {
-            value: "aluno",
+            value: "student",
             label: "Aluno",
             compare: (a, b) => a.studentName.localeCompare(b.studentName, "pt"),
           },

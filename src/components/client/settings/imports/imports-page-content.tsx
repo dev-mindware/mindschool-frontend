@@ -476,7 +476,7 @@ export function ImportsPageContent() {
       </TitleList>
 
       <DataList<ApiImportJob>
-        prefix="importacoes"
+        prefix="imports"
         rows={jobs.data ?? []}
         columns={columns}
         isLoading={jobs.isLoading}
@@ -484,7 +484,7 @@ export function ImportsPageContent() {
         refetch={() => void jobs.refetch()}
         filters={[
           {
-            key: "estado",
+            key: "status",
             label: "Estado",
             icon: "Tag",
             options: Object.entries(STATUS_LABEL).map(([value, label]) => ({
@@ -494,7 +494,7 @@ export function ImportsPageContent() {
             match: (j, v) => j.status === v,
           },
           {
-            key: "politica",
+            key: "policy",
             label: "Política",
             icon: "ShieldCheck",
             options: [
@@ -504,10 +504,10 @@ export function ImportsPageContent() {
             match: (j, v) => j.policy === v,
           },
         ]}
-        dateFilters={[{ key: "data", label: "Importado", getDate: (j) => j.created_at }]}
+        dateFilters={[{ key: "date", label: "Importado", getDate: (j) => j.created_at }]}
         sorts={[
           {
-            value: "data",
+            value: "date",
             label: "Data",
             compare: (a, b) => a.created_at.localeCompare(b.created_at),
           },

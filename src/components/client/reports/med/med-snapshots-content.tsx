@@ -98,14 +98,14 @@ export function MedSnapshotsContent() {
         searchPlaceholder="Pesquisar por mapa ou protocolo"
         searchText={(s) => `${MED_MAP_LABEL[s.map_type]} ${s.submission_reference ?? ""} ${s.checksum}`}
         filters={[
-          { key: "mapa", label: "Mapa", icon: "Map", options: [{ value: "matriculas", label: "Matrículas" }, { value: "aproveitamento", label: "Aproveitamento" }], match: (s, v) => s.map_type === v },
-          { key: "estado", label: "Estado", icon: "ListFilter", options: Object.entries(MED_STATUS_LABEL).map(([value, label]) => ({ value, label })), match: (s, v) => s.status === v },
-          { key: "pendencias", label: "Verificações", icon: "TriangleAlert", options: [{ value: "bloqueantes", label: "Com bloqueantes" }, { value: "avisos", label: "Só avisos" }, { value: "limpo", label: "Sem pendências" }], match: (s, v) => { const b = s.issues.filter((i) => i.severity === "blocking").length; return v === "bloqueantes" ? b > 0 : v === "avisos" ? b === 0 && s.issues.length > 0 : s.issues.length === 0; } },
+          { key: "map_type", label: "Mapa", icon: "Map", options: [{ value: "matriculas", label: "Matrículas" }, { value: "aproveitamento", label: "Aproveitamento" }], match: (s, v) => s.map_type === v },
+          { key: "status", label: "Estado", icon: "ListFilter", options: Object.entries(MED_STATUS_LABEL).map(([value, label]) => ({ value, label })), match: (s, v) => s.status === v },
+          { key: "issues", label: "Verificações", icon: "TriangleAlert", options: [{ value: "blocking", label: "Com bloqueantes" }, { value: "warnings", label: "Só avisos" }, { value: "clean", label: "Sem pendências" }], match: (s, v) => { const b = s.issues.filter((i) => i.severity === "blocking").length; return v === "blocking" ? b > 0 : v === "warnings" ? b === 0 && s.issues.length > 0 : s.issues.length === 0; } },
         ]}
-        dateFilters={[{ key: "gerado", label: "Geração", getDate: (s) => s.created_at }]}
+        dateFilters={[{ key: "generated", label: "Geração", getDate: (s) => s.created_at }]}
         sorts={[
-          { value: "data", label: "Data de geração", compare: (a, b) => a.created_at.localeCompare(b.created_at) },
-          { value: "versao", label: "Versão", compare: (a, b) => a.version - b.version },
+          { value: "date", label: "Data de geração", compare: (a, b) => a.created_at.localeCompare(b.created_at) },
+          { value: "version", label: "Versão", compare: (a, b) => a.version - b.version },
         ]}
         emptyTitle="Ainda não há instantâneos"
         emptyDescription="Gere o primeiro mapa estatístico."

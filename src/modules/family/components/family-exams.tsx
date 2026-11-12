@@ -21,8 +21,8 @@ function Action({ e }: { e: PortalExam }) {
   const canStart = e.is_open && (running || e.attempts.length < e.max_attempts);
   return (
     <div className="flex items-center gap-2">
-      {canStart && <Button size="sm" className="gap-1.5" asChild><Link href={`/familia/provas/${e.id}`}><Icon name={running ? "Play" : "Pencil"} className="size-3.5" />{running ? "Continuar" : e.attempts.length ? "Nova tentativa" : "Iniciar"}</Link></Button>}
-      {last && !running && <Button size="sm" variant="outline" asChild><Link href={`/familia/provas/${e.id}?tentativa=${last.id}`}>Ver resultado</Link></Button>}
+      {canStart && <Button size="sm" className="gap-1.5" asChild><Link href={`/family/exams/${e.id}`}><Icon name={running ? "Play" : "Pencil"} className="size-3.5" />{running ? "Continuar" : e.attempts.length ? "Nova tentativa" : "Iniciar"}</Link></Button>}
+      {last && !running && <Button size="sm" variant="outline" asChild><Link href={`/family/exams/${e.id}?attempt=${last.id}`}>Ver resultado</Link></Button>}
       {!canStart && !last && <span className="text-xs text-muted-foreground">Fora da janela</span>}
     </div>
   );
@@ -58,14 +58,14 @@ export function FamilyExams() {
         <DynamicMetricCard title={exams.filter((e) => e.attempts.some((a) => a.status !== "em_curso")).length} subtitle="Já realizadas" icon="CircleCheck" description="Com resultado" />
       </div>
       <DataList<PortalExam>
-        prefix="provas" rows={exams} columns={columns} pageSize={10}
+        prefix="exams" rows={exams} columns={columns} pageSize={10}
         searchPlaceholder="Pesquisar prova" searchText={(e) => e.title}
         filters={[
-          { key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "aberta", label: "Abertas" }, { value: "fechada", label: "Fora da janela" }], match: (e, v) => (v === "aberta" ? e.is_open : !e.is_open) },
-          { key: "realizacao", label: "Realização", icon: "Link", options: [{ value: "nativa", label: "Plataforma" }, { value: "google_forms", label: "Google Forms" }], match: (e, v) => e.delivery === v },
+          { key: "status", label: "Estado", icon: "ListFilter", options: [{ value: "open", label: "Abertas" }, { value: "closed", label: "Fora da janela" }], match: (e, v) => (v === "open" ? e.is_open : !e.is_open) },
+          { key: "delivery", label: "Realização", icon: "Link", options: [{ value: "nativa", label: "Plataforma" }, { value: "google_forms", label: "Google Forms" }], match: (e, v) => e.delivery === v },
         ]}
-        dateFilters={[{ key: "abertura", label: "Abertura", getDate: (e) => e.opens_at }]}
-        sorts={[{ value: "abertura", label: "Data de abertura", compare: (a, b) => a.opens_at.localeCompare(b.opens_at) }]}
+        dateFilters={[{ key: "opens", label: "Abertura", getDate: (e) => e.opens_at }]}
+        sorts={[{ value: "opens", label: "Data de abertura", compare: (a, b) => a.opens_at.localeCompare(b.opens_at) }]}
         emptyTitle="Sem provas online" emptyDescription="Sem provas online publicadas para a turma." emptyIcon="FileText"
       />
     </>

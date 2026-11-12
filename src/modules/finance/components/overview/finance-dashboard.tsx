@@ -19,8 +19,8 @@ const n = (v: string | number | null | undefined) => Number(v ?? 0);
 
 /** Relatórios financeiros do ano letivo ativo, em PDF, Word ou Excel. */
 const FINANCE_REPORTS: ReportExportItem[] = [
-  { model: "balancete-propinas", label: "Balancete de propinas", params: () => ({}) },
-  { model: "lista-devedores", label: "Lista de devedores", params: () => ({}) },
+  { model: "tuition-balance", label: "Balancete de propinas", params: () => ({}) },
+  { model: "debtors-list", label: "Lista de devedores", params: () => ({}) },
 ];
 
 interface FinanceDashboardProps {

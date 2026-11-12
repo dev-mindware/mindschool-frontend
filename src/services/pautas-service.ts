@@ -24,7 +24,7 @@ export const pautasService = {
   consolidated: async (sectionId: string, term: AssessmentTerm, terms: ApiTerm[]): Promise<ConsolidatedPauta | null> => {
     const t = terms.find((x) => x.sequence === SEQUENCE_OF_TERM[term]);
     if (!t) return null;
-    const p = (await api.get<ApiPautaFull>(`/s/sections/${sectionId}/pauta/${t.id}`)).data;
+    const p = (await api.get<ApiPautaFull>(`/s/sections/${sectionId}/grade-sheets/${t.id}`)).data;
     const subjectOfSs = new Map(p.subjects.map((s) => [s.section_subject_id, s.subject.id]));
     const students: ConsolidatedStudentRow[] = sortByName(p.rows, (r) => r.student.full_name).map((r) => {
       const subjects: ConsolidatedStudentRow["subjects"] = {};
@@ -70,10 +70,10 @@ export const pautasService = {
   },
 
   close: async (sectionId: string, term: AssessmentTerm, notes?: string): Promise<void> => {
-    await api.post(`/s/sections/${sectionId}/pauta/${await termId(term)}/close`, notes ? { notes } : {});
+    await api.post(`/s/sections/${sectionId}/grade-sheets/${await termId(term)}/close`, notes ? { notes } : {});
   },
 
   reopen: async (sectionId: string, term: AssessmentTerm, reason: string): Promise<void> => {
-    await api.post(`/s/sections/${sectionId}/pauta/${await termId(term)}/reopen`, { reason });
+    await api.post(`/s/sections/${sectionId}/grade-sheets/${await termId(term)}/reopen`, { reason });
   },
 };

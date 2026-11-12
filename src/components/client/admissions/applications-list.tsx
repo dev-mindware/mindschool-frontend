@@ -62,7 +62,7 @@ export function ApplicationsList({ applications, entranceExams = [] }: Applicati
     const opts = Array.from(map.entries()).map(([value, label]) => ({ value, label }));
     opts.sort((a, b) => a.label.localeCompare(b.label, "pt"));
     return [
-      { value: "sem_prova", label: "Sem prova / Isento" },
+      { value: "no_exam", label: "Sem prova / Isento" },
       ...opts,
     ];
   }, [entranceExams, applications]);
@@ -342,27 +342,27 @@ export function ApplicationsList({ applications, entranceExams = [] }: Applicati
   return (
     <>
       <DataList<AdmissionApplication>
-        prefix="candidaturas"
+        prefix="applications"
         rows={applications}
         columns={columns}
         pageSize={10}
         searchPlaceholder="Pesquisar por candidato, n.º de candidatura, BI ou encarregado"
         searchText={(a) => `${a.candidateName} ${a.candidateDocumentNumber} ${a.applicationNumber} ${a.guardianName} ${a.guardianPhone}`}
         filters={[
-          { key: "estado", label: "Estado", icon: "ListFilter", options: Object.entries(STATUS_CONFIG).map(([value, c]) => ({ value, label: c.label })), match: (a, v) => a.status === v },
-          { key: "turno", label: "Turno", icon: "Sun", options: [{ value: "MORNING", label: "Manhã" }, { value: "AFTERNOON", label: "Tarde" }, { value: "EVENING", label: "Noite" }], match: (a, v) => a.desiredShift === v },
-          { key: "classe", label: "Classe pretendida", icon: "GraduationCap", options: uniq(applications.map((a) => a.desiredClassLevelName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.desiredClassLevelName === v },
-          { key: "ano", label: "Ano letivo", icon: "CalendarRange", options: uniq(applications.map((a) => a.academicYear)).map((v) => ({ value: v, label: v })), match: (a, v) => a.academicYear === v },
-          { key: "genero", label: "Género", icon: "User", options: [{ value: "MALE", label: "Masculino" }, { value: "FEMALE", label: "Feminino" }], match: (a, v) => a.candidateGender === v },
-          { key: "prova", label: "Prova de acesso", icon: "FileText", options: examOptions, match: (a, v) => (v === "sem_prova" ? (!a.requiresEntranceExam || !a.entranceExamId) : a.entranceExamId === v || a.entranceExamTitle === v) },
-          { key: "exame", label: "Resultado da prova", icon: "PenTool", options: [{ value: "isento", label: "Isento" }, { value: "pendente", label: "Aguarda nota" }, { value: "aprovado", label: "Aprovado na prova" }, { value: "reprovado", label: "Reprovado na prova" }], match: (a, v) => (v === "isento" ? !a.requiresEntranceExam : v === "pendente" ? a.requiresEntranceExam && a.examScore === undefined : a.examScore !== undefined && (v === "aprovado" ? a.examScore >= a.minPassingScore : a.examScore < a.minPassingScore)) },
-          { key: "docs", label: "Documentos", icon: "FileCheck", options: [{ value: "validados", label: "Validados" }, { value: "pendentes", label: "Por validar" }], match: (a, v) => (v === "validados" ? Boolean(a.documentsVerifiedAt) : !a.documentsVerifiedAt) },
+          { key: "status", label: "Estado", icon: "ListFilter", options: Object.entries(STATUS_CONFIG).map(([value, c]) => ({ value, label: c.label })), match: (a, v) => a.status === v },
+          { key: "shift", label: "Turno", icon: "Sun", options: [{ value: "MORNING", label: "Manhã" }, { value: "AFTERNOON", label: "Tarde" }, { value: "EVENING", label: "Noite" }], match: (a, v) => a.desiredShift === v },
+          { key: "class", label: "Classe pretendida", icon: "GraduationCap", options: uniq(applications.map((a) => a.desiredClassLevelName)).map((v) => ({ value: v, label: v })), match: (a, v) => a.desiredClassLevelName === v },
+          { key: "year", label: "Ano letivo", icon: "CalendarRange", options: uniq(applications.map((a) => a.academicYear)).map((v) => ({ value: v, label: v })), match: (a, v) => a.academicYear === v },
+          { key: "gender", label: "Género", icon: "User", options: [{ value: "MALE", label: "Masculino" }, { value: "FEMALE", label: "Feminino" }], match: (a, v) => a.candidateGender === v },
+          { key: "exam", label: "Prova de acesso", icon: "FileText", options: examOptions, match: (a, v) => (v === "no_exam" ? (!a.requiresEntranceExam || !a.entranceExamId) : a.entranceExamId === v || a.entranceExamTitle === v) },
+          { key: "exam-result", label: "Resultado da prova", icon: "PenTool", options: [{ value: "exempt", label: "Isento" }, { value: "pending", label: "Aguarda nota" }, { value: "passed", label: "Aprovado na prova" }, { value: "failed", label: "Reprovado na prova" }], match: (a, v) => (v === "exempt" ? !a.requiresEntranceExam : v === "pending" ? a.requiresEntranceExam && a.examScore === undefined : a.examScore !== undefined && (v === "passed" ? a.examScore >= a.minPassingScore : a.examScore < a.minPassingScore)) },
+          { key: "documents", label: "Documentos", icon: "FileCheck", options: [{ value: "validated", label: "Validados" }, { value: "pending", label: "Por validar" }], match: (a, v) => (v === "validated" ? Boolean(a.documentsVerifiedAt) : !a.documentsVerifiedAt) },
         ]}
-        dateFilters={[{ key: "submissao", label: "Submissão", getDate: (a) => a.submissionDate }]}
+        dateFilters={[{ key: "submission", label: "Submissão", getDate: (a) => a.submissionDate }]}
         sorts={[
-          { value: "data", label: "Data de submissão", compare: (a, b) => a.submissionDate.localeCompare(b.submissionDate) },
-          { value: "nome", label: "Candidato", compare: (a, b) => a.candidateName.localeCompare(b.candidateName, "pt") },
-          { value: "nota", label: "Nota do exame", compare: (a, b) => (a.examScore ?? -1) - (b.examScore ?? -1) },
+          { value: "date", label: "Data de submissão", compare: (a, b) => a.submissionDate.localeCompare(b.submissionDate) },
+          { value: "name", label: "Candidato", compare: (a, b) => a.candidateName.localeCompare(b.candidateName, "pt") },
+          { value: "score", label: "Nota do exame", compare: (a, b) => (a.examScore ?? -1) - (b.examScore ?? -1) },
         ]}
         emptyTitle="Nenhuma candidatura encontrada"
         emptyDescription="Ajuste os filtros ou registe uma nova candidatura."

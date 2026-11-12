@@ -156,7 +156,7 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
       </div>
 
       <DataList<Row>
-        prefix="chamada"
+        prefix="roll-call"
         rows={students}
         columns={columns}
         isLoading={isLoading}
@@ -165,7 +165,7 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
         searchText={(s) => `${s.name} ${s.number}`}
         filters={[
           {
-            key: "estado",
+            key: "status",
             label: "Marcação",
             icon: "Tag",
             options: [
@@ -174,9 +174,9 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
             ],
             match: (s, v) => (v === "PENDING" ? !s.status : s.status === v),
           },
-          { key: "genero", label: "Género", icon: "Users", options: [{ value: "M", label: "Masculino" }, { value: "F", label: "Feminino" }], match: (s, v) => s.gender === v },
+          { key: "gender", label: "Género", icon: "Users", options: [{ value: "M", label: "Masculino" }, { value: "F", label: "Feminino" }], match: (s, v) => s.gender === v },
         ]}
-        sorts={[{ value: "numero", label: "N.º", compare: (a, b) => Number(a.number) - Number(b.number) }, { value: "nome", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name) }]}
+        sorts={[{ value: "number", label: "N.º", compare: (a, b) => Number(a.number) - Number(b.number) }, { value: "name", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name) }]}
         emptyTitle="Sem alunos nesta turma"
         emptyIcon="Users"
       />

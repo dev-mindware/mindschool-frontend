@@ -34,14 +34,14 @@ export function ActivityEnrollmentsView() {
   return (
     <>
       <DataList<Row>
-        prefix="inscricoes"
+        prefix="activity-enrollments"
         rows={enrollments}
         columns={columns}
         searchPlaceholder="Pesquisar por aluno ou atividade"
         searchText={(e) => `${e.student_name} ${e.activityName}`}
-        filters={[{ key: "actividade", label: "Atividade", icon: "Trophy", options: activities.map((a) => ({ value: a.id, label: a.name })), match: (e, v) => e.activityId === v }]}
-        dateFilters={[{ key: "inscrito", label: "Inscrição", getDate: (e) => e.enrolled_at }]}
-        sorts={[{ value: "aluno", label: "Aluno", compare: (a, b) => a.student_name.localeCompare(b.student_name) }, { value: "data", label: "Data", compare: (a, b) => a.enrolled_at.localeCompare(b.enrolled_at) }]}
+        filters={[{ key: "activity", label: "Atividade", icon: "Trophy", options: activities.map((a) => ({ value: a.id, label: a.name })), match: (e, v) => e.activityId === v }]}
+        dateFilters={[{ key: "enrolled", label: "Inscrição", getDate: (e) => e.enrolled_at }]}
+        sorts={[{ value: "student", label: "Aluno", compare: (a, b) => a.student_name.localeCompare(b.student_name) }, { value: "date", label: "Data", compare: (a, b) => a.enrolled_at.localeCompare(b.enrolled_at) }]}
         emptyTitle="Nenhuma inscrição ativa"
         emptyIcon="Users"
       />

@@ -197,7 +197,7 @@ export function DropoutRiskPageContent() {
       <DropoutRiskMetrics metrics={metrics} />
 
       <DataList<DropoutRiskAlert>
-        prefix="risco"
+        prefix="dropout-risk"
         rows={alerts}
         columns={columns}
         isLoading={isLoading}
@@ -205,16 +205,16 @@ export function DropoutRiskPageContent() {
         searchPlaceholder="Pesquisar por aluno, n.º de processo, turma ou encarregado"
         searchText={(a) => `${a.studentName} ${a.studentNumber} ${a.className} ${a.guardianName}`}
         filters={[
-          { key: 'risco', label: 'Risco', icon: 'ListFilter', options: [{ value: 'HIGH', label: 'Risco alto' }, { value: 'MODERATE', label: 'Risco moderado' }, { value: 'LOW', label: 'Risco baixo' }], match: (a, v) => a.riskLevel === v },
-          { key: 'estado', label: 'Estado do caso', icon: 'Flag', options: [{ value: 'OPEN', label: 'Pendente' }, { value: 'IN_PROGRESS', label: 'Em acompanhamento' }, { value: 'RESOLVED', label: 'Resolvido' }, { value: 'DROPPED_OUT', label: 'Abandono' }], match: (a, v) => a.status === v },
-          { key: 'turma', label: 'Turma', icon: 'Users', options: uniq(alerts.map((a) => a.className)).map((v) => ({ value: v, label: v })), match: (a, v) => a.className === v },
-          { key: 'faltas', label: 'Faltas', icon: 'CalendarX', options: [{ value: 'seguidas', label: '3+ faltas seguidas' }, { value: 'alta', label: 'Mais de 25% de faltas' }], match: (a, v) => (v === 'seguidas' ? a.signals.consecutiveAbsences >= 3 : a.signals.absencePercentage > 25) },
-          { key: 'notas', label: 'Notas', icon: 'TrendingDown', options: [{ value: 'negativa', label: 'Média abaixo de 10' }, { value: 'disciplinas', label: 'Com disciplinas negativas' }], match: (a, v) => (v === 'negativa' ? a.signals.currentAverage < 10 : a.signals.gradeDropSubjects.length > 0) },
+          { key: 'risk', label: 'Risco', icon: 'ListFilter', options: [{ value: 'HIGH', label: 'Risco alto' }, { value: 'MODERATE', label: 'Risco moderado' }, { value: 'LOW', label: 'Risco baixo' }], match: (a, v) => a.riskLevel === v },
+          { key: 'status', label: 'Estado do caso', icon: 'Flag', options: [{ value: 'OPEN', label: 'Pendente' }, { value: 'IN_PROGRESS', label: 'Em acompanhamento' }, { value: 'RESOLVED', label: 'Resolvido' }, { value: 'DROPPED_OUT', label: 'Abandono' }], match: (a, v) => a.status === v },
+          { key: 'section', label: 'Turma', icon: 'Users', options: uniq(alerts.map((a) => a.className)).map((v) => ({ value: v, label: v })), match: (a, v) => a.className === v },
+          { key: 'absences', label: 'Faltas', icon: 'CalendarX', options: [{ value: 'consecutive', label: '3+ faltas seguidas' }, { value: 'high', label: 'Mais de 25% de faltas' }], match: (a, v) => (v === 'consecutive' ? a.signals.consecutiveAbsences >= 3 : a.signals.absencePercentage > 25) },
+          { key: 'grades', label: 'Notas', icon: 'TrendingDown', options: [{ value: 'low-average', label: 'Média abaixo de 10' }, { value: 'failing-subjects', label: 'Com disciplinas negativas' }], match: (a, v) => (v === 'low-average' ? a.signals.currentAverage < 10 : a.signals.gradeDropSubjects.length > 0) },
         ]}
         sorts={[
-          { value: 'risco', label: 'Pontuação de risco', compare: (a, b) => a.compositeRiskScore - b.compositeRiskScore },
-          { value: 'aluno', label: 'Aluno', compare: (a, b) => a.studentName.localeCompare(b.studentName, 'pt') },
-          { value: 'faltas', label: '% de faltas', compare: (a, b) => a.signals.absencePercentage - b.signals.absencePercentage },
+          { value: 'risk', label: 'Pontuação de risco', compare: (a, b) => a.compositeRiskScore - b.compositeRiskScore },
+          { value: 'student', label: 'Aluno', compare: (a, b) => a.studentName.localeCompare(b.studentName, 'pt') },
+          { value: 'absences', label: '% de faltas', compare: (a, b) => a.signals.absencePercentage - b.signals.absencePercentage },
         ]}
         emptyTitle="Nenhum alerta de risco encontrado"
         emptyDescription="Ajuste os filtros para ver outros casos."

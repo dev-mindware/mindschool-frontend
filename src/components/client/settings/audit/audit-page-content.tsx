@@ -277,7 +277,7 @@ export function AuditPageContent() {
       </Tabs>
 
       <DataList<ApiAuditEvent>
-        prefix="auditoria"
+        prefix="audit"
         rows={events}
         columns={columns}
         isLoading={isLoading}
@@ -290,48 +290,48 @@ export function AuditPageContent() {
         }
         filters={[
           {
-            key: "modulo",
+            key: "module",
             label: "Módulo",
             icon: "LayoutGrid",
             options: Object.keys(MODULES).map((m) => ({ value: m, label: MODULES[m] })),
             match: (e, v) => e.module === v,
           },
           {
-            key: "accao",
+            key: "action",
             label: "Ação",
             icon: "Zap",
             options: Object.keys(ACTIONS).map((a) => ({ value: a, label: ACTIONS[a] })),
             match: (e, v) => e.action === v,
           },
           {
-            key: "autor",
+            key: "actor",
             label: "Autor da Ação",
             icon: "User",
             options: actors.map(([id, name]) => ({ value: id, label: name })),
             match: (e, v) => e.actor.id === v,
           },
           {
-            key: "entidade",
+            key: "entity",
             label: "Entidade",
             icon: "Database",
             options: uniqueEntities.map((m) => ({ value: m, label: formatEntity(m) })),
             match: (e, v) => e.entity_type === v,
           },
         ]}
-        dateFilters={[{ key: "data", label: "Data do Registo", getDate: (e) => e.occurred_at }]}
+        dateFilters={[{ key: "date", label: "Data do Registo", getDate: (e) => e.occurred_at }]}
         sorts={[
           {
-            value: "data",
+            value: "date",
             label: "Data & Hora",
             compare: (a, b) => a.occurred_at.localeCompare(b.occurred_at),
           },
           {
-            value: "autor",
+            value: "actor",
             label: "Autor",
             compare: (a, b) => a.actor.full_name.localeCompare(b.actor.full_name, "pt"),
           },
           {
-            value: "entidade",
+            value: "entity",
             label: "Entidade",
             compare: (a, b) => a.entity_type.localeCompare(b.entity_type),
           },

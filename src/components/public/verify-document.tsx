@@ -44,7 +44,7 @@ export function VerifyDocument({ number }: { number?: string }) {
     return () => ctrl.abort();
   }, [number]);
 
-  const submit = () => { const n = value.trim().toUpperCase(); if (n) router.push(`/verificar/${encodeURIComponent(n)}`); };
+  const submit = () => { const n = value.trim().toUpperCase(); if (n) router.push(`/verify/${encodeURIComponent(n)}`); };
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-xl items-center p-4">

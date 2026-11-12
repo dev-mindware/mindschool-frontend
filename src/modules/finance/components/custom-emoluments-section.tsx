@@ -260,7 +260,7 @@ export function CustomEmolumentsSection() {
       </div>
 
       <DataList<CustomEmolument>
-        prefix="emolumentos"
+        prefix="fees"
         rows={emoluments}
         columns={columns}
         pageSize={10}

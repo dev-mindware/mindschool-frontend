@@ -110,7 +110,7 @@ export function CommunicationPageContent() {
       </div>
 
       <DataList<ApiAnnouncement>
-        prefix="comunicados"
+        prefix="announcements"
         rows={a.announcements}
         columns={columns}
         isLoading={a.isLoading}
@@ -120,14 +120,14 @@ export function CommunicationPageContent() {
         searchPlaceholder="Pesquisar por título ou conteúdo"
         searchText={(x) => `${x.title} ${x.body}`}
         filters={[
-          { key: "estado", label: "Estado", icon: "ListFilter", options: (Object.keys(STATUS_LABEL) as AnnouncementStatus[]).map((s) => ({ value: s, label: STATUS_LABEL[s] })), match: (x, v) => x.status === v },
-          { key: "destino", label: "Destinatários", icon: "Users", options: [{ value: "escola", label: "Toda a escola" }, { value: "turma", label: "Turma" }], match: (x, v) => x.audience === v },
-          { key: "turma", label: "Turma", icon: "DoorOpen", options: sections.map((s) => ({ value: s.id, label: s.name })), match: (x, v) => x.section_id === v },
+          { key: "status", label: "Estado", icon: "ListFilter", options: (Object.keys(STATUS_LABEL) as AnnouncementStatus[]).map((s) => ({ value: s, label: STATUS_LABEL[s] })), match: (x, v) => x.status === v },
+          { key: "audience", label: "Destinatários", icon: "Users", options: [{ value: "escola", label: "Toda a escola" }, { value: "turma", label: "Turma" }], match: (x, v) => x.audience === v },
+          { key: "section", label: "Turma", icon: "DoorOpen", options: sections.map((s) => ({ value: s.id, label: s.name })), match: (x, v) => x.section_id === v },
         ]}
-        dateFilters={[{ key: "criado", label: "Criação", getDate: (x) => x.created_at }]}
+        dateFilters={[{ key: "created", label: "Criação", getDate: (x) => x.created_at }]}
         sorts={[
-          { value: "data", label: "Data de criação", compare: (x, y) => x.created_at.localeCompare(y.created_at) },
-          { value: "titulo", label: "Título", compare: (x, y) => x.title.localeCompare(y.title, "pt") },
+          { value: "date", label: "Data de criação", compare: (x, y) => x.created_at.localeCompare(y.created_at) },
+          { value: "title", label: "Título", compare: (x, y) => x.title.localeCompare(y.title, "pt") },
         ]}
         emptyTitle="Nenhum comunicado"
         emptyDescription="Crie o primeiro comunicado para os encarregados."

@@ -123,17 +123,17 @@ describe("navegação modular", () => {
     it("o detalhe em sub-páginas forma 3 ramificações «Secção › Página (link) › Detalhe»; nunca repete etiquetas", () => {
       expect(deriveBreadcrumb(modules, "/tuition/payments", "Propinas")!.map((c) => c.label)).toEqual(["Propinas & Finanças", "Propinas"]);
       expect(deriveBreadcrumb(modules, "/tuition/invoices/123", "Detalhe")!.map((c) => c.label)).toEqual(["Propinas & Finanças", "Faturas", "Detalhe"]);
-      expect(deriveBreadcrumb(modules, "/grades/pautas/turma-1", "Pauta Consolidada")).toEqual([
+      expect(deriveBreadcrumb(modules, "/grades/grade-sheets/turma-1", "Pauta Consolidada")).toEqual([
         { label: "Avaliações & Pautas" },
-        { label: "Pautas Trimestrais", href: "/grades/pautas" },
+        { label: "Pautas Trimestrais", href: "/grades/grade-sheets" },
         { label: "Pauta Consolidada" },
       ]);
     });
 
     it("não duplica «Financeiro › Financeiro» na área da família", () => {
       const family = forRole("GUARDIAN").modules;
-      expect(deriveBreadcrumb(family, "/familia/financeiro", "Financeiro")!.map((c) => c.label)).toEqual(["Serviços", "Financeiro"]);
-      expect(deriveBreadcrumb(family, "/familia/provas/abc", "Realizar prova")!.map((c) => c.label)).toEqual(["Acompanhamento", "Provas Online", "Realizar prova"]);
+      expect(deriveBreadcrumb(family, "/family/finance", "Financeiro")!.map((c) => c.label)).toEqual(["Serviços", "Financeiro"]);
+      expect(deriveBreadcrumb(family, "/family/exams/abc", "Realizar prova")!.map((c) => c.label)).toEqual(["Acompanhamento", "Provas Online", "Realizar prova"]);
     });
 
     it("caminhos fora do registo devolvem null e dedupeCrumbs limpa repetidos", () => {

@@ -29,19 +29,19 @@ export function PautasAuditLogSection({ auditLogs }: PautasAuditLogProps) {
         <h3 className="text-sm font-semibold">Livro de Auditoria Pedagógica (fechos e reaberturas)</h3>
       </div>
       <DataList<PautaAuditEntry>
-        prefix="auditoria-pautas"
+        prefix="grade-sheets-audit"
         rows={auditLogs}
         columns={columns}
         pageSize={10}
         searchPlaceholder="Pesquisar turma, responsável ou motivo"
         searchText={(l) => `${l.sectionName} ${l.userName} ${l.reason}`}
         filters={[
-          { key: 'accao', label: 'Ação', icon: 'ListFilter', options: Object.entries(ACTION_LABEL).map(([value, label]) => ({ value, label })), match: (l, v) => l.action === v },
-          { key: 'turma', label: 'Turma', icon: 'Users', options: uniq(auditLogs.map((l) => l.sectionName)).map((v) => ({ value: v, label: v })), match: (l, v) => l.sectionName === v },
-          { key: 'responsavel', label: 'Responsável', icon: 'UserCheck', options: uniq(auditLogs.map((l) => l.userName)).map((v) => ({ value: v, label: v })), match: (l, v) => l.userName === v },
+          { key: 'action', label: 'Ação', icon: 'ListFilter', options: Object.entries(ACTION_LABEL).map(([value, label]) => ({ value, label })), match: (l, v) => l.action === v },
+          { key: 'section', label: 'Turma', icon: 'Users', options: uniq(auditLogs.map((l) => l.sectionName)).map((v) => ({ value: v, label: v })), match: (l, v) => l.sectionName === v },
+          { key: 'responsible', label: 'Responsável', icon: 'UserCheck', options: uniq(auditLogs.map((l) => l.userName)).map((v) => ({ value: v, label: v })), match: (l, v) => l.userName === v },
         ]}
-        dateFilters={[{ key: 'data', label: 'Data', getDate: (l) => l.timestamp }]}
-        sorts={[{ value: 'data', label: 'Data', compare: (a, b) => a.timestamp.localeCompare(b.timestamp) }]}
+        dateFilters={[{ key: 'date', label: 'Data', getDate: (l) => l.timestamp }]}
+        sorts={[{ value: 'date', label: 'Data', compare: (a, b) => a.timestamp.localeCompare(b.timestamp) }]}
         emptyTitle="Sem registos"
         emptyDescription="Ainda não há fechos ou reaberturas."
         emptyIcon="ShieldAlert"

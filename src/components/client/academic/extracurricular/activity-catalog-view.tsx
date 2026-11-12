@@ -31,19 +31,19 @@ export function ActivityCatalogView() {
 
   return (
     <DataList<ApiActivity>
-      prefix="actividades"
+      prefix="activities"
       rows={activities}
       columns={columns}
       isLoading={isLoading}
       searchPlaceholder="Pesquisar por nome, local ou responsável"
       searchText={(a) => `${a.name} ${a.location ?? ""} ${a.teacher_id ? (teacherName.get(a.teacher_id) ?? "") : ""}`}
       filters={[
-        { key: "estado", label: "Estado", icon: "Tag", options: [{ value: "aberta", label: "Aberta" }, { value: "encerrada", label: "Encerrada" }], match: (a, v) => a.status === v },
-        { key: "dia", label: "Dia da semana", icon: "CalendarDays", options: WEEKDAYS.slice(1).map((d, i) => ({ value: String(i + 1), label: d })), match: (a, v) => String(a.weekday ?? "") === v },
-        { key: "responsavel", label: "Responsável", icon: "User", options: teachers.map((t) => ({ value: t.id, label: t.full_name })), match: (a, v) => a.teacher_id === v },
-        { key: "vagas", label: "Vagas", icon: "Armchair", options: [{ value: "livres", label: "Com vagas" }, { value: "cheia", label: "Lotada" }], match: (a, v) => (v === "livres" ? a.seats_free > 0 : a.seats_free === 0) },
+        { key: "status", label: "Estado", icon: "Tag", options: [{ value: "aberta", label: "Aberta" }, { value: "encerrada", label: "Encerrada" }], match: (a, v) => a.status === v },
+        { key: "weekday", label: "Dia da semana", icon: "CalendarDays", options: WEEKDAYS.slice(1).map((d, i) => ({ value: String(i + 1), label: d })), match: (a, v) => String(a.weekday ?? "") === v },
+        { key: "teacher", label: "Responsável", icon: "User", options: teachers.map((t) => ({ value: t.id, label: t.full_name })), match: (a, v) => a.teacher_id === v },
+        { key: "spots", label: "Vagas", icon: "Armchair", options: [{ value: "available", label: "Com vagas" }, { value: "full", label: "Lotada" }], match: (a, v) => (v === "available" ? a.seats_free > 0 : a.seats_free === 0) },
       ]}
-      sorts={[{ value: "nome", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name) }, { value: "inscritos", label: "Inscritos", compare: (a, b) => a.enrolled - b.enrolled }, { value: "dia", label: "Dia da semana", compare: (a, b) => (a.weekday ?? 9) - (b.weekday ?? 9) }]}
+      sorts={[{ value: "name", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name) }, { value: "enrolled", label: "Inscritos", compare: (a, b) => a.enrolled - b.enrolled }, { value: "weekday", label: "Dia da semana", compare: (a, b) => (a.weekday ?? 9) - (b.weekday ?? 9) }]}
       emptyTitle="Ainda não há atividades"
       emptyDescription="Crie a primeira atividade extracurricular."
       emptyIcon="Trophy"

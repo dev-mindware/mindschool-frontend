@@ -153,7 +153,7 @@ export function EnrollmentsList({ enrollments, isLoading, isError }: Enrollments
   return (
     <>
       <DataList<Enrollment>
-        prefix="matriculas"
+        prefix="enrollments"
         rows={enrollments}
         columns={columns}
         isLoading={isLoading}
@@ -162,19 +162,19 @@ export function EnrollmentsList({ enrollments, isLoading, isError }: Enrollments
         searchPlaceholder="Pesquisar por n.º de matrícula, aluno, processo ou turma"
         searchText={(e) => `${e.enrollmentNumber} ${e.studentName} ${e.studentNumber} ${e.sectionName}`}
         filters={[
-          { key: "estado", label: "Estado", icon: "ListFilter", options: [{ value: "ACTIVE", label: "Ativas" }, { value: "PENDING", label: "Pendentes" }, { value: "TRANSFERRED", label: "Transferidas" }, { value: "CANCELLED", label: "Canceladas" }], match: (e, v) => e.status === v },
-          { key: "turma", label: "Turma", icon: "Users", options: uniq(enrollments.map((e) => e.sectionName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.sectionName === v },
-          { key: "classe", label: "Classe", icon: "GraduationCap", options: uniq(enrollments.map((e) => e.classLevelName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.classLevelName === v },
-          { key: "turno", label: "Turno", icon: "Sun", options: uniq(enrollments.map((e) => e.shift)).map((v) => ({ value: v, label: v })), match: (e, v) => e.shift === v },
-          { key: "ano", label: "Ano letivo", icon: "CalendarRange", options: uniq(enrollments.map((e) => e.academicYear)).map((v) => ({ value: v, label: v })), match: (e, v) => e.academicYear === v },
-          { key: "plano", label: "Plano financeiro", icon: "Wallet", options: uniq(enrollments.map((e) => e.tuitionPlanName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.tuitionPlanName === v },
-          { key: "bolsa", label: "Bolsa", icon: "Award", options: [{ value: "sim", label: "Com bolsa" }, { value: "nao", label: "Sem bolsa" }], match: (e, v) => (v === "sim" ? Boolean(e.hasScholarship) : !e.hasScholarship) },
+          { key: "status", label: "Estado", icon: "ListFilter", options: [{ value: "ACTIVE", label: "Ativas" }, { value: "PENDING", label: "Pendentes" }, { value: "TRANSFERRED", label: "Transferidas" }, { value: "CANCELLED", label: "Canceladas" }], match: (e, v) => e.status === v },
+          { key: "section", label: "Turma", icon: "Users", options: uniq(enrollments.map((e) => e.sectionName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.sectionName === v },
+          { key: "class", label: "Classe", icon: "GraduationCap", options: uniq(enrollments.map((e) => e.classLevelName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.classLevelName === v },
+          { key: "shift", label: "Turno", icon: "Sun", options: uniq(enrollments.map((e) => e.shift)).map((v) => ({ value: v, label: v })), match: (e, v) => e.shift === v },
+          { key: "year", label: "Ano letivo", icon: "CalendarRange", options: uniq(enrollments.map((e) => e.academicYear)).map((v) => ({ value: v, label: v })), match: (e, v) => e.academicYear === v },
+          { key: "plan", label: "Plano financeiro", icon: "Wallet", options: uniq(enrollments.map((e) => e.tuitionPlanName)).map((v) => ({ value: v, label: v })), match: (e, v) => e.tuitionPlanName === v },
+          { key: "scholarship", label: "Bolsa", icon: "Award", options: [{ value: "yes", label: "Com bolsa" }, { value: "no", label: "Sem bolsa" }], match: (e, v) => (v === "yes" ? Boolean(e.hasScholarship) : !e.hasScholarship) },
         ]}
-        dateFilters={[{ key: "inscricao", label: "Inscrição", getDate: (e) => e.enrollmentDate }]}
+        dateFilters={[{ key: "enrollment", label: "Inscrição", getDate: (e) => e.enrollmentDate }]}
         sorts={[
-          { value: "data", label: "Data de inscrição", compare: (a, b) => a.enrollmentDate.localeCompare(b.enrollmentDate) },
-          { value: "aluno", label: "Aluno", compare: (a, b) => a.studentName.localeCompare(b.studentName, "pt") },
-          { value: "numero", label: "N.º de matrícula", compare: (a, b) => a.enrollmentNumber.localeCompare(b.enrollmentNumber) },
+          { value: "date", label: "Data de inscrição", compare: (a, b) => a.enrollmentDate.localeCompare(b.enrollmentDate) },
+          { value: "student", label: "Aluno", compare: (a, b) => a.studentName.localeCompare(b.studentName, "pt") },
+          { value: "number", label: "N.º de matrícula", compare: (a, b) => a.enrollmentNumber.localeCompare(b.enrollmentNumber) },
         ]}
         emptyTitle="Nenhuma matrícula encontrada"
         emptyDescription="Ajuste os filtros ou registe uma nova matrícula."

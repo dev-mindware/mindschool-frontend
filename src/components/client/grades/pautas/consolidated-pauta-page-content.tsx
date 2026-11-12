@@ -55,13 +55,13 @@ export function ConsolidatedPautaPageContent() {
     const sectionTerm = async () => ({ section_id: sectionId, term_id: await termId(term) });
     const miniPautas = (pauta?.subjects ?? []).map((s): ReportExportItem => ({
       key: `mini-${s.sectionSubjectId}`,
-      model: "mini-pauta",
+      model: "subject-grade-sheet",
       label: `Mini-pauta · ${s.name}`,
       params: async () => ({ ...(await sectionTerm()), section_subject_id: s.sectionSubjectId }),
     }));
     return [
-      { model: "pauta-trimestral", label: "Pauta trimestral", params: sectionTerm },
-      { model: "mapa-aproveitamento", label: "Mapa de aproveitamento", params: sectionTerm },
+      { model: "term-grade-sheet", label: "Pauta trimestral", params: sectionTerm },
+      { model: "performance-summary", label: "Mapa de aproveitamento", params: sectionTerm },
       ...miniPautas,
     ];
   }, [pauta?.subjects, sectionId, term]);

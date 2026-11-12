@@ -147,20 +147,20 @@ export function TuitionReportsContent() {
       </Card>
 
       <DataList<MonthlyReportRow>
-        prefix="balancete"
+        prefix="tuition-balance"
         rows={feesByMonth}
         columns={columns}
         pageSize={12}
         searchPlaceholder="Pesquisar mês"
         searchText={(r) => r.monthLabel}
         filters={[
-          { key: "taxa", label: "Taxa de cobrança", icon: "Gauge", options: [{ value: "alta", label: "≥ 90%" }, { value: "media", label: "70 – 89%" }, { value: "baixa", label: "< 70%" }], match: (r, v) => { const t = r.expected > 0 ? (r.collected / r.expected) * 100 : 0; return v === "alta" ? t >= 90 : v === "media" ? t >= 70 && t < 90 : t < 70; } },
-          { key: "saldo", label: "Saldo", icon: "Coins", options: [{ value: "pendente", label: "Com saldo pendente" }, { value: "liquidado", label: "Totalmente liquidado" }], match: (r, v) => (v === "pendente" ? r.expected - r.collected > 0 : r.expected - r.collected <= 0) },
+          { key: "rate", label: "Taxa de cobrança", icon: "Gauge", options: [{ value: "high", label: "≥ 90%" }, { value: "medium", label: "70 – 89%" }, { value: "low", label: "< 70%" }], match: (r, v) => { const t = r.expected > 0 ? (r.collected / r.expected) * 100 : 0; return v === "high" ? t >= 90 : v === "medium" ? t >= 70 && t < 90 : t < 70; } },
+          { key: "balance", label: "Saldo", icon: "Coins", options: [{ value: "pending", label: "Com saldo pendente" }, { value: "settled", label: "Totalmente liquidado" }], match: (r, v) => (v === "pending" ? r.expected - r.collected > 0 : r.expected - r.collected <= 0) },
         ]}
         sorts={[
-          { value: "mes", label: "Mês", compare: (a, b) => yearOrder(a.month) - yearOrder(b.month) },
-          { value: "previsto", label: "Previsto", compare: (a, b) => a.expected - b.expected },
-          { value: "arrecadado", label: "Arrecadado", compare: (a, b) => a.collected - b.collected },
+          { value: "month", label: "Mês", compare: (a, b) => yearOrder(a.month) - yearOrder(b.month) },
+          { value: "expected", label: "Previsto", compare: (a, b) => a.expected - b.expected },
+          { value: "collected", label: "Arrecadado", compare: (a, b) => a.collected - b.collected },
         ]}
         emptyTitle="Nenhum dado mensal registado"
         emptyDescription="Ainda não existem mensalidades geradas."

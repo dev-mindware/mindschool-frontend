@@ -169,7 +169,7 @@ export function GuardiansList({ guardians, isLoading, isError }: GuardiansListPr
   return (
     <>
       <DataList<Guardian>
-        prefix="encarregados"
+        prefix="guardians"
         rows={guardians}
         columns={columns}
         isLoading={isLoading}
@@ -178,15 +178,15 @@ export function GuardiansList({ guardians, isLoading, isError }: GuardiansListPr
         searchPlaceholder="Pesquisar por nome, telefone, BI, e-mail ou educando"
         searchText={(g) => `${g.fullName} ${g.phonePrimary} ${g.phoneSecondary ?? ""} ${g.idDocumentNumber ?? ""} ${g.email ?? ""} ${g.profession ?? ""} ${g.wards.map((w) => w.studentName).join(" ")}`}
         filters={[
-          { key: "educandos", label: "Educandos", icon: "GraduationCap", options: [{ value: "com", label: "Com educandos" }, { value: "sem", label: "Sem educandos" }, { value: "varios", label: "2 ou mais" }], match: (g, v) => (v === "com" ? g.wards.length > 0 : v === "sem" ? g.wards.length === 0 : g.wards.length >= 2) },
-          { key: "email", label: "E-mail", icon: "Mail", options: [{ value: "sim", label: "Com e-mail" }, { value: "nao", label: "Sem e-mail" }], match: (g, v) => (v === "sim" ? Boolean(g.email) : !g.email) },
-          { key: "bi", label: "Documento", icon: "IdCard", options: [{ value: "sim", label: "Com BI" }, { value: "nao", label: "Sem BI" }], match: (g, v) => (v === "sim" ? Boolean(g.idDocumentNumber) : !g.idDocumentNumber) },
+          { key: "wards", label: "Educandos", icon: "GraduationCap", options: [{ value: "with", label: "Com educandos" }, { value: "without", label: "Sem educandos" }, { value: "multiple", label: "2 ou mais" }], match: (g, v) => (v === "with" ? g.wards.length > 0 : v === "without" ? g.wards.length === 0 : g.wards.length >= 2) },
+          { key: "email", label: "E-mail", icon: "Mail", options: [{ value: "yes", label: "Com e-mail" }, { value: "no", label: "Sem e-mail" }], match: (g, v) => (v === "yes" ? Boolean(g.email) : !g.email) },
+          { key: "document", label: "Documento", icon: "IdCard", options: [{ value: "yes", label: "Com BI" }, { value: "no", label: "Sem BI" }], match: (g, v) => (v === "yes" ? Boolean(g.idDocumentNumber) : !g.idDocumentNumber) },
         ]}
-        dateFilters={[{ key: "registo", label: "Registo", getDate: (g) => g.createdAt }]}
+        dateFilters={[{ key: "registration", label: "Registo", getDate: (g) => g.createdAt }]}
         sorts={[
-          { value: "nome", label: "Nome", compare: (a, b) => a.fullName.localeCompare(b.fullName, "pt") },
-          { value: "registo", label: "Data de registo", compare: (a, b) => a.createdAt.localeCompare(b.createdAt) },
-          { value: "educandos", label: "N.º de educandos", compare: (a, b) => a.wards.length - b.wards.length },
+          { value: "name", label: "Nome", compare: (a, b) => a.fullName.localeCompare(b.fullName, "pt") },
+          { value: "registration", label: "Data de registo", compare: (a, b) => a.createdAt.localeCompare(b.createdAt) },
+          { value: "wards", label: "N.º de educandos", compare: (a, b) => a.wards.length - b.wards.length },
         ]}
         emptyTitle="Nenhum encarregado encontrado"
         emptyDescription="Ajuste os filtros ou cadastre um encarregado."

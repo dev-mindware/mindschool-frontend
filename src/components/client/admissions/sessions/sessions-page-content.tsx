@@ -779,7 +779,7 @@ export function AdmissionSessionsPageContent() {
       </TitleList>
 
       <DataList<SessionRow>
-        prefix="sessoes-acesso"
+        prefix="admission-sessions"
         rows={sessions}
         columns={columns}
         isLoading={isLoading}
@@ -787,34 +787,34 @@ export function AdmissionSessionsPageContent() {
         searchText={(s) => `${s.title} ${s.location ?? ""}`}
         filters={[
           {
-            key: "estado",
+            key: "status",
             label: "Estado",
             icon: "CircleDot",
             options: Object.entries(STATUS).map(([value, label]) => ({ value, label })),
             match: (s, v) => s.status === v,
           },
           {
-            key: "classe",
+            key: "class",
             label: "Classe",
             icon: "GraduationCap",
             options: levels.map((l) => ({ value: l.id, label: l.name })),
             match: (s, v) => s.class_level?.name === levels.find((l) => l.id === v)?.name,
           },
           {
-            key: "vagas",
+            key: "seats",
             label: "Vagas",
             icon: "Armchair",
             options: [
-              { value: "livres", label: "Com vagas disponíveis" },
-              { value: "cheia", label: "Esgotadas" },
+              { value: "available", label: "Com vagas disponíveis" },
+              { value: "full", label: "Esgotadas" },
             ],
-            match: (s, v) => (v === "livres" ? s.seats_left > 0 : s.seats_left <= 0),
+            match: (s, v) => (v === "available" ? s.seats_left > 0 : s.seats_left <= 0),
           },
         ]}
-        dateFilters={[{ key: "data", label: "Data da Prova", getDate: (s) => s.scheduled_at }]}
+        dateFilters={[{ key: "date", label: "Data da Prova", getDate: (s) => s.scheduled_at }]}
         sorts={[
-          { value: "data", label: "Data", compare: (a, b) => a.scheduled_at.localeCompare(b.scheduled_at) },
-          { value: "inscritos", label: "Inscritos", compare: (a, b) => a.registered - b.registered },
+          { value: "date", label: "Data", compare: (a, b) => a.scheduled_at.localeCompare(b.scheduled_at) },
+          { value: "registered", label: "Inscritos", compare: (a, b) => a.registered - b.registered },
         ]}
         emptyTitle="Ainda não há provas de acesso agendadas"
         emptyDescription="Crie a primeira prova de acesso para habilitar o registo de candidaturas na escola."

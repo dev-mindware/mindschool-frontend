@@ -43,7 +43,7 @@ blob-report/
 playwright/.cache/
 pw-*.log
 scratch-*.log
-/tests/
+/tests/e2e/
 
 # Logs e Ficheiros Temporários de Debug
 *.log

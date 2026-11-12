@@ -56,18 +56,18 @@ export function RoutesManagementView() {
         </TabsList>
         <TabsContent value="routes">
           <DataList<ApiRoute>
-            prefix="rotas"
+            prefix="routes"
             rows={routes}
             columns={routeColumns}
             isLoading={isLoading}
             searchPlaceholder="Pesquisar por rota, paragem, motorista ou matrícula"
             searchText={(r) => `${r.name} ${r.driver_name ?? ""} ${r.vehicle_plate ?? ""} ${r.stops.map((s) => s.name).join(" ")}`}
             filters={[
-              { key: "estado", label: "Estado", icon: "Tag", options: [{ value: "activa", label: "Ativa" }, { value: "inactiva", label: "Inactiva" }], match: (r, v) => (v === "activa" ? r.is_active : !r.is_active) },
-              { key: "lotacao", label: "Lotação", icon: "Armchair", options: [{ value: "livres", label: "Com lugares livres" }, { value: "cheia", label: "Lotada" }], match: (r, v) => (v === "livres" ? r.seats_free > 0 : r.seats_free === 0) },
-              { key: "viatura", label: "Viatura", icon: "Bus", options: [{ value: "com", label: "Com viatura" }, { value: "sem", label: "Sem viatura" }], match: (r, v) => (v === "com" ? Boolean(r.vehicle_plate) : !r.vehicle_plate) },
+              { key: "status", label: "Estado", icon: "Tag", options: [{ value: "active", label: "Ativa" }, { value: "inactive", label: "Inactiva" }], match: (r, v) => (v === "active" ? r.is_active : !r.is_active) },
+              { key: "occupancy", label: "Lotação", icon: "Armchair", options: [{ value: "available", label: "Com lugares livres" }, { value: "full", label: "Lotada" }], match: (r, v) => (v === "available" ? r.seats_free > 0 : r.seats_free === 0) },
+              { key: "vehicle", label: "Viatura", icon: "Bus", options: [{ value: "with", label: "Com viatura" }, { value: "without", label: "Sem viatura" }], match: (r, v) => (v === "with" ? Boolean(r.vehicle_plate) : !r.vehicle_plate) },
             ]}
-            sorts={[{ value: "nome", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name) }, { value: "ocupacao", label: "Ocupação", compare: (a, b) => a.occupied - b.occupied }, { value: "capacidade", label: "Capacidade", compare: (a, b) => a.capacity - b.capacity }]}
+            sorts={[{ value: "name", label: "Nome", compare: (a, b) => a.name.localeCompare(b.name) }, { value: "occupancy", label: "Ocupação", compare: (a, b) => a.occupied - b.occupied }, { value: "capacity", label: "Capacidade", compare: (a, b) => a.capacity - b.capacity }]}
             emptyTitle="Nenhuma rota registada"
             emptyDescription="Crie a primeira rota de transporte."
             emptyIcon="Bus"
@@ -75,15 +75,15 @@ export function RoutesManagementView() {
         </TabsContent>
         <TabsContent value="riders">
           <DataList<ApiTransportAssignment>
-            prefix="passageiros"
+            prefix="passengers"
             rows={assignments}
             columns={riderColumns}
             isLoading={isLoading}
             searchPlaceholder="Pesquisar por aluno, rota ou paragem"
             searchText={(a) => `${nameOf.get(a.student_id) ?? ""} ${routeName(a.route_id)} ${stopName(a)}`}
-            filters={[{ key: "rota", label: "Rota", icon: "Route", options: routes.map((r) => ({ value: r.id, label: r.name })), match: (a, v) => a.route_id === v }]}
-            dateFilters={[{ key: "desde", label: "Alocado", getDate: (a) => a.valid_from }]}
-            sorts={[{ value: "aluno", label: "Aluno", compare: (a, b) => (nameOf.get(a.student_id) ?? "").localeCompare(nameOf.get(b.student_id) ?? "") }, { value: "data", label: "Data", compare: (a, b) => a.valid_from.localeCompare(b.valid_from) }]}
+            filters={[{ key: "route", label: "Rota", icon: "Route", options: routes.map((r) => ({ value: r.id, label: r.name })), match: (a, v) => a.route_id === v }]}
+            dateFilters={[{ key: "assigned", label: "Alocado", getDate: (a) => a.valid_from }]}
+            sorts={[{ value: "student", label: "Aluno", compare: (a, b) => (nameOf.get(a.student_id) ?? "").localeCompare(nameOf.get(b.student_id) ?? "") }, { value: "date", label: "Data", compare: (a, b) => a.valid_from.localeCompare(b.valid_from) }]}
             emptyTitle="Nenhum aluno alocado"
             emptyIcon="Users"
           />

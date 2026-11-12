@@ -9,7 +9,7 @@ import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 
 const CONFIRM = "exam-submit";
-const BACK = "/familia/provas";
+const BACK = "/family/exams";
 const clock = (s: number) => `${String(Math.floor(s / 3600)).padStart(2, "0")}:${String(Math.floor((s % 3600) / 60)).padStart(2, "0")}:${String(s % 60).padStart(2, "0")}`;
 const isAnswered = (v: AnswerValue | undefined) => (Array.isArray(v) ? v.length > 0 : typeof v === "boolean" ? true : typeof v === "string" ? v.trim().length > 0 : false);
 const sameAnswer = (a: AnswerValue | undefined, b: AnswerValue | undefined) => JSON.stringify(a ?? null) === JSON.stringify(b ?? null);

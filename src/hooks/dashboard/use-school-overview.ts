@@ -60,13 +60,13 @@ export function useSchoolOverview() {
   const teacher = role === "TEACHER";
   const onlyOnce = staff || teacher;
 
-  const students = useReport<StudentsByStatusRow>("students", "academico.alunos.por_estado", {}, academic || finance);
-  const enrollments = useReport<EnrollmentSituationRow>("enroll", "academico.matriculas.situacao", {}, academic);
-  const attendance = useReport<AttendanceSummaryRow>("attendance", "assiduidade.alunos.resumo", { from: range.from, to: range.to }, MANAGEMENT.includes(role) || role === "SECRETARY");
-  const absenceRisk = useReport<{ student: string }>("absence-risk", "assiduidade.alunos.risco_faltas", { from: range.from, to: range.to }, MANAGEMENT.includes(role));
-  const noSection = useReport<{ student: string }>("no-section", "secretaria.alunos.sem_turma", {}, role === "SECRETARY" || MANAGEMENT.includes(role));
-  const receipts = useReport<ReceiptRow>("receipts", "financeiro.recebimentos.periodo", { from: yearStart, to: range.to }, finance);
-  const debts = useReport<DebtRow>("debts", "financeiro.dividas.aluno", { only_overdue: true }, finance);
+  const students = useReport<StudentsByStatusRow>("students", "academic.students.by_status", {}, academic || finance);
+  const enrollments = useReport<EnrollmentSituationRow>("enroll", "academic.enrollments.status", {}, academic);
+  const attendance = useReport<AttendanceSummaryRow>("attendance", "attendance.students.summary", { from: range.from, to: range.to }, MANAGEMENT.includes(role) || role === "SECRETARY");
+  const absenceRisk = useReport<{ student: string }>("absence-risk", "attendance.students.absence_risk", { from: range.from, to: range.to }, MANAGEMENT.includes(role));
+  const noSection = useReport<{ student: string }>("no-section", "secretary.students.unassigned", {}, role === "SECRETARY" || MANAGEMENT.includes(role));
+  const receipts = useReport<ReceiptRow>("receipts", "finance.receipts.by_period", { from: yearStart, to: range.to }, finance);
+  const debts = useReport<DebtRow>("debts", "finance.debts.by_student", { only_overdue: true }, finance);
 
   // O que o plano não inclui nem se pede à API (daria 402) nem se mostra.
   const hasRisk = useEntitled({ feature: "risk_alerts", minPlan: "profissional" });

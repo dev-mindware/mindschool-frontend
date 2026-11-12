@@ -19,18 +19,18 @@ export function ClinicVisitsView() {
 
   return (
     <DataList<ApiVisit>
-      prefix="enfermaria"
+      prefix="clinic-visits"
       rows={visits}
       columns={columns}
       isLoading={visitsLoading}
       searchPlaceholder="Pesquisar por aluno ou motivo"
       searchText={(v) => `${nameOf.get(v.student_id) ?? ""} ${v.reason} ${v.treatment ?? ""}`}
       filters={[
-        { key: "aviso", label: "Encarregado", icon: "Bell", options: [{ value: "avisado", label: "Avisado" }, { value: "por_avisar", label: "Por avisar" }], match: (v, x) => (x === "avisado" ? v.guardian_notified : !v.guardian_notified) },
-        { key: "tratamento", label: "Tratamento", icon: "Cross", options: [{ value: "com", label: "Com tratamento" }, { value: "sem", label: "Sem tratamento" }], match: (v, x) => (x === "com" ? Boolean(v.treatment) : !v.treatment) },
+        { key: "notified", label: "Encarregado", icon: "Bell", options: [{ value: "notified", label: "Avisado" }, { value: "pending", label: "Por avisar" }], match: (v, x) => (x === "notified" ? v.guardian_notified : !v.guardian_notified) },
+        { key: "treatment", label: "Tratamento", icon: "Cross", options: [{ value: "with", label: "Com tratamento" }, { value: "without", label: "Sem tratamento" }], match: (v, x) => (x === "with" ? Boolean(v.treatment) : !v.treatment) },
       ]}
-      dateFilters={[{ key: "data", label: "Atendimento", getDate: (v) => v.visited_at }]}
-      sorts={[{ value: "data", label: "Data", compare: (a, b) => a.visited_at.localeCompare(b.visited_at) }, { value: "aluno", label: "Aluno", compare: (a, b) => (nameOf.get(a.student_id) ?? "").localeCompare(nameOf.get(b.student_id) ?? "") }]}
+      dateFilters={[{ key: "date", label: "Atendimento", getDate: (v) => v.visited_at }]}
+      sorts={[{ value: "date", label: "Data", compare: (a, b) => a.visited_at.localeCompare(b.visited_at) }, { value: "student", label: "Aluno", compare: (a, b) => (nameOf.get(a.student_id) ?? "").localeCompare(nameOf.get(b.student_id) ?? "") }]}
       emptyTitle="Sem atendimentos"
       emptyDescription="Registe o primeiro atendimento da enfermaria."
       emptyIcon="HeartPulse"

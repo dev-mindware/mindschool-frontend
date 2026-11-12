@@ -15,7 +15,7 @@ const PUBLISHED: MedStatus[] = ["aprovado", "exportado", "submetido"];
 const LINKS = [
   { label: "Mapas do MED", href: "/reports/med", icon: "Map" as const },
   { label: "Rendimento", href: "/reports/academic", icon: "ChartLine" as const },
-  { label: "Pautas trimestrais", href: "/grades/pautas", icon: "Table" as const },
+  { label: "Pautas trimestrais", href: "/grades/grade-sheets", icon: "Table" as const },
   { label: "Configurações", href: "/settings", icon: "Settings" as const },
 ];
 

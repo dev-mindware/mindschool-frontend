@@ -202,19 +202,19 @@ export function FinalExamsPageContent() {
       />
 
       <DataList<ExamRow>
-        prefix="exames"
+        prefix="final-exams"
         rows={exams}
         columns={columns}
         isLoading={isLoading}
         searchPlaceholder="Pesquisar por disciplina ou turma"
         searchText={(e) => `${e.subject.name} ${e.section.class_level} ${e.section.name}`}
         filters={[
-          { key: "chamada", label: "Chamada", icon: "Tag", options: (Object.keys(CALL_LABEL) as ExamCall[]).map((c) => ({ value: c, label: CALL_LABEL[c] })), match: (e, v) => e.call === v },
-          { key: "estado", label: "Estado", icon: "CircleDot", options: Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label })), match: (e, v) => e.status === v },
-          { key: "nacional", label: "Âmbito", icon: "Flag", options: [{ value: "nacional", label: "Nacional" }, { value: "escola", label: "Da escola" }], match: (e, v) => (v === "nacional" ? e.national : !e.national) },
+          { key: "call", label: "Chamada", icon: "Tag", options: (Object.keys(CALL_LABEL) as ExamCall[]).map((c) => ({ value: c, label: CALL_LABEL[c] })), match: (e, v) => e.call === v },
+          { key: "status", label: "Estado", icon: "CircleDot", options: Object.entries(STATUS_LABEL).map(([value, label]) => ({ value, label })), match: (e, v) => e.status === v },
+          { key: "scope", label: "Âmbito", icon: "Flag", options: [{ value: "national", label: "Nacional" }, { value: "school", label: "Da escola" }], match: (e, v) => (v === "national" ? e.national : !e.national) },
         ]}
-        dateFilters={[{ key: "data", label: "Data", getDate: (e) => e.scheduled_date }]}
-        sorts={[{ value: "data", label: "Data", compare: (a, b) => a.scheduled_date.localeCompare(b.scheduled_date) }, { value: "disciplina", label: "Disciplina", compare: (a, b) => a.subject.name.localeCompare(b.subject.name) }]}
+        dateFilters={[{ key: "date", label: "Data", getDate: (e) => e.scheduled_date }]}
+        sorts={[{ value: "date", label: "Data", compare: (a, b) => a.scheduled_date.localeCompare(b.scheduled_date) }, { value: "subject", label: "Disciplina", compare: (a, b) => a.subject.name.localeCompare(b.subject.name) }]}
         emptyTitle="Sem chamadas de exame"
         emptyDescription="Ainda não foram criadas chamadas de exame final pela Direcção da escola."
         emptyIcon="GraduationCap"
