@@ -53,7 +53,7 @@ export function PrintDownloadDropdown({
       SucessMessage("Download do PDF concluído com sucesso!");
     } catch (err) {
       console.error("PDF generation error:", err);
-      ErrorMessage("Erro ao gerar ficheiro PDF.");
+      ErrorMessage("Não foi possível gerar o ficheiro PDF neste momento. Tente novamente.");
     } finally {
       setIsDownloading(false);
     }

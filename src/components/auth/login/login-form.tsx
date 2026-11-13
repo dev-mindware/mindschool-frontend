@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
 import { ErrorMessage } from "@/utils/messages";
@@ -23,6 +23,13 @@ export function LoginForm() {
   const [needsMfa, setNeedsMfa] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
 
+  useEffect(() => {
+    const errParam = new URLSearchParams(window.location.search).get("error");
+    if (errParam === "impersonation") {
+      ErrorMessage("A ligação de acesso de apoio expirou ou já foi utilizada. Inicie o acesso novamente a partir do painel.");
+    }
+  }, []);
+
   const {
     register,
     handleSubmit,
@@ -38,12 +45,12 @@ export function LoginForm() {
 
       if (res.requiresMfa) {
         setNeedsMfa(true);
-        if (totpCode) ErrorMessage("Código inválido. Tente novamente.");
+        if (totpCode) ErrorMessage("O código de verificação está incorrecto. Confira os dígitos e tente novamente.");
         return;
       }
 
       if (!res.user) {
-        ErrorMessage(res.message || "Erro ao tentar fazer login.");
+        ErrorMessage(res.message || "Não foi possível iniciar sessão. Verifique o seu e-mail e palavra-passe e tente novamente.");
         return;
       }
 
@@ -59,7 +66,12 @@ export function LoginForm() {
       router.replace(resume ?? (res.redirectPath || "/"));
     } catch (error) {
       setIsAuthenticating(false);
-      ErrorMessage(getApiErrorMessage(error, "Ocorreu um erro inesperado. Tente novamente."));
+      ErrorMessage(
+        getApiErrorMessage(
+          error,
+          "Não foi possível iniciar sessão neste momento. Verifique a sua ligação à Internet e tente novamente.",
+        ),
+      );
     }
   }
 

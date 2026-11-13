@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ResetPasswordFormData, resetPasswordSchema } from "@/schemas";
 import { ErrorMessage } from "@/utils/messages";
+import { getApiErrorMessage } from "@/utils/api-error";
 import { useSearchParams } from "next/navigation";
 import { BackToLogin } from "../_components";
 import { Suspense, useState } from "react";
@@ -48,7 +49,7 @@ function ResetPasswordForm() {
   async function onChangePassword(data: ResetPasswordFormData) {
     if (!token) {
       ErrorMessage(
-        "O código de recuperação da palavra-passe não foi encontrado ou é inválido. Solicite uma nova recuperação.",
+        "A ligação para definir a palavra-passe não foi encontrada ou expirou. Peça uma nova recuperação de palavra-passe.",
       );
       return;
     }
@@ -67,10 +68,12 @@ function ResetPasswordForm() {
 
       setRedirectUrl(res.redirectPath || "/");
       openModal("success-reset-modal");
-    } catch (error: any) {
+    } catch (error: unknown) {
       ErrorMessage(
-        error?.message ||
-        "Não foi possível alterar a palavra-passe. Tente novamente mais tarde.",
+        getApiErrorMessage(
+          error,
+          "Não foi possível alterar a palavra-passe. Tente novamente mais tarde.",
+        ),
       );
     } finally {
       setIsSubmitting(false);

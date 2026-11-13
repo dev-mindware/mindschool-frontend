@@ -15,7 +15,7 @@ import { applyApiFieldErrors, getApiErrorMessage } from "@/utils/api-error";
 import { formalReasonSchema, newTeacherSchema, type NewTeacherFormData } from "@/schemas";
 import type { z } from "zod";
 
-const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
+const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar os dados do professor. Tente novamente.")); throw e; };
 const STATUS: Record<TeacherStatus, string> = { activo: "Ativo", licenca: "Em licença", desvinculado: "Desvinculado" };
 
 /** Linha da lista: ficha de professor ou utilizador «professor» que ainda não tem ficha (`noProfile`). */
@@ -231,7 +231,7 @@ export function TeachersPageContent() {
 
   if (t.forbidden) return <EmptyState icon="Lock" title="Sem acesso" description="O seu perfil não gere o corpo docente." />;
 
-  const setStatus = (x: ApiTeacherFull, status: TeacherStatus) => t.update.mutateAsync({ id: x.id, status }).then(() => SucessMessage("Estado atualizado.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
+  const setStatus = (x: ApiTeacherFull, status: TeacherStatus) => t.update.mutateAsync({ id: x.id, status }).then(() => SucessMessage("Estado actualizado.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar os dados do professor. Tente novamente.")));
 
   // Utilizadores com o papel «professor» sem ficha também aparecem (antes ficavam invisíveis até alguém criar a ficha).
   const rows: TeacherRow[] = [

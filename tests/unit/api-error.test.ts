@@ -6,7 +6,7 @@ const apiError = (code: string, detail: string, errors?: Array<{ message: string
 describe("getApiErrorMessage", () => {
   it("traduz códigos conhecidos para uma frase com o que fazer", () => {
     const msg = getApiErrorMessage(apiError("CANCELLATION_DEADLINE_PASSED", "Prazo de anulacao ultrapassado"), "Erro");
-    expect(msg).toMatch(/Direção/);
+    expect(msg).toMatch(/Direcção/);
     expect(msg).toContain("Prazo de anulacao ultrapassado"); // junta o detalhe da API quando é curto
   });
 

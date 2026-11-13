@@ -9,6 +9,7 @@ import { redirectToLogin } from "@/lib/browser-redirect";
 import { isMfaEnrollmentRequired, notifyMfaEnrollmentRequired } from "@/lib/mfa-enrollment";
 import { getStepUpToken, isStepUpRequired, requestStepUp } from "@/lib/step-up";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
+import { getApiErrorMessage } from "@/utils/api-error";
 
 // ============================================================================
 // CACHE & STATE
@@ -170,7 +171,7 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
   if (url.startsWith("/s/") || url === "/s") {
     const schoolId = useActiveSchoolStore.getState().schoolId;
     if (!schoolId) {
-      return Promise.reject(new Error("Nenhuma escola seleccionada."));
+      return Promise.reject(new Error("Nenhuma escola foi seleccionada. Escolha uma escola antes de continuar."));
     }
     config.url = `/schools/${schoolId}${url.slice(2)}`;
   }
@@ -184,10 +185,32 @@ api.interceptors.request.use(async (config: InternalAxiosRequestConfig) => {
 
 api.interceptors.response.use(
   (res) => res,
-  async (err: AxiosError) => {
+  (err: AxiosError<unknown>) => {
     const original = err.config as
       | (AxiosRequestConfig & { _retry?: boolean })
       | undefined;
+
+    return (async () => {
+      // Pedidos com responseType "blob" (PDF/Excel) devolvem erros RFC 9457 dentro de um Blob.
+      // Convertemos para JSON para o tradutor central conseguir explicar o motivo real ao utilizador.
+      const rawData = err.response?.data;
+      if (
+        typeof Blob !== "undefined" &&
+        rawData instanceof Blob &&
+        rawData.size > 0 &&
+        rawData.size < 65_536 &&
+        (!rawData.type || rawData.type.includes("json") || rawData.type.includes("text"))
+      ) {
+        try {
+          const text = await rawData.text();
+          const parsed = JSON.parse(text) as unknown;
+          if (parsed && typeof parsed === "object" && err.response) {
+            err.response.data = parsed;
+          }
+        } catch {
+          // Mantém o Blob original se não for JSON válido.
+        }
+      }
 
     // Guarda contra config undefined (acontece em network errors)
     if (!original || !original.url) {
@@ -317,16 +340,16 @@ api.interceptors.response.use(
     }
 
     return Promise.reject(err);
+    })();
   }
 );
 
-// Mensagem legivel nos erros (RFC 9457 da API: detail / errors[0].message), para quem usa so error.message.
+// Normaliza err.message com linguagem clara PT-AO45 para qualquer caller que leia error.message directamente.
 api.interceptors.response.use(
   (res) => res,
   (err: AxiosError<{ detail?: string; errors?: Array<{ message?: string }> }>) => {
-    const data = err.response?.data;
-    const msg = data?.errors?.[0]?.message || data?.detail;
-    if (typeof msg === "string" && msg) err.message = msg;
+    const friendly = getApiErrorMessage(err, "");
+    if (friendly) err.message = friendly;
     return Promise.reject(err);
   },
 );

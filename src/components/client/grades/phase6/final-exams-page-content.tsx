@@ -15,7 +15,7 @@ import { useModal } from "@/stores/modal/use-modal-store";
 import { applyApiFieldErrors, getApiErrorMessage } from "@/utils/api-error";
 import { isoDateSchema, optionalSafeTextSchema, schoolGradeSchema } from "@/schemas";
 
-const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
+const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar a chamada do exame final. Tente novamente.")); throw e; };
 const STATUS_LABEL = { agendado: "Agendado", realizado: "Realizado", encerrado: "Encerrado" } as const;
 const RESULT_OPTIONS = [{ value: "avaliado", label: "Avaliado" }, { value: "ausente", label: "Ausente" }, { value: "ausente_justificado", label: "Ausente justificado" }, { value: "anulado", label: "Anulado" }];
 
@@ -163,7 +163,7 @@ function ExamModal({ id }: { id: string | null }) {
       return ErrorMessage("Corrija os campos inválidos antes de gravar.");
     }
     if (resultsPayload.length === 0) return ErrorMessage("Nada para gravar.");
-    void putResults.mutateAsync(resultsPayload).then(() => SucessMessage("Resultados gravados.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
+    void putResults.mutateAsync(resultsPayload).then(() => SucessMessage("Resultados gravados.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar a chamada do exame final. Tente novamente.")));
   };
 
   const studentRows: ExamStudentRow[] = (exam?.students ?? []).map((s) => ({ ...s, id: s.enrollment_id }));
@@ -266,7 +266,7 @@ function ExamModal({ id }: { id: string | null }) {
             )}
             {!closed && (
               <div className="flex flex-wrap gap-2">
-                <Can permission="final_exam:write"><Button size="sm" variant="outline" disabled={enroll.isPending} onClick={() => enroll.mutateAsync(undefined).then((r) => (r.enrolled > 0 ? SucessMessage(`${r.enrolled} aluno(s) inscrito(s).`) : InfoMessage("Nenhum aluno foi inscrito: só se inscreve quem já tem a média final das disciplinas (pautas dos três trimestres fechadas) e cumpre as regras desta chamada."))).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Inscrever todos os elegíveis</Button></Can>
+                <Can permission="final_exam:write"><Button size="sm" variant="outline" disabled={enroll.isPending} onClick={() => enroll.mutateAsync(undefined).then((r) => (r.enrolled > 0 ? SucessMessage(`${r.enrolled} aluno(s) inscrito(s).`) : InfoMessage("Nenhum aluno foi inscrito: só se inscreve quem já tem a média final das disciplinas (pautas dos três trimestres fechadas) e cumpre as regras desta chamada."))).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar a chamada do exame final. Tente novamente.")))}>Inscrever todos os elegíveis</Button></Can>
                 <Can permission="final_exam:results"><Button size="sm" onClick={save} disabled={putResults.isPending || enrolled.length === 0 || hasInvalidGrade || !justifParsed.success || resultsPayload.length === 0}>Gravar resultados</Button></Can>
                 <Can permission="final_exam:write"><Button size="sm" variant="secondary" disabled={close.isPending} onClick={() => openModal("final-exam-close-confirm")}>Encerrar chamada</Button></Can>
                 <ConfirmModal
@@ -281,7 +281,7 @@ function ExamModal({ id }: { id: string | null }) {
                     "A classificação final (MFD e exame, pelos pesos das Políticas) passa a contar na proposta de transição dos alunos.",
                     "Quem faltou sem justificação fica sem classificação nesta chamada.",
                   ]}
-                  onConfirm={() => close.mutateAsync().then(() => SucessMessage("Chamada encerrada.")).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; })}
+                  onConfirm={() => close.mutateAsync().then(() => SucessMessage("Chamada encerrada.")).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar a chamada do exame final. Tente novamente.")); throw e; })}
                 />
               </div>
             )}

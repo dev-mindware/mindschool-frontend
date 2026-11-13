@@ -8,6 +8,7 @@ import { AdmissionApplication } from "@/types/admission";
 import { useAdmissions } from "@/hooks/school/use-admissions";
 import { useSections } from "@/hooks/school/use-sections";
 import { sanitizeSearchTerm, stripControlChars } from "@/schemas";
+import { getApiErrorMessage } from "@/utils/api-error";
 import {
   Button,
   ButtonSubmit,
@@ -144,8 +145,9 @@ export function ConvertToEnrollmentModal({
       );
       onClose();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro ao efetivar matrícula";
-      ErrorMessage(msg);
+      ErrorMessage(
+        getApiErrorMessage(err, "Não foi possível concluir a matrícula do candidato. Verifique a turma e tente novamente."),
+      );
     } finally {
       setIsSubmitting(false);
     }

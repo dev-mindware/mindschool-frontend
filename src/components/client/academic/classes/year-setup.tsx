@@ -122,7 +122,7 @@ export function YearSetup({ loadFailed, onRetry, onClose }: YearSetupProps) {
   const submit = (draft: AcademicYearDraft) => {
     createYear.mutate(draft, {
       onSuccess: (y) => SucessMessage(`Ano letivo ${y.name} criado${y.status === "activo" ? " e ativado" : ""}. Já pode criar a turma.`),
-      onError: (err) => ErrorMessage(getApiErrorMessage(err, "Não foi possível criar o ano letivo.")),
+      onError: (err) => ErrorMessage(getApiErrorMessage(err, "Não foi possível criar o ano lectivo. Verifique as datas e tente novamente.")),
     });
   };
 

@@ -107,7 +107,7 @@ export function FamilyDocuments({ studentId, ward }: FamilyContext) {
     { key: "document_number", header: "Número", render: (_, d) => <span className="font-mono font-medium">{d.document_number}</span> },
     { key: "type", header: "Tipo", render: (_, d) => d.type },
     { key: "issued_at", header: "Emitido em", render: (_, d) => <span className="text-xs">{formatIsoDay(d.issued_at)}</span> },
-    { key: "actions", header: "Ação", render: (_, d) => <ButtonOnlyAction data={d} actions={[{ label: "Abrir PDF", icon: "FileText", onClick: (x) => void portalService.documentPdf(studentId, x.id).then((b) => window.open(URL.createObjectURL(b), "_blank")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Sem PDF."))) }]} /> },
+    { key: "actions", header: "Acção", render: (_, d) => <ButtonOnlyAction data={d} actions={[{ label: "Abrir PDF", icon: "FileText", onClick: (x) => void portalService.documentPdf(studentId, x.id).then((b) => window.open(URL.createObjectURL(b), "_blank")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível abrir este documento em PDF neste momento. Tente novamente."))) }]} /> },
   ];
 
   return (

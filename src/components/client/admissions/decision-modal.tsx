@@ -17,6 +17,7 @@ import {
   Icon,
 } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { getApiErrorMessage } from "@/utils/api-error";
 
 const decisionModalSchema = z.object({
   decision: z.enum(["APPROVED", "WAITLIST", "REJECTED"], {
@@ -90,8 +91,9 @@ export function DecisionModal({
       SucessMessage("Decisão de admissão registada com sucesso!");
       onClose();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro ao registar decisão";
-      ErrorMessage(msg);
+      ErrorMessage(
+        getApiErrorMessage(err, "Não foi possível registar a decisão da candidatura. Tente novamente."),
+      );
     } finally {
       setIsSubmitting(false);
     }

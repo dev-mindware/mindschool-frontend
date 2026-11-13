@@ -7,6 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { forgotPasswordSchema } from "@/schemas";
 import { ErrorMessage } from "@/utils/messages";
+import { getApiErrorMessage } from "@/utils/api-error";
 import { OTPModal } from "./otp-modal";
 import { BackToLogin } from "../_components";
 import { cn } from "@/lib";
@@ -34,10 +35,12 @@ export function RecoveryPassword() {
       const res = await forgotPassword(data.email);
       setMessage(res.message);
       openModal("information-modal");
-    } catch (error: any) {
+    } catch (error: unknown) {
       ErrorMessage(
-        error?.response?.data?.message ||
-          "Ocorreu um erro ao enviar o email. Tente mais tarde.",
+        getApiErrorMessage(
+          error,
+          "Não foi possível enviar as instruções de recuperação. Verifique o e-mail indicado e tente novamente.",
+        ),
       );
     }
   }

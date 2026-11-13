@@ -19,7 +19,7 @@ const gradeReviewSchema = z.object({
 const TYPE_LABEL: Record<string, string> = { avaliacao_continua: "Avaliação contínua", avaliacao_sistematica: "Avaliação sistemática", prova_periodica: "Prova periódica" };
 const grade = (v: number | null) => (v === null ? "—" : v.toFixed(1));
 const uniq = (v: string[]) => [...new Set(v.filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt"));
-const run = (p: Promise<unknown>, ok: string) => p.then(() => { SucessMessage(ok); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); });
+const run = (p: Promise<unknown>, ok: string) => p.then(() => { SucessMessage(ok); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível enviar o pedido de reapreciação. Tente novamente.")); });
 
 type GradeRow = { id: string; term: number; closed: boolean; subject: string; mac: number | null; mas: number | null; mt: number | null };
 
@@ -150,7 +150,7 @@ export function FamilyPerformance({ studentId }: FamilyContext) {
           return live.requestReview
             .mutateAsync({ assessmentId: target.assessment_id, reason: reviewParsed.data.reason })
             .then(() => { SucessMessage("Pedido enviado."); })
-            .catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; });
+            .catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível enviar o pedido de reapreciação. Tente novamente.")); throw e; });
         }}>
         <div className="sm:col-span-2">
           <FormTextarea

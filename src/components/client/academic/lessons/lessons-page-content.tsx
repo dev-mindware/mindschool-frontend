@@ -50,7 +50,7 @@ const SUM_STATUS = {
   validado: "Validado",
   devolvido: "Devolvido",
 } as const;
-const err = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."));
+const err = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar os dados da aula ou do sumário. Tente novamente."));
 const TONE: Record<string, TimetableBlock["tone"]> = {
   prevista: "primary",
   realizada: "success",

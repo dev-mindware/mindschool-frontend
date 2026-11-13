@@ -9,7 +9,7 @@ import { getApiErrorMessage } from "@/utils/api-error";
 import { RouteDetailModal } from "./route-detail-modal";
 import { useState } from "react";
 
-const err = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."));
+const err = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar os dados da rota de transporte. Tente novamente."));
 
 /** Rotas e alunos transportados: listas com filtros; paragens, passageiros e impressão abrem em modais. */
 export function RoutesManagementView() {

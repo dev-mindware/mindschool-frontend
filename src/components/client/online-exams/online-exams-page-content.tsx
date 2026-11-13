@@ -28,7 +28,7 @@ export function OnlineExamsPageContent() {
   // As modais leem sempre a versao mais recente da prova (a lista e invalidada a cada alteracao).
   const byId = (id: string | null): ApiExam | null => allExams.find((e) => e.id === id) ?? null;
 
-  const run = (p: Promise<unknown>, ok: string) => p.then(() => SucessMessage(ok)).catch((e) => ErrorMessage(getApiErrorMessage(e, 'A operação falhou.')));
+  const run = (p: Promise<unknown>, ok: string) => p.then(() => SucessMessage(ok)).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar a prova online. Tente novamente.")));
 
   return (
     <div className="space-y-6">

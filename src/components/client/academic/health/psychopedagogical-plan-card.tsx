@@ -22,7 +22,7 @@ export function PsychopedagogicalPlanCard({ caseId }: { caseId: string | null })
   const [notes, setNotes] = useState("");
   const [touched, setTouched] = useState({ date: false, notes: false });
   const closed = data?.status === "encerrado";
-  const err = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."));
+  const err = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar o plano psicopedagógico. Tente novamente."));
 
   const parsed = useMemo(() => sessionSchema.safeParse({ date, notes }), [date, notes]);
   const issueFor = (field: "date" | "notes") =>

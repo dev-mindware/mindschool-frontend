@@ -58,7 +58,7 @@ export function GradeReviewsPageContent() {
     openModal("review-detail");
   };
   const actionable = active && ["pedido", "em_revisao"].includes(active.status);
-  const run = (p: Promise<unknown>, ok: string) => p.then(() => { SucessMessage(ok); closeModal("review-detail"); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); });
+  const run = (p: Promise<unknown>, ok: string) => p.then(() => { SucessMessage(ok); closeModal("review-detail"); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar o pedido de reapreciação. Tente novamente.")); });
 
   const columns: Column<ApiReview>[] = [
     { key: "student.full_name", header: "Aluno", render: (_, r) => <span className="font-medium">{r.student.full_name}</span> },

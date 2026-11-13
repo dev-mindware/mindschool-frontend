@@ -38,7 +38,7 @@ const kindOf = (d: ApiSchoolDay): Kind => {
 };
 
 const KIND_LABEL: Record<"marca" | "feriado", string> = { marca: "Marca da Direção", feriado: "Feriado" };
-const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."));
+const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar os dias lectivos. Tente novamente."));
 
 type HighlightRow = {
   id: string;

@@ -62,7 +62,7 @@ export function ExamGradingPageContent() {
   const [touchedScores, setTouchedScores] = useState<Record<string, boolean>>({});
 
   const current = submissions.find((s) => s.id === selected);
-  const run = (p: Promise<unknown>, ok: string) => p.then(() => SucessMessage(ok)).catch((e) => ErrorMessage(getApiErrorMessage(e, 'A operação falhou.')));
+  const run = (p: Promise<unknown>, ok: string) => p.then(() => SucessMessage(ok)).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a correcção desta prova. Tente novamente.")));
 
   if (!activeExam) {
     return examsLoading ? (

@@ -16,6 +16,7 @@ import {
   Icon,
 } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { getApiErrorMessage } from "@/utils/api-error";
 
 const gradeExamModalSchema = admissionGradeExamSchema.extend({
   feedback: optionalSafeTextSchema(500, 2, "O parecer"),
@@ -80,8 +81,9 @@ export function GradeExamModal({
       );
       onClose();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro ao lançar nota";
-      ErrorMessage(msg);
+      ErrorMessage(
+        getApiErrorMessage(err, "Não foi possível lançar a nota da prova de acesso. Tente novamente."),
+      );
     } finally {
       setIsSubmitting(false);
     }

@@ -26,7 +26,7 @@ const disableMfaSchema = z.object({
   code: totpSixDigitSchema,
 });
 
-const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, (e as Error)?.message || "A operação falhou.")); throw e; };
+const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível concluir esta definição de segurança. Tente novamente.")); throw e; };
 
 /** Segundo factor (TOTP), passkeys, códigos de recuperação e sessões ativas — tudo com ações em modais. */
 export function SecurityCenter() {
@@ -94,7 +94,7 @@ export function SecurityCenter() {
         )}
         <div className="flex flex-wrap gap-2">
           {!s.mfaEnabled && (
-            <Button size="sm" className="gap-2" disabled={s.enroll.isPending} onClick={() => s.enroll.mutateAsync().then((r) => { setSecret(r); resetFields(); openModal("sec-totp-setup"); }).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>
+            <Button size="sm" className="gap-2" disabled={s.enroll.isPending} onClick={() => s.enroll.mutateAsync().then((r) => { setSecret(r); resetFields(); openModal("sec-totp-setup"); }).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível iniciar a activação da verificação em dois factores. Tente novamente.")))}>
               <Icon name="ShieldCheck" className="size-4" />Configurar autenticador
             </Button>
           )}

@@ -2,7 +2,7 @@
 
 import { useDiscardGuard } from "@/components/common/discard-guard";
 import React, { useState, useMemo, useEffect } from "react";
-import { formatDateTime, formatIdDocument, formatPhone, cleanIdDocument, cleanPhone } from "@/utils";
+import { formatDateTime, formatIdDocument, formatPhone, cleanIdDocument, cleanPhone, getApiErrorMessage } from "@/utils";
 import { candidateApplicationPersonalSchema, candidateGuardianNewSchema } from "@/schemas";
 import { useAdmissions } from "@/hooks/school/use-admissions";
 import { useAdmissionSessions } from "@/hooks/school/use-phase6";
@@ -438,8 +438,9 @@ export function CandidateApplicationDrawer({
       SucessMessage("Candidatura submetida com sucesso! Aguarda validação dos documentos pela Secretaria.");
       onClose();
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : "Erro ao submeter candidatura";
-      ErrorMessage(msg);
+      ErrorMessage(
+        getApiErrorMessage(err, "Não foi possível submeter a candidatura. Verifique os dados e tente novamente."),
+      );
     } finally {
       setIsSubmitting(false);
     }

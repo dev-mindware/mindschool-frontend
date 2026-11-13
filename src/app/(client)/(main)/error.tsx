@@ -11,7 +11,12 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
 
   return (
     <div className="p-4 md:p-6">
-      <RequestError refetch={reset} message="Ocorreu um erro inesperado ao mostrar esta página." />
+      <RequestError
+        refetch={reset}
+        error={error}
+        message="Não foi possível apresentar esta secção neste momento."
+        hint="Os restantes menus continuam disponíveis. Tente carregar novamente ou aceda a outra página."
+      />
     </div>
   );
 }

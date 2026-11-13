@@ -84,7 +84,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
     try {
       if (studentMode === "existing") {
         if (!selectedStudentId) {
-          ErrorMessage("Por favor, selecione o estudante.");
+          ErrorMessage("Por favor, seleccione o aluno antes de continuar.");
           setIsSubmitting(false);
           return;
         }

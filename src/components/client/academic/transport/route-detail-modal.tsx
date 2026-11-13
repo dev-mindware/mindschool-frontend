@@ -46,7 +46,7 @@ export function RouteDetailModal({ routeId }: { routeId: string | null }) {
           </ol>
           <div className="flex items-start gap-2 border-t pt-3">
             <div className="flex-1"><Input label="Nova paragem" value={stop} onChange={(e) => { setTouched(true); setStop(e.target.value); }} error={stopError} placeholder="Nome da paragem" /></div>
-            <Button size="sm" className="mt-6 h-10" disabled={!parsed.success || addStop.isPending} onClick={() => addStop.mutateAsync({ routeId: route.id, name: parsed.success ? parsed.data.name : stop.trim() }).then(() => { SucessMessage("Paragem adicionada."); setStop(""); setTouched(false); }).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Adicionar</Button>
+            <Button size="sm" className="mt-6 h-10" disabled={!parsed.success || addStop.isPending} onClick={() => addStop.mutateAsync({ routeId: route.id, name: parsed.success ? parsed.data.name : stop.trim() }).then(() => { SucessMessage("Paragem adicionada."); setStop(""); setTouched(false); }).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível adicionar esta paragem à rota de transporte. Tente novamente.")))}>Adicionar</Button>
           </div>
         </div>
       )}

@@ -54,10 +54,10 @@ export function MedSnapshotsContent() {
     ? referenceResult.error.issues[0]?.message
     : undefined;
 
-  const run = (p: Promise<unknown>, ok: string) => p.then(() => SucessMessage(ok)).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
+  const run = (p: Promise<unknown>, ok: string) => p.then(() => SucessMessage(ok)).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível gerar ou submeter o mapa do MED. Tente novamente.")));
 
   const generate = () => {
-    if (!year) { ErrorMessage("Não há ano letivo ativo."); throw new Error("no-year"); }
+    if (!year) { ErrorMessage("Não existe nenhum ano lectivo activo. Crie ou active um ano lectivo primeiro."); throw new Error("no-year"); }
     if (!generateResult.success) { ErrorMessage(generateTermError ?? "Dados inválidos."); throw new Error("invalid-form"); }
     return create.mutateAsync({
       academic_year_id: year.id,
@@ -162,7 +162,7 @@ export function MedSnapshotsContent() {
         onSubmit={() => {
           setReferenceTouched(true);
           if (!submitting || !referenceResult.success) return;
-          return submit.mutateAsync({ id: submitting.id, reference: referenceResult.data }).then(() => { SucessMessage("Submissão registada."); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; });
+          return submit.mutateAsync({ id: submitting.id, reference: referenceResult.data }).then(() => { SucessMessage("Submissão registada."); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível gerar ou submeter o mapa do MED. Tente novamente.")); throw e; });
         }}
       >
         <div className="sm:col-span-2">

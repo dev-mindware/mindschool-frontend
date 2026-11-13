@@ -14,7 +14,7 @@ import { useModal } from '@/stores/modal/use-modal-store';
 import { getApiErrorMessage } from '@/utils/api-error';
 
 const pct = (v: number | null | undefined) => (v === null || v === undefined ? '—' : `${v}%`);
-const fail = (e: unknown, fallback = 'A operação falhou.') => { ErrorMessage(getApiErrorMessage(e, fallback)); throw e; };
+const fail = (e: unknown, fallback = "Não foi possível actualizar os dados do grupo de escolas. Tente novamente.") => { ErrorMessage(getApiErrorMessage(e, fallback)); throw e; };
 const ROLE_OPTIONS = (Object.keys(GROUP_ROLE_LABEL) as GroupRole[]).map((r) => ({ value: r, label: GROUP_ROLE_LABEL[r] }));
 const ROLE_VALUES = Object.keys(GROUP_ROLE_LABEL) as [GroupRole, ...GroupRole[]];
 
@@ -117,7 +117,7 @@ export function MultiSchoolPageContent() {
         <div className="flex items-end gap-2">
           {first.groups.length > 1 && <div className="w-56"><FormSelect label="Grupo" value={active} onValueChange={setGroupId} options={first.groups.map((x) => ({ value: x.id, label: x.name }))} /></div>}
           {g.canRefresh && (
-            <Button size="sm" variant="outline" className="gap-1.5 text-xs" disabled={g.refresh.isPending} onClick={() => g.refresh.mutateAsync().then(() => SucessMessage('Indicadores recalculados.')).catch((e) => ErrorMessage(getApiErrorMessage(e, 'A operação falhou.')))}>
+            <Button size="sm" variant="outline" className="gap-1.5 text-xs" disabled={g.refresh.isPending} onClick={() => g.refresh.mutateAsync().then(() => SucessMessage('Indicadores recalculados.')).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar os dados do grupo de escolas. Tente novamente.")))}>
               <Icon name="RefreshCw" className="size-4" />Recalcular
             </Button>
           )}

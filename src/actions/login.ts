@@ -9,6 +9,7 @@ import { createSession, destroySession } from "@/lib/session";
 import { getSession } from "@/lib/auth";
 import { getRouteByRole } from "@/utils/role-redirects";
 import { resetAccessTokenCache } from "@/services/api";
+import { getApiErrorMessage } from "@/utils/api-error";
 
 interface LoginActionResult {
   user: User | null;
@@ -39,7 +40,13 @@ export async function loginAction({
       ...(totpCode ? { totp_code: totpCode } : {}),
     });
     const { access_token: accessToken, refresh_token: refreshToken } = res.data;
-    if (!accessToken || !refreshToken) throw new Error("Resposta de autenticação inválida");
+    if (!accessToken || !refreshToken) {
+      return {
+        user: null,
+        redirectPath: "/auth/login",
+        message: "Não foi possível validar o início de sessão. Tente novamente dentro de instantes.",
+      };
+    }
 
     const meRes = await api.get<ApiMe>("/auth/me", { headers: { Authorization: `Bearer ${accessToken}` } });
     const me = meRes.data;
@@ -62,23 +69,25 @@ export async function loginAction({
       token: accessToken,
       memberships: me.memberships.map((m) => ({ schoolId: m.school_id, schoolName: m.school_name, roles: m.roles, viaGroup: m.via_group === true })),
     };
-  } catch (error: any) {
-    let messageError = "Ocorreu um erro desconhecido!";
-
-    const problem = error?.response?.data;
+  } catch (error: unknown) {
+    const errObj = error as { response?: { data?: { code?: string; methods?: string[] } } };
+    const problem = errObj?.response?.data;
     if (problem?.code === "MFA_REQUIRED") {
-      return { user: null, requiresMfa: true, mfaMethods: problem.methods ?? ["totp"], message: "Introduza o código do segundo factor." };
-    }
-    if (problem?.detail) {
-      messageError = problem.detail;
-    } else if (error instanceof Error) {
-      messageError = error.message;
+      return {
+        user: null,
+        requiresMfa: true,
+        mfaMethods: problem.methods ?? ["totp"],
+        message: "Introduza o código de verificação em dois factores para concluir o acesso.",
+      };
     }
 
     return {
       user: null,
       redirectPath: "/auth/login",
-      message: messageError,
+      message: getApiErrorMessage(
+        error,
+        "Não foi possível iniciar sessão. Verifique o seu e-mail e palavra-passe e tente novamente.",
+      ),
     };
   }
 }
@@ -121,20 +130,14 @@ export async function resetPasswordAndLoginAction({
       token: accessToken,
       memberships: me.memberships.map((m) => ({ schoolId: m.school_id, schoolName: m.school_name, roles: m.roles, viaGroup: m.via_group === true })),
     };
-  } catch (error: any) {
-    let messageError = "Não foi possível definir a palavra-passe.";
-    const problem = error?.response?.data;
-    if (problem?.detail) {
-      messageError = problem.detail;
-    } else if (problem?.message) {
-      messageError = problem.message;
-    } else if (error instanceof Error) {
-      messageError = error.message;
-    }
+  } catch (error: unknown) {
     return {
       user: null,
       redirectPath: "/auth/login",
-      message: messageError,
+      message: getApiErrorMessage(
+        error,
+        "Não foi possível definir a nova palavra-passe. Peça uma nova ligação de recuperação e tente novamente.",
+      ),
     };
   }
 }
@@ -152,79 +155,3 @@ export async function logoutAction() {
     resetAccessTokenCache();
   }
 }
-
-/* "use server";
-import { z } from "zod";
-import { redirect } from "next/navigation";
-import { roleRedirects } from "@/utils";
-import { LoginResponse, Role, User } from "@/types";
-import { loginSchema } from "@/schemas";
-import { api } from "@/services/api";
-import { createSession } from "@/lib/session";
-import { getSession } from "@/lib/auth";
-
-export async function loginAction({
-  email,
-  password,
-}: z.infer<typeof loginSchema>): Promise<{
-  user: User | null;
-  redirectPath?: string;
-  message?: string;
-}> {
-  try {
-    const res = await api.post<LoginResponse>("/auth/login", {
-      email,
-      password,
-    });
-
-    const { user, tokens, message } = res.data;
-
-    if (!user) {
-      throw new Error("Utilizador não autorizado");
-    }
-
-    await createSession({
-      accessToken: tokens.accessToken,
-      refreshToken: tokens.refreshToken,
-      role: user.role,
-    });
-
-    const redirectPath = getRedirectPath(user.role);
-
-    return { message, user, redirectPath };
-  } catch (error: any) {
-    let messageError = "Ocorreu um erro desconhecido!";
-
-    if (error?.response?.data?.message) {
-      messageError = error.response.data.message;
-    } else if (error instanceof Error) {
-      messageError = error.message;
-    }
-
-    return {
-      user: null,
-      redirectPath: "/auth/login",
-      message: messageError,
-    };
-  }
-}
-
-function getRedirectPath(role: Role): string {
-  return roleRedirects[role as keyof typeof roleRedirects] || "/";
-}
-
-export async function logoutAction() {
-  try {
-    const session = await getSession();
-    await api.post("/auth/logout", { refresh_token: session?.refreshToken });
-  } catch (error) {
-    console.error("🚨 Erro ao fazer logout remoto:", error);
-  } finally {
-    const { destroySession } = await import("@/lib/session");
-    await destroySession();
-    const { resetAccessTokenCache } = await import("@/services/api");
-    resetAccessTokenCache();
-
-    //redirect("/auth/login");
-  }
-} */

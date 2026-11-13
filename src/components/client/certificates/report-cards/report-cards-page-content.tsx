@@ -47,7 +47,7 @@ export function ReportCardsPageContent() {
     { key: "issueDate", header: "Emitido em", render: (_, d) => <span className="font-mono text-xs">{d.issueDate}</span> },
     {
       key: "action",
-      header: "Ações",
+      header: "Acções",
       render: (_, d) => (
         <ButtonOnlyAction
           data={d}
@@ -55,7 +55,12 @@ export function ReportCardsPageContent() {
             {
               label: "Abrir PDF",
               icon: "FileText",
-              onClick: (x) => void openDocumentPdf(x.id).catch((e) => ErrorMessage(getApiErrorMessage(e, "Sem PDF."))),
+              onClick: (x) =>
+                void openDocumentPdf(x.id).catch((e) =>
+                  ErrorMessage(
+                    getApiErrorMessage(e, "Não foi possível abrir o boletim em PDF neste momento. Tente novamente."),
+                  ),
+                ),
             },
             {
               label: "Exportar Excel (.xlsx)",

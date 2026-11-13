@@ -69,8 +69,8 @@ export const schoolPoliciesSchema = z
           class_level_min: quantitySchema(1, 13, "A classe mínima"),
           class_level_max: quantitySchema(1, 13, "A classe máxima"),
           max_subjects: quantitySchema(1, 10, "O máximo de disciplinas"),
-          min_mark: schoolGradeSchema("A nota mínima da exceção"),
-          max_mark: schoolGradeSchema("A nota máxima da exceção"),
+          min_mark: schoolGradeSchema("A nota mínima da excepção"),
+          max_mark: schoolGradeSchema("A nota máxima da excepção"),
         })
         .refine(
           (ex) => !ex.enabled || ex.class_level_min <= ex.class_level_max,

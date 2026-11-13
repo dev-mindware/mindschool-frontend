@@ -15,10 +15,11 @@ const when = (iso: string | null) => (iso ? new Date(iso).toLocaleString("pt-PT"
 const money = (v: string | null) => (v ? `${Number(v).toLocaleString("pt-PT", { minimumFractionDigits: 2 })} Kz` : "—");
 
 const ERRORS: Record<string, string> = {
-  connection_revoked: "O MindGest recusou a credencial desta ligação (pode ter sido desligada lá). Desligue e ligue de novo a partir do MindGest.",
-  unreachable: "Não foi possível contactar o MindGest. Tente de novo dentro de instantes.",
+  connection_revoked: "O MindGest recusou a ligação desta escola (pode ter sido desligada lá). Desligue e volte a ligar a partir do MindGest.",
+  unreachable: "Não foi possível ligar ao MindGest neste momento. Tente novamente dentro de instantes.",
 };
-const errorText = (e: string) => ERRORS[e] ?? `O MindGest respondeu com um erro (${e}).`;
+const errorText = (e: string) =>
+  ERRORS[e] ?? "O MindGest devolveu um aviso ao testar a ligação. Verifique as definições da integração e tente novamente.";
 
 type CatalogueRow = ApiMindgestStatus["catalogue"]["items"][number] & { id: string };
 
@@ -30,7 +31,7 @@ export function MindgestSettings() {
   const key = ["mindgest", schoolId];
   const status = useQuery({ queryKey: key, queryFn: mindgestService.status, enabled: Boolean(schoolId), retry: false });
   const refresh = () => queryClient.invalidateQueries({ queryKey: key });
-  const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."));
+  const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar as definições do MindGest. Tente novamente."));
 
   const test = useMutation({
     mutationFn: mindgestService.test,

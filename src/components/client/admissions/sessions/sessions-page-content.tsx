@@ -46,7 +46,7 @@ import { admissionSessionSchema } from "@/schemas";
 import { EDUCATION_CYCLES } from "../candidate-application-drawer";
 
 const fail = (e: unknown) => {
-  ErrorMessage(getApiErrorMessage(e, "A operação falhou."));
+  ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar a sessão de prova de acesso. Tente novamente."));
   throw e;
 };
 
@@ -261,7 +261,7 @@ function EditSessionModal({ session }: { session: SessionRow | null }) {
           ? update
               .mutateAsync({ id: session.id, title: parsed.data.title, scheduledAt: new Date(parsed.data.when).toISOString(), location: parsed.data.location || null, capacity: parsed.data.capacity })
               .then(() => SucessMessage("Sessão atualizada."))
-              .catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível atualizar a sessão.")); throw e; })
+              .catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar a sessão da prova de acesso. Tente novamente.")); throw e; })
           : undefined
       }
     >
@@ -561,7 +561,7 @@ function SessionModal({ id }: { id: string | null }) {
                 setToken(`${r.candidate}: ${t.token}`);
                 SucessMessage("Código de consulta gerado.");
               })
-              .catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))
+              .catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar a sessão de prova de acesso. Tente novamente.")))
           }
         >
           <Icon name="Key" className="size-3.5" />
@@ -632,7 +632,7 @@ function SessionModal({ id }: { id: string | null }) {
                         SucessMessage("Candidato inscrito na prova.");
                         setPick("");
                       })
-                      .catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))
+                      .catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar a sessão de prova de acesso. Tente novamente.")))
                   }
                 >
                   Inscrever

@@ -20,7 +20,7 @@ export function TeacherGoogleCard() {
   const key = ["teacher-google", schoolId];
   const status = useQuery({ queryKey: key, queryFn: calendarService.teacherGoogleStatus, enabled: Boolean(schoolId) && isTeacher, retry: false, staleTime: 60_000 });
   const refresh = () => queryClient.invalidateQueries({ queryKey: key });
-  const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."));
+  const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "Não foi possível ligar ou actualizar a conta Google do professor. Tente novamente."));
 
   const connect = useMutation({ mutationFn: calendarService.teacherGoogleConnect, onSuccess: (url) => { window.location.href = url; }, onError: fail });
   const sync = useMutation({ mutationFn: calendarService.teacherGoogleSync, onSuccess: () => { SucessMessage("Horário sincronizado com o Google Calendar."); void refresh(); }, onError: fail });

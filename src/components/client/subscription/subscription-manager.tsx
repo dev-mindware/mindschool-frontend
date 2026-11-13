@@ -42,7 +42,7 @@ const QUOTA_NOTE: Record<string, string> = {
 /** Armazenamento vem em MB; mostra-se em GB quando é grande. */
 const fmtQuotaValue = (key: string, v: number) => (key === "storage_mb" && v >= 1024 ? `${(v / 1024).toFixed(v % 1024 === 0 ? 0 : 1)} GB` : key === "storage_mb" ? `${v} MB` : String(v));
 const OPEN = ["pending_payment", "payment_proof_submitted", "proof_replacement_required"];
-const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
+const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar a subscrição da escola. Tente novamente.")); throw e; };
 
 /** Subscrição da escola: resumo do plano, quotas, ordens e comprovativos de pagamento (análise manual). */
 export function SubscriptionManager() {

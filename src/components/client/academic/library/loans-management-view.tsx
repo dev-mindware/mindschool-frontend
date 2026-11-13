@@ -14,7 +14,7 @@ const loanState = (l: ApiLoan) => (l.status === "devolvido" ? "returned" : l.ove
 /** Balcão de empréstimos: devolução e renovação; os atrasos aparecem a vermelho. */
 export function LoansManagementView() {
   const { loans, bookById, readerName, giveBack, renew, isLoading } = useLibrary();
-  const run = (p: Promise<unknown>, ok: string) => p.then(() => SucessMessage(ok)).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
+  const run = (p: Promise<unknown>, ok: string) => p.then(() => SucessMessage(ok)).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível registar a acção do empréstimo na biblioteca. Tente novamente.")));
 
   const columns: Column<ApiLoan>[] = [
     { key: "book_id", header: "Obra", render: (_, l) => <span className="font-medium">{bookById.get(l.book_id)?.title ?? "—"}</span> },

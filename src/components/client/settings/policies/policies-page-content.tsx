@@ -269,7 +269,7 @@ export function PoliciesPageContent() {
     }
     const x = draft.evaluation.exception;
     if (blocks.includes("evaluation") && (x.class_level_min > x.class_level_max || x.min_mark > x.max_mark)) {
-      ErrorMessage("Na exceção, o início tem de ser menor ou igual ao fim (classes e notas).");
+      ErrorMessage("Na excepção, o valor inicial tem de ser menor ou igual ao valor final (classes e notas).");
       throw new Error("invalid_exception");
     }
     if (blocks.includes("risk") && draft.risk.thresholds.moderado >= draft.risk.thresholds.elevado) {

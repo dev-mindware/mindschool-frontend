@@ -17,7 +17,7 @@ import { announcementSchema } from "@/schemas";
 const STATUS_LABEL: Record<AnnouncementStatus, string> = { rascunho: "Rascunho", publicado: "Publicado", arquivado: "Arquivado" };
 const STATUS_VARIANT: Record<AnnouncementStatus, "warning" | "success" | "secondary"> = { rascunho: "warning", publicado: "success", arquivado: "secondary" };
 const AUDIENCE_LABEL: Record<AnnouncementAudience, string> = { escola: "Toda a escola", turma: "Turma" };
-const fail = (e: unknown): never => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
+const fail = (e: unknown): never => { ErrorMessage(getApiErrorMessage(e, "Não foi possível enviar ou actualizar o comunicado. Tente novamente.")); throw e; };
 
 /** Comunicados da direção e dos professores (API): chegam ao portal dos encarregados quando publicados. */
 export function CommunicationPageContent() {

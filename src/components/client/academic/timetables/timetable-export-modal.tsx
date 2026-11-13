@@ -187,7 +187,7 @@ export function TimetableExportModal({
       });
       SucessMessage("Horário transferido em PDF com sucesso!");
     } catch {
-      ErrorMessage("Erro ao gerar o ficheiro PDF do horário.");
+      ErrorMessage("Não foi possível gerar o ficheiro PDF do horário neste momento. Tente novamente.");
     } finally {
       setIsDownloading(false);
     }

@@ -34,7 +34,7 @@ export function MindgestOperations({ s, onChange }: { s: ApiMindgestStatus; onCh
   const queryClient = useQueryClient();
   const [secret, setSecret] = useState<{ value: string; until: string } | null>(null);
   const refresh = () => { onChange(); void queryClient.invalidateQueries({ queryKey: ["fiscal-documents"] }); };
-  const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."));
+  const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "Não foi possível comunicar com o MindGest. Verifique a ligação e tente novamente."));
 
   const sync = useMutation({
     mutationFn: mindgestService.reconcile,

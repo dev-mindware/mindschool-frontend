@@ -18,7 +18,7 @@ export function useTuitionBilling() {
       if (res.sent > 0) SucessMessage(res.sent === 1 ? "Lembrete enviado." : `${res.sent} lembretes enviados.`);
       if (failures.length > 0) {
         const reasons = [...new Set(failures.map((f) => f.error).filter(Boolean))].join(" · ");
-        ErrorMessage(`${failures.length} não ${failures.length === 1 ? "foi enviado" : "foram enviados"}: ${reasons || "motivo desconhecido"}`);
+        ErrorMessage(`${failures.length} não ${failures.length === 1 ? "foi enviado" : "foram enviados"}: ${reasons || "verifique se o encarregado tem um e-mail válido na ficha"}`);
       }
       if (res.cancelled > 0) SucessMessage(`${res.cancelled} já estava${res.cancelled === 1 ? "" : "m"} paga${res.cancelled === 1 ? "" : "s"} e não precisava${res.cancelled === 1 ? "" : "m"} de lembrete.`);
       return res;

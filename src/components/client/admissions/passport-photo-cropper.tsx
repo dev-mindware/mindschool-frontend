@@ -63,7 +63,7 @@ export function PassportPhotoCropper({
     if (!file) return;
 
     if (!file.type.startsWith("image/")) {
-      ErrorMessage("Por favor, selecione um ficheiro de imagem válido (JPEG ou PNG).");
+      ErrorMessage("Por favor, seleccione uma fotografia válida nos formatos JPG ou PNG.");
       return;
     }
 
@@ -170,7 +170,7 @@ export function PassportPhotoCropper({
     const ctx = canvas.getContext("2d");
 
     if (!ctx) {
-      ErrorMessage("Erro ao processar imagem no navegador.");
+      ErrorMessage("Não foi possível preparar a fotografia escolhida. Tente outro ficheiro JPG ou PNG.");
       return;
     }
 

@@ -32,7 +32,7 @@ const EFFECT: Record<string, string> = { lectivo: "Letivo", nao_lectivo: "Não l
 const VISIBILITY: Record<string, string> = { interna: "Interna", professores: "Professores", encarregados: "Encarregados", publica: "Pública" };
 const ORIGIN: Record<string, string> = { nacional: "Calendário nacional", institucional: "Institucional", google_proposta: "Proposta do Google" };
 const HOLIDAY_STATUS: Record<string, string> = { concordam: "Concordam", divergente: "Divergente", confirmado: "Confirmado", rejeitado: "Rejeitado" };
-const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
+const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a alteração no calendário. Tente novamente.")); throw e; };
 
 const toneOf = (e: ApiEvent): CalendarItem["tone"] => (e.status === "cancelado" ? "muted" : e.effect === "nao_lectivo" ? "warning" : e.status === "publicado" ? "success" : e.status === "rascunho" ? "muted" : "primary");
 
@@ -217,8 +217,8 @@ function GooglePanel() {
         <Button size="sm" onClick={() => c.connect.mutateAsync().then((url) => { window.location.href = url; }).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível iniciar a ligação.")))} disabled={c.connect.isPending}>{g?.connected ? "Voltar a ligar" : "Ligar conta Google"}</Button>
         {g?.connected && (
           <>
-            <Can permission="integration:google_manage"><Button size="sm" variant="outline" disabled={c.resync.isPending} onClick={() => c.resync.mutateAsync().then(() => SucessMessage("Sincronização pedida.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Sincronizar agora</Button></Can>
-            <Can permission="integration:google_manage"><Button size="sm" variant="outline" disabled={c.pull.isPending} onClick={() => c.pull.mutateAsync().then(() => SucessMessage("Propostas do Google importadas.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Importar propostas</Button></Can>
+            <Can permission="integration:google_manage"><Button size="sm" variant="outline" disabled={c.resync.isPending} onClick={() => c.resync.mutateAsync().then(() => SucessMessage("Sincronização pedida.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a alteração no calendário. Tente novamente.")))}>Sincronizar agora</Button></Can>
+            <Can permission="integration:google_manage"><Button size="sm" variant="outline" disabled={c.pull.isPending} onClick={() => c.pull.mutateAsync().then(() => SucessMessage("Propostas do Google importadas.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a alteração no calendário. Tente novamente.")))}>Importar propostas</Button></Can>
             <Button size="sm" variant="ghost" className="text-destructive" onClick={() => openModal("calendar-google-disconnect")}>Desligar</Button>
           </>
         )}
@@ -278,7 +278,7 @@ function FullCalendarContent() {
       render: (_, e) => (
         <ButtonOnlyAction data={e} actions={[
           { label: "Ver detalhe", icon: "Eye", onClick: open },
-          ...(e.status === "rascunho" ? [{ permission: "calendar:publish", label: "Aprovar", icon: "CircleCheck" as const, onClick: (x: ApiEvent) => void c.approve.mutateAsync(x.id).then(() => SucessMessage("Evento aprovado.")).catch((er) => ErrorMessage(getApiErrorMessage(er, "A operação falhou."))) }] : []),
+          ...(e.status === "rascunho" ? [{ permission: "calendar:publish", label: "Aprovar", icon: "CircleCheck" as const, onClick: (x: ApiEvent) => void c.approve.mutateAsync(x.id).then(() => SucessMessage("Evento aprovado.")).catch((er) => ErrorMessage(getApiErrorMessage(er, "Não foi possível aprovar este evento do calendário. Tente novamente."))) }] : []),
           ...(e.status === "aprovado" || e.status === "rascunho" ? [{ permission: "calendar:publish", label: "Publicar", icon: "Send" as const, onClick: (x: ApiEvent) => void publish(x) }] : []),
         ]} />
       ),
@@ -307,7 +307,7 @@ function FullCalendarContent() {
     <div className="space-y-6">
       <TitleList title="Calendário Escolar" suTitle="Gestão de períodos letivos, feriados, exames e eventos.">
         <div className="flex gap-2">
-          <Can permission="calendar:write"><Button size="sm" variant="outline" className="gap-1.5" disabled={!c.year || c.importNational.isPending} onClick={() => c.importNational.mutateAsync("apply").then(() => SucessMessage("Calendário nacional importado.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}><Icon name="Download" className="size-4" />Importar calendário nacional</Button></Can>
+          <Can permission="calendar:write"><Button size="sm" variant="outline" className="gap-1.5" disabled={!c.year || c.importNational.isPending} onClick={() => c.importNational.mutateAsync("apply").then(() => SucessMessage("Calendário nacional importado.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a alteração no calendário. Tente novamente.")))}><Icon name="Download" className="size-4" />Importar calendário nacional</Button></Can>
           <Can permission="calendar:write"><Button size="sm" className="gap-1.5" disabled={!c.year} onClick={() => openModal("calendar-new-event")}><Icon name="Plus" className="size-4" />Novo evento</Button></Can>
         </div>
       </TitleList>
@@ -388,7 +388,7 @@ function FullCalendarContent() {
             </dl>
             {selected.justification && <p className="text-muted-foreground">{selected.justification}</p>}
             <div className="flex flex-wrap gap-2 border-t pt-3">
-              {selected.status === "rascunho" && <Button size="sm" variant="outline" onClick={() => c.approve.mutateAsync(selected.id).then(() => SucessMessage("Evento aprovado.")).catch((er) => ErrorMessage(getApiErrorMessage(er, "A operação falhou.")))}>Aprovar</Button>}
+              {selected.status === "rascunho" && <Button size="sm" variant="outline" onClick={() => c.approve.mutateAsync(selected.id).then(() => SucessMessage("Evento aprovado.")).catch((er) => ErrorMessage(getApiErrorMessage(er, "Não foi possível aprovar este evento do calendário. Tente novamente.")))}>Aprovar</Button>}
               {(selected.status === "aprovado" || selected.status === "rascunho") && <Can permission="calendar:publish"><Button size="sm" onClick={() => void publish(selected)}>Publicar</Button></Can>}
               {selected.status !== "cancelado" && <Button size="sm" variant="ghost" className="text-destructive" onClick={() => { setReason(""); setReasonTouched(false); openModal("calendar-cancel-event"); }}>Cancelar evento</Button>}
             </div>

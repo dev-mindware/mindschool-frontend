@@ -270,7 +270,7 @@ export const admissionsService = {
     documents?: ApplicationDocuments;
   }) => {
     const [year, levels] = await Promise.all([academicService.activeYear(), academicService.classLevels()]);
-    if (!year) throw new Error("Não há ano letivo ativo.");
+    if (!year) throw new Error("Não existe nenhum ano lectivo activo de momento.");
     const n = levelNumber(v.desiredClassLevelName);
     const level = levels.find((l) => l.level_number === n) ?? levels.find((l) => l.name === v.desiredClassLevelName);
     if (!level) throw new Error(`A classe "${v.desiredClassLevelName}" não existe nesta escola.`);

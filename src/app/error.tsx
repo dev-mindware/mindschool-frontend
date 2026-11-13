@@ -11,7 +11,12 @@ export default function Error({ error, reset }: { error: Error & { digest?: stri
 
   return (
     <div className="mx-auto flex min-h-screen max-w-xl items-center justify-center p-6">
-      <RequestError refetch={reset} message="Ocorreu um erro inesperado." />
+      <RequestError
+        refetch={reset}
+        error={error}
+        message="Não foi possível apresentar esta página neste momento."
+        hint="Tente carregar novamente. Se o problema continuar, feche e volte a entrar na sua conta."
+      />
     </div>
   );
 }

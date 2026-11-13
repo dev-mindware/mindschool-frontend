@@ -4,8 +4,8 @@ export const loginSchema = z.object({
   email: z
     .string()
     .trim()
-    .min(1, "Email é obrigatório")
-    .email("Email inválido"),
+    .min(1, "O endereço de e-mail é obrigatório.")
+    .email("Introduza um endereço de e-mail válido."),
 
   password: z
     .string()

@@ -114,6 +114,7 @@ interface DataListProps<T extends { id: string }> {
   columns: Column<T>[];
   isLoading?: boolean;
   isError?: boolean;
+  error?: unknown;
   refetch?: () => void;
   searchPlaceholder?: string;
   /** Texto pesquisável da linha. Sem isto, a pesquisa fica escondida. */
@@ -146,6 +147,7 @@ export function DataList<T extends { id: string }>({
   columns,
   isLoading,
   isError,
+  error,
   refetch,
   searchPlaceholder = "Pesquisar...",
   searchText,
@@ -201,8 +203,9 @@ export function DataList<T extends { id: string }>({
   if (isError) {
     return (
       <RequestError
+        error={error}
         refetch={refetch ?? (() => undefined)}
-        message="Erro ao carregar os dados"
+        message="Não foi possível carregar os registos desta lista."
       />
     );
   }

@@ -89,7 +89,7 @@ const ACTION_LABELS: Record<string, string> = {
 };
 
 const fail = (e: unknown) => {
-  ErrorMessage(getApiErrorMessage(e, "A operação falhou."));
+  ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar os dados deste utilizador. Tente novamente."));
   throw e;
 };
 

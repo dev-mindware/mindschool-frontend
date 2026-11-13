@@ -19,7 +19,7 @@ export function GoogleFormModal({ isOpen, onClose, activeExam }: GoogleFormModal
   const [emailMode, setEmailMode] = useState<'verified' | 'responder_input'>('verified');
   const [result, setResult] = useState<ApiFormSync | null>(null);
 
-  const run = (p: Promise<unknown>, ok: string) => p.then(() => SucessMessage(ok)).catch((e) => ErrorMessage(getApiErrorMessage(e, 'A operação falhou.')));
+  const run = (p: Promise<unknown>, ok: string) => p.then(() => SucessMessage(ok)).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível associar o formulário Google à prova. Tente novamente.")));
 
   const importResponses = () =>
     sync.mutateAsync().then((r) => {

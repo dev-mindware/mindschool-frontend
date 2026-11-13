@@ -115,7 +115,7 @@ export async function POST(req: NextRequest) {
   // 1. Valida origem (proteção CSRF)
   // --------------------------------------------------------------------------
   if (!isAllowedOrigin(req)) {
-    return jsonError("Origem não autorizada", 403, {
+    return jsonError("Pedido de origem não autorizada.", 403, {
       code: "INVALID_ORIGIN",
     });
   }
@@ -128,7 +128,7 @@ export async function POST(req: NextRequest) {
 
   if (!refreshToken) {
     // ✅ 401 — frontend trata como sessão morta
-    return jsonError("Sessão expirada", 401, {
+    return jsonError("A sua sessão expirou. Inicie sessão novamente.", 401, {
       code: "NO_REFRESH_TOKEN",
     });
   }
@@ -159,22 +159,21 @@ export async function POST(req: NextRequest) {
     // ✅ FIX: só limpa sessão se for erro de autenticação (401/403)
     if (shouldInvalidateSession(axiosError)) {
       await clearLocalSession();
-      return jsonError("Refresh token inválido ou expirado", 401, {
+      return jsonError("A sua sessão expirou. Inicie sessão novamente.", 401, {
         code: "REFRESH_TOKEN_INVALID",
       });
     }
 
     // ✅ Timeout — não desloga, deixa o utilizador tentar de novo
     if (axiosError.code === "ECONNABORTED") {
-      return jsonError("Timeout ao renovar sessão", 504, {
+      return jsonError("O servidor demorou demasiado tempo a responder ao renovar a sessão. Tente novamente.", 504, {
         code: "REFRESH_TIMEOUT",
       });
     }
 
     // ✅ Erros de rede ou 5xx — não desloga (transitório)
-    return jsonError("Erro ao comunicar com o servidor de autenticação", 502, {
+    return jsonError("Não foi possível ligar ao servidor para renovar a sua sessão. Verifique a Internet e tente novamente.", 502, {
       code: "BACKEND_UNAVAILABLE",
-      details: axiosError.message,
     });
   }
 
@@ -186,7 +185,7 @@ export async function POST(req: NextRequest) {
   if (!data?.access_token || !data?.refresh_token) {
     console.error("🚨 [Refresh] Resposta do backend com estrutura inválida");
     await clearLocalSession();
-    return jsonError("Resposta de autenticação inválida", 500, { code: "INVALID_BACKEND_RESPONSE" });
+    return jsonError("Não foi possível confirmar a renovação da sua sessão. Inicie sessão novamente.", 500, { code: "INVALID_BACKEND_RESPONSE" });
   }
 
   // A API nao devolve o papel no refresh: mantem-se o do cookie assinado (so o servidor o escreve).
@@ -194,7 +193,7 @@ export async function POST(req: NextRequest) {
   const role = roleCookie ? await verifyRole(roleCookie) : null;
   if (!isValidRole(role)) {
     await clearLocalSession();
-    return jsonError("Role inválido", 401, { code: "INVALID_ROLE" });
+    return jsonError("Não foi possível confirmar o seu perfil de acesso. Inicie sessão novamente.", 401, { code: "INVALID_ROLE" });
   }
 
   // --------------------------------------------------------------------------
@@ -204,7 +203,7 @@ export async function POST(req: NextRequest) {
     await createSession({ accessToken: data.access_token, refreshToken: data.refresh_token, role });
   } catch (sessionError) {
     console.error("🚨 [Refresh] Erro ao criar sessão:", sessionError);
-    return jsonError("Erro ao persistir sessão", 500, {
+    return jsonError("Não foi possível guardar os dados da sua sessão neste navegador. Tente novamente.", 500, {
       code: "SESSION_CREATE_FAILED",
     });
   }

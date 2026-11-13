@@ -28,7 +28,7 @@ import { SHIFT_LABEL, WEEKDAY, type ApiChange, type ApiEntry, type ApiRoom, type
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 
-const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
+const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar o horário escolar. Tente novamente.")); throw e; };
 const CHANGE_LABEL: Record<string, string> = { troca_tempo: "Troca de tempo", troca_professor: "Troca de professor", troca_sala: "Troca de sala", anulacao: "Anulação" };
 const STATUS_LABEL = { rascunho: "Rascunho", validado: "Validado", publicado: "Publicado", arquivado: "Arquivado" } as const;
 const SHIFT_OF: Record<string, Shift> = {
@@ -386,7 +386,7 @@ export function TimetablesPageContent() {
     { key: "name", header: "Sala" },
     { key: "capacity", header: "Lotação", render: (_, r) => r.capacity ?? "—" },
     { key: "is_active", header: "Estado", render: (_, r) => (r.is_active ? <Badge variant="success">Ativa</Badge> : <Badge variant="secondary">Inactiva</Badge>) },
-    { key: "action", header: "Ação", render: (_, r) => <ButtonOnlyAction data={r} actions={[{ permission: "timetable:write", label: r.is_active ? "Desativar" : "Ativar", icon: "CirclePower", onClick: (x) => void tt.setRoomActive.mutateAsync({ id: x.id, isActive: !x.is_active }).then(() => SucessMessage(x.is_active ? "Sala desativada." : "Sala ativada.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."))) }]} /> },
+    { key: "action", header: "Acção", render: (_, r) => <ButtonOnlyAction data={r} actions={[{ permission: "timetable:write", label: r.is_active ? "Desactivar" : "Activar", icon: "CirclePower", onClick: (x) => void tt.setRoomActive.mutateAsync({ id: x.id, isActive: !x.is_active }).then(() => SucessMessage(x.is_active ? "Sala desactivada." : "Sala activada.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar o horário escolar. Tente novamente."))) }]} /> },
   ];
   const changeColumns: Column<ApiChange>[] = [
     { key: "effective_date", header: "Em vigor", render: (_, c) => <span className="font-mono text-xs">{c.effective_date}</span> },
@@ -712,7 +712,7 @@ export function TimetablesPageContent() {
                           setPicked(null);
                           closeModal("tt-entry");
                         })
-                        .catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))
+                        .catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar o horário escolar. Tente novamente.")))
                     }
                   >
                     Remover do horário

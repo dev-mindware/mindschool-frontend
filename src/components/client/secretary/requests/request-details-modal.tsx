@@ -52,7 +52,7 @@ export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: Req
   const [message, setMessage] = useState("");
   const [messageTouched, setMessageTouched] = useState(false);
   const [isIssuing, setIsIssuing] = useState(false);
-  const run = (p: Promise<unknown>, ok: string, after?: () => void) => p.then(() => { SucessMessage(ok); after?.(); }).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
+  const run = (p: Promise<unknown>, ok: string, after?: () => void) => p.then(() => { SucessMessage(ok); after?.(); }).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar este pedido da secretaria. Tente novamente.")));
   const open = request && ["aberto", "em_analise", "aguarda_pagamento"].includes(request.status);
   const unpaid = request?.status === "aguarda_pagamento";
 

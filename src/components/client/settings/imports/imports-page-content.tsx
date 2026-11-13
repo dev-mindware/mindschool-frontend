@@ -255,7 +255,12 @@ function ImportWizardModal() {
                       setFile({ name: f.name, csv, rowCount });
                     })
                     .catch((err) => {
-                      ErrorMessage(err instanceof Error ? err.message : "Erro ao ler ficheiro Excel.");
+                      ErrorMessage(
+                        getApiErrorMessage(
+                          err,
+                          "Não foi possível ler o ficheiro Excel. Confirme que escolheu um ficheiro .xlsx ou .xls válido.",
+                        ),
+                      );
                       setFile(null);
                     });
                 } else {

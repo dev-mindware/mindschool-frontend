@@ -9,6 +9,7 @@ export function SucessMessage(message: string | null | undefined) {
 }
 
 export function ErrorMessage(message: string | null | undefined) {
+  if (!message || !message.trim()) return;
   toast.error(message, { duration: ERROR_MS, closeButton: true });
 }
 

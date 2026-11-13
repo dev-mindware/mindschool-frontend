@@ -36,7 +36,7 @@ const bytes = (n: number | null | undefined) => {
   const i = Math.min(u.length - 1, Math.floor(Math.log(n) / Math.log(1024)));
   return `${(n / 1024 ** i).toFixed(i === 0 ? 0 : 1)} ${u[i]}`;
 };
-const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."));
+const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "Não foi possível actualizar este documento no arquivo. Tente novamente."));
 
 function ExtendModal({ item, onSubmit, pending }: { item: ApiArchiveItem | null; onSubmit: (until: string, reason: string) => Promise<unknown>; pending: boolean }) {
   const { open } = useModal();

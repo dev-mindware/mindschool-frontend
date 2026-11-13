@@ -53,7 +53,7 @@ export function MindgestBackfill() {
   const [fromTouched, setFromTouched] = useState(false);
   const [toTouched, setToTouched] = useState(false);
   const [preview, setPreview] = useState<ApiBackfillPreview | null>(null);
-  const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "A operação falhou."));
+  const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "Não foi possível emitir as facturas em atraso no MindGest. Tente novamente."));
   const reset = () => setPreview(null);
 
   const rangeResult = backfillRangeSchema.safeParse({ from, to });

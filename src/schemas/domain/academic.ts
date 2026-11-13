@@ -87,7 +87,7 @@ export const candidateGuardianNewSchema = z.object({
 
 export const academicYearSetupSchema = z
   .object({
-    name: safeTextSchema(4, 50, "O nome do ano letivo"),
+    name: safeTextSchema(4, 50, "O nome do ano lectivo"),
     startDate: isoDateSchema("A data de início"),
     endDate: isoDateSchema("A data de fim"),
   })

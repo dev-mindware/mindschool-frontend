@@ -17,7 +17,7 @@ const REJECT = "library-request-reject";
 const STATUS: Record<ApiLibraryRequestStatus, { label: string; variant: "info" | "success" | "destructive" | "secondary" }> = {
   pedido: { label: "Por decidir", variant: "info" }, aprovado: { label: "Aprovado", variant: "success" }, recusado: { label: "Recusado", variant: "destructive" }, cancelado: { label: "Cancelado", variant: "secondary" },
 };
-const fail = (e: unknown): never => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
+const fail = (e: unknown): never => { ErrorMessage(getApiErrorMessage(e, "Não foi possível tratar este pedido da biblioteca. Tente novamente.")); throw e; };
 
 const approveDaysSchema = z.object({
   days: quantitySchema(1, 60, "O prazo do empréstimo (dias)"),

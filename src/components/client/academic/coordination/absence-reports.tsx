@@ -92,7 +92,7 @@ export function AbsenceReports({ sectionId, termSequence }: { sectionId: string;
       setMonthTouched(true);
       return ErrorMessage(monthParsed.error.issues[0]?.message ?? "Seleccione um mês válido.");
     }
-    if (!range) return ErrorMessage("Ainda não há períodos do ano letivo para este relatório.");
+    if (!range) return ErrorMessage("Ainda não existem períodos definidos para este ano lectivo.");
     setRequest({ kind, month, ...range });
   };
 

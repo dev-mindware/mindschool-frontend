@@ -70,7 +70,7 @@ export const gradesService = {
   /** Cria os 3 trimestres do ano letivo ativo (só quando ainda não tem períodos). */
   createDefaultTerms: async (): Promise<void> => {
     const year = await academicService.activeYear();
-    if (!year) throw new Error("Não há ano letivo ativo.");
+    if (!year) throw new Error("Não existe nenhum ano lectivo activo de momento.");
     await api.post(`/s/academic-years/${year.id}/terms/defaults`);
   },
 

@@ -5,6 +5,7 @@ import { GlobalModal, Icon, Skeleton, Tabs, TabsList, TabsTrigger } from "@/comp
 import { Button } from "@/components/ui/button";
 import { studentsService, type StudentCardPreviewData } from "@/services/students-service";
 import { ErrorMessage, InfoMessage, SucessMessage } from "@/utils/messages";
+import { getApiErrorMessage } from "@/utils/api-error";
 import QRCode from "qrcode";
 
 interface StudentIdCardModalProps {
@@ -48,7 +49,7 @@ export function StudentIdCardModal({
       })
       .catch((err) => {
         console.error("Erro ao carregar dados do cartão:", err);
-        ErrorMessage("Não foi possível carregar os dados do cartão.");
+        ErrorMessage(getApiErrorMessage(err, "Não foi possível carregar os dados do cartão de estudante neste momento."));
       })
       .finally(() => {
         if (mounted) setLoading(false);
@@ -68,7 +69,7 @@ export function StudentIdCardModal({
       SucessMessage("Cartão de estudante descarregado com sucesso!");
     } catch (err) {
       console.error("Erro ao descarregar PDF do cartão:", err);
-      ErrorMessage("Erro ao gerar o ficheiro PDF do cartão.");
+      ErrorMessage(getApiErrorMessage(err, "Não foi possível gerar o ficheiro PDF do cartão neste momento. Tente novamente."));
     } finally {
       setDownloading(false);
     }

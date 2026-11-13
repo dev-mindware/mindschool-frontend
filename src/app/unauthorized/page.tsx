@@ -44,8 +44,8 @@ export default function UnauthorizedPage() {
             </h1>
             <p className="text-muted-foreground text-sm sm:text-base max-w-lg mx-auto leading-relaxed">
               {isTeacher
-                ? "O seu perfil de professor não possui permissões para aceder a esta funcionalidade. Se necessita de acesso a este módulo ou turma, solicite a sua atribuição à Direção da escola."
-                : "Não possui as permissões necessárias para aceder a este recurso. Verifique as suas atribuições ou contacte o administrador da escola."}
+                ? "O seu perfil de professor não tem permissão para aceder a esta funcionalidade. Se precisar de acesso a este módulo ou turma, solicite a autorização à Direcção da escola."
+                : "Não tem as permissões necessárias para aceder a esta página. Verifique o seu perfil ou contacte a Direcção ou o administrador da escola."}
             </p>
           </div>
 

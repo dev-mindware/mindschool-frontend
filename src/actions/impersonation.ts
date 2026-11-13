@@ -30,13 +30,13 @@ async function call<T>(path: string, token: string, method: "GET" | "POST" = "GE
  */
 export async function enterImpersonationAction(v: { accessToken: string; expiresAt: string; schoolId: string }): Promise<ImpersonationActionResult> {
   const jar = await cookies();
-  if (jar.get(IMPERSONATION_BACKUP_KEY)) return { ok: false, message: "Já existe uma personificação ativa: termine-a primeiro." };
+  if (jar.get(IMPERSONATION_BACKUP_KEY)) return { ok: false, message: "Já existe uma sessão de apoio activa: termine-a primeiro." };
   const backup: Backup = { a: jar.get(ACCESS_TOKEN_KEY)?.value ?? "", r: jar.get(REFRESH_TOKEN_KEY)?.value ?? "", role: jar.get(ROLE_KEY)?.value ?? "" };
-  if (!backup.a || !backup.r) return { ok: false, message: "A sessão do administrador não foi encontrada. Inicie sessão de novo." };
+  if (!backup.a || !backup.r) return { ok: false, message: "A sessão do administrador expirou. Inicie sessão novamente." };
 
   const me = await call<ApiMe>("/auth/me", v.accessToken);
   const role = me.data ? primaryRoleOf(me.data, v.schoolId) : null;
-  if (!role) return { ok: false, message: "Não foi possível determinar o papel do utilizador nesta escola." };
+  if (!role) return { ok: false, message: "Não foi possível confirmar o perfil deste utilizador na escola seleccionada." };
 
   const expires = new Date(v.expiresAt);
   jar.set(IMPERSONATION_BACKUP_KEY, JSON.stringify(backup), { ...COOKIE, expires: new Date(expires.getTime() + HOUR) });

@@ -16,7 +16,7 @@ import { useModal } from "@/stores/modal/use-modal-store";
 import { applyApiFieldErrors, getApiErrorMessage } from "@/utils/api-error";
 import { optionalSafeTextSchema, safeTextSchema } from "@/schemas";
 
-const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
+const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar os dados do conselho de turma. Tente novamente.")); throw e; };
 const proposalOf = (p: unknown): Outcome | undefined => (p && typeof p === "object" && "outcome" in p ? ((p as { outcome?: Outcome }).outcome) : typeof p === "string" ? (p as Outcome) : undefined);
 const ROLES = [{ value: "presidente", label: "Presidente" }, { value: "secretario", label: "Secretário" }, { value: "membro", label: "Membro" }];
 
@@ -232,7 +232,7 @@ function CouncilModal({ id }: { id: string | null }) {
       return ErrorMessage("Corrija os campos inválidos antes de gravar.");
     }
     if (draftValidation.payload.length === 0) return ErrorMessage("Nada para gravar.");
-    void putDecisions.mutateAsync(draftValidation.payload).then(() => SucessMessage(isFinal ? "Decisões gravadas." : "Observações gravadas.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
+    void putDecisions.mutateAsync(draftValidation.payload).then(() => SucessMessage(isFinal ? "Decisões gravadas." : "Observações gravadas.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar os dados do conselho de turma. Tente novamente.")));
   };
 
   const openMinutes = () => phase6Service.minutesPdf(id!).then((blob) => window.open(URL.createObjectURL(blob), "_blank")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível abrir a acta.")));
@@ -335,7 +335,7 @@ function CouncilModal({ id }: { id: string | null }) {
                   <label className="flex items-center gap-2"><Checkbox disabled={closed} checked={a.present} onCheckedChange={(v) => setLocalAttendees((cur) => cur.map((x) => (x.user_id === a.user_id ? { ...x, present: Boolean(v) } : x)))} />Presente</label>
                 </div>
               ))}
-              {!closed && <Can permission="council:write"><Button size="sm" variant="outline" disabled={setAttendees.isPending} onClick={() => setAttendees.mutateAsync(attendees).then(() => SucessMessage("Participantes gravados.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Gravar participantes</Button></Can>}
+              {!closed && <Can permission="council:write"><Button size="sm" variant="outline" disabled={setAttendees.isPending} onClick={() => setAttendees.mutateAsync(attendees).then(() => SucessMessage("Participantes gravados.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar os dados do conselho de turma. Tente novamente.")))}>Gravar participantes</Button></Can>}
             </section>
 
             <section className="space-y-3">
@@ -401,7 +401,7 @@ function CouncilModal({ id }: { id: string | null }) {
                           "Exige o presidente e o mínimo de presentes definido nas Políticas (quórum).",
                           "As observações por aluno ficam registadas e a acta fica fechada, em PDF.",
                         ]}
-                    onConfirm={() => close.mutateAsync(minutes.trim()).then(() => SucessMessage("Conselho encerrado.")).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; })}
+                    onConfirm={() => close.mutateAsync(minutes.trim()).then(() => SucessMessage("Conselho encerrado.")).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar os dados do conselho de turma. Tente novamente.")); throw e; })}
                   />
                 </>
               )}

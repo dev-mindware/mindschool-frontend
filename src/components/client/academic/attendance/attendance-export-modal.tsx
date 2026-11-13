@@ -72,7 +72,7 @@ export function AttendanceExportModal({
       SucessMessage("Folha de presenças transferida em PDF com sucesso!");
     } catch (err) {
       console.error("Erro ao gerar PDF da folha de presença:", err);
-      ErrorMessage("Erro ao gerar o ficheiro PDF da folha de presenças.");
+      ErrorMessage("Não foi possível gerar o ficheiro PDF da folha de presenças neste momento. Tente novamente.");
     } finally {
       setIsDownloading(false);
     }
