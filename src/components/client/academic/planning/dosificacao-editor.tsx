@@ -1,14 +1,53 @@
 "use client";
 
-import { useState } from "react";
-import { Button, Icon, Input, SelectField, Textarea } from "@/components";
+import { useMemo, useState } from "react";
+import { z } from "zod";
+import { Button, FormSelect, Icon, Input, Textarea } from "@/components";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { useTeachingPlans } from "@/hooks/school/use-planning";
+import { optionalSafeTextSchema, quantitySchema, safeTextSchema } from "@/schemas/helps";
 import { planningService, type DosificacaoWeek, type TeachingPlan } from "@/services/planning-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { ErrorMessage, SucessMessage } from "@/utils/messages";
 import { usePlanOptions } from "./use-plan-options";
+
+const dosificacaoSchema = z
+  .object({
+    editing: z.boolean(),
+    assignmentId: z.string().trim(),
+    termId: z.string().trim(),
+    title: safeTextSchema(3, 150, "O título da dosificação"),
+    weeksCount: quantitySchema(1, 16, "O número de semanas"),
+    themes: optionalSafeTextSchema(3000, 2, "Os temas"),
+    weeks: z
+      .array(
+        z.object({
+          week: z.number(),
+          theme: safeTextSchema(2, 200, "O tema da semana"),
+          objectives: optionalSafeTextSchema(1000, 2, "Os objetivos"),
+          contents: optionalSafeTextSchema(1500, 2, "Os conteúdos"),
+          lessons: z.union([z.undefined(), quantitySchema(0, 20, "O n.º de aulas")]),
+        }),
+      )
+      .min(1, "Adicione pelo menos uma semana."),
+  })
+  .superRefine((data, ctx) => {
+    if (!data.editing && !data.assignmentId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["assignmentId"],
+        message: "Seleccione a disciplina e a turma.",
+      });
+    }
+    if (!data.editing && !data.termId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["termId"],
+        message: "Seleccione o trimestre.",
+      });
+    }
+  });
 
 const emptyWeek = (week: number): DosificacaoWeek => ({ week, theme: "", objectives: "", contents: "", lessons: 2 });
 
@@ -27,21 +66,46 @@ export function DosificacaoEditor({ plan, onClose }: Props) {
   const [assignmentId, setAssignmentId] = useState(plan?.section_subject_id ?? "");
   const [termId, setTermId] = useState(plan?.term_id ?? "");
   const [title, setTitle] = useState(plan?.title ?? "");
-  const [weeksCount, setWeeksCount] = useState(12);
+  const [weeksCount, setWeeksCount] = useState<number | string>(12);
   const [themes, setThemes] = useState("");
   const [weeks, setWeeks] = useState<DosificacaoWeek[]>(plan ? (plan.content as { weeks: DosificacaoWeek[] }).weeks : []);
   const [busy, setBusy] = useState<number | "all" | "save" | null>(null);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const touch = (k: string) => setTouched((p) => (p[k] ? p : { ...p, [k]: true }));
 
   const assignment = assignments.find((a) => a.id === assignmentId);
   const termLabel = termOptions.find((t) => t.value === termId)?.label ?? "";
 
+  const parsed = useMemo(
+    () =>
+      dosificacaoSchema.safeParse({
+        editing,
+        assignmentId,
+        termId,
+        title,
+        weeksCount,
+        themes,
+        weeks,
+      }),
+    [editing, assignmentId, termId, title, weeksCount, themes, weeks],
+  );
+
+  const errOf = (...path: (string | number)[]) => {
+    const key = path.join(".");
+    if (!touched[key] || parsed.success) return undefined;
+    return parsed.error.issues.find(
+      (i) => i.path.length === path.length && path.every((seg, idx) => i.path[idx] === seg),
+    )?.message;
+  };
+
   const draft = async (onlyWeek?: number) => {
     if (!assignment || !schoolId) return ErrorMessage("Escolha primeiro a disciplina.");
+    const parsedWeeksCount = Number(weeksCount) >= 1 && Number(weeksCount) <= 16 ? Number(weeksCount) : 12;
     setBusy(onlyWeek ?? "all");
     try {
       const out = await planningService.draftDosificacao({
         schoolId, subject: assignment.subjectName, classLevel: assignment.classLevel || assignment.sectionName, termLabel,
-        weeks: onlyWeek ? Math.max(weeksCount, weeks.length) : weeksCount, weeklyHours: assignment.weeklyHours, themes: themes || undefined,
+        weeks: onlyWeek ? Math.max(parsedWeeksCount, weeks.length) : parsedWeeksCount, weeklyHours: assignment.weeklyHours, themes: themes || undefined,
         ...(onlyWeek ? { onlyWeek, currentWeeks: weeks } : {}),
       });
       setWeeks((cur) => (onlyWeek ? cur.map((w) => (w.week === onlyWeek ? { ...out[0], week: onlyWeek } : w)) : out));
@@ -56,14 +120,20 @@ export function DosificacaoEditor({ plan, onClose }: Props) {
   const patchWeek = (week: number, patch: Partial<DosificacaoWeek>) => setWeeks((cur) => cur.map((w) => (w.week === week ? { ...w, ...patch } : w)));
 
   const save = async (andSubmit: boolean) => {
-    if (title.trim().length < 3) return ErrorMessage("Dê um título à dosificação.");
-    if (!editing && (!assignmentId || !termId)) return ErrorMessage("Escolha a disciplina e o trimestre.");
-    if (weeks.length === 0 || weeks.some((w) => !w.theme.trim())) return ErrorMessage("Todas as semanas precisam de um tema.");
+    if (!parsed.success) return;
+    const d = parsed.data;
+    const cleanWeeks: DosificacaoWeek[] = d.weeks.map((w) => ({
+      week: w.week,
+      theme: w.theme,
+      objectives: w.objectives ?? "",
+      contents: w.contents ?? "",
+      lessons: w.lessons,
+    }));
     setBusy("save");
     try {
       const id = plan
-        ? (await update.mutateAsync({ id: plan.id, title: title.trim(), content: { weeks } })).id
-        : (await create.mutateAsync({ kind: "dosificacao", sectionSubjectIds: [assignmentId], termId, title: title.trim(), content: { weeks } }))[0].id;
+        ? (await update.mutateAsync({ id: plan.id, title: d.title, content: { weeks: cleanWeeks } })).id
+        : (await create.mutateAsync({ kind: "dosificacao", sectionSubjectIds: [d.assignmentId], termId: d.termId, title: d.title, content: { weeks: cleanWeeks } }))[0].id;
       if (andSubmit) await submit.mutateAsync(id);
       SucessMessage(andSubmit ? "Dosificação submetida à Direção Pedagógica." : "Rascunho guardado.");
       onClose();
@@ -74,6 +144,8 @@ export function DosificacaoEditor({ plan, onClose }: Props) {
     }
   };
 
+  const safeWeeksCount = Math.min(16, Math.max(1, Number(weeksCount) || 12));
+
   return (
     <Sheet open onOpenChange={(o) => !o && onClose()}>
       <SheetContent className="flex flex-col gap-6 overflow-y-auto p-6 sm:max-w-4xl">
@@ -83,16 +155,16 @@ export function DosificacaoEditor({ plan, onClose }: Props) {
         </SheetHeader>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <SelectField label="Disciplina e turma" options={assignments.map((a) => ({ value: a.id, label: a.label }))} value={assignmentId} onValueChange={setAssignmentId} placeholder="Escolha a disciplina…" disabled={editing} />
-          <SelectField label="Trimestre" options={termOptions} value={termId} onValueChange={setTermId} placeholder="Escolha o trimestre…" disabled={editing} />
-          <div className="sm:col-span-2"><Input label="Título" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Dosificação de Matemática, 1.º trimestre" /></div>
+          <FormSelect label="Disciplina e turma" options={assignments.map((a) => ({ value: a.id, label: a.label }))} value={assignmentId} onValueChange={(v) => { touch("assignmentId"); setAssignmentId(v); }} placeholder="Escolha a disciplina…" disabled={editing} error={errOf("assignmentId")} />
+          <FormSelect label="Trimestre" options={termOptions} value={termId} onValueChange={(v) => { touch("termId"); setTermId(v); }} placeholder="Escolha o trimestre…" disabled={editing} error={errOf("termId")} />
+          <div className="sm:col-span-2"><Input label="Título" value={title} onChange={(e) => { touch("title"); setTitle(e.target.value); }} error={errOf("title")} placeholder="Ex.: Dosificação de Matemática, 1.º trimestre" /></div>
         </div>
 
         {!editing && (
-          <div className="grid gap-3 rounded-sm border bg-muted/30 p-3 sm:grid-cols-[8rem_1fr_auto] sm:items-end">
-            <Input label="Semanas" type="number" min={1} max={16} value={weeksCount} onChange={(e) => setWeeksCount(Math.min(16, Math.max(1, Number(e.target.value) || 1)))} />
-            <Textarea label="Temas ou programa (opcional)" value={themes} onChange={(e) => setThemes(e.target.value)} rows={2} placeholder="Cole aqui as unidades temáticas do programa. Sem isto, a IA propõe uma sequência típica." />
-            <Button type="button" className="gap-2" onClick={() => draft()} disabled={busy !== null || !assignmentId}>
+          <div className="grid gap-3 rounded-sm border bg-muted/30 p-3 sm:grid-cols-[8rem_1fr_auto] sm:items-start">
+            <Input label="Semanas" type="number" min={1} max={16} value={weeksCount} onChange={(e) => { touch("weeksCount"); setWeeksCount(e.target.value === "" ? "" : Number(e.target.value)); }} error={errOf("weeksCount")} />
+            <Textarea label="Temas ou programa (opcional)" value={themes} onChange={(e) => { touch("themes"); setThemes(e.target.value); }} error={errOf("themes")} rows={2} placeholder="Cole aqui as unidades temáticas do programa. Sem isto, a IA propõe uma sequência típica." />
+            <Button type="button" className="mt-6 gap-2" onClick={() => draft()} disabled={busy !== null || !assignmentId}>
               <Icon name="Sparkles" className="size-4" />
               {busy === "all" ? "A gerar…" : "Gerar com IA"}
             </Button>
@@ -102,17 +174,17 @@ export function DosificacaoEditor({ plan, onClose }: Props) {
         {weeks.length === 0 ? (
           <div className="flex items-center justify-between gap-2 rounded-sm border p-4 text-sm text-muted-foreground">
             Ainda sem semanas: gere um rascunho com a IA ou comece em branco.
-            <Button type="button" variant="outline" size="sm" onClick={() => setWeeks(Array.from({ length: weeksCount }, (_, i) => emptyWeek(i + 1)))}>Começar em branco</Button>
+            <Button type="button" variant="outline" size="sm" onClick={() => setWeeks(Array.from({ length: safeWeeksCount }, (_, i) => emptyWeek(i + 1)))}>Começar em branco</Button>
           </div>
         ) : (
           <div className="space-y-3">
-            {weeks.map((w) => (
+            {weeks.map((w, idx) => (
               <div key={w.week} className="grid gap-2 rounded-sm border p-3 sm:grid-cols-[3rem_1fr_1fr_1fr_5rem_auto] sm:items-start">
                 <span className="pt-2 font-mono text-xs text-muted-foreground">S{w.week}</span>
-                <Input aria-label={`Tema da semana ${w.week}`} label="Tema" value={w.theme} onChange={(e) => patchWeek(w.week, { theme: e.target.value })} />
-                <Textarea aria-label={`Objetivos da semana ${w.week}`} label="Objetivos" rows={2} value={w.objectives} onChange={(e) => patchWeek(w.week, { objectives: e.target.value })} />
-                <Textarea aria-label={`Conteúdos da semana ${w.week}`} label="Conteúdos" rows={2} value={w.contents} onChange={(e) => patchWeek(w.week, { contents: e.target.value })} />
-                <Input aria-label={`Aulas da semana ${w.week}`} label="Aulas" type="number" min={0} max={20} value={w.lessons ?? ""} onChange={(e) => patchWeek(w.week, { lessons: e.target.value === "" ? undefined : Number(e.target.value) })} />
+                <Input aria-label={`Tema da semana ${w.week}`} label="Tema" value={w.theme} onChange={(e) => { touch(`weeks.${idx}.theme`); patchWeek(w.week, { theme: e.target.value }); }} error={errOf("weeks", idx, "theme")} />
+                <Textarea aria-label={`Objetivos da semana ${w.week}`} label="Objetivos" rows={2} value={w.objectives} onChange={(e) => { touch(`weeks.${idx}.objectives`); patchWeek(w.week, { objectives: e.target.value }); }} error={errOf("weeks", idx, "objectives")} />
+                <Textarea aria-label={`Conteúdos da semana ${w.week}`} label="Conteúdos" rows={2} value={w.contents} onChange={(e) => { touch(`weeks.${idx}.contents`); patchWeek(w.week, { contents: e.target.value }); }} error={errOf("weeks", idx, "contents")} />
+                <Input aria-label={`Aulas da semana ${w.week}`} label="Aulas" type="number" min={0} max={20} value={w.lessons ?? ""} onChange={(e) => { touch(`weeks.${idx}.lessons`); patchWeek(w.week, { lessons: e.target.value === "" ? undefined : Number(e.target.value) }); }} error={errOf("weeks", idx, "lessons")} />
                 <Button type="button" variant="ghost" size="icon" title="Regenerar esta semana com IA" onClick={() => draft(w.week)} disabled={busy !== null || !assignmentId} className="mt-6">
                   <Icon name={busy === w.week ? "Loader" : "RefreshCw"} className="size-4" />
                 </Button>
@@ -123,8 +195,8 @@ export function DosificacaoEditor({ plan, onClose }: Props) {
 
         <SheetFooter className="flex-row flex-wrap justify-end gap-2 p-0">
           <Button type="button" variant="outline" onClick={onClose} disabled={busy === "save"}>Cancelar</Button>
-          <Button type="button" variant="outline" onClick={() => save(false)} disabled={busy !== null}>Guardar rascunho</Button>
-          <Button type="button" onClick={() => save(true)} disabled={busy !== null}>Guardar e submeter</Button>
+          <Button type="button" variant="outline" onClick={() => save(false)} disabled={!parsed.success || busy !== null}>Guardar rascunho</Button>
+          <Button type="button" onClick={() => save(true)} disabled={!parsed.success || busy !== null}>Guardar e submeter</Button>
         </SheetFooter>
       </SheetContent>
     </Sheet>

@@ -1,7 +1,13 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
+import { z } from 'zod';
 import { GlobalModal, Button, Icon, Input, Label } from '@/components';
+import { safeTextSchema } from '@/schemas';
+
+const qrCodeSchema = z.object({
+  code: safeTextSchema(3, 255, 'O código QR'),
+});
 
 interface AttendanceQrScannerModalProps {
   isOpen: boolean;
@@ -21,6 +27,8 @@ export function AttendanceQrScannerModal({
   onScan,
 }: AttendanceQrScannerModalProps) {
   const [scannedCodeInput, setScannedCodeInput] = useState('');
+  const [touched, setTouched] = useState(false);
+  const [isScanning, setIsScanning] = useState(false);
   const [scanResult, setScanResult] = useState<{
     success: boolean;
     type: 'CHECK_IN' | 'CHECK_OUT';
@@ -29,20 +37,35 @@ export function AttendanceQrScannerModal({
     message: string;
   } | null>(null);
 
+  const parsed = useMemo(() => qrCodeSchema.safeParse({ code: scannedCodeInput }), [scannedCodeInput]);
+  const codeError = touched && !parsed.success ? parsed.error.issues[0]?.message : undefined;
+
   useEffect(() => {
     if (isOpen) {
       setScannedCodeInput('');
+      setTouched(false);
+      setIsScanning(false);
       setScanResult(null);
     }
   }, [isOpen]);
 
   const handleSimulateScan = async (codeToScan?: string) => {
-    const code = codeToScan || scannedCodeInput;
-    if (!code.trim()) return;
+    const raw = codeToScan ?? scannedCodeInput;
+    const check = qrCodeSchema.safeParse({ code: raw });
+    if (!check.success) {
+      setTouched(true);
+      return;
+    }
 
-    const res = await onScan(code);
-    setScanResult(res);
-    setScannedCodeInput('');
+    setIsScanning(true);
+    try {
+      const res = await onScan(check.data.code);
+      setScanResult(res);
+      setScannedCodeInput('');
+      setTouched(false);
+    } finally {
+      setIsScanning(false);
+    }
   };
 
   return (
@@ -65,7 +88,7 @@ export function AttendanceQrScannerModal({
           </div>
 
           {/* Input Simulado de Leitor Ótico de Balcão */}
-          <div className="mx-auto flex max-w-sm items-end gap-2 text-left">
+          <div className="mx-auto flex max-w-sm items-start gap-2 text-left">
             <div className="flex-1 space-y-1.5">
               <Label htmlFor="qr-scanner-input" className="sr-only">
                 Código QR lido
@@ -74,9 +97,14 @@ export function AttendanceQrScannerModal({
                 id="qr-scanner-input"
                 type="text"
                 autoFocus
+                maxLength={255}
                 placeholder="Código lido (MS1.…)"
                 value={scannedCodeInput}
-                onChange={(e) => setScannedCodeInput(e.target.value)}
+                error={codeError}
+                onChange={(e) => {
+                  setScannedCodeInput(e.target.value);
+                  setTouched(true);
+                }}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter') {
                     e.preventDefault();
@@ -85,7 +113,13 @@ export function AttendanceQrScannerModal({
                 }}
               />
             </div>
-            <Button size="sm" variant="default" className="h-10" onClick={() => void handleSimulateScan()}>
+            <Button
+              size="sm"
+              variant="default"
+              className="h-10"
+              disabled={!parsed.success || isScanning}
+              onClick={() => void handleSimulateScan()}
+            >
               Confirmar
             </Button>
           </div>

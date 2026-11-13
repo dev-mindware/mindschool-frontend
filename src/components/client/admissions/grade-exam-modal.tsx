@@ -1,8 +1,12 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { AdmissionApplication } from "@/types/admission";
 import { useAdmissions } from "@/hooks/school/use-admissions";
+import { admissionGradeExamSchema, optionalSafeTextSchema } from "@/schemas";
 import {
   GlobalModal,
   Input,
@@ -12,6 +16,13 @@ import {
   Icon,
 } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+
+const gradeExamModalSchema = admissionGradeExamSchema.extend({
+  feedback: optionalSafeTextSchema(500, 2, "O parecer"),
+});
+
+type GradeExamInput = z.input<typeof gradeExamModalSchema>;
+type GradeExamFormData = z.infer<typeof gradeExamModalSchema>;
 
 interface GradeExamModalProps {
   isOpen: boolean;
@@ -25,29 +36,47 @@ export function GradeExamModal({
   application,
 }: GradeExamModalProps) {
   const { gradeCandidateExam } = useAdmissions();
-
-  const [score, setScore] = useState<string>(
-    application?.examScore !== undefined ? String(application.examScore) : ""
-  );
-  const [feedback, setFeedback] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    register,
+    watch,
+    setValue,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<GradeExamInput, unknown, GradeExamFormData>({
+    resolver: zodResolver(gradeExamModalSchema),
+    mode: "onChange",
+    defaultValues: {
+      examScore: application?.examScore !== undefined ? String(application.examScore) : "",
+      feedback: "",
+    },
+  });
+
+  useEffect(() => {
+    if (isOpen && application) {
+      reset({
+        examScore: application.examScore !== undefined ? String(application.examScore) : "",
+        feedback: "",
+      });
+    }
+  }, [isOpen, application, reset]);
+
+  const feedback = watch("feedback") ?? "";
 
   if (!application || !isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    const numericScore = parseFloat(score);
-    if (isNaN(numericScore) || numericScore < 0 || numericScore > 20) {
-      ErrorMessage("A pontuação deve estar entre 0 e 20 valores.");
-      return;
-    }
-
+  const onSubmit = async (data: GradeExamFormData) => {
     setIsSubmitting(true);
     try {
-      await gradeCandidateExam(application.id, numericScore, feedback.trim() || undefined);
+      await gradeCandidateExam(
+        application.id,
+        data.examScore,
+        data.feedback || undefined
+      );
       SucessMessage(
-        `Nota de ${numericScore.toFixed(1)} valores atribuída com sucesso! Estado do candidato atualizado.`
+        `Nota de ${data.examScore.toFixed(1)} valores atribuída com sucesso! Estado do candidato atualizado.`
       );
       onClose();
     } catch (err: unknown) {
@@ -57,12 +86,6 @@ export function GradeExamModal({
       setIsSubmitting(false);
     }
   };
-
-  const scoreNum = parseFloat(score);
-  const scoreError =
-    score !== "" && (isNaN(scoreNum) || scoreNum < 0 || scoreNum > 20)
-      ? "A nota deve estar entre 0 e 20 valores (escala nacional do MED)"
-      : undefined;
 
   return (
     <GlobalModal
@@ -86,7 +109,7 @@ export function GradeExamModal({
       }
       size="md"
     >
-      <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-4 pt-2">
         <div className="p-3.5 rounded-xs border bg-muted/40 text-xs space-y-1">
           <div className="flex justify-between">
             <span className="font-semibold text-foreground">
@@ -106,21 +129,27 @@ export function GradeExamModal({
           <Input
             label="Nota da Prova de Acesso (0 a 20 valores) *"
             type="number"
-            step="0.1"
+            step="0.01"
             min={0}
             max={20}
             placeholder="Ex: 14.5"
-            value={score}
-            onChange={(e) => setScore(e.target.value)}
-            error={scoreError}
-            required
+            error={errors.examScore?.message}
+            {...register("examScore")}
           />
 
           <FormTextarea
             label="Parecer / Observações do Professor Corretor"
             rows={3}
+            maxLength={500}
             value={feedback}
-            onChange={setFeedback}
+            onChange={(val) =>
+              setValue("feedback", val, {
+                shouldValidate: true,
+                shouldTouch: true,
+                shouldDirty: true,
+              })
+            }
+            error={errors.feedback?.message}
             placeholder="Ex: Bom domínio de compreensão de texto e raciocínio lógico..."
           />
         </div>
@@ -129,7 +158,7 @@ export function GradeExamModal({
           <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <ButtonSubmit isLoading={isSubmitting} className="gap-2">
+          <ButtonSubmit isLoading={isSubmitting} disabled={!isValid || isSubmitting} className="gap-2">
             <Icon name="Check" className="h-4 w-4" />
             Gravar Nota do Exame
           </ButtonSubmit>

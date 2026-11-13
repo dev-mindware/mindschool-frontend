@@ -21,6 +21,7 @@ import { MindSchoolLogo } from "@/components/common/logo/mindschool-logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { SidebarInset } from "@/components/ui/sidebar";
+import { stripControlChars } from "@/schemas/helps";
 import { cn } from "@/lib/utils";
 
 export interface LegalSectionItem {
@@ -231,8 +232,9 @@ export function LegalLayout({
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground z-10 pointer-events-none" />
               <Input
                 type="text"
+                maxLength={100}
                 value={searchTerm}
-                onChange={(e) => onSearchChange(e.target.value)}
+                onChange={(e) => onSearchChange(stripControlChars(e.target.value).slice(0, 100))}
                 placeholder="Pesquisar artigos, cláusulas, MED, AGT, APD ou termos no documento..."
                 className="pl-10 h-10 rounded-xs bg-background border-border/80 text-sm focus-visible:ring-1 focus-visible:ring-primary"
               />

@@ -2,7 +2,14 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import {
+  isoDateSchema,
+  optionalSafeTextSchema,
+  safeTextSchema,
+  timeHHMMSchema,
+} from "@/schemas/helps";
 import {
   Badge,
   Button,
@@ -62,6 +69,29 @@ const mondayOf = (d: Date) => {
   return x;
 };
 
+const notGivenReasonSchema = safeTextSchema(5, 500, "O motivo");
+const mgmtReasonSchema = safeTextSchema(5, 500, "O motivo");
+const substituteSchema = z.object({
+  subTeacher: z.string().trim().min(1, "Seleccione o professor substituto."),
+  mgmtReason: mgmtReasonSchema,
+});
+const rescheduleSchema = z
+  .object({
+    newDate: isoDateSchema("A nova data"),
+    newStart: timeHHMMSchema("A hora de início"),
+    newEnd: timeHHMMSchema("A hora de fim"),
+  })
+  .refine((d) => d.newEnd > d.newStart, {
+    message: "A hora de fim deve ser posterior à hora de início.",
+    path: ["newEnd"],
+  });
+const lessonSummarySchema = z.object({
+  content: safeTextSchema(10, 5000, "O conteúdo leccionado"),
+  objectives: optionalSafeTextSchema(500, 2, "Os objectivos pedagógicos"),
+  homework: optionalSafeTextSchema(500, 2, "O trabalho de casa (TPC)"),
+});
+const returnSummaryNoteSchema = safeTextSchema(5, 500, "A observação");
+
 function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
   const { record, cancel, substitute, reschedule } = useLessons();
   const { can } = useCan();
@@ -84,12 +114,38 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
   const [homework, setHomework] = useState("");
   const [reason, setReason] = useState("");
   const [returnNote, setReturnNote] = useState("");
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const markTouched = (k: string) => setTouched((p) => (p[k] ? p : { ...p, [k]: true }));
 
   useEffect(() => {
     setContent(summary?.content ?? "");
     setObjectives(summary?.objectives ?? "");
     setHomework(summary?.homework ?? "");
   }, [summary, lesson?.id]);
+
+  useEffect(() => {
+    setTouched({});
+    setReason("");
+    setMgmtReason("");
+    setSubTeacher("");
+    setNewDate("");
+    setNewStart("");
+    setNewEnd("");
+    setReturnNote("");
+  }, [lesson?.id]);
+
+  const reasonParsed = useMemo(() => notGivenReasonSchema.safeParse(reason), [reason]);
+  const mgmtReasonParsed = useMemo(() => mgmtReasonSchema.safeParse(mgmtReason), [mgmtReason]);
+  const subParsed = useMemo(() => substituteSchema.safeParse({ subTeacher, mgmtReason }), [subTeacher, mgmtReason]);
+  const rescheduleParsed = useMemo(
+    () => rescheduleSchema.safeParse({ newDate, newStart, newEnd }),
+    [newDate, newStart, newEnd],
+  );
+  const summaryParsed = useMemo(
+    () => lessonSummarySchema.safeParse({ content, objectives, homework }),
+    [content, objectives, homework],
+  );
+  const returnNoteParsed = useMemo(() => returnSummaryNoteSchema.safeParse(returnNote), [returnNote]);
 
   const given = lesson ? ["realizada", "substituida", "reposta"].includes(lesson.status) : false;
   const done = (ok: string) => () => {
@@ -162,7 +218,8 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
                     placeholder="Indique a fundamentação caso a aula não tenha sido realizada..."
                     rows={2}
                     value={reason}
-                    onChange={(e) => setReason(e.target.value)}
+                    onChange={(e) => { markTouched("reason"); setReason(e.target.value); }}
+                    error={touched.reason && !reasonParsed.success ? reasonParsed.error.issues[0]?.message : undefined}
                   />
                   <div className="flex gap-2 pt-1">
                     <Button
@@ -182,13 +239,14 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
                     <Button
                       size="sm"
                       variant="outline"
-                      disabled={record.isPending || reason.trim().length < 5}
+                      disabled={record.isPending || !reasonParsed.success}
                       onClick={() =>
+                        reasonParsed.success &&
                         record
                           .mutateAsync({
                             id: lesson.id,
                             status: "nao_realizada",
-                            reason: reason.trim(),
+                            reason: reasonParsed.data,
                           })
                           .then(done("Aula registada como não realizada."))
                           .catch(err)
@@ -211,26 +269,29 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
                     placeholder="Fundamente a necessidade de substituição ou alteração de aula..."
                     rows={2}
                     value={mgmtReason}
-                    onChange={(e) => setMgmtReason(e.target.value)}
+                    onChange={(e) => { markTouched("mgmtReason"); setMgmtReason(e.target.value); }}
+                    error={touched.mgmtReason && !mgmtReasonParsed.success ? mgmtReasonParsed.error.issues[0]?.message : undefined}
                   />
-                  <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] items-end">
+                  <div className="grid gap-3 sm:grid-cols-[1fr_auto_auto] items-start">
                     <FormCombobox
                       label="Professor substituto"
                       value={subTeacher}
-                      onValueChange={setSubTeacher}
+                      onValueChange={(v) => { markTouched("subTeacher"); setSubTeacher(v); }}
                       options={teachers.map((t) => ({ value: t.id, label: t.full_name }))}
+                      error={touched.subTeacher && !subParsed.success ? subParsed.error.issues.find((i) => i.path[0] === "subTeacher")?.message : undefined}
                     />
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-10"
-                      disabled={!subTeacher || mgmtReason.trim().length < 5 || substitute.isPending}
+                      className="mt-6 h-10"
+                      disabled={!subParsed.success || substitute.isPending}
                       onClick={() =>
+                        subParsed.success &&
                         substitute
                           .mutateAsync({
                             id: lesson.id,
-                            teacherId: subTeacher,
-                            reason: mgmtReason.trim(),
+                            teacherId: subParsed.data.subTeacher,
+                            reason: subParsed.data.mgmtReason,
                           })
                           .then(done("Substituição registada."))
                           .catch(err)
@@ -241,11 +302,12 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
                     <Button
                       size="sm"
                       variant="ghost"
-                      className="h-10 text-destructive"
-                      disabled={mgmtReason.trim().length < 5 || cancel.isPending}
+                      className="mt-6 h-10 text-destructive"
+                      disabled={!mgmtReasonParsed.success || cancel.isPending}
                       onClick={() =>
+                        mgmtReasonParsed.success &&
                         cancel
-                          .mutateAsync({ id: lesson.id, reason: mgmtReason.trim() })
+                          .mutateAsync({ id: lesson.id, reason: mgmtReasonParsed.data })
                           .then(done("Aula cancelada."))
                           .catch(err)
                       }
@@ -253,37 +315,41 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
                       Cancelar aula
                     </Button>
                   </div>
-                  <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] items-end">
+                  <div className="grid gap-3 sm:grid-cols-[1fr_1fr_1fr_auto] items-start">
                     <Input
                       label="Nova data"
                       type="date"
                       value={newDate}
-                      onChange={(e) => setNewDate(e.target.value)}
+                      onChange={(e) => { markTouched("newDate"); setNewDate(e.target.value); }}
+                      error={touched.newDate && !rescheduleParsed.success ? rescheduleParsed.error.issues.find((i) => i.path[0] === "newDate")?.message : undefined}
                     />
                     <Input
                       label="Início"
                       type="time"
                       value={newStart}
-                      onChange={(e) => setNewStart(e.target.value)}
+                      onChange={(e) => { markTouched("newStart"); setNewStart(e.target.value); }}
+                      error={touched.newStart && !rescheduleParsed.success ? rescheduleParsed.error.issues.find((i) => i.path[0] === "newStart")?.message : undefined}
                     />
                     <Input
                       label="Fim"
                       type="time"
                       value={newEnd}
-                      onChange={(e) => setNewEnd(e.target.value)}
+                      onChange={(e) => { markTouched("newEnd"); setNewEnd(e.target.value); }}
+                      error={(touched.newEnd || (touched.newStart && Boolean(newEnd))) && !rescheduleParsed.success ? rescheduleParsed.error.issues.find((i) => i.path[0] === "newEnd")?.message : undefined}
                     />
                     <Button
                       size="sm"
                       variant="outline"
-                      className="h-10"
-                      disabled={!newDate || !newStart || !newEnd || reschedule.isPending}
+                      className="mt-6 h-10"
+                      disabled={!rescheduleParsed.success || reschedule.isPending}
                       onClick={() =>
+                        rescheduleParsed.success &&
                         reschedule
                           .mutateAsync({
                             id: lesson.id,
-                            date: newDate,
-                            startMinute: m(newStart),
-                            endMinute: m(newEnd),
+                            date: rescheduleParsed.data.newDate,
+                            startMinute: m(rescheduleParsed.data.newStart),
+                            endMinute: m(rescheduleParsed.data.newEnd),
                           })
                           .then(done("Aula reagendada."))
                           .catch(err)
@@ -316,7 +382,8 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
                     label="Conteúdo leccionado (mín. 10 caracteres)"
                     placeholder="Descreva os tópicos abordados, exercícios resolvidos e matéria leccionada..."
                     value={content}
-                    onChange={setContent}
+                    onChange={(v) => { markTouched("content"); setContent(v); }}
+                    error={touched.content && !summaryParsed.success ? summaryParsed.error.issues.find((i) => i.path[0] === "content")?.message : undefined}
                     rows={4}
                   />
                   <div className="grid gap-3 sm:grid-cols-2">
@@ -324,25 +391,28 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
                       label="Objectivos pedagógicos"
                       placeholder="Ex.: Compreender os conceitos de geometria plana..."
                       value={objectives}
-                      onChange={(e) => setObjectives(e.target.value)}
+                      onChange={(e) => { markTouched("objectives"); setObjectives(e.target.value); }}
+                      error={touched.objectives && !summaryParsed.success ? summaryParsed.error.issues.find((i) => i.path[0] === "objectives")?.message : undefined}
                     />
                     <Input
                       label="Trabalho de casa (TPC)"
                       placeholder="Ex.: Exercícios 1 a 6 da página 54..."
                       value={homework}
-                      onChange={(e) => setHomework(e.target.value)}
+                      onChange={(e) => { markTouched("homework"); setHomework(e.target.value); }}
+                      error={touched.homework && !summaryParsed.success ? summaryParsed.error.issues.find((i) => i.path[0] === "homework")?.message : undefined}
                     />
                   </div>
-                  <div className="flex flex-wrap gap-2 pt-1">
+                  <div className="flex flex-wrap items-start gap-2 pt-1">
                     <Button
                       size="sm"
-                      disabled={save.isPending || content.trim().length < 10}
+                      disabled={save.isPending || !summaryParsed.success}
                       onClick={() =>
+                        summaryParsed.success &&
                         save
                           .mutateAsync({
-                            content: content.trim(),
-                            objectives: objectives.trim() || undefined,
-                            homework: homework.trim() || undefined,
+                            content: summaryParsed.data.content,
+                            objectives: summaryParsed.data.objectives || undefined,
+                            homework: summaryParsed.data.homework || undefined,
                             submit: true,
                           })
                           .then(() => SucessMessage("Sumário submetido."))
@@ -366,24 +436,27 @@ function LessonModal({ lesson }: { lesson: ApiLesson | null }) {
                         >
                           Validar
                         </Button>
-                        <Input
-                          label=""
-                          placeholder="Observação ao devolver (mín. 5)"
-                          value={returnNote}
-                          onChange={(e) => setReturnNote(e.target.value)}
-                          className="max-w-60"
-                        />
+                        <div className="max-w-60">
+                          <Input
+                            label=""
+                            placeholder="Observação ao devolver (mín. 5)"
+                            value={returnNote}
+                            onChange={(e) => { markTouched("returnNote"); setReturnNote(e.target.value); }}
+                            error={touched.returnNote && !returnNoteParsed.success ? returnNoteParsed.error.issues[0]?.message : undefined}
+                          />
+                        </div>
                         <Button
                           size="sm"
                           variant="ghost"
                           className="text-destructive"
-                          disabled={review.isPending || returnNote.trim().length < 5}
+                          disabled={review.isPending || !returnNoteParsed.success}
                           onClick={() =>
+                            returnNoteParsed.success &&
                             review
                               .mutateAsync({
                                 summaryId: summary.id,
                                 decision: "devolvido",
-                                note: returnNote.trim(),
+                                note: returnNoteParsed.data,
                               })
                               .then(() => SucessMessage("Sumário devolvido."))
                               .catch(err)

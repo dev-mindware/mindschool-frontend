@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { Student } from "@/types";
 import { useStudents } from "@/hooks/school/use-students";
-import { getApiErrorMessage } from "@/utils/api-error";
+import { applyApiFieldErrors, getApiErrorMessage } from "@/utils/api-error";
 import { Button, ButtonSubmit, Separator } from "@/components";
 import {
   Sheet,
@@ -22,90 +22,83 @@ import {
   StudentFormValues,
 } from "./student-identification-fields";
 import { StudentGuardianFields } from "./student-guardian-fields";
-import { validateIdDocumentByType } from "@/schemas/helps";
-import { nifError } from "@/lib/nif";
+import {
+  birthDateSchema,
+  fullPersonNameSchema,
+  isValidAngolanPhone,
+  optionalTaxNumberSchema,
+  validateIdDocumentByType,
+} from "@/schemas/helps";
 import { useDiscardGuard } from "@/components/common/discard-guard";
 
-const studentFormSchema = z
-  .object({
-    fullName: z
-      .string()
-      .trim()
-      .min(3, "O nome deve ter pelo menos 3 caracteres")
-      .regex(/^[\p{L}][\p{L}\p{M}' .-]*$/u, "O nome só pode ter letras, espaços, apóstrofo e hífen"),
-    gender: z.enum(["MALE", "FEMALE"]),
-    birthDate: z
-      .string()
-      .min(1, "Data de nascimento é obrigatória")
-      .refine((v) => !v || v <= new Date().toISOString().slice(0, 10), "A data de nascimento não pode ser futura"),
-    idDocumentType: z.enum(["IDENTITY_CARD", "BIRTH_CERTIFICATE", "PASSPORT"]),
-    idDocumentNumber: z.string().trim().min(3, "Número de documento é obrigatório"),
-    nif: z.string().trim().optional().or(z.literal("")).refine((v) => !nifError(v), { message: nifError("x") }),
-    guardianMode: z.enum(["existing", "new"]),
-    guardianId: z.string().optional(),
-    guardianName: z.string().optional(),
-    guardianPhone: z.string().optional(),
-    guardianRelationship: z.string().min(1, "Selecione o grau de parentesco"),
-    guardianDocument: z.string().optional(),
-  })
-  .superRefine((data, ctx) => {
-    // Validação estrita do documento do aluno
-    const docCheck = validateIdDocumentByType(data.idDocumentNumber, data.idDocumentType);
-    if (!docCheck.valid && docCheck.message) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["idDocumentNumber"],
-        message: docCheck.message,
-      });
-    }
+const buildStudentFormSchema = (isEditing: boolean) =>
+  z
+    .object({
+      fullName: fullPersonNameSchema(5, 200, "O nome completo do estudante"),
+      gender: z.enum(["MALE", "FEMALE"]),
+      birthDate: birthDateSchema(3, 100),
+      idDocumentType: z.enum(["IDENTITY_CARD", "BIRTH_CERTIFICATE", "PASSPORT"]),
+      idDocumentNumber: z.string().trim().min(1, "Número de documento é obrigatório"),
+      nif: optionalTaxNumberSchema,
+      guardianMode: z.enum(["existing", "new"]),
+      guardianId: z.string().optional(),
+      guardianName: z.string().optional(),
+      guardianPhone: z.string().optional(),
+      guardianRelationship: z.string().min(1, "Selecione o grau de parentesco"),
+      guardianDocument: z.string().optional(),
+    })
+    .superRefine((data, ctx) => {
+      // Validação estrita do documento do aluno
+      const docCheck = validateIdDocumentByType(data.idDocumentNumber, data.idDocumentType);
+      if (!docCheck.valid && docCheck.message) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["idDocumentNumber"],
+          message: docCheck.message,
+        });
+      }
 
-    if (data.guardianMode === "existing") {
-      if (!data.guardianId || data.guardianId.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["guardianId"],
-          message: "Selecione um encarregado existente",
-        });
-      }
-    } else {
-      if (!data.guardianName || data.guardianName.trim().length < 3) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["guardianName"],
-          message: "Nome do encarregado é obrigatório",
-        });
-      }
-      if (!data.guardianPhone || data.guardianPhone.trim().length === 0) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["guardianPhone"],
-          message: "Contacto deve ter pelo menos 9 dígitos",
-        });
-      } else {
-        const digits = data.guardianPhone.replace(/\D/g, "");
-        if (digits.length < 9) {
+      if (isEditing) return;
+
+      if (data.guardianMode === "existing") {
+        if (!data.guardianId || data.guardianId.trim().length === 0) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
-            path: ["guardianPhone"],
-            message: "Contacto deve ter pelo menos 9 dígitos",
+            path: ["guardianId"],
+            message: "Selecione um encarregado existente",
           });
-        } else if (!/^(91|92|93|94|95|97|99)\d{7}$/.test(digits) && !digits.startsWith("244")) {
+        }
+      } else {
+        const gNameCheck = fullPersonNameSchema(5, 200, "O nome completo do encarregado").safeParse(
+          data.guardianName ?? ""
+        );
+        if (!gNameCheck.success) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["guardianName"],
+            message: gNameCheck.error.issues[0]?.message ?? "Nome do encarregado inválido",
+          });
+        }
+        if (!data.guardianPhone || !isValidAngolanPhone(data.guardianPhone)) {
           ctx.addIssue({
             code: z.ZodIssueCode.custom,
             path: ["guardianPhone"],
-            message: "Prefixo inválido para operadoras angolanas (91, 92, 93, 94, 95, 97, 99)",
+            message: "Insira um telemóvel angolano válido (ex: 923 000 000 ou +244 923 000 000)",
+          });
+        }
+        const gDoc = (data.guardianDocument ?? "").trim();
+        const gDocValid =
+          validateIdDocumentByType(gDoc, "IDENTITY_CARD").valid ||
+          validateIdDocumentByType(gDoc, "PASSPORT").valid;
+        if (!gDocValid) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: ["guardianDocument"],
+            message: "Documento do encarregado inválido (BI 9+2+3 ou Passaporte)",
           });
         }
       }
-      if (!data.guardianDocument || data.guardianDocument.trim().length < 4) {
-        ctx.addIssue({
-          code: z.ZodIssueCode.custom,
-          path: ["guardianDocument"],
-          message: "Número de documento do encarregado é obrigatório",
-        });
-      }
-    }
-  });
+    });
 
 interface StudentModalProps {
   isOpen: boolean;
@@ -124,11 +117,13 @@ export function StudentModal({
     register,
     handleSubmit,
     setValue,
+    setError,
+    trigger,
     watch,
     reset,
-    formState: { errors, isSubmitting, isDirty },
+    formState: { errors, isSubmitting, isDirty, isValid },
   } = useForm<StudentFormValues>({
-    resolver: zodResolver(studentFormSchema),
+    resolver: zodResolver(buildStudentFormSchema(Boolean(studentToEdit))),
     mode: "onChange",
     defaultValues: {
       fullName: "",
@@ -169,6 +164,7 @@ export function StudentModal({
         guardianRelationship: studentToEdit.guardianRelationship || "Pai",
         guardianDocument: "",
       });
+      void trigger();
     } else {
       reset({
         fullName: "",
@@ -230,6 +226,12 @@ export function StudentModal({
 
       onClose();
     } catch (err: unknown) {
+      applyApiFieldErrors(err, setError, {
+        full_name: "fullName",
+        birth_date: "birthDate",
+        document_number: "idDocumentNumber",
+        nif: "nif",
+      });
       ErrorMessage(getApiErrorMessage(err, "Ocorreu um erro ao gravar os dados do estudante."));
     }
   };
@@ -274,7 +276,7 @@ export function StudentModal({
           <Button type="button" variant="outline" onClick={discard.request}>
             Cancelar
           </Button>
-          <ButtonSubmit form="student-form" isLoading={isSubmitting}>
+          <ButtonSubmit form="student-form" isLoading={isSubmitting} disabled={!isValid}>
             {studentToEdit ? "Guardar Alterações" : "Cadastrar Estudante"}
           </ButtonSubmit>
         </SheetFooter>

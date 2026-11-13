@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { safeTextSchema } from "@/schemas/helps";
 import { Button, ConfirmModal, DataList, Icon, Tabs, TabsContent, TabsList, TabsTrigger, Textarea, type Column } from "@/components";
 import { Badge } from "@/components/ui/badge";
 import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetTitle } from "@/components/ui/sheet";
@@ -141,13 +142,22 @@ function PlanList({ kind, canWrite, canReview, onNew, onEdit, onView }: { kind: 
   );
 }
 
+const returnPlanNoteSchema = safeTextSchema(5, 1000, "A observação");
+
 function ViewSheet({ plan, canReview, onClose }: { plan: TeachingPlan; canReview: boolean; onClose: () => void }) {
   const { review } = useTeachingPlans();
   const [note, setNote] = useState("");
+  const [touched, setTouched] = useState(false);
   const reviewing = canReview && plan.status === "submetido";
 
+  const noteParsed = useMemo(() => returnPlanNoteSchema.safeParse(note), [note]);
+  const noteError = touched && !noteParsed.success ? noteParsed.error.issues[0]?.message : undefined;
+
   const decide = async (decision: "aprovado" | "devolvido") => {
-    if (decision === "devolvido" && note.trim().length < 5) return ErrorMessage("Explique ao professor o que falta (mínimo 5 caracteres).");
+    if (decision === "devolvido" && !noteParsed.success) {
+      setTouched(true);
+      return ErrorMessage("Explique ao professor o que falta (mínimo 5 caracteres).");
+    }
     try {
       await review.mutateAsync({ id: plan.id, decision, note: note.trim() || undefined });
       SucessMessage(decision === "aprovado" ? "Plano aprovado." : "Plano devolvido ao professor.");
@@ -173,9 +183,15 @@ function ViewSheet({ plan, canReview, onClose }: { plan: TeachingPlan; canReview
         {plan.review_note && <p className="text-sm"><strong>Observação da Direção:</strong> {plan.review_note}</p>}
         {reviewing && (
           <>
-            <Textarea label="Observação (obrigatória se devolver)" rows={2} value={note} onChange={(e) => setNote(e.target.value)} />
+            <Textarea
+              label="Observação (obrigatória se devolver)"
+              rows={2}
+              value={note}
+              onChange={(e) => { setTouched(true); setNote(e.target.value); }}
+              error={noteError}
+            />
             <SheetFooter className="flex-row justify-end gap-2 p-0">
-              <Button variant="outline" onClick={() => decide("devolvido")} disabled={review.isPending}>Devolver ao professor</Button>
+              <Button variant="outline" onClick={() => decide("devolvido")} disabled={!noteParsed.success || review.isPending}>Devolver ao professor</Button>
               <Button onClick={() => decide("aprovado")} disabled={review.isPending}>Aprovar</Button>
             </SheetFooter>
           </>

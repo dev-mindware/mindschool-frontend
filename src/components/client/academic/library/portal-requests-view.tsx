@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { z } from "zod";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { formatIsoDay } from "@/utils";
 import { StatusBadge, ButtonOnlyAction, DataList, FormModal, FormTextarea, Input, type Column } from "@/components";
@@ -9,6 +10,7 @@ import { libraryService, type ApiLibraryRequest, type ApiLibraryRequestStatus } 
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { formalReasonSchema, quantitySchema } from "@/schemas";
 
 const APPROVE = "library-request-approve";
 const REJECT = "library-request-reject";
@@ -16,6 +18,11 @@ const STATUS: Record<ApiLibraryRequestStatus, { label: string; variant: "info" |
   pedido: { label: "Por decidir", variant: "info" }, aprovado: { label: "Aprovado", variant: "success" }, recusado: { label: "Recusado", variant: "destructive" }, cancelado: { label: "Cancelado", variant: "secondary" },
 };
 const fail = (e: unknown): never => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
+
+const approveDaysSchema = z.object({
+  days: quantitySchema(1, 60, "O prazo do empréstimo (dias)"),
+});
+const rejectReasonSchema = formalReasonSchema(3, 500, "O motivo da recusa");
 
 /** Pedidos de livros feitos no portal: aprovar (cria o empréstimo) ou recusar com motivo. */
 export function PortalRequestsView() {
@@ -28,7 +35,14 @@ export function PortalRequestsView() {
   const reject = useMutation({ mutationFn: (v: { id: string; reason: string }) => libraryService.rejectRequest(v.id, v.reason), onSuccess: refresh });
   const [target, setTarget] = useState<ApiLibraryRequest | null>(null);
   const [days, setDays] = useState("14");
+  const [daysTouched, setDaysTouched] = useState(false);
   const [reason, setReason] = useState("");
+  const [reasonTouched, setReasonTouched] = useState(false);
+
+  const daysParsed = useMemo(() => approveDaysSchema.safeParse({ days }), [days]);
+  const reasonParsed = useMemo(() => rejectReasonSchema.safeParse({ reason }), [reason]);
+  const daysError = daysTouched && !daysParsed.success ? daysParsed.error.issues[0]?.message : undefined;
+  const reasonError = reasonTouched && !reasonParsed.success ? reasonParsed.error.issues[0]?.message : undefined;
 
   const columns: Column<ApiLibraryRequest>[] = [
     { key: "book_title", header: "Livro", render: (_, r) => (<div><span className="font-medium">{r.book_title}</span><p className="text-xs text-muted-foreground">{r.book_author}</p></div>) },
@@ -38,8 +52,8 @@ export function PortalRequestsView() {
     {
       key: "actions", header: "Ação",
       render: (_, r) => (r.status === "pedido" ? <ButtonOnlyAction data={r} actions={[
-        { permission: "library:write", label: "Aprovar e emprestar", icon: "Check", onClick: (x) => { setTarget(x); setDays("14"); openModal(APPROVE); } },
-        { permission: "library:write", label: "Recusar", icon: "X", variant: "destructive", onClick: (x) => { setTarget(x); setReason(""); openModal(REJECT); } },
+        { permission: "library:write", label: "Aprovar e emprestar", icon: "Check", onClick: (x) => { setTarget(x); setDays("14"); setDaysTouched(false); openModal(APPROVE); } },
+        { permission: "library:write", label: "Recusar", icon: "X", variant: "destructive", onClick: (x) => { setTarget(x); setReason(""); setReasonTouched(false); openModal(REJECT); } },
       ]} /> : null),
     },
   ];
@@ -55,15 +69,65 @@ export function PortalRequestsView() {
         emptyTitle="Sem pedidos do portal" emptyDescription="Quando um encarregado ou aluno pedir um livro, o pedido aparece aqui." emptyIcon="Inbox"
       />
 
-      <FormModal id={APPROVE} title="Aprovar pedido" description={target ? `${target.book_title} — ${target.student_name}` : undefined} submitLabel="Aprovar e emprestar" isLoading={approve.isPending} disabled={!(Number(days) >= 1 && Number(days) <= 60)}
-        onSubmit={() => (target ? approve.mutateAsync({ id: target.id, days: Number(days) }).then(() => { SucessMessage("Pedido aprovado: empréstimo criado."); }).catch(fail) : undefined)}>
-        <div className="sm:col-span-2"><Input label="Prazo do empréstimo (dias)" type="quantity" min={1} max={60} step={1} value={days} onChange={(e) => setDays(e.target.value)} placeholder="Ex.: 15" /></div>
+      <FormModal
+        id={APPROVE}
+        title="Aprovar pedido"
+        description={target ? `${target.book_title} — ${target.student_name}` : undefined}
+        submitLabel="Aprovar e emprestar"
+        isLoading={approve.isPending}
+        disabled={!daysParsed.success || approve.isPending}
+        onClose={() => { setDays("14"); setDaysTouched(false); }}
+        onSubmit={() => {
+          if (!target || !daysParsed.success) return;
+          return approve.mutateAsync({ id: target.id, days: daysParsed.data.days }).then(() => { SucessMessage("Pedido aprovado: empréstimo criado."); }).catch(fail);
+        }}
+      >
+        <div className="sm:col-span-2">
+          <Input
+            label="Prazo do empréstimo (dias) *"
+            type="quantity"
+            min={1}
+            max={60}
+            step={1}
+            value={days}
+            error={daysError}
+            onChange={(e) => {
+              setDays(e.target.value);
+              setDaysTouched(true);
+            }}
+            placeholder="Ex.: 15"
+          />
+        </div>
         <p className="sm:col-span-2 text-xs text-muted-foreground">Aplicam-se as regras do balcão: exemplares disponíveis, máximo de 3 obras e nenhum atraso.</p>
       </FormModal>
 
-      <FormModal id={REJECT} title="Recusar pedido" description={target ? `${target.book_title} — ${target.student_name}` : undefined} submitLabel="Recusar" isLoading={reject.isPending} disabled={reason.trim().length < 3}
-        onSubmit={() => (target ? reject.mutateAsync({ id: target.id, reason: reason.trim() }).then(() => { SucessMessage("Pedido recusado."); }).catch(fail) : undefined)}>
-        <div className="sm:col-span-2"><FormTextarea label="Motivo (visto pela família) *" value={reason} onChange={setReason} rows={3} placeholder="Ex.: Livro já reservado para leitura presencial em sala de estudo..." /></div>
+      <FormModal
+        id={REJECT}
+        title="Recusar pedido"
+        description={target ? `${target.book_title} — ${target.student_name}` : undefined}
+        submitLabel="Recusar"
+        isLoading={reject.isPending}
+        disabled={!reasonParsed.success || reject.isPending}
+        onClose={() => { setReason(""); setReasonTouched(false); }}
+        onSubmit={() => {
+          if (!target || !reasonParsed.success) return;
+          return reject.mutateAsync({ id: target.id, reason: reasonParsed.data.reason }).then(() => { SucessMessage("Pedido recusado."); }).catch(fail);
+        }}
+      >
+        <div className="sm:col-span-2">
+          <FormTextarea
+            label="Motivo (visto pela família) *"
+            value={reason}
+            onChange={(v) => {
+              setReason(v);
+              setReasonTouched(true);
+            }}
+            rows={3}
+            maxLength={500}
+            error={reasonError}
+            placeholder="Ex.: Livro já reservado para leitura presencial em sala de estudo..."
+          />
+        </div>
       </FormModal>
     </>
   );

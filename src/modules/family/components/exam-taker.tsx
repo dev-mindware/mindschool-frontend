@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import Link from "next/link";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { Badge, Button, Checkbox, ConfirmModal, EmptyState, Icon, Input, Label, RadioGroup, RadioGroupItem, Textarea } from "@/components";
+import { optionalSafeTextSchema, stripControlChars } from "@/schemas/helps";
 import { portalService, type AnswerValue, type ExamQuestion, type ExamSession } from "@/modules/family/services/portal-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -16,6 +17,17 @@ const sameAnswer = (a: AnswerValue | undefined, b: AnswerValue | undefined) => J
 const TYPE_LABEL: Record<ExamQuestion["question_type"], string> = {
   escolha_multipla_unica: "Escolha uma opção", escolha_multipla_varias: "Escolha uma ou mais opções", verdadeiro_falso: "Verdadeiro ou falso", resposta_curta: "Resposta curta", dissertativa: "Resposta desenvolvida",
 };
+
+const shortAnswerSchema = optionalSafeTextSchema(255, 1, "A resposta");
+const essayAnswerSchema = optionalSafeTextSchema(10000, 1, "A resposta");
+
+function getAnswerError(q: ExamQuestion, value: AnswerValue | undefined): string | undefined {
+  if (typeof value !== "string") return undefined;
+  const schema = q.question_type === "resposta_curta" ? shortAnswerSchema : q.question_type === "dissertativa" ? essayAnswerSchema : null;
+  if (!schema) return undefined;
+  const res = schema.safeParse(value);
+  return res.success ? undefined : res.error.issues[0]?.message;
+}
 
 function AnswerInput({ q, value, onChange, disabled }: { q: ExamQuestion; value: AnswerValue | undefined; onChange: (v: AnswerValue) => void; disabled: boolean }) {
   if (q.question_type === "escolha_multipla_varias") {
@@ -74,9 +86,30 @@ function AnswerInput({ q, value, onChange, disabled }: { q: ExamQuestion; value:
     );
   }
   if (q.question_type === "resposta_curta") {
-    return <Input value={typeof value === "string" ? value : ""} disabled={disabled} maxLength={255} onChange={(e) => onChange(e.target.value)} placeholder="Escreva a resposta" />;
+    const str = typeof value === "string" ? value : "";
+    return (
+      <Input
+        value={str}
+        disabled={disabled}
+        maxLength={255}
+        error={getAnswerError(q, str)}
+        onChange={(e) => onChange(stripControlChars(e.target.value))}
+        placeholder="Escreva a resposta"
+      />
+    );
   }
-  return <Textarea className="min-h-32" value={typeof value === "string" ? value : ""} disabled={disabled} maxLength={10000} onChange={(e) => onChange(e.target.value)} placeholder="Escreva a sua resposta" />;
+  const str = typeof value === "string" ? value : "";
+  return (
+    <Textarea
+      className="min-h-32"
+      value={str}
+      disabled={disabled}
+      maxLength={10000}
+      error={getAnswerError(q, str)}
+      onChange={(e) => onChange(stripControlChars(e.target.value))}
+      placeholder="Escreva a sua resposta"
+    />
+  );
 }
 
 /** Realização da prova online: temporizador, gravação automática de cada resposta, envio com confirmação e resultado. */
@@ -173,6 +206,10 @@ export function ExamTaker({ examId, submissionId }: { examId: string; submission
   }, [inProgress]);
 
   const answeredCount = useMemo(() => (session?.questions ?? []).filter((q) => isAnswered(answers[q.id])).length, [session, answers]);
+  const hasAnswerError = useMemo(
+    () => (session?.questions ?? []).some((q) => Boolean(getAnswerError(q, answers[q.id]))),
+    [session, answers],
+  );
 
   if (error) return <EmptyState icon="TriangleAlert" title="Não é possível realizar a prova" description={error}><Button asChild variant="outline"><Link href={BACK}>Voltar às provas</Link></Button></EmptyState>;
   if (!session) return <p className="text-sm text-muted-foreground">A abrir a prova…</p>;
@@ -192,7 +229,7 @@ export function ExamTaker({ examId, submissionId }: { examId: string; submission
         {inProgress ? (
           <div className="flex items-center gap-3">
             <span className={`flex items-center gap-1.5 font-mono text-lg font-semibold ${urgent ? "text-destructive" : ""}`}><Icon name="Timer" className="size-4" />{clock(left)}</span>
-            <Button disabled={sending} onClick={() => openModal(CONFIRM)}>Enviar prova</Button>
+            <Button disabled={sending || hasAnswerError} onClick={() => openModal(CONFIRM)}>Enviar prova</Button>
           </div>
         ) : <Button asChild variant="outline" size="sm"><Link href={BACK}>Voltar às provas</Link></Button>}
       </div>
@@ -223,7 +260,7 @@ export function ExamTaker({ examId, submissionId }: { examId: string; submission
         ))}
       </ol>
 
-      <ConfirmModal id={CONFIRM} title="Enviar a prova?" description={answeredCount < total ? `Faltam ${total - answeredCount} pergunta(s) sem resposta. Depois de enviada, a prova não pode ser alterada.` : "Depois de enviada, a prova não pode ser alterada."} confirmLabel="Enviar prova" onConfirm={() => submit()} />
+      <ConfirmModal id={CONFIRM} title="Enviar a prova?" description={answeredCount < total ? `Faltam ${total - answeredCount} pergunta(s) sem resposta. Depois de enviada, a prova não pode ser alterada.` : "Depois de enviada, a prova não pode ser alterada."} confirmLabel="Enviar prova" isLoading={sending} onConfirm={() => submit()} />
     </div>
   );
 }

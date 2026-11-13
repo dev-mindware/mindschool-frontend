@@ -1,6 +1,8 @@
 "use client";
 
-import { useEffect, useState, type FormEvent } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { icons } from "lucide-react";
 import {
@@ -22,10 +24,16 @@ import {
 import { useSchoolSettingsStore } from "@/stores/school";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { useSchoolProfile } from "@/hooks/school/use-school-profile";
-import { getApiErrorMessage } from "@/utils/api-error";
+import { applyApiFieldErrors, getApiErrorMessage } from "@/utils/api-error";
+import { formatPhone } from "@/utils/format-phone";
+import {
+  schoolInstitutionalSettingsSchema,
+  type SchoolInstitutionalSettingsFormData,
+} from "@/schemas";
 import { DocumentBrandingSettings } from "./document-branding-settings";
+import type { z } from "zod";
 
-type Profile = ReturnType<typeof useSchoolSettingsStore.getState>["profile"];
+type InstitutionalInput = z.input<typeof schoolInstitutionalSettingsSchema>;
 
 const MODAL_ID = "settings-institution";
 
@@ -72,26 +80,57 @@ export function SchoolInstitutionalSettings() {
   const { profile, updateProfile } = useSchoolSettingsStore();
   const { save } = useSchoolProfile();
   const { open, openModal, closeModal } = useModal();
-  const [f, setF] = useState<Profile>({ ...profile });
-  const set = <K extends keyof Profile>(k: K, v: Profile[K]) => setF((p) => ({ ...p, [k]: v }));
-
   const isSheetOpen = Boolean(open[MODAL_ID]);
 
-  useEffect(() => {
-    if (!isSheetOpen || !f.schoolName) {
-      setF({ ...profile });
-    }
-  }, [profile, isSheetOpen, f.schoolName]);
+  const {
+    register,
+    handleSubmit: rhfHandleSubmit,
+    setError,
+    reset,
+    trigger,
+    formState: { errors, isValid },
+  } = useForm<InstitutionalInput, unknown, SchoolInstitutionalSettingsFormData>({
+    resolver: zodResolver(schoolInstitutionalSettingsSchema),
+    mode: "onChange",
+    defaultValues: profile,
+  });
 
-  const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault();
-    if (!f.schoolName?.trim() || save.isPending) return;
+  useEffect(() => {
+    if (isSheetOpen) {
+      reset({
+        schoolName: profile.schoolName ?? "",
+        medRegistrationCode: profile.medRegistrationCode ?? "",
+        decreeNumber: profile.decreeNumber ?? "",
+        gazetteDate: profile.gazetteDate ?? "",
+        gazetteSeries: profile.gazetteSeries ?? "",
+        subTitle: profile.subTitle ?? "",
+        province: profile.province ?? "",
+        municipality: profile.municipality ?? "",
+        communeOrDistrict: profile.communeOrDistrict ?? "",
+        fullAddress: profile.fullAddress ?? "",
+        phone: profile.phone ?? "",
+        email: profile.email ?? "",
+        directorGeneralName: profile.directorGeneralName ?? "",
+        pedagogicDirectorName: profile.pedagogicDirectorName ?? "",
+      });
+      void trigger();
+    }
+  }, [profile, isSheetOpen, reset, trigger]);
+
+  const onSubmit = async (data: SchoolInstitutionalSettingsFormData) => {
+    if (save.isPending) return;
+    const merged = { ...profile, ...data };
     try {
-      await save.mutateAsync(f);
-      updateProfile(f);
+      await save.mutateAsync(merged);
+      updateProfile(merged);
       SucessMessage("Dados institucionais atualizados.");
       closeModal(MODAL_ID);
     } catch (err) {
+      applyApiFieldErrors(err, setError, {
+        name: "schoolName",
+        med_code: "medRegistrationCode",
+        address: "fullAddress",
+      });
       ErrorMessage(getApiErrorMessage(err, "Não foi possível guardar os dados."));
     }
   };
@@ -106,10 +145,7 @@ export function SchoolInstitutionalSettings() {
           <Button
             size="sm"
             className="gap-2"
-            onClick={() => {
-              setF({ ...profile });
-              openModal(MODAL_ID);
-            }}
+            onClick={() => openModal(MODAL_ID)}
           >
             <Icon name="Pencil" className="size-4" />
             Editar dados
@@ -165,105 +201,110 @@ export function SchoolInstitutionalSettings() {
             </SheetDescription>
           </SheetHeader>
 
-          <form onSubmit={(e) => void handleSubmit(e)} className="flex flex-1 flex-col gap-6">
+          <form onSubmit={rhfHandleSubmit(onSubmit)} className="flex flex-1 flex-col gap-6">
             <div className="grid grid-cols-1 gap-3.5 sm:grid-cols-2">
               <div className="sm:col-span-2">
                 <Input
                   label="Nome oficial da instituição *"
                   startIcon="School"
                   placeholder="Ex.: Colégio Esperança do Saber"
-                  value={f.schoolName}
-                  onChange={(e) => set("schoolName", e.target.value)}
+                  error={errors.schoolName?.message}
+                  {...register("schoolName")}
                 />
               </div>
               <Input
                 label="Código de entidade MED"
                 placeholder="Ex.: MED-2026-00123"
-                value={f.medRegistrationCode}
-                onChange={(e) => set("medRegistrationCode", e.target.value)}
+                error={errors.medRegistrationCode?.message}
+                {...register("medRegistrationCode")}
               />
               <Input
                 label="Decreto executivo de criação"
                 placeholder="Ex.: Decreto Executivo n.º 45/21"
-                value={f.decreeNumber}
-                onChange={(e) => set("decreeNumber", e.target.value)}
+                error={errors.decreeNumber?.message}
+                {...register("decreeNumber")}
               />
               <Input
                 label="Data do Diário da República"
                 placeholder="Ex.: 15 de Março de 2021"
-                value={f.gazetteDate}
-                onChange={(e) => set("gazetteDate", e.target.value)}
+                error={errors.gazetteDate?.message}
+                {...register("gazetteDate")}
               />
               <Input
                 label="Série do Diário da República"
                 placeholder="Ex.: I Série, n.º 42"
-                value={f.gazetteSeries}
-                onChange={(e) => set("gazetteSeries", e.target.value)}
+                error={errors.gazetteSeries?.message}
+                {...register("gazetteSeries")}
               />
               <div className="sm:col-span-2">
                 <Input
                   label="Ciclos de ensino ministrados"
                   placeholder="Ex.: Ensino Primário e I/II Ciclos do Ensino Secundário Geral"
-                  value={f.subTitle ?? ""}
-                  onChange={(e) => set("subTitle", e.target.value)}
+                  error={errors.subTitle?.message}
+                  {...register("subTitle")}
                 />
               </div>
               <Input
                 label="Província"
                 startIcon="MapPin"
                 placeholder="Ex.: Luanda"
-                value={f.province}
-                onChange={(e) => set("province", e.target.value)}
+                error={errors.province?.message}
+                {...register("province")}
               />
               <Input
                 label="Município"
                 placeholder="Ex.: Belas"
-                value={f.municipality}
-                onChange={(e) => set("municipality", e.target.value)}
+                error={errors.municipality?.message}
+                {...register("municipality")}
               />
               <Input
                 label="Distrito urbano / bairro"
                 placeholder="Ex.: Kilamba / Quenguela"
-                value={f.communeOrDistrict}
-                onChange={(e) => set("communeOrDistrict", e.target.value)}
+                error={errors.communeOrDistrict?.message}
+                {...register("communeOrDistrict")}
               />
               <div className="sm:col-span-2">
                 <Textarea
                   label="Endereço completo"
                   rows={2}
                   placeholder="Ex.: Rua Comandante Gika, Bairro Alvalade, Luanda, Angola"
-                  value={f.fullAddress}
-                  onChange={(e) => set("fullAddress", e.target.value)}
+                  error={errors.fullAddress?.message}
+                  {...register("fullAddress")}
                 />
               </div>
               <Input
                 label="Telefone da secretaria"
+                type="tel"
                 startIcon="Phone"
                 placeholder="Ex.: +244 923 000 111"
-                value={f.phone}
-                onChange={(e) => set("phone", e.target.value)}
+                error={errors.phone?.message}
+                {...register("phone", {
+                  onChange: (e) => {
+                    e.target.value = formatPhone(e.target.value);
+                  },
+                })}
               />
               <Input
                 label="E-mail institucional"
                 type="email"
                 startIcon="Mail"
                 placeholder="Ex.: secretaria@escola.ao"
-                value={f.email}
-                onChange={(e) => set("email", e.target.value)}
+                error={errors.email?.message}
+                {...register("email")}
               />
               <Input
                 label="Diretor(a) Geral"
                 startIcon="User"
                 placeholder="Ex.: Dr. Manuel Bento"
-                value={f.directorGeneralName}
-                onChange={(e) => set("directorGeneralName", e.target.value)}
+                error={errors.directorGeneralName?.message}
+                {...register("directorGeneralName")}
               />
               <Input
                 label="Diretor(a) Pedagógico(a)"
                 startIcon="User"
                 placeholder="Ex.: Prof.ª Ana Paula Silva"
-                value={f.pedagogicDirectorName}
-                onChange={(e) => set("pedagogicDirectorName", e.target.value)}
+                error={errors.pedagogicDirectorName?.message}
+                {...register("pedagogicDirectorName")}
               />
             </div>
 
@@ -276,7 +317,7 @@ export function SchoolInstitutionalSettings() {
               >
                 Cancelar
               </Button>
-              <Button type="submit" disabled={!f.schoolName?.trim() || save.isPending}>
+              <Button type="submit" disabled={!isValid || save.isPending}>
                 {save.isPending ? "A guardar…" : "Guardar alterações"}
               </Button>
             </SheetFooter>

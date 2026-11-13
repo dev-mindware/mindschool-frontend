@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { useRouter, useSearchParams } from "next/navigation";
@@ -9,9 +10,28 @@ import { Badge, Button, Card, Checkbox, FileUpload, GlobalModal, Icon, Input, La
 import { PlanCheckoutSkeleton } from "@/components/common/skeletons/plans-skeleton";
 import { useSubscription } from "@/hooks/school/use-subscription";
 import { subscriptionService, type ApiQuote } from "@/services/subscription-service";
+import { stripControlChars } from "@/schemas/helps";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { PERIODS, kz } from "./plan-catalog";
+
+const MAX_PROOF_BYTES = 10 * 1024 * 1024;
+
+const couponSchema = z
+  .string()
+  .transform((v) => stripControlChars(v).trim().toUpperCase())
+  .refine((v) => v.length >= 3, "O cupão deve ter pelo menos 3 caracteres.")
+  .refine((v) => v.length <= 32, "O cupão não pode exceder 32 caracteres.")
+  .refine((v) => /^[A-Z0-9_-]+$/.test(v), "Use apenas letras, números, '-' ou '_'.");
+
+const proofFileSchema = z
+  .custom<File>((val) => typeof File !== "undefined" && val instanceof File, "Anexe o comprovativo da transferência.")
+  .refine((f) => f.size > 0, "O ficheiro selecionado está vazio.")
+  .refine((f) => f.size <= MAX_PROOF_BYTES, "O comprovativo não pode exceder 10 MB.")
+  .refine(
+    (f) => ["application/pdf", "image/png"].includes(f.type) || /\.(pdf|png)$/i.test(f.name),
+    "Formato inválido. Envie um ficheiro PDF ou PNG."
+  );
 
 
 function Step({ n, title, children }: { n: number; title: string; children: React.ReactNode }) {
@@ -36,9 +56,18 @@ export function PlanCheckout() {
   const [months, setMonths] = useState<1 | 6 | 12>(initialPeriod === 12 ? 12 : initialPeriod === 6 ? 6 : 1);
   const [addons, setAddons] = useState<string[]>([]);
   const [file, setFile] = useState<File | null>(null);
+  const [fileTouched, setFileTouched] = useState(false);
   const [busy, setBusy] = useState(false);
   const [couponInput, setCouponInput] = useState("");
+  const [couponTouched, setCouponTouched] = useState(false);
   const [coupon, setCoupon] = useState<string | null>(null);
+
+  const couponResult = couponSchema.safeParse(couponInput);
+  const couponError = (couponTouched || couponInput.length > 0) && !coupon && !couponResult.success
+    ? couponResult.error.issues[0]?.message
+    : undefined;
+  const fileResult = proofFileSchema.safeParse(file);
+  const fileError = fileTouched && !fileResult.success ? fileResult.error.issues[0]?.message : undefined;
 
   const plan = useMemo(() => catalog?.plans.find((p) => p.code === params.get("plan")) ?? null, [catalog, params]);
   const openOrder = current?.orders.find((o) => ["pending_payment", "payment_proof_submitted", "under_review", "proof_replacement_required"].includes(o.status));
@@ -68,11 +97,12 @@ export function PlanCheckout() {
   const toggle = (code: string) => setAddons((c) => (c.includes(code) ? c.filter((x) => x !== code) : [...c, code]));
 
   async function submit() {
-    if (!file || !plan) return;
+    setFileTouched(true);
+    if (!fileResult.success || !plan || !preview || busy || openOrder) return;
     setBusy(true);
     try {
       const order = await createOrder.mutateAsync({ plan_code: plan.code, addon_codes: addons, period_months: months, ...(coupon ? { coupon_code: coupon } : {}) });
-      await submitProof.mutateAsync({ orderId: order.id, file });
+      await submitProof.mutateAsync({ orderId: order.id, file: fileResult.data });
       openModal("subscription-created");
     } catch (e) {
       ErrorMessage(getApiErrorMessage(e, "Não foi possível concluir a subscrição."));
@@ -166,8 +196,14 @@ export function PlanCheckout() {
           </Step>
 
           <Step n={available.length > 0 ? 4 : 3} title="Comprovativo">
-            <FileUpload value={file} onChange={setFile} accept={PROOF_ACCEPT_PDF_PNG} label="Anexar o comprovativo da transferência" />
-            <Button size="lg" className="w-full" disabled={!file || !preview || busy || Boolean(openOrder)} onClick={submit}>
+            <FileUpload
+              value={file}
+              onChange={(f) => { setFile(f); setFileTouched(true); }}
+              accept={PROOF_ACCEPT_PDF_PNG}
+              error={fileError}
+              label="Anexar o comprovativo da transferência"
+            />
+            <Button size="lg" className="w-full" disabled={!fileResult.success || !preview || busy || Boolean(openOrder)} onClick={submit}>
               {busy && <Icon name="LoaderCircle" className="mr-2 size-4 animate-spin" />}
               {busy ? "A processar..." : "Concluir subscrição"}
             </Button>
@@ -179,23 +215,29 @@ export function PlanCheckout() {
           <Card className="gap-3 p-6 text-sm shadow-none">
             <h3 className="text-base font-semibold">Resumo</h3>
             <form
-              className="flex items-center gap-2"
-              onSubmit={(e) => { e.preventDefault(); const c = couponInput.trim().toUpperCase(); if (c.length >= 3) setCoupon(c); }}
+              className="flex items-start gap-2"
+              onSubmit={(e) => {
+                e.preventDefault();
+                setCouponTouched(true);
+                if (couponResult.success) setCoupon(couponResult.data);
+              }}
             >
               <div className="min-w-0 flex-1">
                 <Input
                   aria-label="Cupão de desconto"
                   placeholder="Tem um cupão?"
+                  maxLength={32}
                   value={coupon ?? couponInput}
+                  error={couponError}
                   disabled={Boolean(coupon)}
-                  onChange={(e) => setCouponInput(e.target.value)}
+                  onChange={(e) => { setCouponInput(stripControlChars(e.target.value)); setCouponTouched(true); }}
                   className="uppercase"
                 />
               </div>
               {coupon ? (
-                <Button type="button" size="sm" variant="outline" onClick={() => { setCoupon(null); setCouponInput(""); }}>Remover</Button>
+                <Button type="button" size="sm" variant="outline" onClick={() => { setCoupon(null); setCouponInput(""); setCouponTouched(false); }}>Remover</Button>
               ) : (
-                <Button type="submit" size="sm" variant="outline" disabled={couponInput.trim().length < 3}>Aplicar</Button>
+                <Button type="submit" size="sm" variant="outline" disabled={!couponResult.success}>Aplicar</Button>
               )}
             </form>
             {quoteError ? (

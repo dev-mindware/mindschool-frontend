@@ -20,6 +20,7 @@ import {
   Badge,
 } from "@/components";
 import { deepMerge, patchSettings, readRawSettings } from "@/services/school-settings-service";
+import { schoolPoliciesSchema } from "@/schemas";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
@@ -105,12 +106,43 @@ type Settings = {
 type Block = keyof Settings;
 
 const WEEKDAYS = ["Seg", "Ter", "Qua", "Qui", "Sex", "Sáb", "Dom"];
-const num = (v: string) => (v === "" ? 0 : Number(v));
-const list = (v: string) =>
-  v
-    .split(",")
-    .map((x) => Number(x.trim()))
-    .filter((x) => Number.isInteger(x) && x > 0);
+const num = (v: string) => (v === "" ? Number.NaN : Number(v));
+const numVal = (v: number) => (Number.isFinite(v) ? v : "");
+
+function parseIntList(
+  raw: string,
+  min: number,
+  max: number,
+  label: string
+): { values: number[]; error?: string } {
+  const trimmed = raw.trim();
+  if (!trimmed) return { values: [] };
+  const parts = trimmed.split(",").map((p) => p.trim());
+  const values: number[] = [];
+  for (const part of parts) {
+    if (!part) return { values: [], error: `${label}: remova vírgulas vazias.` };
+    if (!/^\d+$/.test(part)) {
+      return { values: [], error: `${label}: use apenas números inteiros separados por vírgula.` };
+    }
+    const n = Number(part);
+    if (n < min || n > max) {
+      return { values: [], error: `${label}: cada valor deve estar entre ${min} e ${max}.` };
+    }
+    values.push(n);
+  }
+  return { values: Array.from(new Set(values)) };
+}
+
+function collectSchemaErrors(res: { success: boolean; error?: { issues: Array<{ path: PropertyKey[]; message: string }> } }) {
+  const map: Record<string, string> = {};
+  if (!res.success && res.error) {
+    for (const issue of res.error.issues) {
+      const path = issue.path.map(String).join(".");
+      if (!map[path]) map[path] = issue.message;
+    }
+  }
+  return map;
+}
 
 function Check({
   label,
@@ -205,6 +237,8 @@ export function PoliciesPageContent() {
 
   const [s, setS] = useState<Settings | null>(null);
   const [draft, setDraft] = useState<Settings | null>(null);
+  const [examLevelsRaw, setExamLevelsRaw] = useState("");
+  const [reminderDaysRaw, setReminderDaysRaw] = useState("");
   const [saving, setSaving] = useState(false);
 
   // Estados do Simulador Didático de Notas
@@ -219,7 +253,10 @@ export function PoliciesPageContent() {
   }, [raw.data]);
 
   const edit = (id: string) => {
-    setDraft(JSON.parse(JSON.stringify(s)) as Settings);
+    const cloned = JSON.parse(JSON.stringify(s)) as Settings;
+    setDraft(cloned);
+    setExamLevelsRaw(cloned.admission.entrance_exam_required_level_numbers.join(", "));
+    setReminderDaysRaw(cloned.finance.reminder_days.join(", "));
     openModal(id);
   };
 
@@ -340,6 +377,21 @@ export function PoliciesPageContent() {
   const yn = (v: boolean) => (v ? "Sim" : "Não");
   const modalProps = { isLoading: saving, size: "lg" as const };
   const isOpen = (id: string) => Boolean(open[id]);
+
+  const evalValidation = schoolPoliciesSchema.shape.evaluation.safeParse(ev);
+  const evalErrors = collectSchemaErrors(evalValidation);
+  const admissionValidation = schoolPoliciesSchema.shape.admission.safeParse(d.admission);
+  const admissionErrors = collectSchemaErrors(admissionValidation);
+  const examLevelsParsed = parseIntList(examLevelsRaw, 1, 13, "Classes com prova");
+  const calendarValidation = schoolPoliciesSchema.shape.calendar.safeParse(d.calendar);
+  const calendarErrors = collectSchemaErrors(calendarValidation);
+  const lectiveWeekdaysError =
+    d.calendar.lective_weekdays.length === 0 ? "Seleccione pelo menos um dia letivo." : undefined;
+  const riskValidation = schoolPoliciesSchema.shape.risk.safeParse(d.risk);
+  const riskErrors = collectSchemaErrors(riskValidation);
+  const financeValidation = schoolPoliciesSchema.shape.finance.safeParse(d.finance);
+  const financeErrors = collectSchemaErrors(financeValidation);
+  const reminderDaysParsed = parseIntList(reminderDaysRaw, 1, 60, "Dias de lembrete");
 
   return (
     <div className="space-y-6">
@@ -643,6 +695,7 @@ export function PoliciesPageContent() {
           title="Política de Avaliação Pedagógica"
           description="Como se calcula a Média Trimestral (MT) e como são tratadas faltas e pedidos de reapreciação."
           onSubmit={save(["evaluation"])}
+          disabled={!evalValidation.success || saving}
           {...modalProps}
         >
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
@@ -654,9 +707,10 @@ export function PoliciesPageContent() {
                 max={10}
                 step={1}
                 placeholder="Ex.: 1"
-                value={ev.mt_weights.mac}
+                value={numVal(ev.mt_weights.mac)}
+                error={evalErrors["mt_weights.mac"] || evalErrors["mt_weights"]}
                 onChange={(e) =>
-                  setEv({ mt_weights: { ...ev.mt_weights, mac: Math.max(0, Math.min(10, num(e.target.value))) } })
+                  setEv({ mt_weights: { ...ev.mt_weights, mac: num(e.target.value) } })
                 }
               />
               <Input
@@ -666,9 +720,10 @@ export function PoliciesPageContent() {
                 max={10}
                 step={1}
                 placeholder="Ex.: 1"
-                value={ev.mt_weights.mas}
+                value={numVal(ev.mt_weights.mas)}
+                error={evalErrors["mt_weights.mas"]}
                 onChange={(e) =>
-                  setEv({ mt_weights: { ...ev.mt_weights, mas: Math.max(0, Math.min(10, num(e.target.value))) } })
+                  setEv({ mt_weights: { ...ev.mt_weights, mas: num(e.target.value) } })
                 }
               />
               <Input
@@ -678,9 +733,10 @@ export function PoliciesPageContent() {
                 max={10}
                 step={1}
                 placeholder="Ex.: 1"
-                value={ev.mt_weights.pp}
+                value={numVal(ev.mt_weights.pp)}
+                error={evalErrors["mt_weights.pp"]}
                 onChange={(e) =>
-                  setEv({ mt_weights: { ...ev.mt_weights, pp: Math.max(0, Math.min(10, num(e.target.value))) } })
+                  setEv({ mt_weights: { ...ev.mt_weights, pp: num(e.target.value) } })
                 }
               />
             </div>
@@ -688,7 +744,7 @@ export function PoliciesPageContent() {
               {(() => {
                 const w = ev.mt_weights;
                 const t = w.mac + w.mas + w.pp;
-                if (t <= 0) return "Ponha pelo menos um peso acima de 0: com todos a 0 a MT nunca se calcula.";
+                if (!Number.isFinite(t) || t <= 0) return "Ponha pelo menos um peso acima de 0: com todos a 0 a MT nunca se calcula.";
                 const p = (x: number) => `${Math.round((x / t) * 100)}%`;
                 return `São pesos relativos. Com estes valores: MAC ${p(w.mac)}, MAS ${p(w.mas)}, PP ${p(w.pp)}. Um peso 0 tira o componente da média. Aplica-se às mini-pautas em curso; as pautas já fechadas mantêm o resultado guardado.`;
               })()}
@@ -712,14 +768,15 @@ export function PoliciesPageContent() {
               ]}
             />
             <Input
-              label="Nota Mínima de Aprovação"
+              label="Nota Mínima de Aprovação (0–20)"
               type="quantity"
               min={0}
               max={20}
               step={1}
               placeholder="Ex.: 10"
-              value={ev.pass_mark}
-              onChange={(e) => setEv({ pass_mark: Math.max(0, Math.min(20, num(e.target.value))) })}
+              value={numVal(ev.pass_mark)}
+              error={evalErrors["pass_mark"]}
+              onChange={(e) => setEv({ pass_mark: num(e.target.value) })}
             />
             <Input
               label="Prazo para pedir reapreciação (dias após o fecho da pauta)"
@@ -728,18 +785,20 @@ export function PoliciesPageContent() {
               max={60}
               step={1}
               placeholder="Ex.: 10"
-              value={ev.review_window_days}
-              onChange={(e) => setEv({ review_window_days: Math.max(1, Math.min(60, num(e.target.value))) })}
+              value={numVal(ev.review_window_days)}
+              error={evalErrors["review_window_days"]}
+              onChange={(e) => setEv({ review_window_days: num(e.target.value) })}
             />
             <Input
               label="Quórum Mínimo para Conselho de Turma"
               type="quantity"
               min={1}
-              max={20}
+              max={30}
               step={1}
               placeholder="Ex.: 3"
-              value={ev.council_min_attendees}
-              onChange={(e) => setEv({ council_min_attendees: Math.max(1, Math.min(20, num(e.target.value))) })}
+              value={numVal(ev.council_min_attendees)}
+              error={evalErrors["council_min_attendees"]}
+              onChange={(e) => setEv({ council_min_attendees: num(e.target.value) })}
             />
           </div>
         </FormModal>
@@ -751,6 +810,7 @@ export function PoliciesPageContent() {
           title="Exceção «Transita com apoio»"
           description="Regra aplicada ao propor a transição de classe, depois de fechado o último período."
           onSubmit={save(["evaluation"])}
+          disabled={!evalValidation.success || saving}
           {...modalProps}
         >
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
@@ -763,54 +823,59 @@ export function PoliciesPageContent() {
               <Input
                 label="Da classe (n.º)"
                 type="quantity"
-                min={0}
+                min={1}
                 max={13}
                 step={1}
                 placeholder="Ex.: 7"
-                value={ev.exception.class_level_min}
-                onChange={(e) => setEv({ exception: { ...ev.exception, class_level_min: Math.max(0, Math.min(13, num(e.target.value))) } })}
+                value={numVal(ev.exception.class_level_min)}
+                error={evalErrors["exception.class_level_min"]}
+                onChange={(e) => setEv({ exception: { ...ev.exception, class_level_min: num(e.target.value) } })}
               />
               <Input
                 label="Até à classe (n.º)"
                 type="quantity"
-                min={0}
+                min={1}
                 max={13}
                 step={1}
                 placeholder="Ex.: 8"
-                value={ev.exception.class_level_max}
-                onChange={(e) => setEv({ exception: { ...ev.exception, class_level_max: Math.max(0, Math.min(13, num(e.target.value))) } })}
+                value={numVal(ev.exception.class_level_max)}
+                error={evalErrors["exception.class_level_max"]}
+                onChange={(e) => setEv({ exception: { ...ev.exception, class_level_max: num(e.target.value) } })}
               />
             </div>
             <Input
               label="Máximo de disciplinas negativas"
               type="quantity"
-              min={0}
+              min={1}
               max={10}
               step={1}
               placeholder="Ex.: 2"
-              value={ev.exception.max_subjects}
-              onChange={(e) => setEv({ exception: { ...ev.exception, max_subjects: Math.max(0, Math.min(10, num(e.target.value))) } })}
+              value={numVal(ev.exception.max_subjects)}
+              error={evalErrors["exception.max_subjects"]}
+              onChange={(e) => setEv({ exception: { ...ev.exception, max_subjects: num(e.target.value) } })}
             />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
               <Input
-                label="Nota mínima admitida"
+                label="Nota mínima admitida (0–20)"
                 type="quantity"
                 min={0}
                 max={20}
                 step={0.5}
                 placeholder="Ex.: 7.0"
-                value={ev.exception.min_mark}
-                onChange={(e) => setEv({ exception: { ...ev.exception, min_mark: Math.max(0, Math.min(20, num(e.target.value))) } })}
+                value={numVal(ev.exception.min_mark)}
+                error={evalErrors["exception.min_mark"]}
+                onChange={(e) => setEv({ exception: { ...ev.exception, min_mark: num(e.target.value) } })}
               />
               <Input
-                label="Nota máxima admitida"
+                label="Nota máxima admitida (0–20)"
                 type="quantity"
                 min={0}
                 max={20}
                 step={0.5}
                 placeholder="Ex.: 9.0"
-                value={ev.exception.max_mark}
-                onChange={(e) => setEv({ exception: { ...ev.exception, max_mark: Math.max(0, Math.min(20, num(e.target.value))) } })}
+                value={numVal(ev.exception.max_mark)}
+                error={evalErrors["exception.max_mark"]}
+                onChange={(e) => setEv({ exception: { ...ev.exception, max_mark: num(e.target.value) } })}
               />
             </div>
             <p className="text-[11px] text-muted-foreground">
@@ -828,17 +893,19 @@ export function PoliciesPageContent() {
           title="Política de Exames Finais & Recursos"
           description="Parâmetros de acesso e ponderação das provas de exame final."
           onSubmit={save(["evaluation"])}
+          disabled={!evalValidation.success || saving}
           {...modalProps}
         >
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
             <Input
-              label="MFD Mínima para Admissão a Exame"
+              label="MFD Mínima para Admissão a Exame (0–20)"
               type="quantity"
               min={0}
               max={20}
               step={0.5}
               placeholder="Ex.: 7.0"
-              value={ev.final_exam.admission_min_mfd}
+              value={numVal(ev.final_exam.admission_min_mfd)}
+              error={evalErrors["final_exam.admission_min_mfd"]}
               onChange={(e) =>
                 setEv({
                   final_exam: { ...ev.final_exam, admission_min_mfd: num(e.target.value) },
@@ -847,7 +914,8 @@ export function PoliciesPageContent() {
             />
             <PercInput
               label="Peso da MFD na Classificação Final"
-              value={ev.final_exam.weight_mfd}
+              value={numVal(ev.final_exam.weight_mfd) === "" ? 0 : ev.final_exam.weight_mfd}
+              error={evalErrors["final_exam.weight_mfd"]}
               onChange={(val) =>
                 setEv({ final_exam: { ...ev.final_exam, weight_mfd: val } })
               }
@@ -876,22 +944,29 @@ export function PoliciesPageContent() {
           title="Política de Admissões & Inscrições"
           description="Classes que exigem exame de acesso e critério de desempate."
           onSubmit={save(["admission"])}
+          disabled={!admissionValidation.success || Boolean(examLevelsParsed.error) || saving}
           {...modalProps}
         >
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
             <Input
               label="Classes com Prova de Acesso (números separados por vírgula)"
               placeholder="Ex: 7, 10"
-              value={d.admission.entrance_exam_required_level_numbers.join(", ")}
-              onChange={(e) =>
-                setDraft({
-                  ...d,
-                  admission: {
-                    ...d.admission,
-                    entrance_exam_required_level_numbers: list(e.target.value),
-                  },
-                })
-              }
+              value={examLevelsRaw}
+              error={examLevelsParsed.error}
+              onChange={(e) => {
+                const rawVal = e.target.value;
+                setExamLevelsRaw(rawVal);
+                const parsedList = parseIntList(rawVal, 1, 13, "Classes com prova");
+                if (!parsedList.error) {
+                  setDraft({
+                    ...d,
+                    admission: {
+                      ...d.admission,
+                      entrance_exam_required_level_numbers: parsedList.values,
+                    },
+                  });
+                }
+              }}
             />
             <Input
               label="Nota Mínima para Aprovação na Prova (0-20)"
@@ -900,7 +975,8 @@ export function PoliciesPageContent() {
               max={20}
               step={0.5}
               placeholder="Ex.: 10.0"
-              value={d.admission.min_pass_score ?? ""}
+              value={d.admission.min_pass_score === null ? "" : numVal(d.admission.min_pass_score)}
+              error={admissionErrors["min_pass_score"]}
               onChange={(e) =>
                 setDraft({
                   ...d,
@@ -929,6 +1005,7 @@ export function PoliciesPageContent() {
           id="policy-calendar"
           title="Calendário Escolar & Assiduidade"
           onSubmit={save(["calendar"])}
+          disabled={!calendarValidation.success || Boolean(lectiveWeekdaysError) || saving}
           {...modalProps}
         >
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
@@ -962,19 +1039,23 @@ export function PoliciesPageContent() {
                   );
                 })}
               </div>
+              {lectiveWeekdaysError && (
+                <p role="alert" className="text-xs font-medium text-destructive">{lectiveWeekdaysError}</p>
+              )}
             </div>
             <Input
               label="Prazo para Lançamento do Sumário da Aula (dias)"
               type="quantity"
-              min={1}
+              min={0}
               max={30}
               step={1}
               placeholder="Ex.: 1"
-              value={d.calendar.summary_deadline_days}
+              value={numVal(d.calendar.summary_deadline_days)}
+              error={calendarErrors["summary_deadline_days"]}
               onChange={(e) =>
                 setDraft({
                   ...d,
-                  calendar: { ...d.calendar, summary_deadline_days: Math.max(1, Math.min(30, num(e.target.value))) },
+                  calendar: { ...d.calendar, summary_deadline_days: num(e.target.value) },
                 })
               }
             />
@@ -998,6 +1079,7 @@ export function PoliciesPageContent() {
           title="Risco de Abandono Escolar Precoce"
           description="Pesos das componentes e limiares (0–100) para intervenção pedagógica."
           onSubmit={save(["risk"])}
+          disabled={!riskValidation.success || saving}
           {...modalProps}
         >
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
@@ -1009,9 +1091,10 @@ export function PoliciesPageContent() {
                 max={10}
                 step={1}
                 placeholder="Ex.: 1"
-                value={d.risk.weights.frequencia}
+                value={numVal(d.risk.weights.frequencia)}
+                error={riskErrors["weights.frequencia"] || riskErrors["weights"]}
                 onChange={(e) =>
-                  setDraft({ ...d, risk: { ...d.risk, weights: { ...d.risk.weights, frequencia: Math.max(0, Math.min(10, num(e.target.value))) } } })
+                  setDraft({ ...d, risk: { ...d.risk, weights: { ...d.risk.weights, frequencia: num(e.target.value) } } })
                 }
               />
               <Input
@@ -1021,9 +1104,10 @@ export function PoliciesPageContent() {
                 max={10}
                 step={1}
                 placeholder="Ex.: 1"
-                value={d.risk.weights.desempenho}
+                value={numVal(d.risk.weights.desempenho)}
+                error={riskErrors["weights.desempenho"]}
                 onChange={(e) =>
-                  setDraft({ ...d, risk: { ...d.risk, weights: { ...d.risk.weights, desempenho: Math.max(0, Math.min(10, num(e.target.value))) } } })
+                  setDraft({ ...d, risk: { ...d.risk, weights: { ...d.risk.weights, desempenho: num(e.target.value) } } })
                 }
               />
               <Input
@@ -1033,9 +1117,10 @@ export function PoliciesPageContent() {
                 max={10}
                 step={1}
                 placeholder="Ex.: 1"
-                value={d.risk.weights.financeiro}
+                value={numVal(d.risk.weights.financeiro)}
+                error={riskErrors["weights.financeiro"]}
                 onChange={(e) =>
-                  setDraft({ ...d, risk: { ...d.risk, weights: { ...d.risk.weights, financeiro: Math.max(0, Math.min(10, num(e.target.value))) } } })
+                  setDraft({ ...d, risk: { ...d.risk, weights: { ...d.risk.weights, financeiro: num(e.target.value) } } })
                 }
               />
             </div>
@@ -1043,14 +1128,15 @@ export function PoliciesPageContent() {
               {(() => {
                 const w = d.risk.weights;
                 const t = w.frequencia + w.desempenho + w.financeiro;
-                if (t <= 0) return "Com todos os pesos a 0 o risco fica sempre em 0 e nenhum aluno é sinalizado.";
+                if (!Number.isFinite(t) || t <= 0) return "Com todos os pesos a 0 o risco fica sempre em 0 e nenhum aluno é sinalizado.";
                 const p = (x: number) => `${Math.round((x / t) * 100)}%`;
                 return `São pesos relativos. Com estes valores: assiduidade ${p(w.frequencia)}, notas ${p(w.desempenho)}, propinas ${p(w.financeiro)}. Se faltarem dados de um sinal (ex.: sem notas ainda), os outros são reescalados. Um peso 0 desliga esse sinal.`;
               })()}
             </p>
             <PercInput
-              label="Limiar para Alerta Moderado (0–100)"
+              label="Limiar para Alerta Moderado (1–99)"
               value={d.risk.thresholds.moderado}
+              error={riskErrors["thresholds.moderado"]}
               onChange={(val) =>
                 setDraft({
                   ...d,
@@ -1062,8 +1148,9 @@ export function PoliciesPageContent() {
               }
             />
             <PercInput
-              label="Limiar para Alerta Crítico / Elevado (0–100)"
+              label="Limiar para Alerta Crítico / Elevado (2–100)"
               value={d.risk.thresholds.elevado}
+              error={riskErrors["thresholds.elevado"]}
               onChange={(val) =>
                 setDraft({
                   ...d,
@@ -1078,12 +1165,13 @@ export function PoliciesPageContent() {
               label="Atraso Financeiro Relevante para Risco (dias)"
               type="quantity"
               min={1}
-              max={180}
+              max={365}
               step={1}
               placeholder="Ex.: 30"
-              value={d.risk.overdue_days}
+              value={numVal(d.risk.overdue_days)}
+              error={riskErrors["overdue_days"]}
               onChange={(e) =>
-                setDraft({ ...d, risk: { ...d.risk, overdue_days: Math.max(1, Math.min(180, num(e.target.value))) } })
+                setDraft({ ...d, risk: { ...d.risk, overdue_days: num(e.target.value) } })
               }
             />
           </div>
@@ -1096,40 +1184,49 @@ export function PoliciesPageContent() {
           title="Regime Financeiro & Prestações"
           description="Número de mensalidades e calendário base de faturação."
           onSubmit={save(["finance"])}
+          disabled={!financeValidation.success || Boolean(reminderDaysParsed.error) || saving}
           {...modalProps}
         >
           <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
             <Input
-              label="Número de Prestações no Ano Letivo"
+              label="Número de Prestações no Ano Letivo (1–12)"
               type="quantity"
               min={1}
               max={12}
               step={1}
               placeholder="Ex.: 10"
-              value={d.finance.installments}
+              value={numVal(d.finance.installments)}
+              error={financeErrors["installments"]}
               onChange={(e) =>
-                setDraft({ ...d, finance: { ...d.finance, installments: Math.max(1, Math.min(12, num(e.target.value))) } })
+                setDraft({ ...d, finance: { ...d.finance, installments: num(e.target.value) } })
               }
             />
             <Input
-              label="Dia Limite de Vencimento"
+              label="Dia Limite de Vencimento (1–28)"
               type="quantity"
               min={1}
-              max={31}
+              max={28}
               step={1}
               placeholder="Ex.: 20"
-              value={d.finance.due_day}
+              value={numVal(d.finance.due_day)}
+              error={financeErrors["due_day"]}
               onChange={(e) =>
-                setDraft({ ...d, finance: { ...d.finance, due_day: Math.max(1, Math.min(31, num(e.target.value))) } })
+                setDraft({ ...d, finance: { ...d.finance, due_day: num(e.target.value) } })
               }
             />
             <Input
               label="Dias de Antecedência para Lembretes (separados por vírgula)"
               placeholder="Ex.: 3, 7, 15"
-              value={d.finance.reminder_days.join(", ")}
-              onChange={(e) =>
-                setDraft({ ...d, finance: { ...d.finance, reminder_days: list(e.target.value) } })
-              }
+              value={reminderDaysRaw}
+              error={reminderDaysParsed.error}
+              onChange={(e) => {
+                const rawVal = e.target.value;
+                setReminderDaysRaw(rawVal);
+                const parsedList = parseIntList(rawVal, 1, 60, "Dias de lembrete");
+                if (!parsedList.error) {
+                  setDraft({ ...d, finance: { ...d.finance, reminder_days: parsedList.values } });
+                }
+              }}
             />
           </div>
         </FormModal>

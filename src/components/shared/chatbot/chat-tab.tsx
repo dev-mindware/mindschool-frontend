@@ -1,8 +1,12 @@
 import React, { useState, useEffect } from "react";
 import { Button, Icon, Textarea } from "@/components";
 import { TabsContent } from "@/components/ui/tabs";
+import { safeTextSchema, stripControlChars } from "@/schemas/helps";
 import { LocalChatHistoryItem } from "./index";
 import { useAuth } from "@/hooks/auth";
+
+const CHAT_MAX_LENGTH = 150;
+const chatMessageSchema = safeTextSchema(1, CHAT_MAX_LENGTH, "A mensagem");
 
 export const DEFAULT_QUICK_ACTIONS = [
     { label: "Como estão as propinas em atraso este mês?" },
@@ -116,6 +120,8 @@ export function ChatTab({
               ? GUARDIAN_QUICK_ACTIONS
               : DEFAULT_QUICK_ACTIONS;
     const limitReached = totalMessagesUsed >= messageLimit;
+    const messageValidation = chatMessageSchema.safeParse(input);
+    const isMessageValid = messageValidation.success;
 
     return (
         <TabsContent value="chat" className="flex-1 flex flex-col overflow-hidden m-0 outline-none data-[state=inactive]:hidden">
@@ -203,15 +209,21 @@ export function ChatTab({
                 <div className="relative border border-border/80 rounded-xs focus-within:ring-1 focus-within:ring-primary focus-within:border-primary transition-all bg-background shadow-xs">
                     <Textarea
                         value={input}
-                        maxLength={150}
-                        onChange={(e) => setInput(e.target.value)}
-                        onKeyDown={handleKeyDown}
+                        maxLength={CHAT_MAX_LENGTH}
+                        onChange={(e) => setInput(stripControlChars(e.target.value).slice(0, CHAT_MAX_LENGTH))}
+                        onKeyDown={(e) => {
+                            if (e.key === "Enter" && !e.shiftKey && (!isMessageValid || isPending || limitReached)) {
+                                e.preventDefault();
+                                return;
+                            }
+                            handleKeyDown(e);
+                        }}
                         className="w-full min-h-[100px] max-h-[160px] p-4 pr-12 bg-transparent border-0 resize-none focus-visible:ring-0 shadow-none text-sm placeholder:text-muted-foreground font-medium"
                         placeholder={limitReached ? "Limite semanal de mensagens atingido" : "Pergunte qualquer coisa..."}
                         disabled={isPending || limitReached}
                     />
                     <div className="absolute left-4 bottom-3 flex gap-3 text-[10px] text-muted-foreground/60 font-medium">
-                        <span>{input.length}/150</span>
+                        <span>{input.length}/{CHAT_MAX_LENGTH}</span>
                         <span className={limitReached ? "text-destructive font-semibold" : ""}>
                             Esta semana: {totalMessagesUsed}/{messageLimit}
                         </span>
@@ -219,9 +231,9 @@ export function ChatTab({
                     <Button
                         type="button"
                         size="icon"
-                        onClick={handleSend}
+                        onClick={() => { if (isMessageValid && !limitReached && !isPending) handleSend(); }}
                         aria-label="Enviar mensagem"
-                        disabled={isPending || !input.trim() || limitReached}
+                        disabled={isPending || !isMessageValid || limitReached}
                         className="absolute right-3 bottom-3 size-8 rounded-xs shadow-xs"
                     >
                         <Icon name="Send" className="h-4 w-4" />

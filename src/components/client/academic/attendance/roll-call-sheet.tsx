@@ -7,6 +7,9 @@ import { Badge, Button, DataList, Icon, Input, type Column } from "@/components"
 import { useRollCall } from "@/hooks/school/use-roll-call";
 import { AttendanceStatus } from "@/types";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { optionalSafeTextSchema } from "@/schemas";
+
+const rollCallNoteSchema = optionalSafeTextSchema(255, 1, "A observação");
 
 interface RollCallSheetProps {
   classId: string;
@@ -30,9 +33,11 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
   const { students, save, isLoading, isForbidden } = useRollCall(classId, sectionSubjectId, date);
   const canWrite = useCan().canAny("absence:write", "attendance:write");
   const [notes, setNotes] = useState<Record<string, string>>({});
+  const [touchedNotes, setTouchedNotes] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     setNotes({});
+    setTouchedNotes({});
   }, [classId, sectionSubjectId, date]);
 
   type Row = (typeof students)[number];
@@ -71,6 +76,7 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
       key: "status", header: "Marcação",
       render: (_, s) => {
         const cur = statusOf(s.id);
+        const noteParsed = rollCallNoteSchema.safeParse(notesOf(s.id));
         return (
           <div className="flex items-center gap-1.5">
             {STATUS_BUTTONS.map((b) => {
@@ -81,9 +87,9 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
                   type="button"
                   size="sm"
                   variant="outline"
-                  disabled={!canWrite}
+                  disabled={!canWrite || !noteParsed.success}
                   title={b.title}
-                  onClick={() => persist([{ enrollmentId: s.id, status: b.status, notes: notesOf(s.id) }])}
+                  onClick={() => persist([{ enrollmentId: s.id, status: b.status, notes: noteParsed.data ?? "" }])}
                   className={`h-7 gap-1 px-2.5 text-xs ${
                     active ? b.on : "text-muted-foreground"
                   }`}
@@ -103,22 +109,36 @@ export function RollCallSheet({ classId, sectionSubjectId, className, subjectNam
     {
       key: "notes",
       header: "Observações",
-      render: (_, s) => (
-        <Input
-          label=""
-          value={notesOf(s.id)}
-          onChange={(e) => setNotes((p) => ({ ...p, [s.id]: e.target.value }))}
-          onBlur={() => {
-            const currentNote = notes[s.id];
-            if (currentNote !== undefined) {
-              const currentStatus = curStatus(s.id) || "PRESENT";
-              persist([{ enrollmentId: s.id, status: currentStatus, notes: currentNote }]);
-            }
-          }}
-          placeholder="Ex.: Chegou 10 min atrasado, sem farda..."
-          className="h-8 min-w-48 text-xs"
-        />
-      ),
+      render: (_, s) => {
+        const rawNote = notesOf(s.id);
+        const noteParsed = rollCallNoteSchema.safeParse(rawNote);
+        const noteError = touchedNotes[s.id] && !noteParsed.success ? noteParsed.error.issues[0]?.message : undefined;
+        return (
+          <Input
+            label=""
+            maxLength={255}
+            value={rawNote}
+            error={noteError}
+            onChange={(e) => {
+              const val = e.target.value;
+              setNotes((p) => ({ ...p, [s.id]: val }));
+              setTouchedNotes((t) => ({ ...t, [s.id]: true }));
+            }}
+            onBlur={() => {
+              setTouchedNotes((t) => ({ ...t, [s.id]: true }));
+              const currentNote = notes[s.id];
+              if (currentNote !== undefined) {
+                const parsed = rollCallNoteSchema.safeParse(currentNote);
+                if (!parsed.success) return;
+                const currentStatus = curStatus(s.id) || "PRESENT";
+                persist([{ enrollmentId: s.id, status: currentStatus, notes: parsed.data ?? "" }]);
+              }
+            }}
+            placeholder="Ex.: Chegou 10 min atrasado, sem farda..."
+            className="h-8 min-w-48 text-xs"
+          />
+        );
+      },
     },
   ];
 

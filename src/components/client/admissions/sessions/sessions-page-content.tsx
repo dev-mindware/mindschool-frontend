@@ -42,6 +42,7 @@ import { useAdmissionSession, useAdmissionSessions } from "@/hooks/school/use-ph
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { admissionsService } from "@/services/admissions-service";
+import { admissionSessionSchema } from "@/schemas";
 import { EDUCATION_CYCLES } from "../candidate-application-drawer";
 
 const fail = (e: unknown) => {
@@ -61,13 +62,17 @@ function NewSessionModal() {
     title: "",
     when: "",
     location: "",
-    capacity: 40,
+    capacity: "40",
     cycleId: "i-ciclo",
     levelId: "all",
   });
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const touch = (k: string) => setTouched((p) => (p[k] ? p : { ...p, [k]: true }));
 
-  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) =>
+  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => {
+    touch(k);
     setF((p) => ({ ...p, [k]: v }));
+  };
 
   // Classes pertencentes ao ciclo selecionado
   const availableClassesInCycle = useMemo(() => {
@@ -84,8 +89,27 @@ function NewSessionModal() {
     );
   }, [f.cycleId, levels]);
 
-  // a API recusa uma sessão no passado: avisa-se no próprio campo, antes de submeter
-  const whenInPast = Boolean(f.when) && new Date(f.when).getTime() <= Date.now();
+  const parsed = useMemo(
+    () =>
+      admissionSessionSchema.safeParse({
+        title: f.title,
+        when: f.when,
+        location: f.location,
+        capacity: f.capacity,
+      }),
+    [f.title, f.when, f.location, f.capacity]
+  );
+
+  const errors = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        const k = String(issue.path[0] ?? "");
+        if (k && !map[k]) map[k] = issue.message;
+      }
+    }
+    return map;
+  }, [parsed]);
 
   const handleCycleChange = (cycleId: string) => {
     set("cycleId", cycleId);
@@ -103,25 +127,31 @@ function NewSessionModal() {
       }
       submitLabel="Criar Sessão de Prova"
       isLoading={create.isPending}
-      disabled={!hasYear || f.title.trim().length < 3 || !f.when || whenInPast}
-      onSubmit={() =>
-        create
+      disabled={!hasYear || !parsed.success}
+      onSubmit={() => {
+        if (!parsed.success) return Promise.reject(new Error("invalid"));
+        return create
           .mutateAsync({
-            title: f.title.trim(),
-            scheduledAt: new Date(f.when).toISOString(),
-            location: f.location.trim() || undefined,
-            capacity: f.capacity,
+            title: parsed.data.title,
+            scheduledAt: new Date(parsed.data.when).toISOString(),
+            location: parsed.data.location || undefined,
+            capacity: parsed.data.capacity,
             classLevelId: f.levelId === "all" ? undefined : f.levelId,
           })
-          .then(() => SucessMessage("Sessão de prova criada com sucesso."))
-          .catch(fail)
-      }
+          .then(() => {
+            setF({ title: "", when: "", location: "", capacity: "40", cycleId: "i-ciclo", levelId: "all" });
+            setTouched({});
+            SucessMessage("Sessão de prova criada com sucesso.");
+          })
+          .catch(fail);
+      }}
     >
       <div className="sm:col-span-2">
         <Input
           label="Título da Prova de Acesso *"
           placeholder="Ex: Prova de Acesso Curricular de Matemática e Português"
           value={f.title}
+          error={touched.title ? errors.title : undefined}
           onChange={(e) => set("title", e.target.value)}
         />
       </div>
@@ -131,15 +161,18 @@ function NewSessionModal() {
         type="datetime-local"
         value={f.when}
         onChange={(e) => set("when", e.target.value)}
-        error={whenInPast ? "A sessão tem de ser no futuro." : undefined}
+        error={touched.when || f.when ? errors.when : undefined}
       />
 
       <Input
         label="Capacidade de Vagas *"
         type="quantity"
+        min={1}
+        max={1000}
         placeholder="Ex.: 30"
         value={f.capacity}
-        onChange={(e) => set("capacity", Math.max(1, Number(e.target.value) || 1))}
+        error={touched.capacity ? errors.capacity : undefined}
+        onChange={(e) => set("capacity", e.target.value)}
       />
 
       <Input
@@ -147,6 +180,7 @@ function NewSessionModal() {
         placeholder="Ex: Sala 04 (Bloco B)"
         startIcon="MapPin"
         value={f.location}
+        error={touched.location && f.location ? errors.location : undefined}
         onChange={(e) => set("location", e.target.value)}
       />
 
@@ -186,13 +220,33 @@ const toLocalInput = (iso: string) => {
 /** Edição de uma sessão agendada (título, data, local e vagas). A classe e o ano não mudam. */
 function EditSessionModal({ session }: { session: SessionRow | null }) {
   const { update } = useAdmissionSessions();
-  const [f, setF] = useState({ title: "", when: "", location: "", capacity: 1 });
+  const [f, setF] = useState({ title: "", when: "", location: "", capacity: "1" });
   useEffect(() => {
-    if (session) setF({ title: session.title, when: toLocalInput(session.scheduled_at), location: session.location ?? "", capacity: session.capacity });
+    if (session) setF({ title: session.title, when: toLocalInput(session.scheduled_at), location: session.location ?? "", capacity: String(session.capacity) });
   }, [session]);
   const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }));
-  const whenInPast = Boolean(f.when) && new Date(f.when).getTime() <= Date.now();
-  const belowRegistered = Boolean(session) && f.capacity < (session?.registered ?? 0);
+  const parsed = useMemo(
+    () =>
+      admissionSessionSchema.safeParse({
+        title: f.title,
+        when: f.when,
+        location: f.location,
+        capacity: f.capacity,
+      }),
+    [f.title, f.when, f.location, f.capacity]
+  );
+  const errors = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (!parsed.success) {
+      for (const issue of parsed.error.issues) {
+        const k = String(issue.path[0] ?? "");
+        if (k && !map[k]) map[k] = issue.message;
+      }
+    }
+    return map;
+  }, [parsed]);
+  const numericCapacity = parsed.success ? parsed.data.capacity : Number(f.capacity);
+  const belowRegistered = Boolean(session) && Number.isFinite(numericCapacity) && numericCapacity < (session?.registered ?? 0);
 
   return (
     <FormModal
@@ -201,30 +255,32 @@ function EditSessionModal({ session }: { session: SessionRow | null }) {
       description="Só se editam sessões agendadas. As vagas não podem ficar abaixo dos candidatos já inscritos."
       submitLabel="Guardar alterações"
       isLoading={update.isPending}
-      disabled={!session || f.title.trim().length < 3 || !f.when || whenInPast || belowRegistered}
+      disabled={!session || !parsed.success || belowRegistered}
       onSubmit={() =>
-        session
+        session && parsed.success
           ? update
-              .mutateAsync({ id: session.id, title: f.title.trim(), scheduledAt: new Date(f.when).toISOString(), location: f.location.trim() || null, capacity: f.capacity })
+              .mutateAsync({ id: session.id, title: parsed.data.title, scheduledAt: new Date(parsed.data.when).toISOString(), location: parsed.data.location || null, capacity: parsed.data.capacity })
               .then(() => SucessMessage("Sessão atualizada."))
               .catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível atualizar a sessão.")); throw e; })
           : undefined
       }
     >
       <div className="sm:col-span-2">
-        <Input label="Título da Prova de Acesso *" placeholder="Ex.: Prova de Diagnóstico e Admissão - 10.ª Classe" value={f.title} onChange={(e) => set("title", e.target.value)} />
+        <Input label="Título da Prova de Acesso *" placeholder="Ex.: Prova de Diagnóstico e Admissão - 10.ª Classe" value={f.title} error={errors.title} onChange={(e) => set("title", e.target.value)} />
       </div>
-      <Input label="Data e Hora da Prova *" type="datetime-local" value={f.when} error={whenInPast ? "A sessão tem de ser no futuro." : undefined} onChange={(e) => set("when", e.target.value)} />
+      <Input label="Data e Hora da Prova *" type="datetime-local" value={f.when} error={errors.when} onChange={(e) => set("when", e.target.value)} />
       <Input
         label="Capacidade de Vagas *"
         type="quantity"
+        min={1}
+        max={1000}
         placeholder="Ex.: 35"
         value={f.capacity}
-        error={belowRegistered ? `Já há ${session?.registered} inscritos: as vagas não podem ser menos.` : undefined}
-        onChange={(e) => set("capacity", Math.max(1, Number(e.target.value) || 1))}
+        error={errors.capacity || (belowRegistered ? `Já há ${session?.registered} inscritos: as vagas não podem ser menos.` : undefined)}
+        onChange={(e) => set("capacity", e.target.value)}
       />
       <div className="sm:col-span-2">
-        <Input label="Sala / Local da Prova" startIcon="MapPin" placeholder="Ex.: Sala 12 (Bloco Académico)" value={f.location} onChange={(e) => set("location", e.target.value)} />
+        <Input label="Sala / Local da Prova" startIcon="MapPin" placeholder="Ex.: Sala 12 (Bloco Académico)" value={f.location} error={f.location ? errors.location : undefined} onChange={(e) => set("location", e.target.value)} />
       </div>
     </FormModal>
   );

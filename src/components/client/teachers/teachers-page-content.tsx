@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import QRCode from "qrcode";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { formatIsoDay } from "@/utils";
@@ -9,7 +11,9 @@ import { useTeacherCredentials, useTeachersAdmin } from "@/hooks/school/use-admi
 import type { ApiTeacherFull, TeacherStatus } from "@/services/admin-school-service";
 import { useSchoolSettingsStore } from "@/stores/school/school-settings-store";
 import { useModal } from "@/stores/modal/use-modal-store";
-import { getApiErrorMessage } from "@/utils/api-error";
+import { applyApiFieldErrors, getApiErrorMessage } from "@/utils/api-error";
+import { formalReasonSchema, newTeacherSchema, type NewTeacherFormData } from "@/schemas";
+import type { z } from "zod";
 
 const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
 const STATUS: Record<TeacherStatus, string> = { activo: "Ativo", licenca: "Em licença", desvinculado: "Desvinculado" };
@@ -38,30 +42,103 @@ function CardPreview({ payload, name }: { payload: string; name: string }) {
   );
 }
 
+type NewTeacherInput = z.input<typeof newTeacherSchema>;
+
 function NewTeacherModal() {
   const t = useTeachersAdmin();
-  const [userId, setUserId] = useState("");
-  const [doc, setDoc] = useState("");
-  const [qual, setQual] = useState("");
-  const submit = () => t.create.mutateAsync({ userId, documentNumber: doc.trim(), qualification: qual.trim() || undefined }).then(() => { SucessMessage("Ficha criada."); setUserId(""); setDoc(""); setQual(""); }).catch(fail);
+  const {
+    register,
+    watch,
+    setValue,
+    setError,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<NewTeacherInput, unknown, NewTeacherFormData>({
+    resolver: zodResolver(newTeacherSchema),
+    mode: "onChange",
+    defaultValues: { userId: "", documentNumber: "", qualification: "" },
+  });
+
+  const userId = watch("userId");
+
+  const onSubmit = (data: NewTeacherFormData) =>
+    t.create
+      .mutateAsync({
+        userId: data.userId,
+        documentNumber: data.documentNumber,
+        qualification: data.qualification || undefined,
+      })
+      .then(() => {
+        SucessMessage("Ficha criada.");
+        reset();
+      })
+      .catch((err) => {
+        applyApiFieldErrors(err, setError, { document_number: "documentNumber" });
+        fail(err);
+      });
 
   return (
-    <FormModal id="teachers-new" title="Nova ficha de professor" description="Primeiro adicione o utilizador com o papel de professor (Definições → Utilizadores e Papéis) e depois crie a ficha." submitLabel="Criar ficha" isLoading={t.create.isPending} onSubmit={submit} disabled={!userId || doc.trim().length < 5}>
+    <FormModal
+      id="teachers-new"
+      title="Nova ficha de professor"
+      description="Primeiro adicione o utilizador com o papel de professor (Definições → Utilizadores e Papéis) e depois crie a ficha."
+      submitLabel="Criar ficha"
+      isLoading={t.create.isPending}
+      onSubmit={handleSubmit(onSubmit)}
+      onClose={() => reset()}
+      disabled={!isValid || t.create.isPending}
+    >
       <div className="sm:col-span-2">
-        <FormCombobox label="Utilizador (professor sem ficha) *" value={userId} onValueChange={setUserId} options={t.candidates.map((m) => ({ value: m.user.id, label: m.user.full_name, hint: m.user.email }))} />
+        <FormCombobox
+          label="Utilizador (professor sem ficha) *"
+          value={userId}
+          error={errors.userId?.message}
+          onValueChange={(v) => setValue("userId", v, { shouldValidate: true })}
+          options={t.candidates.map((m) => ({ value: m.user.id, label: m.user.full_name, hint: m.user.email }))}
+        />
       </div>
-      <Input label="N.º do documento *" startIcon="IdCard" value={doc} onChange={(e) => setDoc(e.target.value)} />
-      <Input label="Habilitação académica" startIcon="GraduationCap" value={qual} onChange={(e) => setQual(e.target.value)} />
+      <Input
+        label="N.º do documento (BI ou Passaporte) *"
+        startIcon="IdCard"
+        placeholder="Ex.: 007849302LA042"
+        error={errors.documentNumber?.message}
+        {...register("documentNumber")}
+      />
+      <Input
+        label="Habilitação académica"
+        startIcon="GraduationCap"
+        placeholder="Ex.: Licenciatura em Matemática"
+        error={errors.qualification?.message}
+        {...register("qualification")}
+      />
     </FormModal>
   );
 }
+
+const blockCredentialSchema = formalReasonSchema(5, 500, "O motivo do bloqueio");
+type BlockCredentialFormData = z.infer<typeof blockCredentialSchema>;
 
 function CredentialsModal({ teacher }: { teacher: ApiTeacherFull | null }) {
   const { credentials, issue, block } = useTeacherCredentials(teacher?.id);
   const { openModal } = useModal();
   const [card, setCard] = useState<string | null>(null);
   const [blockId, setBlockId] = useState<string | null>(null);
-  const [reason, setReason] = useState("");
+  const {
+    watch: watchBlock,
+    setValue: setBlockValue,
+    setError: setBlockError,
+    handleSubmit: handleBlockSubmit,
+    reset: resetBlockForm,
+    formState: { errors: blockErrors, isValid: isBlockValid },
+  } = useForm<BlockCredentialFormData>({
+    resolver: zodResolver(blockCredentialSchema),
+    mode: "onChange",
+    defaultValues: { reason: "" },
+  });
+
+  const blockReason = watchBlock("reason") ?? "";
+
   useEffect(() => setCard(null), [teacher?.id]);
 
   return (
@@ -94,19 +171,50 @@ function CredentialsModal({ teacher }: { teacher: ApiTeacherFull | null }) {
               <span>{c.credential_type === "cartao_fisico" ? "Cartão físico" : "QR da aplicação"} • {formatIsoDay(c.issued_at)}</span>
               <span className="flex items-center gap-2">
                 <Badge variant="outline">{c.status}</Badge>
-                {c.status === "activa" && <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => { setBlockId(c.id); setReason(""); openModal("teachers-block-credential"); }}>Bloquear</Button>}
+                {c.status === "activa" && <Button size="sm" variant="ghost" className="h-7 text-xs text-destructive" onClick={() => { setBlockId(c.id); resetBlockForm({ reason: "" }); openModal("teachers-block-credential"); }}>Bloquear</Button>}
               </span>
             </div>
           ))}
         </div>
       </FormModal>
-      <FormModal id="teachers-block-credential" title="Bloquear credencial" description="Indique o motivo (mínimo 5 caracteres). A credencial deixa de ser aceite de imediato." submitLabel="Bloquear" isLoading={block.isPending} disabled={reason.trim().length < 5} onSubmit={() => (blockId ? block.mutateAsync({ id: blockId, reason: reason.trim() }).then(() => SucessMessage("Credencial bloqueada.")).catch(fail) : undefined)}>
+      <FormModal
+        id="teachers-block-credential"
+        title="Bloquear credencial"
+        description="Indique o motivo (mínimo 5 caracteres). A credencial deixa de ser aceite de imediato."
+        submitLabel="Bloquear"
+        isLoading={block.isPending}
+        disabled={!isBlockValid || block.isPending}
+        onClose={() => {
+          resetBlockForm();
+          setBlockId(null);
+        }}
+        onSubmit={handleBlockSubmit((data) =>
+          blockId
+            ? block.mutateAsync({ id: blockId, reason: data.reason }).then(() => {
+                SucessMessage("Credencial bloqueada.");
+                resetBlockForm();
+                setBlockId(null);
+              }).catch((err) => {
+                applyApiFieldErrors(err, setBlockError);
+                fail(err);
+              })
+            : undefined
+        )}
+      >
         <div className="sm:col-span-2">
           <FormTextarea
             label="Motivo do bloqueio *"
             placeholder="Ex.: Cartão físico extraviado, furto ou cessação de funções..."
-            value={reason}
-            onChange={setReason}
+            maxLength={500}
+            value={blockReason}
+            error={blockErrors.reason?.message}
+            onChange={(val) =>
+              setBlockValue("reason", val, {
+                shouldValidate: true,
+                shouldTouch: true,
+                shouldDirty: true,
+              })
+            }
             rows={3}
           />
         </div>

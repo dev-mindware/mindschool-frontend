@@ -1,18 +1,32 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { AdmissionApplication } from "@/types/admission";
 import { useAdmissions } from "@/hooks/school/use-admissions";
 import { useAuthStore } from "@/stores";
+import { safeTextSchema } from "@/schemas";
 import {
   GlobalModal,
-  SelectField,
+  FormSelect,
   Button,
   ButtonSubmit,
   FormTextarea,
   Icon,
 } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+
+const decisionModalSchema = z.object({
+  decision: z.enum(["APPROVED", "WAITLIST", "REJECTED"], {
+    error: "Seleccione a deliberação oficial.",
+  }),
+  notes: safeTextSchema(5, 500, "A fundamentação do despacho"),
+});
+
+type DecisionFormInput = z.input<typeof decisionModalSchema>;
+type DecisionFormData = z.infer<typeof decisionModalSchema>;
 
 interface DecisionModalProps {
   isOpen: boolean;
@@ -27,29 +41,52 @@ export function DecisionModal({
 }: DecisionModalProps) {
   const { decideApplication } = useAdmissions();
 
-  const [decision, setDecision] = useState<"APPROVED" | "WAITLIST" | "REJECTED">(
+  const defaultDecision: DecisionFormData["decision"] =
     application?.examScore !== undefined && application.examScore >= application.minPassingScore
       ? "APPROVED"
-      : "WAITLIST"
-  );
-  const [notes, setNotes] = useState("");
+      : "WAITLIST";
+
   // Quem decide fica registado pela API com o utilizador autenticado (não é um texto livre).
   const decidedBy = useAuthStore((s) => s.user?.name) ?? "o utilizador atual";
   const [isSubmitting, setIsSubmitting] = useState(false);
 
+  const {
+    watch,
+    setValue,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<DecisionFormInput, unknown, DecisionFormData>({
+    resolver: zodResolver(decisionModalSchema),
+    mode: "onChange",
+    defaultValues: {
+      decision: defaultDecision,
+      notes: "",
+    },
+  });
+
+  useEffect(() => {
+    if (isOpen && application) {
+      reset({
+        decision:
+          application.examScore !== undefined &&
+          application.examScore >= application.minPassingScore
+            ? "APPROVED"
+            : "WAITLIST",
+        notes: "",
+      });
+    }
+  }, [isOpen, application, reset]);
+
+  const decision = watch("decision");
+  const notes = watch("notes") ?? "";
+
   if (!application || !isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!notes.trim() || notes.trim().length < 3) {
-      ErrorMessage("Por favor, informe a fundamentação ou nota do despacho.");
-      return;
-    }
-
+  const onSubmit = async (data: DecisionFormData) => {
     setIsSubmitting(true);
     try {
-      await decideApplication(application.id, decision, notes.trim(), decidedBy);
+      await decideApplication(application.id, data.decision, data.notes, decidedBy);
       SucessMessage("Decisão de admissão registada com sucesso!");
       onClose();
     } catch (err: unknown) {
@@ -82,7 +119,7 @@ export function DecisionModal({
         </div>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-5 pt-2">
+      <form onSubmit={handleSubmit(onSubmit)} noValidate className="space-y-5 pt-2">
         {/* Resumo do Candidato */}
         <div className="p-3.5 rounded-xs border bg-muted/40 space-y-1.5 text-xs">
           <div className="flex justify-between items-center">
@@ -120,11 +157,16 @@ export function DecisionModal({
 
         {/* Escolha da Decisão */}
         <div className="space-y-4">
-          <SelectField
-            label="Deliberação / Decisão Oficial"
+          <FormSelect
+            label="Deliberação / Decisão Oficial *"
             value={decision}
+            error={errors.decision?.message}
             onValueChange={(val) =>
-              setDecision(val as "APPROVED" | "WAITLIST" | "REJECTED")
+              setValue("decision", val as DecisionFormData["decision"], {
+                shouldValidate: true,
+                shouldTouch: true,
+                shouldDirty: true,
+              })
             }
             options={[
               {
@@ -145,8 +187,16 @@ export function DecisionModal({
           <FormTextarea
             label="Fundamentação do Despacho (Obrigatório)"
             rows={3}
+            maxLength={500}
             value={notes}
-            onChange={setNotes}
+            onChange={(val) =>
+              setValue("notes", val, {
+                shouldValidate: true,
+                shouldTouch: true,
+                shouldDirty: true,
+              })
+            }
+            error={errors.notes?.message}
             placeholder="Ex: Candidato aprovado no exame de acesso com média favorável. Vaga atribuída na turma matutina..."
           />
 
@@ -165,7 +215,7 @@ export function DecisionModal({
           <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             Cancelar
           </Button>
-          <ButtonSubmit isLoading={isSubmitting} className="gap-2">
+          <ButtonSubmit isLoading={isSubmitting} disabled={!isValid || isSubmitting} className="gap-2">
             <Icon name="Check" className="h-4 w-4" />
             Confirmar e Gravar Despacho
           </ButtonSubmit>

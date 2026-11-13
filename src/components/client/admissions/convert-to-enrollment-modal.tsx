@@ -1,9 +1,13 @@
 "use client";
 
-import React, { useState, useMemo } from "react";
+import React, { useState, useMemo, useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { AdmissionApplication } from "@/types/admission";
 import { useAdmissions } from "@/hooks/school/use-admissions";
 import { useSections } from "@/hooks/school/use-sections";
+import { sanitizeSearchTerm, stripControlChars } from "@/schemas";
 import {
   Button,
   ButtonSubmit,
@@ -23,6 +27,12 @@ import {
 } from "@/components/ui/sheet";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 
+const convertToEnrollmentSchema = z.object({
+  selectedSectionId: z.string().trim().min(1, "Seleccione a turma de destino."),
+});
+
+type ConvertToEnrollmentFormData = z.infer<typeof convertToEnrollmentSchema>;
+
 interface ConvertToEnrollmentModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -37,22 +47,45 @@ export function ConvertToEnrollmentModal({
   const { convertCandidateToEnrollment } = useAdmissions();
   const { data: sections = [] } = useSections();
 
-  const [selectedSectionId, setSelectedSectionId] = useState<string>(
-    sections[0]?.id || ""
-  );
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    watch,
+    setValue,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<ConvertToEnrollmentFormData>({
+    resolver: zodResolver(convertToEnrollmentSchema),
+    mode: "onChange",
+    defaultValues: {
+      selectedSectionId: sections[0]?.id || "",
+    },
+  });
+
+  const selectedSectionId = watch("selectedSectionId");
 
   // Paginated Section Search
   const [sectionSearch, setSectionSearch] = useState("");
   const [sectionPage, setSectionPage] = useState(1);
   const PAGE_SIZE = 5;
 
+  useEffect(() => {
+    if (isOpen) {
+      reset({ selectedSectionId: sections[0]?.id || "" });
+      setSectionSearch("");
+      setSectionPage(1);
+    }
+  }, [isOpen, application?.id, sections, reset]);
+
   const filteredSections = useMemo(() => {
+    const q = sanitizeSearchTerm(sectionSearch, 100).toLowerCase();
+    if (!q) return sections;
     return sections.filter(
       (sec) =>
-        sec.name.toLowerCase().includes(sectionSearch.toLowerCase()) ||
-        sec.classLevel.toLowerCase().includes(sectionSearch.toLowerCase()) ||
-        sec.roomNumber.toLowerCase().includes(sectionSearch.toLowerCase())
+        sec.name.toLowerCase().includes(q) ||
+        sec.classLevel.toLowerCase().includes(q) ||
+        sec.roomNumber.toLowerCase().includes(q)
     );
   }, [sections, sectionSearch]);
 
@@ -92,15 +125,11 @@ export function ConvertToEnrollmentModal({
   const isFull = currentSection
     ? currentSection.currentEnrollmentCount >= currentSection.capacity
     : false;
+  const sectionError =
+    errors.selectedSectionId?.message ??
+    (isFull ? "Esta turma já atingiu a capacidade máxima de lotação." : undefined);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!selectedSectionId) {
-      ErrorMessage("Por favor, selecione a turma de destino para o novo aluno.");
-      return;
-    }
-
+  const onSubmit = async (data: ConvertToEnrollmentFormData) => {
     if (isFull) {
       ErrorMessage("Atenção: Esta turma já atingiu a capacidade máxima de lotação.");
       return;
@@ -108,7 +137,7 @@ export function ConvertToEnrollmentModal({
 
     setIsSubmitting(true);
     try {
-      await convertCandidateToEnrollment(application.id, selectedSectionId);
+      await convertCandidateToEnrollment(application.id, data.selectedSectionId);
 
       SucessMessage(
         "Matrícula efectivada com sucesso! Aluno cadastrado no sistema."
@@ -141,7 +170,7 @@ export function ConvertToEnrollmentModal({
           </div>
         </SheetHeader>
 
-      <form id="convert-enrollment-form" onSubmit={handleSubmit} className="flex-1 overflow-y-auto p-6 space-y-5">
+      <form id="convert-enrollment-form" onSubmit={handleSubmit(onSubmit)} noValidate className="flex-1 overflow-y-auto p-6 space-y-5">
         {/* Banner Informativo */}
         <div className="p-3.5 rounded-xs border border-emerald-500/30 bg-emerald-50/50 dark:bg-emerald-950/20 text-xs space-y-1 text-emerald-950 dark:text-emerald-200">
           <div className="font-semibold flex items-center gap-1.5 text-sm text-emerald-800 dark:text-emerald-300">
@@ -191,16 +220,23 @@ export function ConvertToEnrollmentModal({
         <div className="space-y-4">
           <div className="space-y-1.5">
             <Label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-              Turma de destino
+              Turma de destino *
             </Label>
             <PaginatedSelect
               options={sectionOptions}
               value={selectedSectionId}
-              onChange={setSelectedSectionId}
+              onChange={(val) =>
+                setValue("selectedSectionId", val, {
+                  shouldValidate: true,
+                  shouldTouch: true,
+                  shouldDirty: true,
+                })
+              }
+              error={sectionError}
               placeholder="Pesquise por nome da turma, sala ou nível..."
               searchValue={sectionSearch}
               onSearchChange={(val) => {
-                setSectionSearch(val);
+                setSectionSearch(stripControlChars(val).slice(0, 100));
                 setSectionPage(1);
               }}
               pagination={{
@@ -266,7 +302,7 @@ export function ConvertToEnrollmentModal({
           <ButtonSubmit
             form="convert-enrollment-form"
             isLoading={isSubmitting}
-            disabled={isFull}
+            disabled={!isValid || isFull || isSubmitting}
           >
             <Icon name="UserPlus" className="h-4 w-4" />
             Confirmar Matrícula do Aluno

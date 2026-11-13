@@ -1,7 +1,10 @@
 "use client";
 
 import { formatIsoDay } from "@/utils/format-date";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { SucessMessage, ErrorMessage, InfoMessage } from "@/utils/messages";
 import { Can, Badge, Button, ButtonOnlyAction, Checkbox, ConfirmModal, DataList, EmptyState, FormModal, FormSelect, Icon, Input, StatusLegend, Textarea, TitleList, type Column } from "@/components";
 import { GenericTable } from "@/components/common/generic-table";
@@ -9,26 +12,94 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { useFinalExam, useFinalExams } from "@/hooks/school/use-phase6";
 import { CALL_LABEL, type ExamCall, type ExamResultInput } from "@/services/phase6-service";
 import { useModal } from "@/stores/modal/use-modal-store";
-import { getApiErrorMessage } from "@/utils/api-error";
+import { applyApiFieldErrors, getApiErrorMessage } from "@/utils/api-error";
+import { isoDateSchema, optionalSafeTextSchema, schoolGradeSchema } from "@/schemas";
 
 const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
 const STATUS_LABEL = { agendado: "Agendado", realizado: "Realizado", encerrado: "Encerrado" } as const;
 const RESULT_OPTIONS = [{ value: "avaliado", label: "Avaliado" }, { value: "ausente", label: "Ausente" }, { value: "ausente_justificado", label: "Ausente justificado" }, { value: "anulado", label: "Anulado" }];
 
+const newExamSchema = z.object({
+  assignmentId: z.string().trim().min(1, "Seleccione a disciplina e turma."),
+  call: z.enum(["primeira", "segunda", "recurso", "melhoria"]),
+  scheduledDate: isoDateSchema("A data do exame"),
+  national: z.boolean(),
+});
+
+type NewExamInput = z.input<typeof newExamSchema>;
+type NewExamData = z.infer<typeof newExamSchema>;
+
+const examJustificationSchema = optionalSafeTextSchema(500, 5, "O motivo");
+const examGradeSchema = schoolGradeSchema("A nota");
+
 function NewExamModal() {
   const { assignments, create } = useFinalExams();
-  const [assignmentId, setAssignmentId] = useState("");
-  const [call, setCall] = useState<ExamCall>("primeira");
-  const [national, setNational] = useState(false);
-  const [date, setDate] = useState("");
-  const a = assignments.find((x) => x.id === assignmentId);
+  const {
+    register,
+    watch,
+    setValue,
+    setError,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<NewExamInput, unknown, NewExamData>({
+    resolver: zodResolver(newExamSchema),
+    mode: "onChange",
+    defaultValues: { assignmentId: "", call: "primeira", scheduledDate: "", national: false },
+  });
+
+  const assignmentId = watch("assignmentId");
+  const call = watch("call");
+  const national = watch("national");
+
+  const resetDefaults = () => reset({ assignmentId: "", call: "primeira", scheduledDate: "", national: false });
+
+  const onSubmit = (data: NewExamData) => {
+    const a = assignments.find((x) => x.id === data.assignmentId);
+    if (!a) return;
+    return create
+      .mutateAsync({ sectionId: a.sectionId, assignmentId: a.id, call: data.call, national: data.national, scheduledDate: data.scheduledDate })
+      .then(() => {
+        SucessMessage("Chamada criada.");
+        resetDefaults();
+      })
+      .catch((e) => {
+        applyApiFieldErrors(e, setError);
+        return fail(e);
+      });
+  };
 
   return (
-    <FormModal id="final-exam-new" title="Nova chamada de exame" submitLabel="Criar chamada" isLoading={create.isPending} disabled={!a || !date} onSubmit={() => (a ? create.mutateAsync({ sectionId: a.sectionId, assignmentId: a.id, call, national, scheduledDate: date }).then(() => SucessMessage("Chamada criada.")).catch(fail) : undefined)}>
-      <div className="sm:col-span-2"><FormSelect label="Disciplina e turma *" value={assignmentId} onValueChange={setAssignmentId} options={assignments.map((x) => ({ value: x.id, label: `${x.subjectName} — ${x.sectionName}` }))} /></div>
-      <FormSelect label="Chamada" value={call} onValueChange={(v) => setCall(v as ExamCall)} options={(Object.keys(CALL_LABEL) as ExamCall[]).map((c) => ({ value: c, label: CALL_LABEL[c] }))} />
-      <Input label="Data *" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      <label className="flex items-center gap-2 text-sm sm:col-span-2"><Checkbox checked={national} onCheckedChange={(v) => setNational(Boolean(v))} />Exame nacional</label>
+    <FormModal
+      id="final-exam-new"
+      title="Nova chamada de exame"
+      submitLabel="Criar chamada"
+      isLoading={create.isPending}
+      disabled={!isValid || create.isPending}
+      onClose={resetDefaults}
+      onSubmit={handleSubmit(onSubmit)}
+    >
+      <div className="sm:col-span-2">
+        <FormSelect
+          label="Disciplina e turma *"
+          value={assignmentId}
+          onValueChange={(v) => setValue("assignmentId", v, { shouldValidate: true, shouldTouch: true })}
+          options={assignments.map((x) => ({ value: x.id, label: `${x.subjectName} — ${x.sectionName}` }))}
+          error={errors.assignmentId?.message}
+        />
+      </div>
+      <FormSelect
+        label="Chamada"
+        value={call}
+        onValueChange={(v) => setValue("call", v as ExamCall, { shouldValidate: true })}
+        options={(Object.keys(CALL_LABEL) as ExamCall[]).map((c) => ({ value: c, label: CALL_LABEL[c] }))}
+        error={errors.call?.message}
+      />
+      <Input label="Data *" type="date" error={errors.scheduledDate?.message} {...register("scheduledDate")} />
+      <label className="flex items-center gap-2 text-sm sm:col-span-2">
+        <Checkbox checked={national} onCheckedChange={(v) => setValue("national", Boolean(v), { shouldValidate: true })} />
+        Exame nacional
+      </label>
     </FormModal>
   );
 }
@@ -42,25 +113,57 @@ function ExamModal({ id }: { id: string | null }) {
   const isOpen = Boolean(open["final-exam-detail"]);
   // Motivo comum das ausências justificadas e anulações desta gravação (a API guarda-o como prova).
   const [justification, setJustification] = useState("");
+  const [justifTouched, setJustifTouched] = useState(false);
   const [drafts, setDrafts] = useState<Record<string, Draft>>({});
+  const [touchedGrades, setTouchedGrades] = useState<Record<string, boolean>>({});
 
   useEffect(() => {
     if (!exam) return;
     setDrafts(Object.fromEntries(exam.students.filter((s) => s.result).map((s) => [s.enrollment_id, { status: (s.result!.status === "inscrito" ? "avaliado" : s.result!.status) as Draft["status"], value: s.result!.exam_value?.toString() ?? "" }])));
+    setTouchedGrades({});
+    setJustification("");
+    setJustifTouched(false);
   }, [exam]);
 
   const closed = exam?.status === "encerrado";
   const enrolled = exam?.students.filter((s) => s.result && s.result.status !== "anulado") ?? [];
 
-  const save = () => {
-    const results: ExamResultInput[] = enrolled.flatMap<ExamResultInput>((s) => {
+  const justifParsed = useMemo(() => examJustificationSchema.safeParse(justification), [justification]);
+  const justifError = justifTouched && !justifParsed.success ? justifParsed.error.issues[0]?.message : undefined;
+
+  const { hasInvalidGrade, resultsPayload } = useMemo(() => {
+    let invalid = false;
+    const payload: ExamResultInput[] = [];
+    for (const s of enrolled) {
       const d = drafts[s.enrollment_id];
-      if (!d) return [];
-      if (d.status === "avaliado") return d.value === "" ? [] : [{ enrollment_id: s.enrollment_id, status: "avaliado" as const, numeric_value: Number(d.value) }];
-      return [{ enrollment_id: s.enrollment_id, status: d.status, justification: d.status === "ausente_justificado" || d.status === "anulado" ? (justification.trim() || "Registado na secretaria") : undefined }];
-    });
-    if (results.length === 0) return ErrorMessage("Nada para gravar.");
-    void putResults.mutateAsync(results).then(() => SucessMessage("Resultados gravados.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
+      if (!d) continue;
+      if (d.status === "avaliado") {
+        if (d.value.trim() === "") continue;
+        const parsed = examGradeSchema.safeParse(d.value);
+        if (!parsed.success) {
+          invalid = true;
+          continue;
+        }
+        payload.push({ enrollment_id: s.enrollment_id, status: "avaliado", numeric_value: parsed.data });
+      } else {
+        payload.push({
+          enrollment_id: s.enrollment_id,
+          status: d.status,
+          justification: d.status === "ausente_justificado" || d.status === "anulado"
+            ? ((justifParsed.success ? justifParsed.data : undefined) || "Registado na secretaria")
+            : undefined,
+        });
+      }
+    }
+    return { hasInvalidGrade: invalid, resultsPayload: payload };
+  }, [enrolled, drafts, justifParsed]);
+
+  const save = () => {
+    if (hasInvalidGrade || !justifParsed.success) {
+      return ErrorMessage("Corrija os campos inválidos antes de gravar.");
+    }
+    if (resultsPayload.length === 0) return ErrorMessage("Nada para gravar.");
+    void putResults.mutateAsync(resultsPayload).then(() => SucessMessage("Resultados gravados.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
   };
 
   const studentRows: ExamStudentRow[] = (exam?.students ?? []).map((s) => ({ ...s, id: s.enrollment_id }));
@@ -89,12 +192,35 @@ function ExamModal({ id }: { id: string | null }) {
       render: (_, s) => {
         const d = drafts[s.enrollment_id];
         if (!s.result || !d) return <span className="text-muted-foreground">—</span>;
+        const hasVal = d.value.trim() !== "";
+        const gradeParsed = hasVal ? examGradeSchema.safeParse(d.value) : null;
+        const gradeError = (touchedGrades[s.enrollment_id] || hasVal) && gradeParsed && !gradeParsed.success
+          ? gradeParsed.error.issues[0]?.message
+          : undefined;
         return (
-          <div className="flex gap-2">
+          <div className="flex items-start gap-2">
             <FormSelect label="" value={d.status} onValueChange={(v) => setDrafts((c) => ({ ...c, [s.enrollment_id]: { ...d, status: v as Draft["status"] } }))} options={RESULT_OPTIONS} disabled={closed} className="flex-1" />
             {d.status === "avaliado" && (
-              <div className="w-24">
-                <Input label="" type="quantity" min={0} max={20} step={0.1} disabled={closed} value={d.value} onChange={(e) => setDrafts((c) => ({ ...c, [s.enrollment_id]: { ...d, value: e.target.value } }))} />
+              <div className="w-28">
+                <Input
+                  label=""
+                  type="number"
+                  min={0}
+                  max={20}
+                  step="0.01"
+                  disabled={closed}
+                  value={d.value}
+                  error={gradeError}
+                  placeholder="0 - 20"
+                  onKeyDown={(e) => {
+                    if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
+                  }}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setDrafts((c) => ({ ...c, [s.enrollment_id]: { ...d, value: val } }));
+                    setTouchedGrades((t) => ({ ...t, [s.enrollment_id]: true }));
+                  }}
+                />
               </div>
             )}
           </div>
@@ -128,7 +254,12 @@ function ExamModal({ id }: { id: string | null }) {
               <Textarea
                 label="Motivo das ausências justificadas e anulações (fica registado como prova)"
                 value={justification}
-                onChange={(e) => setJustification(e.target.value)}
+                maxLength={500}
+                error={justifError}
+                onChange={(e) => {
+                  setJustification(e.target.value);
+                  setJustifTouched(true);
+                }}
                 placeholder="Ex.: Atestado médico hospitalar entregue pelo encarregado de educação..."
                 rows={2}
               />
@@ -136,7 +267,7 @@ function ExamModal({ id }: { id: string | null }) {
             {!closed && (
               <div className="flex flex-wrap gap-2">
                 <Can permission="final_exam:write"><Button size="sm" variant="outline" disabled={enroll.isPending} onClick={() => enroll.mutateAsync(undefined).then((r) => (r.enrolled > 0 ? SucessMessage(`${r.enrolled} aluno(s) inscrito(s).`) : InfoMessage("Nenhum aluno foi inscrito: só se inscreve quem já tem a média final das disciplinas (pautas dos três trimestres fechadas) e cumpre as regras desta chamada."))).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")))}>Inscrever todos os elegíveis</Button></Can>
-                <Can permission="final_exam:results"><Button size="sm" onClick={save} disabled={putResults.isPending || enrolled.length === 0}>Gravar resultados</Button></Can>
+                <Can permission="final_exam:results"><Button size="sm" onClick={save} disabled={putResults.isPending || enrolled.length === 0 || hasInvalidGrade || !justifParsed.success || resultsPayload.length === 0}>Gravar resultados</Button></Can>
                 <Can permission="final_exam:write"><Button size="sm" variant="secondary" disabled={close.isPending} onClick={() => openModal("final-exam-close-confirm")}>Encerrar chamada</Button></Can>
                 <ConfirmModal
                   id="final-exam-close-confirm"

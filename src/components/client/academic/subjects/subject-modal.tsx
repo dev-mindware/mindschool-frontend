@@ -10,7 +10,7 @@ import { getApiErrorMessage } from "@/utils/api-error";
 import {
   GlobalModal,
   Input,
-  SelectField,
+  FormSelect,
   Button,
   ButtonSubmit,
   Badge,
@@ -19,10 +19,11 @@ import {
 } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { cn } from "@/lib/utils";
+import { optionalSafeTextSchema, safeTextSchema } from "@/schemas/helps";
 
 const subjectFormSchema = z.object({
-  name: z.string().trim().min(2, "O nome da disciplina deve ter pelo menos 2 caracteres"),
-  code: z.string().trim().optional(),
+  name: safeTextSchema(2, 100, "O nome da disciplina"),
+  code: optionalSafeTextSchema(12, 2, "O código / sigla"),
   gradingScale: z.enum(["quantitativa", "qualitativa", "mista"]),
   isCore: z.boolean(),
 });
@@ -72,8 +73,8 @@ export function SubjectModal({
     setValue,
     watch,
     reset,
-    formState: { errors, isSubmitting },
-  } = useForm<SubjectFormValues>({
+    formState: { errors, isSubmitting, isValid },
+  } = useForm<z.input<typeof subjectFormSchema>, unknown, SubjectFormValues>({
     resolver: zodResolver(subjectFormSchema),
     mode: "onChange",
     defaultValues: {
@@ -120,14 +121,14 @@ export function SubjectModal({
         .join("")
         .toUpperCase()
         .slice(0, 4);
-      setValue("code", autoCode);
+      setValue("code", autoCode, { shouldValidate: true });
     }
   };
 
   const applyPreset = (name: string, code: string, isCore: boolean) => {
     setValue("name", name, { shouldValidate: true });
-    setValue("code", code);
-    setValue("isCore", isCore);
+    setValue("code", code, { shouldValidate: true });
+    setValue("isCore", isCore, { shouldValidate: true });
     setCodeManuallyEdited(true);
   };
 
@@ -205,7 +206,7 @@ export function SubjectModal({
               {...register("code")}
               onChange={(e) => {
                 setCodeManuallyEdited(true);
-                setValue("code", e.target.value.toUpperCase());
+                setValue("code", e.target.value.toUpperCase(), { shouldValidate: true });
               }}
               error={errors.code?.message}
             />
@@ -214,12 +215,17 @@ export function SubjectModal({
 
         {/* Escala de Avaliação */}
         <div>
-          <SelectField
+          <FormSelect
             label="Escala de Avaliação *"
             value={selectedGradingScale}
             options={GRADING_SCALE_OPTIONS}
             disabled={Boolean(subjectToEdit)}
-            onValueChange={(val) => setValue("gradingScale", val as "quantitativa" | "qualitativa" | "mista")}
+            onValueChange={(val) =>
+              setValue("gradingScale", val as "quantitativa" | "qualitativa" | "mista", {
+                shouldValidate: true,
+              })
+            }
+            error={errors.gradingScale?.message}
           />
           {subjectToEdit && (
             <p className="mt-1 text-[11px] text-muted-foreground">
@@ -279,7 +285,10 @@ export function SubjectModal({
           <Button type="button" variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <ButtonSubmit isLoading={isSubmitting}>
+          <ButtonSubmit
+            isLoading={isSubmitting || save.isPending}
+            disabled={!isValid || isSubmitting || save.isPending}
+          >
             {subjectToEdit ? "Guardar Alterações" : "Criar Disciplina"}
           </ButtonSubmit>
         </div>

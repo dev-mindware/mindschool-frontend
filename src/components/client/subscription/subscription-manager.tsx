@@ -3,14 +3,27 @@ import { formatIsoDay } from "@/utils/format-date";
 import { formatCurrencyCompact, formatDate } from "@/utils";
 
 import { useState } from "react";
+import { z } from "zod";
 import Link from "next/link";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
-import { Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, FileUpload, FormModal, FormTextarea, HelpHint, Icon, Input, PROOF_ACCEPT_PDF_PNG, Progress, StatusLegend, TitleList, type Column } from "@/components";
+import { Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, FileUpload, FormModal, FormTextarea, HelpHint, Icon, PROOF_ACCEPT_PDF_PNG, Progress, StatusLegend, TitleList, type Column } from "@/components";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { useSubscription } from "@/hooks/school/use-subscription";
 import type { ApiOrder } from "@/services/subscription-service";
+import { safeTextSchema, stripControlChars } from "@/schemas/helps";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
+
+const MAX_PROOF_BYTES = 10 * 1024 * 1024;
+const cancelReasonSchema = safeTextSchema(5, 500, "O motivo do cancelamento");
+const proofFileSchema = z
+  .custom<File>((val) => typeof File !== "undefined" && val instanceof File, "Anexe o comprovativo da transferência.")
+  .refine((f) => f.size > 0, "O ficheiro selecionado está vazio.")
+  .refine((f) => f.size <= MAX_PROOF_BYTES, "O comprovativo não pode exceder 10 MB.")
+  .refine(
+    (f) => ["application/pdf", "image/png"].includes(f.type) || /\.(pdf|png)$/i.test(f.name),
+    "Formato inválido. Envie um ficheiro PDF ou PNG."
+  );
 
 const ORDER_LABEL: Record<string, string> = {
   pending_payment: "A aguardar pagamento", payment_proof_submitted: "Comprovativo enviado", under_review: "Em análise", proof_replacement_required: "Comprovativo a substituir",
@@ -37,7 +50,16 @@ export function SubscriptionManager() {
   const { openModal } = useModal();
   const [order, setOrder] = useState<ApiOrder | null>(null);
   const [file, setFile] = useState<File | null>(null);
+  const [fileTouched, setFileTouched] = useState(false);
   const [reason, setReason] = useState("");
+  const [reasonTouched, setReasonTouched] = useState(false);
+
+  const fileResult = proofFileSchema.safeParse(file);
+  const fileError = fileTouched && !fileResult.success ? fileResult.error.issues[0]?.message : undefined;
+  const reasonResult = cancelReasonSchema.safeParse(reason);
+  const reasonError = (reasonTouched || reason.length > 0) && !reasonResult.success
+    ? reasonResult.error.issues[0]?.message
+    : undefined;
 
   const sub = current?.subscription;
   const quotas = (current?.quotas ?? []).filter((q) => q.limit !== null);
@@ -60,7 +82,7 @@ export function SubscriptionManager() {
       key: "action", header: "Ação",
       render: (_, o) => OPEN.includes(o.status) ? (
         <ButtonOnlyAction data={o} actions={[
-          { label: "Enviar comprovativo", icon: "Upload", onClick: (x) => { setOrder(x); setFile(null); openModal("sub-proof"); } },
+          { label: "Enviar comprovativo", icon: "Upload", onClick: (x) => { setOrder(x); setFile(null); setFileTouched(false); openModal("sub-proof"); } },
           { label: "Cancelar ordem", icon: "X", variant: "destructive", onClick: (x) => { setOrder(x); openModal("sub-cancel-order"); } },
         ]} />
       ) : null,
@@ -112,7 +134,7 @@ export function SubscriptionManager() {
 
       <div className="space-y-1">
         <div className="flex items-center justify-between"><h3 className="text-lg font-semibold">Ordens e comprovativos</h3>
-          {sub && !sub.cancel_at_period_end && sub.status === "active" && <Button size="sm" variant="ghost" className="text-destructive" onClick={() => { setReason(""); openModal("sub-cancel"); }}>Cancelar subscrição</Button>}
+          {sub && !sub.cancel_at_period_end && sub.status === "active" && <Button size="sm" variant="ghost" className="text-destructive" onClick={() => { setReason(""); setReasonTouched(false); openModal("sub-cancel"); }}>Cancelar subscrição</Button>}
         </div>
         <DataList<ApiOrder>
           prefix="orders"
@@ -134,19 +156,21 @@ export function SubscriptionManager() {
         />
       </div>
 
-      <FormModal id="sub-proof" title="Enviar comprovativo" description={`${catalog?.payment_instructions ?? ""}`.trim() || "O comprovativo (PDF ou PNG, até 10 MB) é analisado pela equipa; o plano só é ativado após a aprovação."} submitLabel="Enviar" isLoading={submitProof.isPending} disabled={!file} onSubmit={() => (order && file ? submitProof.mutateAsync({ orderId: order.id, file }).then(() => SucessMessage("Comprovativo enviado para análise.")).catch(fail) : undefined)}>
-        <FileUpload value={file} onChange={setFile} accept={PROOF_ACCEPT_PDF_PNG} label="Ficheiro do comprovativo (PDF ou PNG) *" />
+      <FormModal id="sub-proof" title="Enviar comprovativo" description={`${catalog?.payment_instructions ?? ""}`.trim() || "O comprovativo (PDF ou PNG, até 10 MB) é analisado pela equipa; o plano só é ativado após a aprovação."} submitLabel="Enviar" isLoading={submitProof.isPending} disabled={!fileResult.success || submitProof.isPending} onSubmit={() => { setFileTouched(true); return order && fileResult.success ? submitProof.mutateAsync({ orderId: order.id, file: fileResult.data }).then(() => SucessMessage("Comprovativo enviado para análise.")).catch(fail) : undefined; }}>
+        <FileUpload value={file} onChange={(f) => { setFile(f); setFileTouched(true); }} accept={PROOF_ACCEPT_PDF_PNG} error={fileError} label="Ficheiro do comprovativo (PDF ou PNG) *" />
       </FormModal>
 
       <ConfirmModal id="sub-cancel-order" destructive title="Cancelar ordem" description="A ordem deixa de ser analisada. Pode criar outra quando quiser." confirmLabel="Cancelar ordem" isLoading={cancelOrder.isPending} onConfirm={() => (order ? cancelOrder.mutateAsync(order.id).then(() => SucessMessage("Ordem cancelada.")).catch(fail) : undefined)} />
 
-      <FormModal id="sub-cancel" title="Cancelar subscrição" description="Mantém-se ativa até ao fim do período pago. Indique o motivo (mínimo 5 caracteres)." submitLabel="Agendar cancelamento" isLoading={cancelSubscription.isPending} disabled={reason.trim().length < 5} onSubmit={() => cancelSubscription.mutateAsync(reason.trim()).then(() => SucessMessage("Cancelamento agendado para o fim do período.")).catch(fail)}>
+      <FormModal id="sub-cancel" title="Cancelar subscrição" description="Mantém-se ativa até ao fim do período pago. Indique o motivo (mínimo 5 caracteres)." submitLabel="Agendar cancelamento" isLoading={cancelSubscription.isPending} disabled={!reasonResult.success || cancelSubscription.isPending} onSubmit={() => { setReasonTouched(true); if (!reasonResult.success) return; return cancelSubscription.mutateAsync(reasonResult.data).then(() => SucessMessage("Cancelamento agendado para o fim do período.")).catch(fail); }}>
         <div className="sm:col-span-2">
           <FormTextarea
             label="Motivo do cancelamento *"
             placeholder="Explique brevemente a razão do cancelamento (mínimo 5 caracteres)..."
             value={reason}
-            onChange={setReason}
+            maxLength={500}
+            error={reasonError}
+            onChange={(v) => { setReason(stripControlChars(v)); setReasonTouched(true); }}
             rows={3}
           />
         </div>

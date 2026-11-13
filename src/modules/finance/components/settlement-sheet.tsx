@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useMemo, useRef, useState } from "react";
+import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription, SheetFooter } from "@/components/ui/sheet";
 import { Button } from "@/components/ui/button";
@@ -13,7 +14,7 @@ import { Icon } from "@/components/common/icon";
 import { ErrorMessage, SucessMessage } from "@/utils/messages";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { formatCurrency } from "@/utils/format-currency";
-import { isValidNif, normalizeNif } from "@/lib/nif";
+import { optionalSafeTextSchema, taxNumberSchema } from "@/schemas/helps";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { financeKeys } from "@/modules/finance/query-keys";
 import type { StudentTuitionFee } from "@/modules/finance/types";
@@ -38,6 +39,11 @@ const PAYMENT_METHODS: { id: UiPaymentMethod; label: string; icon: string; desc:
 
 type Choice = { kind: CustomerKind; guardianId?: string };
 
+const settlementFormSchema = z.object({
+  method: z.enum(["MULTICAIXA", "CASH", "TRANSFER", "EXPRESS"]),
+  reference: optionalSafeTextSchema(50, 3, "O n.º de talão / transação"),
+});
+
 /** Cobranças a liquidar: a de origem (se ainda tem saldo) e as multas por pagar, cada uma pelo valor total em dívida. */
 export function invoiceIdsOf(fees: StudentTuitionFee[]): string[] {
   return fees.flatMap((f) => [...((f.baseBalance ?? f.totalAmount) > 0 ? [f.id] : []), ...(f.penalties ?? []).map((p) => p.id)]);
@@ -58,10 +64,20 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
 
   const [method, setMethod] = useState<UiPaymentMethod>("MULTICAIXA");
   const [reference, setReference] = useState("");
+  const [refTouched, setRefTouched] = useState(false);
   const [picked, setPicked] = useState<Choice | null>(null);
   const [done, setDone] = useState<ApiSettlement | null>(null);
   // Mesma chave enquanto o pedido é o mesmo: um duplo clique (ou um novo envio após falha de rede) não regista duas vezes.
   const key = useRef<{ sig: string; id: string }>({ sig: "", id: "" });
+
+  const settlementParsed = useMemo(
+    () => settlementFormSchema.safeParse({ method, reference }),
+    [method, reference],
+  );
+  const refError =
+    refTouched && !settlementParsed.success
+      ? settlementParsed.error.issues.find((i) => i.path[0] === "reference")?.message
+      : undefined;
 
   const options = useQuery({
     queryKey: ["settlement-customer-options", schoolId, studentId],
@@ -75,7 +91,8 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
 
   const submit = useMutation({
     mutationFn: () => {
-      const input = { invoiceIds, method, ...(reference.trim() ? { reference: reference.trim() } : {}), ...(choice ? { customer: choice } : {}) };
+      const cleanRef = settlementParsed.success ? settlementParsed.data.reference : reference.trim();
+      const input = { invoiceIds, method, ...(cleanRef ? { reference: cleanRef } : {}), ...(choice ? { customer: choice } : {}) };
       // A mesma chave só enquanto o pedido é o mesmo: repetir um pedido igual não regista duas vezes; um pedido diferente leva chave nova.
       const sig = JSON.stringify(input);
       if (key.current.sig !== sig) {
@@ -97,7 +114,7 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
 
   const mixed = students.length > 1;
   const selectedOk = choice?.kind === "consumidor_final" || customerHasNif(options.data, choice);
-  const canSubmit = !mixed && invoiceIds.length > 0 && !submit.isPending && Boolean(options.data) && selectedOk;
+  const canSubmit = !mixed && invoiceIds.length > 0 && !submit.isPending && Boolean(options.data) && selectedOk && settlementParsed.success;
 
   return (
     <Sheet open={isOpen} onOpenChange={(open) => !open && onClose()}>
@@ -161,7 +178,17 @@ export function SettlementSheet({ isOpen, onClose, fees }: SettlementSheetProps)
 
               <div className="space-y-1.5">
                 <Label htmlFor="settlement-ref" className="text-xs text-foreground">N.º de talão / transação (opcional)</Label>
-                <Input id="settlement-ref" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Ex: 94829103" maxLength={50} />
+                <Input
+                  id="settlement-ref"
+                  value={reference}
+                  onChange={(e) => {
+                    setRefTouched(true);
+                    setReference(e.target.value);
+                  }}
+                  error={refError}
+                  placeholder="Ex: 94829103"
+                  maxLength={50}
+                />
               </div>
 
               <CustomerChooser
@@ -301,23 +328,27 @@ function CustomerChooser(p: {
 /** Registar o NIF de quem paga: «Verificar NIF» consulta o contribuinte (por proxy); só depois de «Guardar» fica na ficha. */
 function NifEditor({ onSave, onSaved }: { onSave: (nif: string) => Promise<void>; onSaved: () => void }) {
   const [nif, setNif] = useState("");
+  const [touched, setTouched] = useState(false);
   const [found, setFound] = useState<string | null>(null);
   const [busy, setBusy] = useState<"verify" | "save" | null>(null);
-  const valid = isValidNif(nif);
+  const parsed = useMemo(() => taxNumberSchema.safeParse(nif), [nif]);
+  const nifError = touched && !parsed.success ? parsed.error.issues[0]?.message : undefined;
 
   async function verify() {
+    if (!parsed.success) return;
     setBusy("verify");
     try {
-      setFound((await settlementService.lookupNif(normalizeNif(nif))).name);
+      setFound((await settlementService.lookupNif(parsed.data)).name);
     } catch (e) {
       setFound(null);
       ErrorMessage(getApiErrorMessage(e, "Não foi possível verificar o NIF."));
     } finally { setBusy(null); }
   }
   async function save() {
+    if (!parsed.success) return;
     setBusy("save");
     try {
-      await onSave(normalizeNif(nif));
+      await onSave(parsed.data);
       SucessMessage("NIF guardado.");
       onSaved();
     } catch (e) {
@@ -326,15 +357,24 @@ function NifEditor({ onSave, onSaved }: { onSave: (nif: string) => Promise<void>
   }
   return (
     <div className="mt-3 space-y-2 border-t pt-3">
-      <div className="flex items-end gap-2">
-        <div className="flex-1 space-y-1">
-          <Label className="text-[11px]">NIF</Label>
-          <Input value={nif} onChange={(e) => { setNif(e.target.value); setFound(null); }} placeholder="Ex: 5417012345" />
+      <div className="flex items-start gap-2">
+        <div className="flex-1">
+          <Input
+            label="NIF"
+            value={nif}
+            maxLength={20}
+            onChange={(e) => {
+              setTouched(true);
+              setNif(e.target.value);
+              setFound(null);
+            }}
+            error={nifError}
+            placeholder="Ex: 5417012345"
+          />
         </div>
-        <Button type="button" size="sm" variant="outline" disabled={!valid || busy !== null} onClick={() => void verify()}>Verificar NIF</Button>
-        <Button type="button" size="sm" disabled={!valid || busy !== null} onClick={() => void save()}>Guardar</Button>
+        <Button type="button" size="sm" variant="outline" className="mt-6" disabled={!parsed.success || busy !== null} onClick={() => void verify()}>Verificar NIF</Button>
+        <Button type="button" size="sm" className="mt-6" disabled={!parsed.success || busy !== null} onClick={() => void save()}>Guardar</Button>
       </div>
-      {nif.trim() !== "" && !valid && <p className="text-[11px] text-destructive">NIF inválido: 10 dígitos, ou 9 dígitos + 2 letras + 3 dígitos.</p>}
       {found && <p className="text-[11px] text-emerald-700">Contribuinte encontrado: <strong>{found}</strong></p>}
     </div>
   );

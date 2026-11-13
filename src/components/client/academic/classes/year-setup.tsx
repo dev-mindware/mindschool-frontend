@@ -1,12 +1,71 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Button, ButtonSubmit, Icon, Input } from "@/components";
 import { useAcademicYears } from "@/hooks/school/use-academic";
 import { useCan } from "@/hooks/auth/use-can";
-import { suggestAcademicYear, validateAcademicYear, type AcademicYearDraft, type AcademicYearErrors } from "@/lib/academic-year";
+import { suggestAcademicYear, type AcademicYearDraft } from "@/lib/academic-year";
+import { academicYearSetupSchema, isoDateSchema } from "@/schemas";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { ErrorMessage, SucessMessage } from "@/utils/messages";
+
+const yearSetupSchema = z
+  .object({
+    name: z
+      .string({ error: "O nome do ano letivo é obrigatório." })
+      .trim()
+      .regex(/^\d{4}\/\d{4}$/, "Use o formato AAAA/AAAA (ex.: 2026/2027).")
+      .refine(
+        (v) => Number(v.slice(5)) === Number(v.slice(0, 4)) + 1,
+        "O segundo ano deve ser o seguinte ao primeiro.",
+      ),
+    start_date: isoDateSchema("A data de início"),
+    end_date: isoDateSchema("A data de fim"),
+    enrollment_open_date: isoDateSchema("A data de abertura das matrículas"),
+    enrollment_close_date: isoDateSchema("A data de fecho das matrículas"),
+  })
+  .superRefine((data, ctx) => {
+    const baseCheck = academicYearSetupSchema.safeParse({
+      name: data.name,
+      startDate: data.start_date,
+      endDate: data.end_date,
+    });
+    if (!baseCheck.success) {
+      for (const issue of baseCheck.error.issues) {
+        const mappedPath =
+          issue.path[0] === "startDate"
+            ? "start_date"
+            : issue.path[0] === "endDate"
+              ? "end_date"
+              : issue.path[0] === "name"
+                ? "name"
+                : null;
+        if (mappedPath) {
+          ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            path: [mappedPath],
+            message: issue.message,
+          });
+        }
+      }
+    }
+    if (data.enrollment_open_date > data.enrollment_close_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["enrollment_close_date"],
+        message: "O fecho não pode ser antes da abertura das matrículas.",
+      });
+    }
+    if (data.enrollment_close_date > data.end_date) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["enrollment_close_date"],
+        message: "As matrículas têm de fechar até ao fim do ano letivo.",
+      });
+    }
+  });
 
 interface YearSetupProps {
   /** Os anos letivos não puderam ser lidos (não é o mesmo que a escola não ter nenhum). */
@@ -23,10 +82,15 @@ interface YearSetupProps {
 export function YearSetup({ loadFailed, onRetry, onClose }: YearSetupProps) {
   const { createYear } = useAcademicYears();
   const { can } = useCan();
-  const [draft, setDraft] = useState<AcademicYearDraft>(() => suggestAcademicYear());
-  const [errors, setErrors] = useState<AcademicYearErrors>({});
-
-  const set = (k: keyof AcademicYearDraft, v: string) => setDraft((d) => ({ ...d, [k]: v }));
+  const {
+    register,
+    handleSubmit,
+    formState: { errors, isValid },
+  } = useForm<AcademicYearDraft>({
+    resolver: zodResolver(yearSetupSchema),
+    mode: "onChange",
+    defaultValues: suggestAcademicYear(),
+  });
 
   if (loadFailed) {
     return (
@@ -55,11 +119,7 @@ export function YearSetup({ loadFailed, onRetry, onClose }: YearSetupProps) {
     );
   }
 
-  const submit = (e: FormEvent) => {
-    e.preventDefault();
-    const found = validateAcademicYear(draft);
-    setErrors(found);
-    if (Object.keys(found).length > 0) return;
+  const submit = (draft: AcademicYearDraft) => {
     createYear.mutate(draft, {
       onSuccess: (y) => SucessMessage(`Ano letivo ${y.name} criado${y.status === "activo" ? " e ativado" : ""}. Já pode criar a turma.`),
       onError: (err) => ErrorMessage(getApiErrorMessage(err, "Não foi possível criar o ano letivo.")),
@@ -67,7 +127,7 @@ export function YearSetup({ loadFailed, onRetry, onClose }: YearSetupProps) {
   };
 
   return (
-    <form onSubmit={submit} className="space-y-3">
+    <form onSubmit={handleSubmit(submit)} className="space-y-3">
       <div className="flex gap-3 rounded-xs border border-amber-500/30 bg-amber-500/5 p-3 text-xs">
         <Icon name="Info" className="mt-0.5 size-4 shrink-0 text-amber-600" />
         <p>
@@ -76,16 +136,16 @@ export function YearSetup({ loadFailed, onRetry, onClose }: YearSetupProps) {
       </div>
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <Input label="Ano letivo *" startIcon="CalendarRange" placeholder="2026/2027" value={draft.name} onChange={(e) => set("name", e.target.value)} error={errors.name} />
-        <Input label="Início *" type="date" value={draft.start_date} onChange={(e) => set("start_date", e.target.value)} error={errors.start_date} />
-        <Input label="Fim *" type="date" value={draft.end_date} onChange={(e) => set("end_date", e.target.value)} error={errors.end_date} />
-        <Input label="Matrículas abrem em *" type="date" value={draft.enrollment_open_date} onChange={(e) => set("enrollment_open_date", e.target.value)} error={errors.enrollment_open_date} />
-        <Input label="Matrículas fecham em *" type="date" value={draft.enrollment_close_date} onChange={(e) => set("enrollment_close_date", e.target.value)} error={errors.enrollment_close_date} />
+        <Input label="Ano letivo *" startIcon="CalendarRange" placeholder="2026/2027" {...register("name")} error={errors.name?.message} />
+        <Input label="Início *" type="date" {...register("start_date")} error={errors.start_date?.message} />
+        <Input label="Fim *" type="date" {...register("end_date")} error={errors.end_date?.message} />
+        <Input label="Matrículas abrem em *" type="date" {...register("enrollment_open_date")} error={errors.enrollment_open_date?.message} />
+        <Input label="Matrículas fecham em *" type="date" {...register("enrollment_close_date")} error={errors.enrollment_close_date?.message} />
       </div>
 
       <div className="flex justify-end gap-3 pt-1">
         <Button type="button" variant="outline" onClick={onClose}>Cancelar</Button>
-        <ButtonSubmit isLoading={createYear.isPending}>Criar e ativar ano letivo</ButtonSubmit>
+        <ButtonSubmit isLoading={createYear.isPending} disabled={!isValid || createYear.isPending}>Criar e ativar ano letivo</ButtonSubmit>
       </div>
     </form>
   );

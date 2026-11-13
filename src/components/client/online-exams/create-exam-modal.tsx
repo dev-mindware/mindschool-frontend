@@ -1,9 +1,13 @@
 'use client';
 
-import { useMemo, useState } from 'react';
+import { useEffect } from 'react';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { FormModal, FormSelect, Input } from '@/components';
 import type { TeacherAssignment } from '@/types';
 import type { ApiTerm } from '@/services/grades-service';
+import { quantitySchema, safeTextSchema } from '@/schemas';
 
 export const CREATE_EXAM_MODAL_ID = 'exam-create';
 
@@ -21,25 +25,91 @@ const localNow = (plusHours = 0) => {
   return d.toISOString().slice(0, 16);
 };
 
+const createExamSchema = z
+  .object({
+    title: safeTextSchema(3, 150, 'O título da avaliação'),
+    assignmentId: z.string().trim().min(1, 'Seleccione a disciplina e turma.'),
+    termId: z.string().trim().min(1, 'Seleccione o período.'),
+    opens: z
+      .string({ error: 'A data de abertura é obrigatória.' })
+      .trim()
+      .min(1, 'A data de abertura é obrigatória.')
+      .refine((v) => Number.isFinite(new Date(v).getTime()), 'Data e hora de abertura inválidas.'),
+    closes: z
+      .string({ error: 'A data de fecho é obrigatória.' })
+      .trim()
+      .min(1, 'A data de fecho é obrigatória.')
+      .refine((v) => Number.isFinite(new Date(v).getTime()), 'Data e hora de fecho inválidas.'),
+    duration: z.union([z.literal(''), quantitySchema(1, 360, 'A duração (minutos)')]).optional(),
+    attempts: quantitySchema(1, 10, 'O número de tentativas'),
+  })
+  .refine((d) => new Date(d.closes).getTime() > new Date(d.opens).getTime(), {
+    message: 'A data de fecho deve ser posterior à data de abertura.',
+    path: ['closes'],
+  });
+
+type CreateExamInput = z.input<typeof createExamSchema>;
+type CreateExamData = z.infer<typeof createExamSchema>;
+
 export function CreateExamModal({ assignments, terms, isSaving, onSave }: CreateExamModalProps) {
-  const [title, setTitle] = useState('');
-  const [assignmentId, setAssignmentId] = useState('');
-  const [termId, setTermId] = useState('');
-  const [opens, setOpens] = useState(localNow());
-  const [closes, setCloses] = useState(localNow(48));
-  const [duration, setDuration] = useState('60');
-  const [attempts, setAttempts] = useState('1');
+  const defaultTermId = terms[0]?.id ?? '';
+  const {
+    register,
+    watch,
+    setValue,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<CreateExamInput, unknown, CreateExamData>({
+    resolver: zodResolver(createExamSchema),
+    mode: 'onChange',
+    defaultValues: {
+      title: '',
+      assignmentId: '',
+      termId: defaultTermId,
+      opens: localNow(),
+      closes: localNow(48),
+      duration: 60,
+      attempts: 1,
+    },
+  });
 
-  const assignment = useMemo(() => assignments.find((a) => a.id === assignmentId), [assignments, assignmentId]);
-  const term = termId || terms[0]?.id || '';
+  const assignmentId = watch('assignmentId');
+  const termId = watch('termId');
+  const duration = watch('duration');
+  const attempts = watch('attempts');
 
-  const submit = async () => {
-    if (!assignment || !term || title.trim().length < 3) throw new Error('incomplete');
-    await onSave({
-      sectionId: assignment.sectionId, assignmentId: assignment.id, termId: term, title: title.trim(),
-      opensAt: toIso(opens), closesAt: toIso(closes), timeLimitMinutes: Number(duration) || undefined, maxAttempts: Number(attempts) || 1,
+  useEffect(() => {
+    if (!termId && defaultTermId) {
+      setValue('termId', defaultTermId, { shouldValidate: true });
+    }
+  }, [termId, defaultTermId, setValue]);
+
+  const resetDefaults = () =>
+    reset({
+      title: '',
+      assignmentId: '',
+      termId: terms[0]?.id ?? '',
+      opens: localNow(),
+      closes: localNow(48),
+      duration: 60,
+      attempts: 1,
     });
-    setTitle('');
+
+  const onSubmit = async (data: CreateExamData) => {
+    const assignment = assignments.find((a) => a.id === data.assignmentId);
+    if (!assignment) throw new Error('incomplete');
+    await onSave({
+      sectionId: assignment.sectionId,
+      assignmentId: assignment.id,
+      termId: data.termId,
+      title: data.title,
+      opensAt: toIso(data.opens),
+      closesAt: toIso(data.closes),
+      timeLimitMinutes: typeof data.duration === 'number' ? data.duration : undefined,
+      maxAttempts: data.attempts,
+    });
+    resetDefaults();
   };
 
   return (
@@ -50,18 +120,71 @@ export function CreateExamModal({ assignments, terms, isSaving, onSave }: Create
       submitLabel="Criar e adicionar questões"
       size="lg"
       isLoading={isSaving}
-      disabled={!assignment || title.trim().length < 3}
-      onSubmit={submit}
+      disabled={!isValid || isSaving}
+      onClose={resetDefaults}
+      onSubmit={handleSubmit(onSubmit)}
     >
       <div className="sm:col-span-2">
-        <Input label="Título da avaliação *" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: 2.ª Prova Parcial de Matemática" />
+        <Input
+          label="Título da avaliação *"
+          maxLength={150}
+          placeholder="Ex: 2.ª Prova Parcial de Matemática"
+          error={errors.title?.message}
+          {...register('title')}
+        />
       </div>
-      <FormSelect label="Disciplina e turma" value={assignmentId} onValueChange={setAssignmentId} options={assignments.map((a) => ({ label: `${a.subjectName} — ${a.sectionName}`, value: a.id }))} />
-      <FormSelect label="Período" value={term} onValueChange={setTermId} options={terms.map((t) => ({ label: `${t.sequence}.º Trimestre`, value: t.id }))} />
-      <Input label="Abre em" type="datetime-local" value={opens} onChange={(e) => setOpens(e.target.value)} />
-      <Input label="Fecha em" type="datetime-local" value={closes} onChange={(e) => setCloses(e.target.value)} />
-      <Input label="Duração (minutos)" type="quantity" min={1} max={360} step={5} placeholder="Ex.: 90" value={duration} onChange={(e) => setDuration(e.target.value)} />
-      <Input label="Tentativas permitidas" type="quantity" min={1} max={10} step={1} placeholder="Ex.: 1" value={attempts} onChange={(e) => setAttempts(e.target.value)} />
+      <FormSelect
+        label="Disciplina e turma *"
+        value={assignmentId}
+        onValueChange={(v) => setValue('assignmentId', v, { shouldValidate: true, shouldTouch: true })}
+        options={assignments.map((a) => ({ label: `${a.subjectName} — ${a.sectionName}`, value: a.id }))}
+        error={errors.assignmentId?.message}
+      />
+      <FormSelect
+        label="Período *"
+        value={termId}
+        onValueChange={(v) => setValue('termId', v, { shouldValidate: true, shouldTouch: true })}
+        options={terms.map((t) => ({ label: `${t.sequence}.º Trimestre`, value: t.id }))}
+        error={errors.termId?.message}
+      />
+      <Input
+        label="Abre em *"
+        type="datetime-local"
+        error={errors.opens?.message}
+        {...register('opens', {
+          onChange: () => {
+            void setValue('closes', watch('closes'), { shouldValidate: true });
+          },
+        })}
+      />
+      <Input
+        label="Fecha em *"
+        type="datetime-local"
+        error={errors.closes?.message}
+        {...register('closes')}
+      />
+      <Input
+        label="Duração (minutos)"
+        type="quantity"
+        min={1}
+        max={360}
+        step={5}
+        placeholder="Ex.: 90"
+        value={duration === undefined || duration === null ? '' : String(duration)}
+        error={errors.duration?.message}
+        onChange={(e) => setValue('duration', e.target.value, { shouldValidate: true, shouldTouch: true })}
+      />
+      <Input
+        label="Tentativas permitidas *"
+        type="quantity"
+        min={1}
+        max={10}
+        step={1}
+        placeholder="Ex.: 1"
+        value={attempts === undefined || attempts === null ? '' : String(attempts)}
+        error={errors.attempts?.message}
+        onChange={(e) => setValue('attempts', e.target.value, { shouldValidate: true, shouldTouch: true })}
+      />
     </FormModal>
   );
 }

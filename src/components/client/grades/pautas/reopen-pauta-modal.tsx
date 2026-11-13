@@ -1,9 +1,13 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import type { z } from "zod";
 import { ConsolidatedPauta } from "@/types/grade";
 import { usePautas } from "@/hooks/school/use-pautas";
-import { getApiErrorMessage } from "@/utils/api-error";
+import { applyApiFieldErrors, getApiErrorMessage } from "@/utils/api-error";
+import { formalReasonSchema } from "@/schemas";
 import {
   GlobalModal,
   Button,
@@ -12,6 +16,10 @@ import {
   Icon,
 } from "@/components";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+
+const reopenPautaSchema = formalReasonSchema(10, 500, "A justificativa de reabertura");
+type ReopenPautaInput = z.input<typeof reopenPautaSchema>;
+type ReopenPautaData = z.infer<typeof reopenPautaSchema>;
 
 interface ReopenPautaModalProps {
   isOpen: boolean;
@@ -27,31 +35,39 @@ export function ReopenPautaModal({
   onSuccess,
 }: ReopenPautaModalProps) {
   const { reopen } = usePautas(pauta.term, []);
-  const [reason, setReason] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    watch,
+    setValue,
+    setError,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid, isSubmitting },
+  } = useForm<ReopenPautaInput, unknown, ReopenPautaData>({
+    resolver: zodResolver(reopenPautaSchema),
+    mode: "onChange",
+    defaultValues: { reason: "" },
+  });
+
+  useEffect(() => {
+    if (isOpen) {
+      reset({ reason: "" });
+    }
+  }, [isOpen, reset]);
 
   if (!isOpen) return null;
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const reason = watch("reason") ?? "";
 
-    if (reason.trim().length < 10) {
-      ErrorMessage(
-        "A justificativa de reabertura deve conter pelo menos 10 caracteres para fins de auditoria."
-      );
-      return;
-    }
-
-    setIsSubmitting(true);
+  const onSubmit = async (data: ReopenPautaData) => {
     try {
-      await reopen.mutateAsync({ sectionId: pauta.sectionId, term: pauta.term, reason });
+      await reopen.mutateAsync({ sectionId: pauta.sectionId, term: pauta.term, reason: data.reason });
       SucessMessage(`Pauta da ${pauta.sectionName} reaberta. Evento auditado com sucesso!`);
+      reset({ reason: "" });
       if (onSuccess) onSuccess();
       onClose();
     } catch (err: unknown) {
+      applyApiFieldErrors(err, setError);
       ErrorMessage(getApiErrorMessage(err, "Erro ao reabrir pauta"));
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -77,7 +93,7 @@ export function ReopenPautaModal({
         </div>
       }
     >
-      <form onSubmit={handleSubmit} className="space-y-4 pt-2">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-2">
         <div className="p-3.5 rounded-xs border border-warning-border bg-warning-muted text-xs text-foreground space-y-1">
           <div className="font-semibold flex items-center gap-1.5 text-sm text-warning">
             <Icon name="TriangleAlert" className="h-4 w-4" />
@@ -90,11 +106,13 @@ export function ReopenPautaModal({
 
         <div className="space-y-1.5">
           <FormTextarea
-            label="Justificativa da Reabertura (Obrigatório)*"
+            label="Justificativa da Reabertura (Obrigatório) *"
             value={reason}
-            onChange={setReason}
+            onChange={(v) => setValue("reason", v, { shouldValidate: true, shouldTouch: true })}
             placeholder="Ex.: Rectificação da nota de Matemática do aluno João Silva após deferimento de reclamação pelo Conselho Pedagógico..."
             rows={4}
+            maxLength={500}
+            error={errors.reason?.message}
           />
           <span className="text-[11px] text-muted-foreground">
             Mínimo de 10 caracteres exigido para auditoria.
@@ -116,7 +134,7 @@ export function ReopenPautaModal({
           </Button>
           <ButtonSubmit
             isLoading={isSubmitting}
-            disabled={reason.trim().length < 10}
+            disabled={!isValid || isSubmitting}
             className="gap-2"
           >
             <Icon name="RotateCcw" className="h-4 w-4" />

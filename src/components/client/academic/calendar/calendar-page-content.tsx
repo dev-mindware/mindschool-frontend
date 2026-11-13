@@ -3,7 +3,15 @@ import { formatIsoDay } from "@/utils/format-date";
 import { formatDateTime } from "@/utils";
 
 import { useMemo, useState } from "react";
+import { z } from "zod";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import {
+  isoDateSchema,
+  isValidIsoDate,
+  optionalSafeTextSchema,
+  safeTextSchema,
+  timeHHMMSchema,
+} from "@/schemas/helps";
 import {
   Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, FormModal, FormSelect, FormTextarea, Icon, Input, ListFilterBar, MonthCalendar, Tabs, TabsContent, TabsList, TabsTrigger, TitleList,
   applyListFilters, filterKeysOf, type CalendarItem, type Column, type ListFilterDef, type ListSortDef,
@@ -45,20 +53,110 @@ const eventText = (e: ApiEvent) => `${e.title} ${EVENT_TYPE_LABEL[e.type] ?? e.t
 
 import { usePlanUpgradeModal, isPlanRestrictedError } from "@/stores/plan/use-plan-upgrade-modal-store";
 
+const newEventSchema = z
+  .object({
+    type: z.string().trim().min(1, "Seleccione o tipo de evento."),
+    title: safeTextSchema(3, 150, "O título do evento"),
+    start: isoDateSchema("A data de início"),
+    end: z
+      .string()
+      .trim()
+      .refine((v) => v === "" || isValidIsoDate(v), "A data de fim é inválida (AAAA-MM-DD).")
+      .optional(),
+    startTime: z
+      .string()
+      .trim()
+      .refine((v) => v === "" || timeHHMMSchema("A hora de início").safeParse(v).success, "Hora de início inválida (HH:MM).")
+      .optional(),
+    endTime: z
+      .string()
+      .trim()
+      .refine((v) => v === "" || timeHHMMSchema("A hora de fim").safeParse(v).success, "Hora de fim inválida (HH:MM).")
+      .optional(),
+    visibility: z.enum(["interna", "professores", "encarregados", "publica"]),
+    location: optionalSafeTextSchema(120, 2, "O local"),
+    justification: optionalSafeTextSchema(500, 5, "A justificação"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.end && data.end < data.start) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["end"],
+        message: "A data de fim deve ser igual ou posterior à data de início.",
+      });
+    }
+    if (data.endTime && !data.startTime) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["startTime"],
+        message: "Indique a hora de início quando definir a hora de fim.",
+      });
+    }
+    if (data.startTime && data.endTime && (!data.end || data.end === data.start) && data.endTime <= data.startTime) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["endTime"],
+        message: "A hora de fim deve ser posterior à hora de início.",
+      });
+    }
+  });
+
+const cancelReasonSchema = safeTextSchema(5, 500, "O motivo do cancelamento");
+const holidayDecisionSchema = safeTextSchema(5, 500, "A fundamentação");
+
+const INITIAL_EVENT_FORM = {
+  type: "actividade_escolar",
+  title: "",
+  start: "",
+  end: "",
+  startTime: "",
+  endTime: "",
+  visibility: "interna" as ApiEvent["visibility"],
+  location: "",
+  justification: "",
+};
+
 function NewEventModal() {
   const { createEvent } = useCalendar();
   const { open, modalData } = useModal();
   const planModal = usePlanUpgradeModal();
   const preset = (modalData["calendar-new-event"] as { date?: string } | undefined)?.date ?? "";
-  const [f, setF] = useState({ type: "actividade_escolar", title: "", start: "", end: "", startTime: "", endTime: "", visibility: "interna" as ApiEvent["visibility"], location: "", justification: "" });
-  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }));
+  const [f, setF] = useState(INITIAL_EVENT_FORM);
+  const [touched, setTouched] = useState<Partial<Record<keyof typeof INITIAL_EVENT_FORM, boolean>>>({});
+  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => {
+    setTouched((prev) => ({ ...prev, [k]: true }));
+    setF((p) => ({ ...p, [k]: v }));
+  };
   const start = f.start || preset;
 
+  const parsed = useMemo(() => newEventSchema.safeParse({ ...f, start }), [f, start]);
+  const fieldError = (key: keyof typeof INITIAL_EVENT_FORM, alsoShowIf?: boolean) => {
+    if ((!touched[key] && !alsoShowIf) || parsed.success) return undefined;
+    return parsed.error.issues.find((i) => i.path[0] === key)?.message;
+  };
+
   if (!open["calendar-new-event"]) return null;
-  const submit = () =>
-    createEvent
-      .mutateAsync({ type: f.type, title: f.title.trim(), startDate: start, endDate: f.end || undefined, startTime: f.startTime || undefined, endTime: f.endTime || undefined, visibility: f.visibility, location: f.location.trim() || undefined, justification: f.justification.trim() || undefined, affectsLessons: false })
-      .then(() => { SucessMessage("Evento criado (rascunho)."); setF((p) => ({ ...p, title: "", start: "", end: "" })); })
+  const resetForm = () => {
+    setF(INITIAL_EVENT_FORM);
+    setTouched({});
+  };
+  const submit = () => {
+    if (!parsed.success) return;
+    const d = parsed.data;
+    return createEvent
+      .mutateAsync({
+        type: d.type,
+        title: d.title,
+        startDate: d.start,
+        endDate: d.end || undefined,
+        startTime: d.startTime || undefined,
+        endTime: d.endTime || undefined,
+        visibility: d.visibility,
+        location: d.location || undefined,
+        justification: d.justification || undefined,
+        affectsLessons: false,
+      })
+      .then(() => { SucessMessage("Evento criado (rascunho)."); resetForm(); })
       .catch((e) => {
         if (isPlanRestrictedError(e)) {
           planModal.open({
@@ -70,23 +168,25 @@ function NewEventModal() {
         }
         fail(e);
       });
+  };
 
   return (
-    <FormModal id="calendar-new-event" title="Novo evento do calendário" description="O evento nasce em rascunho; aprove e publique-o depois." submitLabel="Criar evento" isLoading={createEvent.isPending} onSubmit={submit} disabled={f.title.trim().length < 3 || !start}>
-      <FormSelect label="Tipo *" value={f.type} onValueChange={(v) => set("type", v)} options={Object.entries(EVENT_TYPE_LABEL).map(([value, label]) => ({ value, label }))} />
-      <Input label="Título *" startIcon="CalendarDays" placeholder="Ex.: Reunião Geral de Encarregados de Educação" value={f.title} onChange={(e) => set("title", e.target.value)} />
-      <Input label="Início *" type="date" value={start} onChange={(e) => set("start", e.target.value)} />
-      <Input label="Fim (opcional)" type="date" value={f.end} onChange={(e) => set("end", e.target.value)} />
-      <Input label="Hora de início" type="time" value={f.startTime} onChange={(e) => set("startTime", e.target.value)} />
-      <Input label="Hora de fim" type="time" value={f.endTime} onChange={(e) => set("endTime", e.target.value)} />
-      <FormSelect label="Visibilidade" value={f.visibility} onValueChange={(v) => set("visibility", v as ApiEvent["visibility"])} options={Object.entries(VISIBILITY).map(([value, label]) => ({ value, label }))} />
-      <Input label="Local" startIcon="MapPin" placeholder="Ex.: Auditório Principal / Bloco B" value={f.location} onChange={(e) => set("location", e.target.value)} />
+    <FormModal id="calendar-new-event" title="Novo evento do calendário" description="O evento nasce em rascunho; aprove e publique-o depois." submitLabel="Criar evento" isLoading={createEvent.isPending} onSubmit={submit} onClose={resetForm} disabled={!parsed.success || createEvent.isPending}>
+      <FormSelect label="Tipo *" value={f.type} onValueChange={(v) => set("type", v)} options={Object.entries(EVENT_TYPE_LABEL).map(([value, label]) => ({ value, label }))} error={fieldError("type")} />
+      <Input label="Título *" startIcon="CalendarDays" placeholder="Ex.: Reunião Geral de Encarregados de Educação" value={f.title} onChange={(e) => set("title", e.target.value)} error={fieldError("title")} />
+      <Input label="Início *" type="date" value={start} onChange={(e) => set("start", e.target.value)} error={fieldError("start")} />
+      <Input label="Fim (opcional)" type="date" value={f.end} onChange={(e) => set("end", e.target.value)} error={fieldError("end", Boolean(touched.start && f.end))} />
+      <Input label="Hora de início" type="time" value={f.startTime} onChange={(e) => set("startTime", e.target.value)} error={fieldError("startTime", Boolean(touched.endTime && f.endTime))} />
+      <Input label="Hora de fim" type="time" value={f.endTime} onChange={(e) => set("endTime", e.target.value)} error={fieldError("endTime", Boolean(touched.startTime && f.endTime))} />
+      <FormSelect label="Visibilidade" value={f.visibility} onValueChange={(v) => set("visibility", v as ApiEvent["visibility"])} options={Object.entries(VISIBILITY).map(([value, label]) => ({ value, label }))} error={fieldError("visibility")} />
+      <Input label="Local" startIcon="MapPin" placeholder="Ex.: Auditório Principal / Bloco B" value={f.location} onChange={(e) => set("location", e.target.value)} error={fieldError("location")} />
       <div className="sm:col-span-2">
         <FormTextarea
           label="Justificação (obrigatória se fecha dias lectivos)"
           placeholder="Descreva a fundamentação legal ou institucional do evento..."
           value={f.justification}
           onChange={(v) => set("justification", v)}
+          error={fieldError("justification")}
           rows={3}
         />
       </div>
@@ -142,7 +242,11 @@ function FullCalendarContent() {
   const [selected, setSelected] = useState<ApiEvent | null>(null);
   const [holiday, setHoliday] = useState<{ row: ApiHolidayRow; decision: "confirmado" | "rejeitado" } | null>(null);
   const [reason, setReason] = useState("");
+  const [reasonTouched, setReasonTouched] = useState(false);
   const [conflict, setConflict] = useState<{ event: ApiEvent; message: string } | null>(null);
+
+  const cancelParsed = useMemo(() => cancelReasonSchema.safeParse(reason), [reason]);
+  const holidayParsed = useMemo(() => holidayDecisionSchema.safeParse(reason), [reason]);
 
   const f = useListFilters("events", [...filterKeysOf(EVENT_FILTERS, EVENT_DATES), "view"], 10);
   const view = f.get("view") === "list" ? "list" : "calendar";
@@ -190,8 +294,8 @@ function FullCalendarContent() {
       key: "action", header: "Decisão",
       render: (_, h) => h.status === "divergente" ? (
         <ButtonOnlyAction data={h} actions={[
-          { permission: "calendar:publish", label: "Confirmar", icon: "CircleCheck", onClick: (x) => { setHoliday({ row: x, decision: "confirmado" }); setReason(""); openModal("calendar-holiday-decision"); } },
-          { permission: "calendar:publish", label: "Rejeitar", icon: "CircleX", onClick: (x) => { setHoliday({ row: x, decision: "rejeitado" }); setReason(""); openModal("calendar-holiday-decision"); } },
+          { permission: "calendar:publish", label: "Confirmar", icon: "CircleCheck", onClick: (x) => { setHoliday({ row: x, decision: "confirmado" }); setReason(""); setReasonTouched(false); openModal("calendar-holiday-decision"); } },
+          { permission: "calendar:publish", label: "Rejeitar", icon: "CircleX", onClick: (x) => { setHoliday({ row: x, decision: "rejeitado" }); setReason(""); setReasonTouched(false); openModal("calendar-holiday-decision"); } },
         ]} />
       ) : null,
     },
@@ -286,31 +390,33 @@ function FullCalendarContent() {
             <div className="flex flex-wrap gap-2 border-t pt-3">
               {selected.status === "rascunho" && <Button size="sm" variant="outline" onClick={() => c.approve.mutateAsync(selected.id).then(() => SucessMessage("Evento aprovado.")).catch((er) => ErrorMessage(getApiErrorMessage(er, "A operação falhou.")))}>Aprovar</Button>}
               {(selected.status === "aprovado" || selected.status === "rascunho") && <Can permission="calendar:publish"><Button size="sm" onClick={() => void publish(selected)}>Publicar</Button></Can>}
-              {selected.status !== "cancelado" && <Button size="sm" variant="ghost" className="text-destructive" onClick={() => { setReason(""); openModal("calendar-cancel-event"); }}>Cancelar evento</Button>}
+              {selected.status !== "cancelado" && <Button size="sm" variant="ghost" className="text-destructive" onClick={() => { setReason(""); setReasonTouched(false); openModal("calendar-cancel-event"); }}>Cancelar evento</Button>}
             </div>
           </div>
         )}
       </FormModal>
 
-      <FormModal id="calendar-cancel-event" title="Cancelar evento" description="Indique o motivo (mínimo 5 caracteres)." submitLabel="Cancelar evento" isLoading={c.cancel.isPending} disabled={reason.trim().length < 5} onSubmit={() => (selected ? c.cancel.mutateAsync({ id: selected.id, reason: reason.trim() }).then(() => SucessMessage("Evento cancelado.")).catch(fail) : undefined)}>
+      <FormModal id="calendar-cancel-event" title="Cancelar evento" description="Indique o motivo (mínimo 5 caracteres)." submitLabel="Cancelar evento" isLoading={c.cancel.isPending} disabled={!cancelParsed.success || c.cancel.isPending} onClose={() => { setReason(""); setReasonTouched(false); }} onSubmit={() => (selected && cancelParsed.success ? c.cancel.mutateAsync({ id: selected.id, reason: cancelParsed.data }).then(() => { SucessMessage("Evento cancelado."); setReason(""); setReasonTouched(false); }).catch(fail) : undefined)}>
         <div className="sm:col-span-2">
           <FormTextarea
             label="Motivo do cancelamento *"
             placeholder="Indique a razão pela qual o evento está a ser cancelado..."
             value={reason}
-            onChange={setReason}
+            onChange={(v) => { setReasonTouched(true); setReason(v); }}
+            error={reasonTouched && !cancelParsed.success ? cancelParsed.error.issues[0]?.message : undefined}
             rows={3}
           />
         </div>
       </FormModal>
 
-      <FormModal id="calendar-holiday-decision" title={holiday?.decision === "confirmado" ? "Confirmar feriado" : "Rejeitar feriado"} description={holiday ? `${holiday.row.name} (${holiday.row.date})` : undefined} submitLabel="Registar decisão" isLoading={c.decide.isPending} disabled={reason.trim().length < 5} onSubmit={() => (holiday ? c.decide.mutateAsync({ date: holiday.row.date, kind: holiday.row.kind, decision: holiday.decision, reason: reason.trim() }).then(() => SucessMessage("Decisão registada.")).catch(fail) : undefined)}>
+      <FormModal id="calendar-holiday-decision" title={holiday?.decision === "confirmado" ? "Confirmar feriado" : "Rejeitar feriado"} description={holiday ? `${holiday.row.name} (${holiday.row.date})` : undefined} submitLabel="Registar decisão" isLoading={c.decide.isPending} disabled={!holidayParsed.success || c.decide.isPending} onClose={() => { setReason(""); setReasonTouched(false); }} onSubmit={() => (holiday && holidayParsed.success ? c.decide.mutateAsync({ date: holiday.row.date, kind: holiday.row.kind, decision: holiday.decision, reason: holidayParsed.data }).then(() => { SucessMessage("Decisão registada."); setReason(""); setReasonTouched(false); }).catch(fail) : undefined)}>
         <div className="sm:col-span-2">
           <FormTextarea
             label="Fundamentação (mín. 5 caracteres) *"
             placeholder="Fundamente a confirmação ou rejeição deste feriado ou tolerância..."
             value={reason}
-            onChange={setReason}
+            onChange={(v) => { setReasonTouched(true); setReason(v); }}
+            error={reasonTouched && !holidayParsed.success ? holidayParsed.error.issues[0]?.message : undefined}
             rows={3}
           />
         </div>

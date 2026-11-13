@@ -19,9 +19,10 @@ export function ChangePasswordModal() {
     register,
     handleSubmit,
     reset,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<ChangePasswordFormData>({
     resolver: zodResolver(changePasswordSchema),
+    mode: "onChange",
   });
 
   const onSubmit = (data: ChangePasswordFormData) => {
@@ -88,7 +89,7 @@ export function ChangePasswordModal() {
           >
             Cancelar
           </Button>
-          <Button type="submit" disabled={isPending} className="h-9 text-xs font-semibold">
+          <Button type="submit" disabled={isPending || !isValid} className="h-9 text-xs font-semibold">
             {isPending ? "A guardar..." : "Guardar alteração"}
           </Button>
         </div>

@@ -2,7 +2,10 @@
 import { formatIsoDay } from "@/utils/format-date";
 import { formatDateTime } from "@/utils";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { Can, Badge, Button, ButtonOnlyAction, Checkbox, ConfirmModal, DataList, EmptyState, FormModal, FormSelect, FormTextarea, Icon, Input, TitleList, type Column } from "@/components";
 import { GenericTable } from "@/components/common/generic-table";
@@ -10,28 +13,151 @@ import { Sheet, SheetContent, SheetDescription, SheetFooter, SheetHeader, SheetT
 import { useCouncil, useCouncils } from "@/hooks/school/use-phase6";
 import { phase6Service, OUTCOME_LABEL, type ApiCouncilAttendee, type Outcome } from "@/services/phase6-service";
 import { useModal } from "@/stores/modal/use-modal-store";
-import { getApiErrorMessage } from "@/utils/api-error";
+import { applyApiFieldErrors, getApiErrorMessage } from "@/utils/api-error";
+import { optionalSafeTextSchema, safeTextSchema } from "@/schemas";
 
 const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; };
 const proposalOf = (p: unknown): Outcome | undefined => (p && typeof p === "object" && "outcome" in p ? ((p as { outcome?: Outcome }).outcome) : typeof p === "string" ? (p as Outcome) : undefined);
 const ROLES = [{ value: "presidente", label: "Presidente" }, { value: "secretario", label: "Secretário" }, { value: "membro", label: "Membro" }];
 
+const newCouncilSchema = z
+  .object({
+    sectionId: z.string().trim().min(1, "Seleccione a turma."),
+    kind: z.enum(["periodico", "final"]),
+    termId: z.string().trim().optional(),
+    when: z
+      .string({ error: "A data e hora são obrigatórias." })
+      .trim()
+      .min(1, "A data e hora são obrigatórias.")
+      .refine((v) => Number.isFinite(new Date(v).getTime()), "Data e hora inválidas."),
+    agenda: optionalSafeTextSchema(500, 3, "A agenda do conselho"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.kind === "periodico" && !data.termId) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["termId"],
+        message: "Seleccione o trimestre.",
+      });
+    }
+  });
+
+type NewCouncilInput = z.input<typeof newCouncilSchema>;
+type NewCouncilData = z.infer<typeof newCouncilSchema>;
+
+const councilDivergenceSchema = safeTextSchema(5, 500, "A fundamentação da divergência");
+const councilObservationSchema = optionalSafeTextSchema(500, 2, "A observação");
+const councilMinutesSchema = safeTextSchema(30, 5000, "O texto da acta");
+
 function NewCouncilModal() {
   const { sections, terms, create } = useCouncils();
-  const [sectionId, setSectionId] = useState("");
-  const [kind, setKind] = useState<"periodico" | "final">("periodico");
-  const [termId, setTermId] = useState("");
-  const [when, setWhen] = useState("");
-  const [agenda, setAgenda] = useState("");
+  const defaultTermId = terms[0]?.id ?? "";
+
+  const {
+    register,
+    watch,
+    setValue,
+    setError,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<NewCouncilInput, unknown, NewCouncilData>({
+    resolver: zodResolver(newCouncilSchema),
+    mode: "onChange",
+    defaultValues: {
+      sectionId: "",
+      kind: "periodico",
+      termId: defaultTermId,
+      when: "",
+      agenda: "",
+    },
+  });
+
+  const sectionId = watch("sectionId");
+  const kind = watch("kind");
+  const termId = watch("termId") ?? "";
+  const agenda = watch("agenda") ?? "";
+
+  useEffect(() => {
+    if (kind === "periodico" && !termId && defaultTermId) {
+      setValue("termId", defaultTermId, { shouldValidate: true });
+    }
+  }, [kind, termId, defaultTermId, setValue]);
+
+  const resetDefaults = () =>
+    reset({ sectionId: "", kind: "periodico", termId: terms[0]?.id ?? "", when: "", agenda: "" });
+
+  const onSubmit = (data: NewCouncilData) =>
+    create
+      .mutateAsync({
+        sectionId: data.sectionId,
+        kind: data.kind,
+        termId: data.kind === "periodico" ? data.termId : undefined,
+        scheduledAt: new Date(data.when).toISOString(),
+        agenda: data.agenda || undefined,
+      })
+      .then(() => {
+        SucessMessage("Conselho agendado.");
+        resetDefaults();
+      })
+      .catch((e) => {
+        applyApiFieldErrors(e, setError);
+        return fail(e);
+      });
 
   return (
-    <FormModal id="council-new" title="Agendar conselho de turma" submitLabel="Agendar" isLoading={create.isPending} disabled={!sectionId || !when} onSubmit={() => create.mutateAsync({ sectionId, kind, termId: kind === "periodico" ? termId || terms[0]?.id : undefined, scheduledAt: new Date(when).toISOString(), agenda: agenda.trim() || undefined }).then(() => SucessMessage("Conselho agendado.")).catch(fail)}>
-      <div className="sm:col-span-2"><FormSelect label="Turma *" value={sectionId} onValueChange={setSectionId} options={sections.map((s) => ({ value: s.id, label: `${s.classLevel} ${s.name}` }))} /></div>
-      <FormSelect label="Tipo" value={kind} onValueChange={(v) => setKind(v as "periodico" | "final")} options={[{ value: "periodico", label: "Periódico (observações)" }, { value: "final", label: "Final (transição)" }]} />
-      {kind === "periodico" && <FormSelect label="Trimestre" value={termId || terms[0]?.id || ""} onValueChange={setTermId} options={terms.map((t) => ({ value: t.id, label: `${t.sequence}.º Trimestre` }))} />}
-      <div className="sm:col-span-2"><Input label="Data e hora *" type="datetime-local" value={when} onChange={(e) => setWhen(e.target.value)} /></div>
+    <FormModal
+      id="council-new"
+      title="Agendar conselho de turma"
+      submitLabel="Agendar"
+      isLoading={create.isPending}
+      disabled={!isValid || create.isPending}
+      onClose={resetDefaults}
+      onSubmit={handleSubmit(onSubmit)}
+    >
       <div className="sm:col-span-2">
-        <FormTextarea label="Agenda do conselho (opcional)" placeholder="Ex.: Análise do aproveitamento pedagógico, assiduidade e comportamento dos alunos da turma..." value={agenda} onChange={setAgenda} rows={2} />
+        <FormSelect
+          label="Turma *"
+          value={sectionId}
+          onValueChange={(v) => setValue("sectionId", v, { shouldValidate: true, shouldTouch: true })}
+          options={sections.map((s) => ({ value: s.id, label: `${s.classLevel} ${s.name}` }))}
+          error={errors.sectionId?.message}
+        />
+      </div>
+      <FormSelect
+        label="Tipo"
+        value={kind}
+        onValueChange={(v) => setValue("kind", v as "periodico" | "final", { shouldValidate: true })}
+        options={[{ value: "periodico", label: "Periódico (observações)" }, { value: "final", label: "Final (transição)" }]}
+        error={errors.kind?.message}
+      />
+      {kind === "periodico" && (
+        <FormSelect
+          label="Trimestre *"
+          value={termId}
+          onValueChange={(v) => setValue("termId", v, { shouldValidate: true, shouldTouch: true })}
+          options={terms.map((t) => ({ value: t.id, label: `${t.sequence}.º Trimestre` }))}
+          error={errors.termId?.message}
+        />
+      )}
+      <div className="sm:col-span-2">
+        <Input
+          label="Data e hora *"
+          type="datetime-local"
+          error={errors.when?.message}
+          {...register("when")}
+        />
+      </div>
+      <div className="sm:col-span-2">
+        <FormTextarea
+          label="Agenda do conselho (opcional)"
+          placeholder="Ex.: Análise do aproveitamento pedagógico, assiduidade e comportamento dos alunos da turma..."
+          value={agenda}
+          onChange={(v) => setValue("agenda", v, { shouldValidate: true, shouldTouch: true })}
+          rows={2}
+          maxLength={500}
+          error={errors.agenda?.message}
+        />
       </div>
     </FormModal>
   );
@@ -45,12 +171,17 @@ function CouncilModal({ id }: { id: string | null }) {
   const isOpen = Boolean(open["council-detail"]);
   const [attendees, setLocalAttendees] = useState<ApiCouncilAttendee[]>([]);
   const [drafts, setDrafts] = useState<Record<string, { outcome?: Outcome; justification: string; observation: string }>>({});
+  const [touchedDrafts, setTouchedDrafts] = useState<Record<string, { justification?: boolean; observation?: boolean }>>({});
   const [minutes, setMinutes] = useState("");
+  const [minutesTouched, setMinutesTouched] = useState(false);
 
   useEffect(() => {
     if (!council) return;
     setLocalAttendees(council.attendees);
     setDrafts(Object.fromEntries(council.students.map((s) => [s.enrollment_id, { outcome: s.decision?.outcome ?? undefined, justification: s.decision?.justification ?? "", observation: s.decision?.observation ?? "" }])));
+    setTouchedDrafts({});
+    setMinutes("");
+    setMinutesTouched(false);
   }, [council]);
 
   const closed = council?.status === "encerrado";
@@ -59,16 +190,49 @@ function CouncilModal({ id }: { id: string | null }) {
   const toggle = (userId: string, name: string) =>
     setLocalAttendees((cur) => (cur.some((a) => a.user_id === userId) ? cur.filter((a) => a.user_id !== userId) : [...cur, { user_id: userId, name, role: cur.length === 0 ? "presidente" : "membro", present: true }]));
 
+  const draftValidation = useMemo(() => {
+    if (!council) return { hasErrors: false, payload: [] as Array<{ enrollment_id: string; outcome?: Outcome; justification?: string; observation?: string }> };
+    let hasErrors = false;
+    const payload: Array<{ enrollment_id: string; outcome?: Outcome; justification?: string; observation?: string }> = [];
+
+    for (const s of council.students) {
+      const d = drafts[s.enrollment_id];
+      if (!d) continue;
+      const proposed = proposalOf(s.system_proposal);
+      const diverges = Boolean(isFinal && d.outcome && proposed && d.outcome !== proposed);
+      const justParsed = diverges ? councilDivergenceSchema.safeParse(d.justification) : null;
+      const obsParsed = councilObservationSchema.safeParse(d.observation);
+
+      if ((justParsed && !justParsed.success) || !obsParsed.success) {
+        hasErrors = true;
+        continue;
+      }
+      if (isFinal) {
+        if (d.outcome) {
+          payload.push({
+            enrollment_id: s.enrollment_id,
+            outcome: d.outcome,
+            ...(d.justification.trim() ? { justification: d.justification.trim() } : {}),
+            ...(obsParsed.data ? { observation: obsParsed.data } : {}),
+          });
+        }
+      } else if (obsParsed.data) {
+        payload.push({ enrollment_id: s.enrollment_id, observation: obsParsed.data });
+      }
+    }
+    return { hasErrors, payload };
+  }, [council, drafts, isFinal]);
+
+  const minutesParsed = useMemo(() => councilMinutesSchema.safeParse(minutes), [minutes]);
+  const minutesError = minutesTouched && !minutesParsed.success ? minutesParsed.error.issues[0]?.message : undefined;
+
   const saveDecisions = () => {
     if (!council) return;
-    const payload = council.students.flatMap<{ enrollment_id: string; outcome?: Outcome; justification?: string; observation?: string }>((s) => {
-      const d = drafts[s.enrollment_id];
-      if (!d) return [];
-      if (isFinal) return d.outcome ? [{ enrollment_id: s.enrollment_id, outcome: d.outcome, ...(d.justification.trim() ? { justification: d.justification.trim() } : {}), ...(d.observation.trim() ? { observation: d.observation.trim() } : {}) }] : [];
-      return d.observation.trim() ? [{ enrollment_id: s.enrollment_id, observation: d.observation.trim() }] : [];
-    });
-    if (payload.length === 0) return ErrorMessage("Nada para gravar.");
-    void putDecisions.mutateAsync(payload).then(() => SucessMessage(isFinal ? "Decisões gravadas." : "Observações gravadas.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
+    if (draftValidation.hasErrors) {
+      return ErrorMessage("Corrija os campos inválidos antes de gravar.");
+    }
+    if (draftValidation.payload.length === 0) return ErrorMessage("Nada para gravar.");
+    void putDecisions.mutateAsync(draftValidation.payload).then(() => SucessMessage(isFinal ? "Decisões gravadas." : "Observações gravadas.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
   };
 
   const openMinutes = () => phase6Service.minutesPdf(id!).then((blob) => window.open(URL.createObjectURL(blob), "_blank")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível abrir a acta.")));
@@ -96,14 +260,46 @@ function CouncilModal({ id }: { id: string | null }) {
       header: isFinal ? "Decisão e Observação" : "Observação",
       render: (_, s) => {
         const d = drafts[s.enrollment_id] ?? { justification: "", observation: "" };
+        const t = touchedDrafts[s.enrollment_id] ?? {};
         const proposed = proposalOf(s.system_proposal);
-        const diverges = isFinal && d.outcome && proposed && d.outcome !== proposed;
+        const diverges = Boolean(isFinal && d.outcome && proposed && d.outcome !== proposed);
+        const justParsed = diverges ? councilDivergenceSchema.safeParse(d.justification) : null;
+        const obsParsed = councilObservationSchema.safeParse(d.observation);
+        const justError = diverges && justParsed && !justParsed.success && (t.justification || diverges)
+          ? justParsed.error.issues[0]?.message
+          : undefined;
+        const obsError = t.observation && !obsParsed.success ? obsParsed.error.issues[0]?.message : undefined;
+
         const set = (patch: Partial<typeof d>) => setDrafts((cur) => ({ ...cur, [s.enrollment_id]: { ...d, ...patch } }));
         return (
           <div className="space-y-2">
             {isFinal && <FormSelect label="" value={d.outcome ?? ""} onValueChange={(v) => set({ outcome: (v || undefined) as Outcome | undefined })} options={(Object.keys(OUTCOME_LABEL) as Outcome[]).map((o) => ({ value: o, label: OUTCOME_LABEL[o] }))} placeholder="Decidir…" disabled={closed} />}
-            {diverges && <Input label="" disabled={closed} value={d.justification} onChange={(e) => set({ justification: e.target.value })} placeholder="Fundamentação obrigatória da divergência..." />}
-            <Input label="" disabled={closed} value={d.observation} onChange={(e) => set({ observation: e.target.value })} placeholder="Observações pedagógicas relevantes..." />
+            {diverges && (
+              <Input
+                label=""
+                disabled={closed}
+                maxLength={500}
+                value={d.justification}
+                error={justError}
+                onChange={(e) => {
+                  set({ justification: e.target.value });
+                  setTouchedDrafts((cur) => ({ ...cur, [s.enrollment_id]: { ...t, justification: true } }));
+                }}
+                placeholder="Fundamentação obrigatória da divergência (mín. 5 car.)..."
+              />
+            )}
+            <Input
+              label=""
+              disabled={closed}
+              maxLength={500}
+              value={d.observation}
+              error={obsError}
+              onChange={(e) => {
+                set({ observation: e.target.value });
+                setTouchedDrafts((cur) => ({ ...cur, [s.enrollment_id]: { ...t, observation: true } }));
+              }}
+              placeholder="Observações pedagógicas relevantes..."
+            />
           </div>
         );
       },
@@ -145,7 +341,17 @@ function CouncilModal({ id }: { id: string | null }) {
             <section className="space-y-3">
               <h4 className="font-semibold">{isFinal ? "Decisão de transição por aluno" : "Observações por aluno"}</h4>
               <GenericTable data={studentRows} columns={studentColumns} />
-              {!closed && <Can permission="council:write"><Button size="sm" disabled={putDecisions.isPending} onClick={saveDecisions}>Gravar {isFinal ? "decisões" : "observações"}</Button></Can>}
+              {!closed && (
+                <Can permission="council:write">
+                  <Button
+                    size="sm"
+                    disabled={putDecisions.isPending || draftValidation.hasErrors || draftValidation.payload.length === 0}
+                    onClick={saveDecisions}
+                  >
+                    Gravar {isFinal ? "decisões" : "observações"}
+                  </Button>
+                </Can>
+              )}
             </section>
 
             <section className="space-y-3 border-t pt-4">
@@ -157,8 +363,27 @@ function CouncilModal({ id }: { id: string | null }) {
               ) : (
                 <>
                   <h4 className="font-semibold">Acta e encerramento</h4>
-                  <FormTextarea label="Texto da acta (mín. 30 caracteres)" value={minutes} onChange={setMinutes} rows={4} placeholder="Encerrar exige presidente, quórum e, no conselho final, aplica as decisões." />
-                  <Can permission="council:close"><Button size="sm" disabled={minutes.trim().length < 30 || close.isPending} onClick={() => openModal("council-close-confirm")}>Encerrar conselho</Button></Can>
+                  <FormTextarea
+                    label="Texto da acta (mín. 30 caracteres) *"
+                    value={minutes}
+                    onChange={(v) => {
+                      setMinutes(v);
+                      setMinutesTouched(true);
+                    }}
+                    rows={4}
+                    maxLength={5000}
+                    error={minutesError}
+                    placeholder="Encerrar exige presidente, quórum e, no conselho final, aplica as decisões."
+                  />
+                  <Can permission="council:close">
+                    <Button
+                      size="sm"
+                      disabled={!minutesParsed.success || close.isPending}
+                      onClick={() => openModal("council-close-confirm")}
+                    >
+                      Encerrar conselho
+                    </Button>
+                  </Can>
                   <ConfirmModal
                     id="council-close-confirm"
                     title={isFinal ? "Encerrar o conselho final" : "Encerrar o conselho"}

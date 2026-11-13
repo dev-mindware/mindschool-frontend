@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Button, EmptyState, Icon, Input } from "@/components";
 import { cn } from "@/lib/utils";
+import { sanitizeSearchTerm, stripControlChars } from "@/schemas/helps";
 import { normalize } from "@/utils/normalize-string";
 import type { DefinitionTabItem } from "./types";
 
@@ -37,7 +38,7 @@ export function MobileDefinitionsView({
   const [hubSearch, setHubSearch] = useState("");
   const [switcherOpen, setSwitcherOpen] = useState(false);
 
-  const q = normalize(hubSearch.trim());
+  const q = normalize(sanitizeSearchTerm(hubSearch, 100));
   const filterHub = (list: DefinitionTabItem[]) =>
     !q
       ? list
@@ -109,8 +110,9 @@ export function MobileDefinitionsView({
           <Input
             label=""
             startIcon="Search"
+            maxLength={100}
             value={hubSearch}
-            onChange={(e) => setHubSearch(e.target.value)}
+            onChange={(e) => setHubSearch(stripControlChars(e.target.value).slice(0, 100))}
             placeholder="Pesquisar definição (ex.: palavra-passe, banco, notas)..."
             className="h-10 text-xs"
           />

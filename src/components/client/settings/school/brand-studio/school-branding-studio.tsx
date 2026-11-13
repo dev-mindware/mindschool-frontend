@@ -5,12 +5,14 @@ import { toast } from "sonner";
 import { useThemeEngine } from "@/providers/theme-engine-provider";
 import {
   PRESET_THEMES,
+  themeInputSchema,
   validateThemeInput,
   type BaseColorPreset,
   type ThemeInput,
   type UIMode,
   type UIDensity,
 } from "@/lib/theme";
+import { stripControlChars } from "@/schemas/helps";
 import { Button } from "@/components/ui/button";
 import { Icon } from "@/components/common/icon";
 import { Input } from "@/components/ui/input";
@@ -34,9 +36,18 @@ export function SchoolBrandingStudio() {
   const [isPublishing, setIsPublishing] = useState(false);
 
   const validation = validateThemeInput(formState);
+  const schemaCheck = themeInputSchema.safeParse(formState);
+  const primaryError = !schemaCheck.success
+    ? schemaCheck.error.issues.find((i) => i.path[0] === "primary")?.message
+    : undefined;
+  const secondaryError = !schemaCheck.success
+    ? schemaCheck.error.issues.find((i) => i.path[0] === "secondary")?.message
+    : undefined;
+  const isValid = validation.valid && schemaCheck.success;
 
   const handleChange = <K extends keyof ThemeInput>(key: K, value: ThemeInput[K]) => {
-    const updated = { ...formState, [key]: value };
+    const cleanValue = typeof value === "string" ? (stripControlChars(value) as ThemeInput[K]) : value;
+    const updated = { ...formState, [key]: cleanValue };
     setFormState(updated);
     setPreviewInput(updated);
   };
@@ -151,7 +162,7 @@ export function SchoolBrandingStudio() {
           <Button
             size="sm"
             onClick={handlePublish}
-            disabled={!validation.valid || isPublishing}
+            disabled={!isValid || isPublishing}
             className="font-medium"
           >
             {isPublishing ? (
@@ -258,46 +269,58 @@ export function SchoolBrandingStudio() {
               {/* Cor Primária */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-foreground">Cor Primária</label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2">
                   <div
-                    className="w-8 h-8 rounded-lg border border-border shadow-inner overflow-hidden relative shrink-0 cursor-pointer"
-                    style={{ backgroundColor: formState.primary }}
+                    className="w-8 h-8 rounded-lg border border-border shadow-inner overflow-hidden relative shrink-0 cursor-pointer mt-0.5"
+                    style={{ backgroundColor: /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(formState.primary) ? formState.primary : "#000000" }}
                   >
                     <input
                       type="color"
-                      value={formState.primary}
+                      aria-label="Seleccionar cor primária"
+                      value={/^#[0-9A-Fa-f]{6}$/.test(formState.primary) ? formState.primary : "#000000"}
                       onChange={(e) => handleChange("primary", e.target.value)}
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                     />
                   </div>
-                  <Input
-                    value={formState.primary}
-                    onChange={(e) => handleChange("primary", e.target.value)}
-                    className="font-mono text-xs uppercase"
-                  />
+                  <div className="min-w-0 flex-1">
+                    <Input
+                      aria-label="Cor primária em hexadecimal"
+                      maxLength={10}
+                      value={formState.primary}
+                      error={primaryError}
+                      onChange={(e) => handleChange("primary", e.target.value)}
+                      className="font-mono text-xs uppercase"
+                    />
+                  </div>
                 </div>
               </div>
 
               {/* Cor Secundária */}
               <div className="space-y-1.5">
                 <label className="text-xs font-semibold text-foreground">Cor Secundária</label>
-                <div className="flex items-center gap-2">
+                <div className="flex items-start gap-2">
                   <div
-                    className="w-8 h-8 rounded-lg border border-border shadow-inner overflow-hidden relative shrink-0 cursor-pointer"
-                    style={{ backgroundColor: formState.secondary }}
+                    className="w-8 h-8 rounded-lg border border-border shadow-inner overflow-hidden relative shrink-0 cursor-pointer mt-0.5"
+                    style={{ backgroundColor: /^#([0-9A-Fa-f]{3}|[0-9A-Fa-f]{6})$/.test(formState.secondary) ? formState.secondary : "#000000" }}
                   >
                     <input
                       type="color"
-                      value={formState.secondary}
+                      aria-label="Seleccionar cor secundária"
+                      value={/^#[0-9A-Fa-f]{6}$/.test(formState.secondary) ? formState.secondary : "#000000"}
                       onChange={(e) => handleChange("secondary", e.target.value)}
                       className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
                     />
                   </div>
-                  <Input
-                    value={formState.secondary}
-                    onChange={(e) => handleChange("secondary", e.target.value)}
-                    className="font-mono text-xs uppercase"
-                  />
+                  <div className="min-w-0 flex-1">
+                    <Input
+                      aria-label="Cor secundária em hexadecimal"
+                      maxLength={10}
+                      value={formState.secondary}
+                      error={secondaryError}
+                      onChange={(e) => handleChange("secondary", e.target.value)}
+                      className="font-mono text-xs uppercase"
+                    />
+                  </div>
                 </div>
               </div>
             </div>

@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
+import { stripControlChars } from "@/schemas/helps";
 import {
   Sheet,
   SheetContent,
@@ -330,6 +331,8 @@ function SidebarInset({ className, ...props }: React.ComponentProps<"main">) {
 function SidebarInput({
   className,
   placeholder = "Pesquisar...",
+  maxLength = 100,
+  onChange,
   ...props
 }: React.ComponentProps<typeof Input>) {
   return (
@@ -337,6 +340,15 @@ function SidebarInput({
       data-slot="sidebar-input"
       data-sidebar="input"
       placeholder={placeholder}
+      maxLength={maxLength}
+      onChange={(e) => {
+        const cleaned = stripControlChars(e.target.value).slice(0, maxLength);
+        if (cleaned !== e.target.value) {
+          e.target.value = cleaned;
+          e.currentTarget.value = cleaned;
+        }
+        onChange?.(e);
+      }}
       className={cn("bg-background h-8 w-full shadow-none", className)}
       {...props}
     />

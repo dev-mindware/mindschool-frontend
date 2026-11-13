@@ -21,9 +21,10 @@ export function RecoveryPassword() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<ForgotPasswordFormData>({
     resolver: zodResolver(forgotPasswordSchema),
+    mode: "onChange",
   });
 
   const { mutateAsync: forgotPassword, isPending } = useForgotPassword();
@@ -80,7 +81,7 @@ export function RecoveryPassword() {
             error={errors.email?.message}
           />
 
-          <ButtonSubmit isLoading={isPending} className="w-full">
+          <ButtonSubmit isLoading={isPending} disabled={!isValid} className="w-full">
             {isPending ? "A enviar instruções..." : "Verificar Email"}
           </ButtonSubmit>
 

@@ -1,6 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
+import { z } from "zod";
 import { Icon } from "@/components/common/icon";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,9 +15,18 @@ import {
   saveLessonKeepNote,
   getLessonKeepNote,
 } from "./use-lesson-keep";
+import { optionalSafeTextSchema, safeTextSchema } from "@/schemas/helps";
 import { SucessMessage } from "@/utils/messages";
 import { cn } from "@/lib/utils";
 import type { ApiLesson } from "@/services/lessons-service";
+
+const keepNoteSchema = z.object({
+  title: safeTextSchema(2, 150, "O título do plano"),
+  content: optionalSafeTextSchema(5000, 2, "As anotações da aula"),
+  homework: optionalSafeTextSchema(500, 2, "O trabalho de casa (TPC)"),
+});
+
+const checklistItemSchema = safeTextSchema(2, 200, "O item do roteiro");
 
 interface LessonKeepEditorProps {
   lesson: ApiLesson;
@@ -47,8 +57,29 @@ export function LessonKeepEditor({
     ]
   );
   const [newItemText, setNewItemText] = useState("");
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const markTouched = (k: string) => setTouched((p) => (p[k] ? p : { ...p, [k]: true }));
+
+  const noteParsed = useMemo(
+    () => keepNoteSchema.safeParse({ title, content, homework }),
+    [title, content, homework]
+  );
+  const newItemParsed = useMemo(
+    () => checklistItemSchema.safeParse(newItemText),
+    [newItemText]
+  );
+
+  const fieldError = (key: "title" | "content" | "homework") => {
+    if (!touched[key] || noteParsed.success) return undefined;
+    return noteParsed.error.issues.find((i) => i.path[0] === key)?.message;
+  };
+  const newItemError =
+    touched.newItemText && newItemText.trim().length > 0 && !newItemParsed.success
+      ? newItemParsed.error.issues[0]?.message
+      : undefined;
 
   useEffect(() => {
+    setTouched({});
     const loaded = getLessonKeepNote(lesson.id);
     if (loaded) {
       setTitle(loaded.title);
@@ -61,12 +92,16 @@ export function LessonKeepEditor({
   }, [lesson.id]);
 
   function handleAddChecklistItem() {
-    if (!newItemText.trim()) return;
+    if (!newItemParsed.success) {
+      markTouched("newItemText");
+      return;
+    }
     setChecklist((prev) => [
       ...prev,
-      { id: Date.now().toString(), text: newItemText.trim(), done: false },
+      { id: Date.now().toString(), text: newItemParsed.data, done: false },
     ]);
     setNewItemText("");
+    setTouched((p) => ({ ...p, newItemText: false }));
   }
 
   function handleToggleItem(id: string) {
@@ -80,11 +115,16 @@ export function LessonKeepEditor({
   }
 
   function handleSave() {
+    if (!noteParsed.success) {
+      setTouched((p) => ({ ...p, title: true, content: true, homework: true }));
+      return;
+    }
+    const d = noteParsed.data;
     const noteData: LessonKeepNote = {
       lessonId: lesson.id,
-      title: title.trim() || `${lesson.subject.name} - Plano`,
-      content: content.trim(),
-      homework: homework.trim(),
+      title: d.title,
+      content: d.content ?? "",
+      homework: d.homework ?? "",
       color,
       isPinned,
       checklist,
@@ -95,7 +135,7 @@ export function LessonKeepEditor({
 
     if (onSyncRemote) {
       const summaryText = [
-        content.trim(),
+        noteData.content,
         checklist.length > 0
           ? `\nRoteiro da Aula:\n` +
             checklist.map((c) => `${c.done ? "[x]" : "[ ]"} ${c.text}`).join("\n")
@@ -106,8 +146,8 @@ export function LessonKeepEditor({
 
       onSyncRemote({
         content: summaryText || "Aula leccionada conforme plano.",
-        objectives: title.trim(),
-        homework: homework.trim(),
+        objectives: noteData.title,
+        homework: noteData.homework,
       });
     }
 
@@ -130,7 +170,8 @@ export function LessonKeepEditor({
         <div className="flex-1">
           <Input
             value={title}
-            onChange={(e) => setTitle(e.target.value)}
+            onChange={(e) => { markTouched("title"); setTitle(e.target.value); }}
+            error={fieldError("title")}
             placeholder="Título do Plano da Aula..."
             className="border-none bg-transparent px-0 text-sm font-semibold shadow-none placeholder:text-muted-foreground/60 focus-visible:ring-0 focus-visible:ring-offset-0"
           />
@@ -159,7 +200,8 @@ export function LessonKeepEditor({
       <div className="space-y-1.5">
         <Textarea
           value={content}
-          onChange={(e) => setContent(e.target.value)}
+          onChange={(e) => { markTouched("content"); setContent(e.target.value); }}
+          error={fieldError("content")}
           placeholder="Escreva aqui as suas anotações rápidas, tópicos-chave da aula ou orientações pedagógicas..."
           className="min-h-[90px] resize-y rounded-xs border-none bg-background/50 p-3 text-xs leading-relaxed focus-visible:ring-1 focus-visible:ring-primary/40"
         />
@@ -216,23 +258,27 @@ export function LessonKeepEditor({
         </div>
 
         {/* Input para adicionar item à checklist */}
-        <div className="flex items-center gap-2 pt-1">
-          <Input
-            value={newItemText}
-            onChange={(e) => setNewItemText(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter") {
-                e.preventDefault();
-                handleAddChecklistItem();
-              }
-            }}
-            placeholder="+ Adicionar item ao roteiro..."
-            className="h-8 rounded-xs border-none bg-background/50 px-2.5 text-xs shadow-none focus-visible:ring-1 focus-visible:ring-primary/40"
-          />
+        <div className="flex items-start gap-2 pt-1">
+          <div className="flex-1">
+            <Input
+              value={newItemText}
+              onChange={(e) => { markTouched("newItemText"); setNewItemText(e.target.value); }}
+              error={newItemError}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleAddChecklistItem();
+                }
+              }}
+              placeholder="+ Adicionar item ao roteiro..."
+              className="h-8 rounded-xs border-none bg-background/50 px-2.5 text-xs shadow-none focus-visible:ring-1 focus-visible:ring-primary/40"
+            />
+          </div>
           <Button
             type="button"
             size="sm"
             variant="secondary"
+            disabled={!newItemParsed.success}
             onClick={handleAddChecklistItem}
             className="h-8 shrink-0 px-2.5 text-xs"
           >
@@ -249,7 +295,8 @@ export function LessonKeepEditor({
         </Label>
         <Input
           value={homework}
-          onChange={(e) => setHomework(e.target.value)}
+          onChange={(e) => { markTouched("homework"); setHomework(e.target.value); }}
+          error={fieldError("homework")}
           placeholder="ex: Resolver exercícios da página 45 a 48 do manual escolar"
           className="h-8 rounded-xs border-none bg-background/50 px-2.5 text-xs shadow-none focus-visible:ring-1 focus-visible:ring-primary/40"
         />
@@ -285,6 +332,7 @@ export function LessonKeepEditor({
         <Button
           type="button"
           size="sm"
+          disabled={!noteParsed.success}
           onClick={handleSave}
           className="h-8 gap-1.5 px-3.5 text-xs font-medium"
         >

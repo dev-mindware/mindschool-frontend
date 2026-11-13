@@ -1,6 +1,9 @@
 "use client";
 
+import { useState } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { schoolGradeSchema } from "@/schemas";
+import { cn } from "@/lib/utils";
 
 type ScoreStatus = "avaliado" | "ausente" | "dispensado" | "nao_avaliado";
 
@@ -18,11 +21,36 @@ interface ScoreCellProps {
   label?: string;
 }
 
-/** Célula editável da grelha de notas: valor 0–20 e (opcionalmente) o estado da nota (ausente, dispensado…). */
+const gradeValidator = schoolGradeSchema("A nota");
+
+/** Célula editável da grelha de notas: valor 0–20 (até 2 casas decimais) e estado da nota. */
 export function ScoreCell({ value, status, readOnly, tone, onValueChange, onStatusChange, label }: ScoreCellProps) {
   const current = status ?? "avaliado";
+  const [cellError, setCellError] = useState<string | undefined>(undefined);
+
+  const handleChange = (val: string) => {
+    if (val === "") {
+      setCellError(undefined);
+      onValueChange("");
+      return;
+    }
+    const parsed = gradeValidator.safeParse(val);
+    if (!parsed.success) {
+      setCellError(parsed.error.issues[0]?.message ?? "Nota inválida (0 a 20).");
+      const n = Number(val.replace(",", "."));
+      if (!isNaN(n)) {
+        if (n < 0) onValueChange("0");
+        else if (n > 20) onValueChange("20");
+        else onValueChange(val);
+      }
+      return;
+    }
+    setCellError(undefined);
+    onValueChange(val);
+  };
+
   return (
-    <div className={`flex flex-col items-center gap-1 ${tone ?? ""}`}>
+    <div className={cn("flex flex-col items-center gap-1", tone)}>
       <input
         type="number"
         step="0.1"
@@ -32,28 +60,33 @@ export function ScoreCell({ value, status, readOnly, tone, onValueChange, onStat
         value={value ?? ""}
         placeholder="0.0 - 20"
         aria-label={label ? `Nota: ${label}` : "Nota"}
-        onChange={(e) => {
-          const val = e.target.value;
-          if (val === "") {
-            onValueChange("");
-            return;
-          }
-          const n = Number(val);
-          if (!isNaN(n)) {
-            if (n < 0) onValueChange("0");
-            else if (n > 20) onValueChange("20");
-            else onValueChange(val);
+        aria-invalid={Boolean(cellError) || undefined}
+        title={cellError}
+        onKeyDown={(e) => {
+          if (["e", "E", "+", "-"].includes(e.key)) e.preventDefault();
+        }}
+        onChange={(e) => handleChange(e.target.value)}
+        onBlur={() => {
+          if (value !== undefined && !gradeValidator.safeParse(value).success) {
+            setCellError("Nota inválida (0 a 20, máx. 2 casas decimais).");
           } else {
-            onValueChange(val);
+            setCellError(undefined);
           }
         }}
-        className="w-20 text-center font-medium rounded-xs border border-input bg-background py-1.5 text-xs shadow-xs focus:ring-1 focus:ring-primary focus:outline-none disabled:bg-muted/50 disabled:text-muted-foreground"
+        className={cn(
+          "w-20 text-center font-medium rounded-xs border bg-background py-1.5 text-xs shadow-xs focus:ring-1 focus:outline-none disabled:bg-muted/50 disabled:text-muted-foreground",
+          cellError ? "border-red-500 ring-1 ring-red-400 text-destructive" : "border-input focus:ring-primary"
+        )}
       />
+      {cellError && <span role="alert" className="max-w-28 text-center text-[10px] leading-tight text-destructive">{cellError}</span>}
       {onStatusChange && (
         <Select
           disabled={readOnly}
           value={current}
-          onValueChange={(val) => onStatusChange(val as ScoreStatus)}
+          onValueChange={(val) => {
+            if (val !== "avaliado") setCellError(undefined);
+            onStatusChange(val as ScoreStatus);
+          }}
         >
           <SelectTrigger
             aria-label={label ? `Estado da nota: ${label}` : "Estado da nota"}

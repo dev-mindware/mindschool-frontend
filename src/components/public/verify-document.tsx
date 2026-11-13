@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button, Card, CardContent, CardHeader, CardTitle, Icon, Input } from "@/components";
+import { verifyDocumentCodeSchema } from "@/schemas";
 
 interface Verification {
   valid: boolean;
@@ -27,8 +28,12 @@ const API = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3011/api/v1";
 export function VerifyDocument({ number }: { number?: string }) {
   const router = useRouter();
   const [value, setValue] = useState(number ?? "");
+  const [touched, setTouched] = useState(Boolean(number));
   const [state, setState] = useState<"idle" | "loading" | "ok" | "notfound" | "error">(number ? "loading" : "idle");
   const [result, setResult] = useState<Verification | null>(null);
+
+  const parsedCode = verifyDocumentCodeSchema.safeParse({ documentNumber: value });
+  const codeError = touched && !parsedCode.success ? parsedCode.error.issues[0]?.message : undefined;
 
   useEffect(() => {
     if (!number) return;
@@ -44,16 +49,31 @@ export function VerifyDocument({ number }: { number?: string }) {
     return () => ctrl.abort();
   }, [number]);
 
-  const submit = () => { const n = value.trim().toUpperCase(); if (n) router.push(`/verify/${encodeURIComponent(n)}`); };
+  const submit = () => {
+    setTouched(true);
+    if (!parsedCode.success) return;
+    router.push(`/verify/${encodeURIComponent(parsedCode.data.documentNumber)}`);
+  };
 
   return (
     <main className="mx-auto flex min-h-dvh w-full max-w-xl items-center p-4">
       <Card className="w-full">
         <CardHeader><CardTitle className="flex items-center gap-2"><Icon name="ShieldCheck" className="size-5 text-primary" />Verificação de documentos</CardTitle></CardHeader>
         <CardContent className="space-y-4">
-          <form className="flex items-end gap-2" onSubmit={(e) => { e.preventDefault(); submit(); }}>
-            <div className="flex-1"><Input label="Número do documento" placeholder="DEC-5000000001-2026-000001" value={value} onChange={(e) => setValue(e.target.value)} /></div>
-            <Button type="submit" disabled={!value.trim()}>Verificar</Button>
+          <form className="flex items-start gap-2" onSubmit={(e) => { e.preventDefault(); submit(); }}>
+            <div className="flex-1">
+              <Input
+                label="Número do documento"
+                placeholder="DEC-5000000001-2026-000001"
+                value={value}
+                error={codeError}
+                onChange={(e) => {
+                  if (!touched) setTouched(true);
+                  setValue(e.target.value.toUpperCase());
+                }}
+              />
+            </div>
+            <Button type="submit" className="mt-6" disabled={!parsedCode.success}>Verificar</Button>
           </form>
 
           {state === "loading" && <p className="text-sm text-muted-foreground">A verificar…</p>}

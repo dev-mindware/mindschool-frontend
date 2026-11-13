@@ -3,3 +3,7 @@ export * from "./forgot-password";
 export * from "./change-password";
 export * from "./reset-password";
 export * from "./helps";
+export * from "./domain/settings";
+export * from "./domain/resources";
+export * from "./domain/finance";
+export * from "./domain/academic";

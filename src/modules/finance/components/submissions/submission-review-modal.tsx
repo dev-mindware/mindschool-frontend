@@ -2,8 +2,9 @@
 
 import { formatIsoDay } from "@/utils/format-date";
 import { useCan } from "@/hooks/auth/use-can";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { currencySchema, hasAtMostTwoDecimals, safeTextSchema } from "@/schemas/helps";
 import { Button, FormTextarea, Icon, Input } from "@/components";
 import {
   Sheet,
@@ -21,6 +22,7 @@ import { formatCurrency } from "@/utils/format-currency";
 import { METHOD_LABEL, OPEN_SUBMISSION, SubmissionBadge } from "./submission-status";
 
 export const SUBMISSION_REVIEW_MODAL = "submission-review";
+const reviewReasonSchema = safeTextSchema(5, 500, "O motivo");
 
 /** Revisão do comprovativo: pré-visualização do ficheiro, conferência do valor e decisão (aprovar / pedir novo / rejeitar). */
 export function SubmissionReviewModal({ submission }: { submission: ApiSubmission | null }) {
@@ -28,7 +30,9 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
   const { can } = useCan();
   const { open, closeModal } = useModal();
   const [confirmed, setConfirmed] = useState("");
+  const [confirmedTouched, setConfirmedTouched] = useState(false);
   const [reason, setReason] = useState("");
+  const [reasonTouched, setReasonTouched] = useState(false);
   const [preview, setPreview] = useState<{ url: string; mime: string } | null>(null);
   const [previewError, setPreviewError] = useState(false);
   const id = submission?.id;
@@ -41,25 +45,68 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
     setPreview(null);
     setPreviewError(false);
     setReason("");
+    setReasonTouched(false);
+    setConfirmedTouched(false);
     tuitionPaymentsService.proofBlob(id)
       .then((b) => { if (!cancelled) { url = URL.createObjectURL(b); setPreview({ url, mime: b.type }); } })
       .catch(() => { if (!cancelled) setPreviewError(true); });
     return () => { cancelled = true; if (url) URL.revokeObjectURL(url); };
   }, [id]);
 
-  useEffect(() => { setConfirmed(submission?.total_amount ?? ""); }, [submission?.id, submission?.total_amount]);
+  useEffect(() => {
+    setConfirmed(submission?.total_amount ?? "");
+    setConfirmedTouched(false);
+  }, [submission?.id, submission?.total_amount]);
+
+  const maxTotal = Number(submission?.total_amount ?? 0);
+  const confirmedResult = useMemo(
+    () =>
+      currencySchema(0.01, maxTotal > 0 ? maxTotal : undefined, "O valor confirmado")
+        .refine(hasAtMostTwoDecimals, "O valor confirmado admite no máximo 2 casas decimais.")
+        .safeParse(confirmed),
+    [confirmed, maxTotal],
+  );
+  const reasonResult = useMemo(() => reviewReasonSchema.safeParse(reason), [reason]);
 
   if (!submission) return null;
   const s = submission;
   const actionable = (s.status === "submetido" || s.status === "em_analise") && can("tuition_submission:review");
-  const partial = confirmed !== "" && Number(confirmed) < Number(s.total_amount);
-  const invalid = !confirmed || Number(confirmed) <= 0 || Number(confirmed) > Number(s.total_amount);
+  const partial = confirmedResult.success && confirmedResult.data < maxTotal;
+  const invalid = !confirmedResult.success;
+  const confirmedError =
+    invalid && (confirmedTouched || confirmed !== (s.total_amount ?? ""))
+      ? confirmedResult.error.issues[0]?.message
+      : undefined;
+  const reasonError =
+    reasonTouched && !reasonResult.success
+      ? reasonResult.error.issues[0]?.message
+      : undefined;
   const busy = review.isPending || start.isPending;
 
-  const decide = (decision: "approved" | "rejected" | "replacement_required") =>
-    review.mutateAsync({ id: s.id, decision, ...(decision === "approved" ? (partial ? { confirmedAmount: Number(confirmed).toFixed(2) } : {}) : { reason: reason.trim() }) })
-      .then(() => { SucessMessage(decision === "approved" ? "Pagamento confirmado. A família foi avisada por email." : decision === "rejected" ? "Comprovativo rejeitado." : "Novo comprovativo pedido."); closeModal(SUBMISSION_REVIEW_MODAL); })
+  const decide = (decision: "approved" | "rejected" | "replacement_required") => {
+    if (decision === "approved") {
+      if (!confirmedResult.success) {
+        setConfirmedTouched(true);
+        return;
+      }
+      return review
+        .mutateAsync({
+          id: s.id,
+          decision,
+          ...(confirmedResult.data < maxTotal ? { confirmedAmount: confirmedResult.data.toFixed(2) } : {}),
+        })
+        .then(() => { SucessMessage("Pagamento confirmado. A família foi avisada por email."); closeModal(SUBMISSION_REVIEW_MODAL); })
+        .catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a decisão.")));
+    }
+    if (!reasonResult.success) {
+      setReasonTouched(true);
+      return;
+    }
+    return review
+      .mutateAsync({ id: s.id, decision, reason: reasonResult.data })
+      .then(() => { SucessMessage(decision === "rejected" ? "Comprovativo rejeitado." : "Novo comprovativo pedido."); closeModal(SUBMISSION_REVIEW_MODAL); })
       .catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a decisão.")));
+  };
 
   return (
     <Sheet open={Boolean(open[SUBMISSION_REVIEW_MODAL])} onOpenChange={(next) => !next && closeModal(SUBMISSION_REVIEW_MODAL)}>
@@ -110,9 +157,33 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
             {actionable ? (
               <div className="space-y-3">
                 {s.status === "submetido" && <Button type="button" size="sm" variant="outline" disabled={busy} onClick={() => start.mutateAsync(s.id).catch((e) => ErrorMessage(getApiErrorMessage(e, "Falhou.")))}>Marcar como em análise</Button>}
-                <Input label="Valor confirmado (Kz)" type="number" value={confirmed} onChange={(e) => setConfirmed(e.target.value)} error={invalid ? "Entre 0 e o valor declarado" : undefined} placeholder="Ex.: 35000" />
+                <Input
+                  label="Valor confirmado (Kz)"
+                  type="number"
+                  min={0.01}
+                  max={maxTotal > 0 ? maxTotal : undefined}
+                  step="0.01"
+                  value={confirmed}
+                  onChange={(e) => {
+                    setConfirmedTouched(true);
+                    setConfirmed(e.target.value);
+                  }}
+                  error={confirmedError}
+                  placeholder="Ex.: 35000"
+                />
                 {partial && <p className="text-xs text-amber-700">Pagamento parcial: o restante continua em dívida e a família é informada do valor confirmado.</p>}
-                <FormTextarea label="Motivo (obrigatório para rejeitar ou pedir novo comprovativo)" value={reason} onChange={setReason} rows={2} placeholder="Ex.: Comprovativo ilegível, montante divergente do extracto bancário..." />
+                <FormTextarea
+                  label="Motivo (obrigatório para rejeitar ou pedir novo comprovativo)"
+                  value={reason}
+                  maxLength={500}
+                  onChange={(v) => {
+                    setReasonTouched(true);
+                    setReason(v);
+                  }}
+                  error={reasonError}
+                  rows={2}
+                  placeholder="Ex.: Comprovativo ilegível, montante divergente do extracto bancário..."
+                />
                 <p className="text-xs text-muted-foreground">Confira o valor, a data e a referência no extracto bancário antes de aprovar. Só a aprovação regista o pagamento nas faturas.</p>
                 <ul className="list-disc space-y-1 pl-4 text-[11px] text-muted-foreground">
                   <li><strong>Pedir novo comprovativo:</strong> o pedido continua aberto e a família pode substituir o ficheiro (ex.: foto ilegível).</li>
@@ -130,8 +201,8 @@ export function SubmissionReviewModal({ submission }: { submission: ApiSubmissio
         <SheetFooter className="mt-auto">
           {actionable ? (
             <>
-              <Button type="button" variant="outline" disabled={busy || reason.trim().length < 5} onClick={() => decide("replacement_required")}>Pedir novo comprovativo</Button>
-              <Button type="button" variant="destructive" disabled={busy || reason.trim().length < 5} onClick={() => decide("rejected")}>Rejeitar</Button>
+              <Button type="button" variant="outline" disabled={busy || !reasonResult.success} onClick={() => decide("replacement_required")}>Pedir novo comprovativo</Button>
+              <Button type="button" variant="destructive" disabled={busy || !reasonResult.success} onClick={() => decide("rejected")}>Rejeitar</Button>
               <Button type="button" disabled={busy || invalid} onClick={() => decide("approved")} className="gap-2">
                 {busy && <Icon className="animate-spin" name="LoaderCircle" />}
                 {partial ? "Aprovar valor parcial" : "Aprovar pagamento"}

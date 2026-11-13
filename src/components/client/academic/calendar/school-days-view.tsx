@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { z } from "zod";
+import { isoDateSchema, isValidIsoDate, safeTextSchema } from "@/schemas/helps";
 import {
   Badge,
   Button,
@@ -44,23 +46,64 @@ type HighlightRow = {
   kind: "marca" | "feriado";
 };
 
+const markDaySchema = z
+  .object({
+    start: isoDateSchema("A data de início"),
+    end: z
+      .string()
+      .trim()
+      .refine((v) => v === "" || isValidIsoDate(v), "A data de fim é inválida (AAAA-MM-DD).")
+      .optional(),
+    title: safeTextSchema(3, 150, "O título"),
+    justification: safeTextSchema(5, 500, "O motivo"),
+  })
+  .superRefine((data, ctx) => {
+    if (data.end && data.end < data.start) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["end"],
+        message: "A data de fim deve ser igual ou posterior à data de início.",
+      });
+    }
+  });
+
+const INITIAL_MARK_DAY = { start: "", end: "", title: "", justification: "" };
+
 function MarkDayModal() {
   const { open } = useModal();
   const { mark } = useSchoolDays(new Date());
-  const [f, setF] = useState({ start: "", end: "", title: "", justification: "" });
-  const set = <K extends keyof typeof f>(k: K, v: string) => setF((p) => ({ ...p, [k]: v }));
+  const [f, setF] = useState(INITIAL_MARK_DAY);
+  const [touched, setTouched] = useState<Partial<Record<keyof typeof INITIAL_MARK_DAY, boolean>>>({});
+  const set = <K extends keyof typeof f>(k: K, v: string) => {
+    setTouched((prev) => ({ ...prev, [k]: true }));
+    setF((p) => ({ ...p, [k]: v }));
+  };
+
+  const parsed = useMemo(() => markDaySchema.safeParse(f), [f]);
+  const fieldError = (key: keyof typeof INITIAL_MARK_DAY, alsoShowIf?: boolean) => {
+    if ((!touched[key] && !alsoShowIf) || parsed.success) return undefined;
+    return parsed.error.issues.find((i) => i.path[0] === key)?.message;
+  };
+
   if (!open["school-days-mark"]) return null;
-  const submit = () =>
-    mark
-      .mutateAsync({ startDate: f.start, endDate: f.end || undefined, title: f.title.trim(), justification: f.justification.trim() })
-      .then(() => { SucessMessage("Dia(s) marcado(s) como não letivo(s)."); setF({ start: "", end: "", title: "", justification: "" }); })
+  const resetForm = () => {
+    setF(INITIAL_MARK_DAY);
+    setTouched({});
+  };
+  const submit = () => {
+    if (!parsed.success) return;
+    const d = parsed.data;
+    return mark
+      .mutateAsync({ startDate: d.start, endDate: d.end || undefined, title: d.title, justification: d.justification })
+      .then(() => { SucessMessage("Dia(s) marcado(s) como não letivo(s)."); resetForm(); })
       .catch((e) => { fail(e); throw e; });
+  };
   return (
-    <FormModal id="school-days-mark" title="Marcar dia não letivo" description="Use para decretos, calamidades ou encerramentos. Estes dias deixam de ser letivos: o contador de dias letivos desce e a assiduidade já não é exigida (as faltas já lançadas não se apagam). Só se marcam dias dentro do ano letivo; a marca remove-se depois, com «Remover marca»." submitLabel="Marcar" isLoading={mark.isPending} onSubmit={submit} disabled={!f.start || f.title.trim().length < 3 || f.justification.trim().length < 5}>
-      <Input label="Início *" type="date" value={f.start} onChange={(e) => set("start", e.target.value)} />
-      <Input label="Fim (opcional)" type="date" value={f.end} onChange={(e) => set("end", e.target.value)} />
+    <FormModal id="school-days-mark" title="Marcar dia não letivo" description="Use para decretos, calamidades ou encerramentos. Estes dias deixam de ser letivos: o contador de dias letivos desce e a assiduidade já não é exigida (as faltas já lançadas não se apagam). Só se marcam dias dentro do ano letivo; a marca remove-se depois, com «Remover marca»." submitLabel="Marcar" isLoading={mark.isPending} onSubmit={submit} onClose={resetForm} disabled={!parsed.success || mark.isPending}>
+      <Input label="Início *" type="date" value={f.start} onChange={(e) => set("start", e.target.value)} error={fieldError("start")} />
+      <Input label="Fim (opcional)" type="date" value={f.end} onChange={(e) => set("end", e.target.value)} error={fieldError("end", Boolean(touched.start && f.end))} />
       <div className="sm:col-span-2">
-        <Input label="Título *" startIcon="CalendarX" placeholder="Ex.: Tolerância de Ponto / Luto Nacional" value={f.title} onChange={(e) => set("title", e.target.value)} />
+        <Input label="Título *" startIcon="CalendarX" placeholder="Ex.: Tolerância de Ponto / Luto Nacional" value={f.title} onChange={(e) => set("title", e.target.value)} error={fieldError("title")} />
       </div>
       <div className="sm:col-span-2">
         <FormTextarea
@@ -68,6 +111,7 @@ function MarkDayModal() {
           placeholder="Ex.: Decreto executivo n.º 12/26, calamidade pública ou despacho governamental..."
           value={f.justification}
           onChange={(v) => set("justification", v)}
+          error={fieldError("justification")}
           rows={3}
         />
       </div>

@@ -3,16 +3,22 @@ import { formatIsoDay } from "@/utils/format-date";
 import { familyKeys } from "@/modules/family/query-keys";
 import { formatDateTime } from "@/utils";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { Badge, Button, FormModal, Icon, Input } from "@/components";
+import { optionalEmailSchema, phoneNumberSchema } from "@/schemas/helps";
 import { portalService } from "@/modules/family/services/portal-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 
 const MODAL = "family-profile-edit";
+const familyContactsSchema = z.object({
+  phone: phoneNumberSchema,
+  email: optionalEmailSchema,
+});
 const Row = ({ label, value, hint }: { label: string; value: string; hint?: string }) => (
   <div className="flex flex-wrap items-baseline justify-between gap-2 border-b py-2.5 text-sm last:border-0">
     <span className="text-muted-foreground">{label}</span>
@@ -29,11 +35,28 @@ export function FamilyProfile() {
   const save = useMutation({ mutationFn: portalService.updateContacts, onSuccess: (p) => qc.setQueryData(familyKeys.profile(schoolId), p) });
   const [phone, setPhone] = useState("");
   const [email, setEmail] = useState("");
+  const [touched, setTouched] = useState<{ phone?: boolean; email?: boolean }>({});
+
+  const parsed = useMemo(() => familyContactsSchema.safeParse({ phone, email }), [phone, email]);
+  const fieldErrors = useMemo(() => {
+    if (parsed.success) return {} as { phone?: string; email?: string };
+    const map: { phone?: string; email?: string } = {};
+    for (const issue of parsed.error.issues) {
+      const k = issue.path[0] as "phone" | "email" | undefined;
+      if (k && !map[k]) map[k] = issue.message;
+    }
+    return map;
+  }, [parsed]);
 
   if (isLoading || !me) return <p className="text-sm text-muted-foreground">A carregar…</p>;
   const person = me.guardian ?? me.student;
   const canEdit = me.editable.phone || me.editable.email;
-  const edit = () => { setPhone(me.guardian?.phone ?? ""); setEmail(me.guardian?.email ?? ""); openModal(MODAL); };
+  const edit = () => {
+    setPhone(me.guardian?.phone ?? "");
+    setEmail(me.guardian?.email ?? "");
+    setTouched({});
+    openModal(MODAL);
+  };
 
   return (
     <div className="space-y-6">
@@ -73,10 +96,45 @@ export function FamilyProfile() {
         </section>
       </div>
 
-      <FormModal id={MODAL} title="Editar contactos" description="O telefone e o email de contacto são usados pela escola para os avisos e a cobrança." submitLabel="Guardar" isLoading={save.isPending} disabled={phone.trim().length < 7}
-        onSubmit={() => save.mutateAsync({ phone: phone.trim(), email: email.trim() ? email.trim() : null }).then(() => { SucessMessage("Contactos atualizados."); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar.")); throw e; })}>
-        <div className="sm:col-span-2"><Input label="Telefone *" value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="+244 923 000 000" /></div>
-        <div className="sm:col-span-2"><Input label="Email de contacto" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="nome@dominio.ao" /></div>
+      <FormModal id={MODAL} title="Editar contactos" description="O telefone e o email de contacto são usados pela escola para os avisos e a cobrança." submitLabel="Guardar" isLoading={save.isPending} disabled={!parsed.success || save.isPending}
+        onSubmit={() => {
+          if (!parsed.success) {
+            setTouched({ phone: true, email: true });
+            return Promise.reject(new Error("Formulário inválido."));
+          }
+          return save
+            .mutateAsync({ phone: parsed.data.phone, email: parsed.data.email ? parsed.data.email : null })
+            .then(() => { SucessMessage("Contactos atualizados."); })
+            .catch((e) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar.")); throw e; });
+        }}>
+        <div className="sm:col-span-2">
+          <Input
+            label="Telefone *"
+            type="tel"
+            maxLength={20}
+            value={phone}
+            onChange={(e) => {
+              setTouched((t) => (t.phone ? t : { ...t, phone: true }));
+              setPhone(e.target.value);
+            }}
+            error={touched.phone ? fieldErrors.phone : undefined}
+            placeholder="+244 923 000 000"
+          />
+        </div>
+        <div className="sm:col-span-2">
+          <Input
+            label="Email de contacto"
+            type="email"
+            maxLength={150}
+            value={email}
+            onChange={(e) => {
+              setTouched((t) => (t.email ? t : { ...t, email: true }));
+              setEmail(e.target.value);
+            }}
+            error={touched.email ? fieldErrors.email : undefined}
+            placeholder="nome@dominio.ao"
+          />
+        </div>
         <p className="sm:col-span-2 text-xs text-muted-foreground">Isto não altera o email que usa para entrar na conta.</p>
       </FormModal>
     </div>

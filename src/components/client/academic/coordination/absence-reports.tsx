@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { Button, Icon, Label, SelectField } from "@/components";
 import { Badge } from "@/components/ui/badge";
@@ -29,6 +30,11 @@ const PERIODS: Array<{ value: PeriodKind; label: string }> = [
   { value: "ano", label: "Ano letivo" },
 ];
 
+const reportMonthSchema = z
+  .string({ error: "Seleccione o mês." })
+  .trim()
+  .regex(/^\d{4}-(0[1-9]|1[0-2])$/, "Seleccione um mês válido (AAAA-MM).");
+
 const pad = (n: number) => String(n).padStart(2, "0");
 const lastDayOfMonth = (month: string) => {
   const [y, m] = month.split("-").map(Number);
@@ -52,19 +58,28 @@ export function AbsenceReports({ sectionId, termSequence }: { sectionId: string;
   const terms = useGradeTerms();
   const [period, setPeriod] = useState<PeriodKind>("mes");
   const [month, setMonth] = useState(thisMonth());
+  const [monthTouched, setMonthTouched] = useState(false);
   const [kind, setKind] = useState<AbsenceReportKind>("resumo");
   const [request, setRequest] = useState<Request | null>(null);
 
+  const monthParsed = useMemo(() => reportMonthSchema.safeParse(month), [month]);
+  const monthError = period === "mes" && (monthTouched || month !== "") && !monthParsed.success
+    ? monthParsed.error.issues[0]?.message
+    : undefined;
+
   const range = useMemo(() => {
     const all = terms.data ?? [];
-    if (period === "mes") return { from: `${month}-01`, to: lastDayOfMonth(month) };
+    if (period === "mes") {
+      if (!monthParsed.success) return null;
+      return { from: `${monthParsed.data}-01`, to: lastDayOfMonth(monthParsed.data) };
+    }
     if (period === "trimestre") {
       const t = all.find((x) => x.sequence === termSequence);
       return t ? { from: t.start_date, to: t.end_date } : null;
     }
     if (all.length === 0) return null;
     return { from: all.map((t) => t.start_date).sort()[0], to: all.map((t) => t.end_date).sort().at(-1)! };
-  }, [period, month, terms.data, termSequence]);
+  }, [period, monthParsed, terms.data, termSequence]);
 
   const report = useQuery({
     queryKey: ["attendance-report", schoolId, sectionId, request?.from, request?.to],
@@ -73,6 +88,10 @@ export function AbsenceReports({ sectionId, termSequence }: { sectionId: string;
   });
 
   const generate = () => {
+    if (period === "mes" && !monthParsed.success) {
+      setMonthTouched(true);
+      return ErrorMessage(monthParsed.error.issues[0]?.message ?? "Seleccione um mês válido.");
+    }
     if (!range) return ErrorMessage("Ainda não há períodos do ano letivo para este relatório.");
     setRequest({ kind, month, ...range });
   };
@@ -85,12 +104,23 @@ export function AbsenceReports({ sectionId, termSequence }: { sectionId: string;
         {period === "mes" ? (
           <div className="space-y-1.5">
             <Label htmlFor="report-month">Mês</Label>
-            <input id="report-month" type="month" value={month} onChange={(e) => setMonth(e.target.value)} className="h-9 w-full rounded-sm border bg-background px-2 text-sm" />
+            <input
+              id="report-month"
+              type="month"
+              value={month}
+              aria-invalid={Boolean(monthError) || undefined}
+              onChange={(e) => {
+                setMonth(e.target.value);
+                setMonthTouched(true);
+              }}
+              className={`h-9 w-full rounded-sm border bg-background px-2 text-sm ${monthError ? "border-red-500 ring-1 ring-red-400" : ""}`}
+            />
+            {monthError && <p role="alert" className="text-xs text-destructive">{monthError}</p>}
           </div>
         ) : (
           <div className="text-xs text-muted-foreground">{range ? `${formatIsoDay(range.from)} a ${formatIsoDay(range.to)}` : "A carregar períodos…"}</div>
         )}
-        <Button onClick={generate} className="gap-2">
+        <Button onClick={generate} disabled={(period === "mes" && !monthParsed.success) || !range} className="gap-2">
           <Icon name="FileText" className="size-4" />
           Gerar relatório
         </Button>

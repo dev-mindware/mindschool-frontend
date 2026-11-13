@@ -2,6 +2,7 @@
 
 import { useDropzone, type Accept } from "react-dropzone";
 import { Icon } from "@/components/common/icon";
+import { AlertError } from "@/components/common/alert-error";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { ErrorMessage } from "@/utils/messages";
@@ -24,6 +25,7 @@ interface FileUploadProps {
   maxBytes?: number;
   label?: string;
   hint?: string;
+  error?: string;
   disabled?: boolean;
   className?: string;
 }
@@ -35,7 +37,7 @@ const extensions = (accept: Accept) => [...new Set(Object.values(accept).flat().
  * Carregamento de um ficheiro (arrastar ou escolher): o único componente de upload da aplicação. Controlado
  * (`value`/`onChange`), valida tipo e tamanho no cliente (o servidor valida sempre o conteúdo real).
  */
-export function FileUpload({ value, onChange, accept, maxBytes = 10 * 1024 * 1024, label = "Anexar ficheiro", hint, disabled, className }: FileUploadProps) {
+export function FileUpload({ value, onChange, accept, maxBytes = 10 * 1024 * 1024, label = "Anexar ficheiro", hint, error, disabled, className }: FileUploadProps) {
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
     accept,
     maxSize: maxBytes,
@@ -49,26 +51,31 @@ export function FileUpload({ value, onChange, accept, maxBytes = 10 * 1024 * 102
   });
 
   return (
-    <div
-      {...getRootProps()}
-      className={cn(
-        "flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xs border-2 border-dashed p-5 text-center text-sm transition-colors hover:border-primary/60 hover:bg-muted/30",
-        isDragActive && "border-primary bg-primary/5",
-        disabled && "pointer-events-none opacity-60",
-        className,
-      )}
-    >
-      <input {...getInputProps()} />
-      <Icon name={value ? "FileCheck" : "Upload"} className="size-6 text-primary" />
-      <span className="font-medium">{value ? value.name : label}</span>
-      <span className="text-xs text-muted-foreground">
-        {value ? `${kb(value.size)} · clique ou arraste para trocar` : (hint ?? `${extensions(accept)} · máximo ${kb(maxBytes)}`)}
-      </span>
-      {value && (
-        <Button type="button" variant="link" size="sm" className="mt-1 h-auto p-0 text-xs text-destructive" onClick={(e) => { e.stopPropagation(); onChange(null); }}>
-          Remover
-        </Button>
-      )}
+    <div className="space-y-1">
+      <div
+        {...getRootProps()}
+        aria-invalid={Boolean(error) || undefined}
+        className={cn(
+          "flex cursor-pointer flex-col items-center justify-center gap-1 rounded-xs border-2 border-dashed p-5 text-center text-sm transition-colors hover:border-primary/60 hover:bg-muted/30",
+          isDragActive && "border-primary bg-primary/5",
+          error && "border-red-500 ring-1 ring-red-400",
+          disabled && "pointer-events-none opacity-60",
+          className,
+        )}
+      >
+        <input {...getInputProps()} />
+        <Icon name={value ? "FileCheck" : "Upload"} className="size-6 text-primary" />
+        <span className="font-medium">{value ? value.name : label}</span>
+        <span className="text-xs text-muted-foreground">
+          {value ? `${kb(value.size)} · clique ou arraste para trocar` : (hint ?? `${extensions(accept)} · máximo ${kb(maxBytes)}`)}
+        </span>
+        {value && (
+          <Button type="button" variant="link" size="sm" className="mt-1 h-auto p-0 text-xs text-destructive" onClick={(e) => { e.stopPropagation(); onChange(null); }}>
+            Remover
+          </Button>
+        )}
+      </div>
+      {error && <AlertError errorMessage={error} />}
     </div>
   );
 }

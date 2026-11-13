@@ -11,6 +11,7 @@ import {
   DropdownMenuLabel,
 } from "@/components";
 import { cn } from "@/lib/utils";
+import { stripControlChars } from "@/schemas/helps";
 
 interface NotificationFiltersProps {
   searchTerm: string;
@@ -58,8 +59,9 @@ export function NotificationFilters({
         />
         <Input
           placeholder="Pesquisar notificações..."
+          maxLength={100}
           value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
+          onChange={(e) => setSearchTerm(stripControlChars(e.target.value).slice(0, 100))}
           className="pl-10 bg-background"
         />
       </div>

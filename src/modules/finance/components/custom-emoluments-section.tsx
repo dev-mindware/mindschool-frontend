@@ -1,7 +1,15 @@
 "use client";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { z } from "zod";
 import { SucessMessage } from "@/utils/messages";
+import {
+  currencySchema,
+  optionalSafeTextSchema,
+  quantitySchema,
+  safeTextSchema,
+  stripControlChars,
+} from "@/schemas/helps";
 import {
   Badge,
   Button,
@@ -24,6 +32,23 @@ import type { CustomEmolument } from "@/modules/finance/types";
 
 const MODAL_NEW = "emolument-form";
 const MODAL_DELETE = "emolument-delete";
+
+const emolumentFormSchema = z.object({
+  name: safeTextSchema(2, 120, "O nome do emolumento"),
+  code: z
+    .string()
+    .transform((v) => stripControlChars(v).trim().toUpperCase())
+    .refine(
+      (v) => v === "" || /^[A-Z0-9_-]{2,40}$/.test(v),
+      "O código deve ter entre 2 e 40 caracteres (letras, números, '_' ou '-')."
+    ),
+  price: currencySchema(0, 10_000_000, "O preço"),
+  deliveryDays: quantitySchema(0, 60, "O prazo de entrega"),
+  description: optionalSafeTextSchema(255, 2, "A descrição"),
+  active: z.enum(["true", "false"]),
+});
+
+type EmolumentField = "name" | "code" | "price" | "deliveryDays" | "description" | "active";
 
 const DEFAULT_EMOLUMENTS: CustomEmolument[] = [
   {
@@ -89,6 +114,35 @@ export function CustomEmolumentsSection() {
   const [deliveryDays, setDeliveryDays] = useState<string>("3");
   const [description, setDescription] = useState("");
   const [active, setActive] = useState<string>("true");
+  const [touched, setTouched] = useState<Partial<Record<EmolumentField, boolean>>>({});
+
+  const touch = (field: EmolumentField) =>
+    setTouched((prev) => (prev[field] ? prev : { ...prev, [field]: true }));
+
+  const parsed = useMemo(
+    () =>
+      emolumentFormSchema.safeParse({
+        name,
+        code,
+        price,
+        deliveryDays,
+        description,
+        active,
+      }),
+    [name, code, price, deliveryDays, description, active],
+  );
+
+  const fieldErrors = useMemo(() => {
+    if (parsed.success) return {} as Partial<Record<EmolumentField, string>>;
+    const map: Partial<Record<EmolumentField, string>> = {};
+    for (const issue of parsed.error.issues) {
+      const key = issue.path[0] as EmolumentField | undefined;
+      if (key && !map[key]) map[key] = issue.message;
+    }
+    return map;
+  }, [parsed]);
+
+  const errorOf = (field: EmolumentField) => (touched[field] ? fieldErrors[field] : undefined);
 
   const openNew = () => {
     setEditing(null);
@@ -98,6 +152,7 @@ export function CustomEmolumentsSection() {
     setDeliveryDays("3");
     setDescription("");
     setActive("true");
+    setTouched({});
     openModal(MODAL_NEW);
   };
 
@@ -109,21 +164,28 @@ export function CustomEmolumentsSection() {
     setDeliveryDays(String(item.deliveryDays));
     setDescription(item.description ?? "");
     setActive(item.active ? "true" : "false");
+    setTouched({});
     openModal(MODAL_NEW);
   };
 
   const save = async () => {
+    if (!parsed.success) {
+      setTouched({ name: true, code: true, price: true, deliveryDays: true, description: true, active: true });
+      throw new Error("Formulário inválido.");
+    }
+    const data = parsed.data;
+    const resolvedCode = data.code || `EMOL_${Date.now().toString().slice(-4)}`;
     const updated: CustomEmolument[] = editing
       ? emoluments.map((e) =>
           e.id === editing.id
             ? {
                 ...e,
-                name: name.trim(),
-                code: code.trim().toUpperCase() || `EMOL_${Date.now().toString().slice(-4)}`,
-                price: Number(price) || 0,
-                deliveryDays: Math.max(0, Number(deliveryDays) || 0),
-                description: description.trim() || undefined,
-                active: active === "true",
+                name: data.name,
+                code: resolvedCode,
+                price: data.price,
+                deliveryDays: data.deliveryDays,
+                description: data.description || undefined,
+                active: data.active === "true",
               }
             : e,
         )
@@ -131,13 +193,13 @@ export function CustomEmolumentsSection() {
           ...emoluments,
           {
             id: `emol-${Date.now()}`,
-            name: name.trim(),
-            code: code.trim().toUpperCase() || `EMOL_${Date.now().toString().slice(-4)}`,
-            price: Number(price) || 0,
-            deliveryDays: Math.max(0, Number(deliveryDays) || 0),
+            name: data.name,
+            code: resolvedCode,
+            price: data.price,
+            deliveryDays: data.deliveryDays,
             requiresPayment: true,
-            description: description.trim() || undefined,
-            active: active === "true",
+            description: data.description || undefined,
+            active: data.active === "true",
           },
         ];
 
@@ -278,7 +340,7 @@ export function CustomEmolumentsSection() {
         description="Configure o valor a cobrar e o prazo de entrega em dias úteis."
         submitLabel={editing ? "Guardar alterações" : "Criar emolumento"}
         isLoading={savePolicy.isPending}
-        disabled={name.trim().length < 3 || Number(price) < 0}
+        disabled={!parsed.success || savePolicy.isPending}
         size="md"
         onSubmit={save}
       >
@@ -286,7 +348,12 @@ export function CustomEmolumentsSection() {
           <Input
             label="Nome do Emolumento *"
             value={name}
-            onChange={(e) => setName(e.target.value)}
+            maxLength={120}
+            onChange={(e) => {
+              touch("name");
+              setName(e.target.value);
+            }}
+            error={errorOf("name")}
             placeholder="Ex.: Certificado com Notas - Ensino Primário"
           />
 
@@ -294,13 +361,22 @@ export function CustomEmolumentsSection() {
             <Input
               label="Código Identificador"
               value={code}
-              onChange={(e) => setCode(e.target.value)}
+              maxLength={40}
+              onChange={(e) => {
+                touch("code");
+                setCode(e.target.value);
+              }}
+              error={errorOf("code")}
               placeholder="Ex.: CERT_PRIMARIO"
             />
             <FormSelect
               label="Estado"
               value={active}
-              onValueChange={setActive}
+              onValueChange={(v) => {
+                touch("active");
+                setActive(v);
+              }}
+              error={errorOf("active")}
               options={[
                 { value: "true", label: "Ativo (disponível para cobrança)" },
                 { value: "false", label: "Inactivo" },
@@ -314,7 +390,12 @@ export function CustomEmolumentsSection() {
                 label="Preço em Kwanzas (Kz) *"
                 currency="Kz"
                 value={price}
-                onValueChange={(val) => setPrice(val)}
+                onValueChange={(val) => {
+                  touch("price");
+                  setPrice(val);
+                }}
+                error={errorOf("price")}
+                aria-invalid={Boolean(errorOf("price")) || undefined}
                 placeholder="0 Kz"
               />
             </div>
@@ -323,8 +404,13 @@ export function CustomEmolumentsSection() {
               type="number"
               min={0}
               max={60}
+              step={1}
               value={deliveryDays}
-              onChange={(e) => setDeliveryDays(e.target.value)}
+              onChange={(e) => {
+                touch("deliveryDays");
+                setDeliveryDays(e.target.value);
+              }}
+              error={errorOf("deliveryDays")}
               placeholder="3"
             />
           </div>
@@ -332,7 +418,12 @@ export function CustomEmolumentsSection() {
           <Textarea
             label="Descrição / Observações (opcional)"
             value={description}
-            onChange={(e) => setDescription(e.target.value)}
+            maxLength={255}
+            onChange={(e) => {
+              touch("description");
+              setDescription(e.target.value);
+            }}
+            error={errorOf("description")}
             placeholder="Informações adicionais para a secretaria ou orientações para a emissão..."
             rows={3}
           />

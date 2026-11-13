@@ -134,6 +134,7 @@ export function PercInput({
             type="number"
             inputMode="decimal"
             role="spinbutton"
+            aria-invalid={Boolean(error) || undefined}
             aria-valuenow={numValue}
             aria-valuemin={min}
             aria-valuemax={max}

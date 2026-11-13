@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { z } from "zod";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { useDropzone, type Accept } from "react-dropzone";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
@@ -9,12 +10,25 @@ import { useSchoolProfile } from "@/hooks/school/use-school-profile";
 import { savePrimary, DEFAULT_PRIMARY } from "@/lib/appearance";
 import { patchSettings, uploadSchoolLogo, deleteSchoolLogo } from "@/services/school-settings-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
+import { stripControlChars } from "@/schemas/helps";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { cn } from "@/lib/utils";
 
 type Identity = "estado" | "escola";
 
 const HEX = /^#([0-9a-fA-F]{3}|[0-9a-fA-F]{6})$/;
+
+const documentBrandingSchema = z.object({
+  document_identity: z.enum(["estado", "escola"]),
+  primary_color: z
+    .string()
+    .transform((v) => stripControlChars(v).trim())
+    .refine((v) => v === "" || HEX.test(v), "Use um valor hexadecimal válido, por exemplo #1d4ed8."),
+  logo_url: z
+    .string()
+    .transform((v) => stripControlChars(v).trim())
+    .refine((v) => v.length <= 500, "O endereço do logótipo não pode exceder 500 caracteres."),
+});
 
 const OPTIONS: Array<{ value: Identity; title: string; text: string }> = [
   { value: "estado", title: "Informações do Estado", text: "Insígnia nacional e linhas oficiais (República de Angola, Ministério da Educação) no topo de cada documento." },
@@ -195,20 +209,41 @@ function BrandingForm({ branding }: { branding: ApiBranding }) {
   const [identity, setIdentity] = useState<Identity>(branding?.document_identity === "escola" ? "escola" : "estado");
   const [color, setColor] = useState(branding?.primary_color ?? "");
   const [logo, setLogo] = useState(branding?.logo_url ?? "");
+  const [colorTouched, setColorTouched] = useState(false);
 
-  const colorValid = color === "" || HEX.test(color);
+  const parsed = documentBrandingSchema.safeParse({
+    document_identity: identity,
+    primary_color: color,
+    logo_url: logo,
+  });
+  const colorError = !parsed.success
+    ? parsed.error.issues.find((i) => i.path[0] === "primary_color")?.message
+    : undefined;
+  const normalizedColor = parsed.success ? parsed.data.primary_color : color.trim();
+  const normalizedLogo = parsed.success ? parsed.data.logo_url : logo.trim();
+
   const save = useMutation({
-    mutationFn: () => patchSettings({ branding: { document_identity: identity, primary_color: color || null, logo_url: logo ? logo.trim() : null } }),
+    mutationFn: () =>
+      patchSettings({
+        branding: {
+          document_identity: identity,
+          primary_color: normalizedColor || null,
+          logo_url: normalizedLogo || null,
+        },
+      }),
     onSuccess: () => {
-      savePrimary(color && HEX.test(color) ? color : DEFAULT_PRIMARY);
+      savePrimary(normalizedColor && HEX.test(normalizedColor) ? normalizedColor : DEFAULT_PRIMARY);
       queryClient.invalidateQueries({ queryKey: ["school", schoolId] });
     },
   });
 
-  const submit = () =>
-    save.mutateAsync()
+  const submit = () => {
+    setColorTouched(true);
+    if (!parsed.success) return;
+    return save.mutateAsync()
       .then(() => SucessMessage("Aspecto dos documentos atualizado."))
       .catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar o aspecto dos documentos.")));
+  };
 
   return (
     <div className="space-y-4">
@@ -256,12 +291,23 @@ function BrandingForm({ branding }: { branding: ApiBranding }) {
         <div className="grid gap-4 xl:grid-cols-2">
           <div className="space-y-1.5">
             <Label htmlFor="doc-color">Cor institucional da escola</Label>
-            <div className="flex items-center gap-2">
-              <input id="doc-color" type="color" aria-label="Escolher cor" value={HEX.test(color) && color.length === 7 ? color : "#000000"} onChange={(e) => setColor(e.target.value)} className="h-9 w-12 shrink-0 cursor-pointer rounded-xs border bg-transparent p-1" />
-              <div className="min-w-0 flex-1"><Input aria-label="Cor em hexadecimal" placeholder="#1d4ed8" value={color} onChange={(e) => setColor(e.target.value)} /></div>
-              {color && <Button type="button" variant="ghost" size="sm" className="shrink-0 rounded-xs" onClick={() => setColor("")}>Limpar</Button>}
+            <div className="flex items-start gap-2">
+              <input id="doc-color" type="color" aria-label="Escolher cor" value={HEX.test(normalizedColor) && normalizedColor.length === 7 ? normalizedColor : "#000000"} onChange={(e) => { setColor(e.target.value); setColorTouched(true); }} className="h-9 w-12 shrink-0 cursor-pointer rounded-xs border bg-transparent p-1" />
+              <div className="min-w-0 flex-1">
+                <Input
+                  aria-label="Cor em hexadecimal"
+                  placeholder="#1d4ed8"
+                  maxLength={10}
+                  value={color}
+                  error={colorTouched || color.length > 0 ? colorError : undefined}
+                  onChange={(e) => { setColor(stripControlChars(e.target.value)); setColorTouched(true); }}
+                />
+              </div>
+              {color && <Button type="button" variant="ghost" size="sm" className="shrink-0 rounded-xs" onClick={() => { setColor(""); setColorTouched(false); }}>Limpar</Button>}
             </div>
-            <p className={cn("text-xs", colorValid ? "text-muted-foreground" : "text-destructive")}>{colorValid ? "Usada na interface, molduras, títulos e cabeçalhos de tabela." : "Use um valor hexadecimal, por exemplo #1d4ed8."}</p>
+            {!colorError && (
+              <p className="text-xs text-muted-foreground">Usada na interface, molduras, títulos e cabeçalhos de tabela.</p>
+            )}
           </div>
 
           <SchoolLogoUploader
@@ -271,7 +317,7 @@ function BrandingForm({ branding }: { branding: ApiBranding }) {
         </div>
 
         <Can permission="school:update">
-          <Button type="button" onClick={submit} disabled={!colorValid || save.isPending} className="rounded-xs">{save.isPending ? "A guardar…" : "Guardar aspecto"}</Button>
+          <Button type="button" onClick={submit} disabled={!parsed.success || save.isPending} className="rounded-xs">{save.isPending ? "A guardar…" : "Guardar aspecto"}</Button>
         </Can>
       </div>
     </div>

@@ -1,10 +1,10 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useMemo, useState } from "react";
 import type { FieldErrors, UseFormRegister, UseFormWatch } from "react-hook-form";
 import { Button, Icon, Input } from "@/components";
 import { getApiErrorMessage } from "@/utils/api-error";
-import { isValidNif, normalizeNif } from "@/lib/nif";
+import { taxNumberSchema } from "@/schemas/helps";
 import { settlementService } from "@/modules/finance/services/settlement-service";
 
 interface NifVerifyFieldProps {
@@ -24,11 +24,15 @@ interface NifVerifyFieldProps {
 export function NifVerifyField({ register, errors, watch, name = "nif", onResolvedName }: NifVerifyFieldProps) {
   const value = String(watch(name) ?? "");
   const [state, setState] = useState<{ kind: "idle" } | { kind: "loading" } | { kind: "found"; name: string } | { kind: "error"; message: string }>({ kind: "idle" });
+  const nifParsed = useMemo(() => taxNumberSchema.safeParse(value), [value]);
+  const fallbackError = value.trim() !== "" && !nifParsed.success ? nifParsed.error.issues[0]?.message : undefined;
+  const fieldError = (errors[name]?.message as string | undefined) ?? fallbackError;
 
   async function verify() {
+    if (!nifParsed.success) return;
     setState({ kind: "loading" });
     try {
-      const r = await settlementService.lookupNif(normalizeNif(value));
+      const r = await settlementService.lookupNif(nifParsed.data);
       setState({ kind: "found", name: r.name });
     } catch (e) {
       setState({ kind: "error", message: getApiErrorMessage(e, "Não foi possível verificar o NIF.") });
@@ -37,17 +41,18 @@ export function NifVerifyField({ register, errors, watch, name = "nif", onResolv
 
   return (
     <div className="space-y-2">
-      <div className="flex items-end gap-2">
+      <div className="flex items-start gap-2">
         <div className="flex-1">
           <Input
             label="NIF (opcional)"
             startIcon="FileText"
+            maxLength={20}
             placeholder="Ex: 5417012345"
             {...register(name, { onChange: () => setState({ kind: "idle" }) })}
-            error={errors[name]?.message as string | undefined}
+            error={fieldError}
           />
         </div>
-        <Button type="button" variant="outline" disabled={!isValidNif(value) || state.kind === "loading"} onClick={() => void verify()} className="mb-0.5 gap-1.5">
+        <Button type="button" variant="outline" disabled={!nifParsed.success || state.kind === "loading"} onClick={() => void verify()} className="mt-6 gap-1.5">
           <Icon name={state.kind === "loading" ? "Loader2" : "ShieldCheck"} className={state.kind === "loading" ? "animate-spin" : ""} />
           Verificar NIF
         </Button>

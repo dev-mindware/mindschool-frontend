@@ -1,6 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { z } from "zod";
+import { safeTextSchema, timeHHMMSchema } from "@/schemas/helps";
 import {
   Badge,
   Button,
@@ -29,6 +31,21 @@ import { SucessMessage, ErrorMessage } from "@/utils/messages";
 export const EMAIL_TEMPLATE_MODAL_ID = "email-template-studio";
 
 type TemplateKey = "pre_due" | "grace" | "penalty" | "receipt";
+
+const templateItemSchema = z.object({
+  subject: safeTextSchema(3, 200, "O assunto"),
+  body: safeTextSchema(10, 5000, "O corpo da mensagem"),
+});
+
+const emailTemplatesFormSchema = z.object({
+  sendHour: timeHHMMSchema("O horário de disparo"),
+  templates: z.object({
+    pre_due: templateItemSchema,
+    grace: templateItemSchema,
+    penalty: templateItemSchema,
+    receipt: templateItemSchema,
+  }),
+});
 
 interface TemplateDefinition {
   key: TemplateKey;
@@ -146,6 +163,7 @@ export function EmailTemplateEditor() {
 
   const [activeKey, setActiveKey] = useState<TemplateKey>("pre_due");
   const [sendHour, setSendHour] = useState<string>("08:00");
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const [templateDrafts, setTemplateDrafts] = useState<Record<TemplateKey, EmailTemplateItem>>(() => {
     const existing = policy?.emailCollections?.templates ?? {};
     const init: Record<TemplateKey, EmailTemplateItem> = {
@@ -169,10 +187,31 @@ export function EmailTemplateEditor() {
     return init;
   });
 
+  const touch = (path: string) =>
+    setTouched((prev) => (prev[path] ? prev : { ...prev, [path]: true }));
+
+  const parsed = useMemo(
+    () => emailTemplatesFormSchema.safeParse({ sendHour, templates: templateDrafts }),
+    [sendHour, templateDrafts],
+  );
+
+  const fieldErrors = useMemo(() => {
+    if (parsed.success) return {} as Record<string, string>;
+    const map: Record<string, string> = {};
+    for (const issue of parsed.error.issues) {
+      const path = issue.path.join(".");
+      if (path && !map[path]) map[path] = issue.message;
+    }
+    return map;
+  }, [parsed]);
+
   const currentDef = TEMPLATE_DEFS.find((d) => d.key === activeKey) || TEMPLATE_DEFS[0];
   const currentDraft = templateDrafts[activeKey];
+  const subjectPath = `templates.${activeKey}.subject`;
+  const bodyPath = `templates.${activeKey}.body`;
 
   const updateCurrentDraft = (field: "subject" | "body", value: string) => {
+    touch(`templates.${activeKey}.${field}`);
     setTemplateDrafts((prev) => ({
       ...prev,
       [activeKey]: {
@@ -231,6 +270,15 @@ export function EmailTemplateEditor() {
   }, [currentDraft, policy]);
 
   const handleSaveAll = async () => {
+    if (!parsed.success) {
+      const allTouched: Record<string, boolean> = { sendHour: true };
+      for (const def of TEMPLATE_DEFS) {
+        allTouched[`templates.${def.key}.subject`] = true;
+        allTouched[`templates.${def.key}.body`] = true;
+      }
+      setTouched(allTouched);
+      return;
+    }
     try {
       if (!policy) return;
       await savePolicy.mutateAsync({
@@ -250,8 +298,8 @@ export function EmailTemplateEditor() {
           graceWarning: policy.emailCollections?.graceWarning ?? true,
           penaltyNotification: policy.emailCollections?.penaltyNotification ?? true,
           monthlyFollowup: policy.emailCollections?.monthlyFollowup ?? true,
-          sendHour,
-          templates: templateDrafts,
+          sendHour: parsed.data.sendHour,
+          templates: parsed.data.templates,
         },
       });
       SucessMessage("Modelos de correio electrónico e horários atualizados com sucesso!");
@@ -276,12 +324,18 @@ export function EmailTemplateEditor() {
           <div className="space-y-3 border-b pb-4">
             <Tabs value={activeKey} onValueChange={(v) => setActiveKey(v as TemplateKey)}>
               <TabsList className="flex h-auto w-full flex-wrap justify-start gap-1 p-1">
-                {TEMPLATE_DEFS.map((def) => (
-                  <TabsTrigger key={def.key} value={def.key} className="gap-1.5 text-xs">
-                    <Icon name={def.icon as any} className="size-3.5" />
-                    <span>{def.label}</span>
-                  </TabsTrigger>
-                ))}
+                {TEMPLATE_DEFS.map((def) => {
+                  const hasTabErr = Boolean(
+                    fieldErrors[`templates.${def.key}.subject`] || fieldErrors[`templates.${def.key}.body`]
+                  );
+                  return (
+                    <TabsTrigger key={def.key} value={def.key} className="gap-1.5 text-xs">
+                      <Icon name={def.icon as any} className="size-3.5" />
+                      <span>{def.label}</span>
+                      {hasTabErr && <span className="size-1.5 rounded-full bg-destructive" aria-hidden="true" />}
+                    </TabsTrigger>
+                  );
+                })}
               </TabsList>
             </Tabs>
 
@@ -289,7 +343,11 @@ export function EmailTemplateEditor() {
               <FormSelect
                 label="Horário de disparo"
                 value={sendHour}
-                onValueChange={setSendHour}
+                onValueChange={(v) => {
+                  touch("sendHour");
+                  setSendHour(v);
+                }}
+                error={touched.sendHour ? fieldErrors.sendHour : undefined}
                 options={[
                   { value: "07:00", label: "07:00 (Manhã cedo)" },
                   { value: "08:00", label: "08:00 (Início do expediente)" },
@@ -326,7 +384,9 @@ export function EmailTemplateEditor() {
               <Input
                 id="template-subject"
                 value={currentDraft.subject}
+                maxLength={200}
                 onChange={(e) => updateCurrentDraft("subject", e.target.value)}
+                error={touched[subjectPath] ? fieldErrors[subjectPath] : undefined}
                 placeholder="Ex.: Lembrete de Pagamento de Propina..."
                 className="text-xs"
               />
@@ -363,8 +423,10 @@ export function EmailTemplateEditor() {
               <Textarea
                 id="template-body"
                 rows={10}
+                maxLength={5000}
                 value={currentDraft.body}
                 onChange={(e) => updateCurrentDraft("body", e.target.value)}
+                error={touched[bodyPath] ? fieldErrors[bodyPath] : undefined}
                 className="font-mono text-xs leading-relaxed"
                 placeholder="Escreva aqui o texto do modelo..."
               />
@@ -438,7 +500,7 @@ export function EmailTemplateEditor() {
           <Button
             type="button"
             onClick={() => void handleSaveAll()}
-            disabled={savePolicy.isPending}
+            disabled={!policy || !parsed.success || savePolicy.isPending}
             className="gap-2 text-xs font-semibold"
           >
             <Icon name="Save" className="size-4" />

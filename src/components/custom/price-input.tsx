@@ -66,6 +66,7 @@ export function PriceInput({
         <NumericFormat
           id={inputId}
           name={name}
+          aria-invalid={Boolean(error) || undefined}
           // 0 mostra-se vazio (placeholder «0,00»): com «0,00» escrito, o que se digita entra antes do zero e o valor vem multiplicado por 10
           value={value === 0 || value === "0" ? "" : (value ?? "")}
           thousandSeparator="."

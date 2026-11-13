@@ -1,6 +1,8 @@
 "use client";
 
 import React, { useMemo, useState } from "react";
+import { z } from "zod";
+import { optionalSafeTextSchema, safeTextSchema } from "@/schemas/helps";
 import {
   GlobalModal,
   Button,
@@ -42,6 +44,12 @@ function toMinutes(timeStr?: string | null): number {
   return h * 60 + m;
 }
 
+const exportConfigSchema = z.object({
+  selectedSectionId: z.string().trim().min(1, "Seleccione a turma."),
+  periodLabel: safeTextSchema(2, 60, "O período lectivo"),
+  courseSubtitle: optionalSafeTextSchema(120, 2, "O cabeçalho / curso"),
+});
+
 export function TimetableExportModal({
   isOpen,
   onClose,
@@ -59,6 +67,17 @@ export function TimetableExportModal({
   const [includeSaturday, setIncludeSaturday] = useState<boolean>(true);
   const [periodLabel, setPeriodLabel] = useState<string>("1º Semestre");
   const [courseSubtitle, setCourseSubtitle] = useState<string>("");
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const touch = (k: string) => setTouched((p) => (p[k] ? p : { ...p, [k]: true }));
+
+  const exportParsed = useMemo(
+    () => exportConfigSchema.safeParse({ selectedSectionId, periodLabel, courseSubtitle }),
+    [selectedSectionId, periodLabel, courseSubtitle],
+  );
+  const errOf = (k: string) => {
+    if (!touched[k] || exportParsed.success) return undefined;
+    return exportParsed.error.issues.find((i) => i.path[0] === k)?.message;
+  };
 
   React.useEffect(() => {
     if (activeSectionId) {
@@ -185,12 +204,13 @@ export function TimetableExportModal({
     >
       <div className="space-y-4">
         {/* Barra de Configurações do Exportador */}
-        <div className="grid grid-cols-1 items-end gap-3 rounded-xs border bg-muted/30 p-3 sm:grid-cols-4">
+        <div className="grid grid-cols-1 items-start gap-3 rounded-xs border bg-muted/30 p-3 sm:grid-cols-4">
           <div className="sm:col-span-1">
             <FormSelect
               label="Turma"
               value={selectedSectionId}
-              onValueChange={setSelectedSectionId}
+              onValueChange={(v) => { touch("selectedSectionId"); setSelectedSectionId(v); }}
+              error={errOf("selectedSectionId")}
               options={sections.map((s) => ({
                 value: s.id,
                 label: `${s.classLevel} ${s.name} (${s.shift})`,
@@ -202,7 +222,8 @@ export function TimetableExportModal({
             <Input
               label="Período Lectivo"
               value={periodLabel}
-              onChange={(e) => setPeriodLabel(e.target.value)}
+              onChange={(e) => { touch("periodLabel"); setPeriodLabel(e.target.value); }}
+              error={errOf("periodLabel")}
               placeholder="Ex: 1º Semestre ou 1.º Trimestre"
             />
           </div>
@@ -211,12 +232,13 @@ export function TimetableExportModal({
             <Input
               label="Cabeçalho / Curso"
               value={courseSubtitle}
-              onChange={(e) => setCourseSubtitle(e.target.value)}
+              onChange={(e) => { touch("courseSubtitle"); setCourseSubtitle(e.target.value); }}
+              error={errOf("courseSubtitle")}
               placeholder="Ex: Licenciatura: Informática..."
             />
           </div>
 
-          <div className="flex items-center gap-2 pb-2">
+          <div className="flex items-center gap-2 pt-7">
             <Label className="flex cursor-pointer select-none items-center gap-2 text-xs font-medium">
               <Checkbox
                 checked={includeSaturday}
@@ -384,7 +406,7 @@ export function TimetableExportModal({
             <Button
               type="button"
               onClick={handleDownloadPdf}
-              disabled={isDownloading}
+              disabled={isDownloading || !exportParsed.success}
               className="gap-1.5"
             >
               {isDownloading ? (

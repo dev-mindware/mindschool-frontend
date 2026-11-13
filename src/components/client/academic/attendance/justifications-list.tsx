@@ -6,6 +6,9 @@ import { Badge, Button, ButtonOnlyAction, DataList, EmptyState, FormModal, ListS
 import { useClassAbsences, useEnrollmentAbsences } from "@/hooks/school/use-absences";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { formalReasonSchema } from "@/schemas";
+
+const justificationSchema = formalReasonSchema(5, 500, "A justificação");
 
 interface JustificationsListProps {
   classId: string;
@@ -14,6 +17,7 @@ interface JustificationsListProps {
 function AbsencesModal({ enrollmentId, name }: { enrollmentId: string | null; name: string }) {
   const { records, isLoading, justify } = useEnrollmentAbsences(enrollmentId ?? "");
   const [text, setText] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
   const absences = records.filter((r) => r.status === "falta_injustificada" || r.status === "falta_justificada");
 
   return (
@@ -27,23 +31,64 @@ function AbsencesModal({ enrollmentId, name }: { enrollmentId: string | null; na
             description="Este aluno não possui faltas pendentes ou justificadas no sistema."
           />
         )}
-        {absences.map((a) => (
-          <div key={a.id} className="grid items-end gap-3 rounded-xs border p-3 sm:grid-cols-[110px_1fr_auto]">
-            <div><p className="font-mono text-xs">{a.date}</p>{a.status === "falta_justificada" ? <Badge variant="outline">Justificada</Badge> : <Badge variant="destructive">Injustificada</Badge>}</div>
-            {a.status === "falta_justificada" ? (
-              <p className="text-muted-foreground">{a.justification}</p>
-            ) : (
-              <Textarea
-                label="Justificação (mín. 5 caracteres)"
-                placeholder="Ex.: Atestado médico hospitalar ou motivo de saúde devidamente comprovado..."
-                rows={2}
-                value={text[a.id] ?? ""}
-                onChange={(e) => setText((c) => ({ ...c, [a.id]: e.target.value }))}
-              />
-            )}
-            {a.status !== "falta_justificada" && <Button size="sm" className="h-10" disabled={(text[a.id] ?? "").trim().length < 5 || justify.isPending} onClick={() => justify.mutateAsync({ id: a.id, justification: text[a.id]!.trim() }).then(() => SucessMessage("Falta justificada.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível justificar.")))}>Justificar</Button>}
-          </div>
-        ))}
+        {absences.map((a) => {
+          const raw = text[a.id] ?? "";
+          const parsed = justificationSchema.safeParse({ reason: raw });
+          const errorMsg = touched[a.id] && !parsed.success ? parsed.error.issues[0]?.message : undefined;
+          return (
+            <div key={a.id} className="grid items-end gap-3 rounded-xs border p-3 sm:grid-cols-[110px_1fr_auto]">
+              <div><p className="font-mono text-xs">{a.date}</p>{a.status === "falta_justificada" ? <Badge variant="outline">Justificada</Badge> : <Badge variant="destructive">Injustificada</Badge>}</div>
+              {a.status === "falta_justificada" ? (
+                <p className="text-muted-foreground">{a.justification}</p>
+              ) : (
+                <Textarea
+                  label="Justificação (mín. 5 caracteres) *"
+                  placeholder="Ex.: Atestado médico hospitalar ou motivo de saúde devidamente comprovado..."
+                  rows={2}
+                  maxLength={500}
+                  value={raw}
+                  error={errorMsg}
+                  onChange={(e) => {
+                    const val = e.target.value;
+                    setText((c) => ({ ...c, [a.id]: val }));
+                    setTouched((t) => ({ ...t, [a.id]: true }));
+                  }}
+                />
+              )}
+              {a.status !== "falta_justificada" && (
+                <Button
+                  size="sm"
+                  className="h-10"
+                  disabled={!parsed.success || justify.isPending}
+                  onClick={() => {
+                    if (!parsed.success) {
+                      setTouched((t) => ({ ...t, [a.id]: true }));
+                      return;
+                    }
+                    justify
+                      .mutateAsync({ id: a.id, justification: parsed.data.reason })
+                      .then(() => {
+                        SucessMessage("Falta justificada.");
+                        setText((c) => {
+                          const next = { ...c };
+                          delete next[a.id];
+                          return next;
+                        });
+                        setTouched((t) => {
+                          const next = { ...t };
+                          delete next[a.id];
+                          return next;
+                        });
+                      })
+                      .catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível justificar.")));
+                  }}
+                >
+                  Justificar
+                </Button>
+              )}
+            </div>
+          );
+        })}
       </div>
     </FormModal>
   );

@@ -26,7 +26,7 @@ export function LoginForm() {
   const {
     register,
     handleSubmit,
-    formState: { errors, isSubmitting },
+    formState: { errors, isSubmitting, isValid },
   } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
     mode: "onChange",
@@ -107,6 +107,7 @@ export function LoginForm() {
             type="password"
             placeholder="••••••••••••"
             {...register("password")}
+            error={errors.password?.message}
             autoComplete="current-password"
           />
         </div>
@@ -137,11 +138,12 @@ export function LoginForm() {
             placeholder="Código de 6 dígitos ou de recuperação"
             autoComplete="one-time-code"
             inputMode="numeric"
+            error={errors.totpCode?.message}
             {...register("totpCode")}
           />
         )}
 
-        <ButtonSubmit isLoading={isSubmitting}>
+        <ButtonSubmit isLoading={isSubmitting} disabled={!isValid}>
           {isSubmitting ? "" : "Entrar"}
         </ButtonSubmit>
       </div>

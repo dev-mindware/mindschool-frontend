@@ -1,6 +1,9 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Badge, Button, EmptyState, FormModal, FormSelect, FormTextarea, Icon, Input, TitleList, type Column } from "@/components";
 import { GenericTable } from "@/components/common/generic-table";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
@@ -10,6 +13,7 @@ import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { formatDate } from "@/utils/format-date";
 import { ErrorMessage, SucessMessage } from "@/utils/messages";
+import { formalReasonSchema, isoDateSchema, sanitizeSearchTerm, stripControlChars, todayLocalIsoDate } from "@/schemas";
 
 const MAX_BUNDLE = 200;
 const ALL = "todos";
@@ -36,22 +40,92 @@ const fail = (e: unknown) => ErrorMessage(getApiErrorMessage(e, "A operação fa
 
 function ExtendModal({ item, onSubmit, pending }: { item: ApiArchiveItem | null; onSubmit: (until: string, reason: string) => Promise<unknown>; pending: boolean }) {
   const { open } = useModal();
-  const [until, setUntil] = useState("");
-  const [reason, setReason] = useState("");
-  if (!open["archive-retention"]) return null;
+  const isModalOpen = Boolean(open["archive-retention"]);
+  const currentRetentionDay = item?.retention_until ? item.retention_until.slice(0, 10) : null;
+  const today = todayLocalIsoDate();
+  const minDate = currentRetentionDay && currentRetentionDay > today ? currentRetentionDay : today;
+
+  const extendSchema = useMemo(
+    () =>
+      formalReasonSchema(5, 500, "O motivo da prorrogação")
+        .extend({
+          until: isoDateSchema("O novo prazo"),
+        })
+        .superRefine((data, ctx) => {
+          if (data.until < today) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["until"],
+              message: "O novo prazo não pode estar no passado.",
+            });
+          } else if (currentRetentionDay && data.until <= currentRetentionDay) {
+            ctx.addIssue({
+              code: z.ZodIssueCode.custom,
+              path: ["until"],
+              message: "O novo prazo deve ser posterior ao prazo atual.",
+            });
+          }
+        }),
+    [currentRetentionDay, today]
+  );
+
+  type ExtendFormData = z.infer<typeof extendSchema>;
+
+  const {
+    register,
+    watch,
+    setValue,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<ExtendFormData>({
+    resolver: zodResolver(extendSchema),
+    mode: "onChange",
+    defaultValues: { until: "", reason: "" },
+  });
+
+  useEffect(() => {
+    if (isModalOpen) {
+      reset({ until: "", reason: "" });
+    }
+  }, [isModalOpen, item?.id, reset]);
+
+  const reason = watch("reason") ?? "";
+
+  if (!isModalOpen) return null;
+
   return (
     <FormModal
-      id="archive-retention" title="Prorrogar a retenção" description={item ? `${item.file_name} — prazo atual ${item.retention_until ? formatDate(item.retention_until) : "—"}` : undefined}
-      submitLabel="Prorrogar" isLoading={pending} disabled={!until || reason.trim().length < 5}
-      onSubmit={() => onSubmit(until, reason.trim()).then(() => { setUntil(""); setReason(""); })}
+      id="archive-retention"
+      title="Prorrogar a retenção"
+      description={item ? `${item.file_name} — prazo atual ${item.retention_until ? formatDate(item.retention_until) : "—"}` : undefined}
+      submitLabel="Prorrogar"
+      isLoading={pending}
+      disabled={!isValid || pending}
+      onClose={() => reset()}
+      onSubmit={handleSubmit((data) => onSubmit(data.until, data.reason).then(() => reset()))}
     >
-      <Input label="Novo prazo *" type="date" value={until} onChange={(e) => setUntil(e.target.value)} />
+      <Input
+        label="Novo prazo *"
+        type="date"
+        min={minDate}
+        error={errors.until?.message}
+        {...register("until")}
+      />
       <div className="sm:col-span-2">
         <FormTextarea
           label="Motivo da prorrogação *"
           placeholder="Ex.: Processo individual em curso, auditoria ou obrigação legal..."
+          maxLength={500}
           value={reason}
-          onChange={setReason}
+          error={errors.reason?.message}
+          onChange={(val) =>
+            setValue("reason", val, {
+              shouldValidate: true,
+              shouldTouch: true,
+              shouldDirty: true,
+            })
+          }
           rows={3}
         />
       </div>
@@ -144,8 +218,19 @@ export function ArchivePageContent() {
 
       <div className="grid grid-cols-1 items-end gap-3 sm:grid-cols-4">
         <div className="sm:col-span-2">
-          <Input label="Pesquisar pelo nome do ficheiro" startIcon="Search" value={search} onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => { if (e.key === "Enter") set({ q: search.trim().length >= 2 ? search.trim() : undefined }); }} />
+          <Input
+            label="Pesquisar pelo nome do ficheiro"
+            startIcon="Search"
+            maxLength={100}
+            value={search}
+            onChange={(e) => setSearch(stripControlChars(e.target.value).slice(0, 100))}
+            onKeyDown={(e) => {
+              if (e.key === "Enter") {
+                const q = sanitizeSearchTerm(search, 100);
+                set({ q: q.length >= 2 ? q : undefined });
+              }
+            }}
+          />
         </div>
         <FormSelect label="Origem" value={filters.domain ?? ALL} onValueChange={(v) => set({ domain: v === ALL ? undefined : v })}
           options={[{ value: ALL, label: "Todas" }, ...(s?.domains ?? []).map((d) => ({ value: d.domain, label: `${d.domain} (${d.files})` }))]} />

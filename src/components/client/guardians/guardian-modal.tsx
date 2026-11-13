@@ -14,7 +14,7 @@ import {
 } from '@/types';
 import { useGuardians } from '@/hooks/school/use-guardians';
 import { useStudents } from '@/hooks/school/use-students';
-import { getApiErrorMessage } from '@/utils/api-error';
+import { getApiErrorMessage, applyApiFieldErrors } from '@/utils/api-error';
 import { Button, ButtonSubmit } from '@/components';
 import {
   Sheet,
@@ -28,15 +28,18 @@ import { SucessMessage, ErrorMessage } from '@/utils/messages';
 import { GuardianPersonalInfoFields } from './guardian-personal-info-fields';
 import { GuardianContactsFields } from './guardian-contacts-fields';
 import { GuardianWardsSection } from './guardian-wards-section';
-import { phoneNumberSchema, optionalPhoneNumberSchema, validateIdDocumentByType } from '@/schemas/helps';
-import { nifError } from '@/lib/nif';
+import {
+  fullPersonNameSchema,
+  optionalEmailSchema,
+  optionalPhoneNumberSchema,
+  optionalSafeTextSchema,
+  optionalTaxNumberSchema,
+  phoneNumberSchema,
+  validateIdDocumentByType,
+} from '@/schemas/helps';
 
 const guardianFormSchema = z.object({
-  fullName: z
-    .string()
-    .trim()
-    .min(3, 'Nome completo deve ter pelo menos 3 caracteres')
-    .regex(/^[\p{L}][\p{L}\p{M}' .-]*$/u, 'O nome só pode ter letras, espaços, apóstrofo e hífen'),
+  fullName: fullPersonNameSchema(5, 200, 'O nome completo'),
   // BI (9 dígitos, 2 letras, 3 dígitos) ou passaporte: o mesmo rigor do formulário de aluno
   idDocumentNumber: z
     .string()
@@ -46,13 +49,13 @@ const guardianFormSchema = z.object({
       (v) => validateIdDocumentByType(v, 'IDENTITY_CARD').valid || validateIdDocumentByType(v, 'PASSPORT').valid,
       'Documento inválido. BI: 9 dígitos, 2 letras e 3 dígitos (ex: 007849302LA042); passaporte: 1 ou 2 letras e 6 a 8 dígitos',
     ),
-  nif: z.string().trim().optional().or(z.literal('')).refine((v) => !nifError(v), { message: nifError('x') }),
-  phonePrimary: phoneNumberSchema.refine((v) => !!v && v.trim().length > 0, 'Contacto principal é obrigatório'),
+  nif: optionalTaxNumberSchema,
+  phonePrimary: phoneNumberSchema,
   phoneSecondary: optionalPhoneNumberSchema,
-  email: z.string().trim().email('Email inválido').or(z.literal('')).optional(),
-  address: z.string().trim().optional().or(z.literal('')),
-  profession: z.string().trim().optional().or(z.literal('')),
-  workplace: z.string().trim().optional().or(z.literal('')),
+  email: optionalEmailSchema,
+  address: optionalSafeTextSchema(255, 2, 'A morada'),
+  profession: optionalSafeTextSchema(100, 2, 'A profissão'),
+  workplace: optionalSafeTextSchema(150, 2, 'O local de trabalho'),
   preferredContactChannel: z.enum(['WHATSAPP', 'SMS', 'EMAIL', 'PHONE_CALL']),
 });
 
@@ -102,9 +105,11 @@ export function GuardianModal({
     register,
     handleSubmit,
     setValue,
+    setError,
+    trigger,
     watch,
     reset,
-    formState: { errors, isSubmitting, isDirty },
+    formState: { errors, isSubmitting, isDirty, isValid },
   } = useForm<GuardianFormValues>({
     resolver: zodResolver(guardianFormSchema),
     mode: 'onChange',
@@ -141,6 +146,7 @@ export function GuardianModal({
         preferredContactChannel: guardianToEdit.preferredContactChannel,
       });
       setWards(guardianToEdit.wards ? [...guardianToEdit.wards] : []);
+      void trigger();
     } else {
       reset({
         fullName: '',
@@ -258,6 +264,14 @@ export function GuardianModal({
       }
       onClose();
     } catch (err: unknown) {
+      applyApiFieldErrors(err, setError, {
+        full_name: 'fullName',
+        document_number: 'idDocumentNumber',
+        phone: 'phonePrimary',
+        email: 'email',
+        nif: 'nif',
+        profession: 'profession',
+      });
       ErrorMessage(getApiErrorMessage(err, 'Ocorreu um erro ao guardar o encarregado.'));
     }
   };
@@ -310,7 +324,7 @@ export function GuardianModal({
           <Button type="button" variant="outline" onClick={discard.request}>
             Cancelar
           </Button>
-          <ButtonSubmit form="guardian-form" isLoading={isSubmitting}>
+          <ButtonSubmit form="guardian-form" isLoading={isSubmitting} disabled={!isValid}>
             {guardianToEdit ? 'Guardar Alterações' : 'Cadastrar Encarregado'}
           </ButtonSubmit>
         </SheetFooter>

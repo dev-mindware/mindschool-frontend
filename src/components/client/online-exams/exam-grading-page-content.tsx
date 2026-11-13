@@ -2,11 +2,34 @@
 
 import React, { useState } from 'react';
 import { useParams } from 'next/navigation';
+import { z } from 'zod';
 import { SucessMessage, ErrorMessage } from '@/utils/messages';
 import { Button, Badge, EmptyState, Icon, Input, TitleList } from '@/components';
 import { useExamSubmissionDetail, useExamSubmissions, useOnlineExams } from '@/hooks/school/use-online-exams';
 import type { ApiExamSubmission, ApiSubmissionDetail } from '@/services/exams-service';
 import { getApiErrorMessage } from '@/utils/api-error';
+import { hasAtMostTwoDecimals } from '@/schemas';
+
+function buildAnswerScoreSchema(maxScore: number) {
+  return z.preprocess(
+    (val) => {
+      if (typeof val === 'number') return Number.isFinite(val) ? val : NaN;
+      if (typeof val === 'string') {
+        const trimmed = val.trim().replace(',', '.');
+        if (trimmed === '') return undefined;
+        const parsed = Number(trimmed);
+        return Number.isFinite(parsed) ? parsed : NaN;
+      }
+      return undefined;
+    },
+    z
+      .number({ error: 'A nota é obrigatória e deve ser numérica.' })
+      .refine((n) => Number.isFinite(n), 'A nota deve ser um número válido.')
+      .min(0, 'A nota deve ser no mínimo 0.')
+      .max(maxScore, `A nota não pode exceder ${maxScore} pontos.`)
+      .refine(hasAtMostTwoDecimals, 'A nota admite no máximo 2 casas decimais.')
+  );
+}
 
 const STATUS_LABEL: Record<ApiExamSubmission['status'], string> = {
   em_curso: 'Em curso',
@@ -36,6 +59,7 @@ export function ExamGradingPageContent() {
   const [selected, setSelected] = useState<string | undefined>();
   const { data: detail } = useExamSubmissionDetail(activeExam?.id, selected);
   const [scores, setScores] = useState<Record<string, string>>({});
+  const [touchedScores, setTouchedScores] = useState<Record<string, boolean>>({});
 
   const current = submissions.find((s) => s.id === selected);
   const run = (p: Promise<unknown>, ok: string) => p.then(() => SucessMessage(ok)).catch((e) => ErrorMessage(getApiErrorMessage(e, 'A operação falhou.')));
@@ -115,29 +139,49 @@ export function ExamGradingPageContent() {
                       <span className="block text-[11px] text-muted-foreground mb-0.5">Resposta do aluno</span>
                       {value ?? <span className="italic text-muted-foreground">Sem resposta</span>}
                     </div>
-                    {manual && detail.status !== 'confirmada' && a.answer_id && (
-                      <div className="flex items-end gap-2">
-                        <div className="w-40">
-                          <Input
-                            label={`Nota (0 a ${a.question.max_score})`}
-                            type="quantity"
-                            step={0.25}
-                            min={0}
-                            max={a.question.max_score}
-                            placeholder={`Ex.: ${(a.question.max_score / 2).toFixed(1)}`}
-                            value={scores[a.answer_id] ?? String(a.score_awarded ?? '')}
-                            onChange={(e) => setScores((cur) => ({ ...cur, [a.answer_id!]: e.target.value }))}
-                          />
+                    {manual && detail.status !== 'confirmada' && a.answer_id && (() => {
+                      const rawScore = scores[a.answer_id] ?? (a.score_awarded !== null && a.score_awarded !== undefined ? String(a.score_awarded) : '');
+                      const scoreParsed = buildAnswerScoreSchema(a.question.max_score).safeParse(rawScore);
+                      const scoreError = touchedScores[a.answer_id] && !scoreParsed.success ? scoreParsed.error.issues[0]?.message : undefined;
+                      return (
+                        <div className="flex items-start gap-2">
+                          <div className="w-44">
+                            <Input
+                              label={`Nota (0 a ${a.question.max_score})`}
+                              type="number"
+                              step="0.25"
+                              min={0}
+                              max={a.question.max_score}
+                              placeholder={`Ex.: ${(a.question.max_score / 2).toFixed(1)}`}
+                              value={rawScore}
+                              error={scoreError}
+                              onKeyDown={(e) => {
+                                if (['e', 'E', '+', '-'].includes(e.key)) e.preventDefault();
+                              }}
+                              onChange={(e) => {
+                                const val = e.target.value;
+                                setScores((cur) => ({ ...cur, [a.answer_id!]: val }));
+                                setTouchedScores((cur) => ({ ...cur, [a.answer_id!]: true }));
+                              }}
+                            />
+                          </div>
+                          <Button
+                            size="sm"
+                            className="mt-6"
+                            disabled={gradeAnswer.isPending || !scoreParsed.success}
+                            onClick={() => {
+                              if (!scoreParsed.success) {
+                                setTouchedScores((cur) => ({ ...cur, [a.answer_id!]: true }));
+                                return;
+                              }
+                              void run(gradeAnswer.mutateAsync({ submissionId: current.id, answerId: a.answer_id!, score: scoreParsed.data }), 'Nota gravada.');
+                            }}
+                          >
+                            Gravar nota
+                          </Button>
                         </div>
-                        <Button
-                          size="sm"
-                          disabled={gradeAnswer.isPending || (scores[a.answer_id] ?? '') === ''}
-                          onClick={() => run(gradeAnswer.mutateAsync({ submissionId: current.id, answerId: a.answer_id!, score: Math.min(a.question.max_score, Math.max(0, Number(scores[a.answer_id!]))) }), 'Nota gravada.')}
-                        >
-                          Gravar nota
-                        </Button>
-                      </div>
-                    )}
+                      );
+                    })()}
                   </div>
                 );
               })}

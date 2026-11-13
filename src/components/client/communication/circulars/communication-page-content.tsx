@@ -12,6 +12,7 @@ import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { formatIsoDay } from "@/utils/format-date";
 import { cn } from "@/lib/utils";
+import { announcementSchema } from "@/schemas";
 
 const STATUS_LABEL: Record<AnnouncementStatus, string> = { rascunho: "Rascunho", publicado: "Publicado", arquivado: "Arquivado" };
 const STATUS_VARIANT: Record<AnnouncementStatus, "warning" | "success" | "secondary"> = { rascunho: "warning", publicado: "success", arquivado: "secondary" };
@@ -37,6 +38,16 @@ export function CommunicationPageContent() {
   const [body, setBody] = useState("");
   const [audience, setAudience] = useState<AnnouncementAudience>(isTeacher ? "turma" : "escola");
   const [sectionId, setSectionId] = useState("");
+  const [touched, setTouched] = useState<{ title?: boolean; body?: boolean; sectionId?: boolean }>({});
+
+  const parsedForm = announcementSchema.safeParse({ title, body, audience, sectionId });
+  const fieldErr = (field: "title" | "body" | "sectionId") =>
+    !parsedForm.success && touched[field]
+      ? parsedForm.error.issues.find((i) => i.path[0] === field)?.message
+      : undefined;
+  const titleLetterError =
+    touched.title && title.trim() && !/\p{L}/u.test(title) ? "O título tem de conter letras." : undefined;
+  const isFormValid = parsedForm.success && /\p{L}/u.test(title);
 
   const sectionName = (id: string | null) => (id ? allSections.find((s) => s.id === id)?.name ?? "—" : "—");
   const openNew = () => {
@@ -45,9 +56,10 @@ export function CommunicationPageContent() {
     setBody("");
     setAudience(isTeacher ? "turma" : "escola");
     setSectionId(isTeacher ? (mySections[0]?.id ?? "") : "");
+    setTouched({});
     openModal("announcement-form");
   };
-  const openEdit = (x: ApiAnnouncement) => { setEditing(x); setTitle(x.title); setBody(x.body); setAudience(x.audience); setSectionId(x.section_id ?? ""); openModal("announcement-form"); };
+  const openEdit = (x: ApiAnnouncement) => { setEditing(x); setTitle(x.title); setBody(x.body); setAudience(x.audience); setSectionId(x.section_id ?? ""); setTouched({ title: true, body: true, sectionId: true }); openModal("announcement-form"); };
 
   const canArchive = (x: ApiAnnouncement) => {
     if (isManagement) return true;
@@ -135,9 +147,9 @@ export function CommunicationPageContent() {
       />
 
       <FormModal id="announcement-form" title={editing ? "Editar comunicado" : "Novo comunicado"} description={editing ? "Só rascunhos podem ser editados." : "É criado como rascunho; publique-o para chegar ao portal."} submitLabel={editing ? "Guardar" : "Criar rascunho"} size="md"
-        isLoading={a.create.isPending || a.update.isPending} disabled={title.trim().length < 3 || !/\p{L}/u.test(title) || body.trim().length < 3 || (audience === "turma" && !sectionId)} onSubmit={save}>
+        isLoading={a.create.isPending || a.update.isPending} disabled={!isFormValid || a.create.isPending || a.update.isPending} onSubmit={save}>
         <div className="grid grid-cols-1 gap-3.5 sm:col-span-2">
-          <Input label="Título *" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex.: Reunião geral de encarregados de educação" error={title.trim() && !/\p{L}/u.test(title) ? "O título tem de conter letras." : undefined} />
+          <Input label="Título *" value={title} onChange={(e) => { setTouched((t) => ({ ...t, title: true })); setTitle(e.target.value); }} placeholder="Ex.: Reunião geral de encarregados de educação" error={titleLetterError || fieldErr("title")} />
           {(
             <div className={cn("grid grid-cols-1 gap-3", audience === "turma" && "sm:grid-cols-2")}>
               <FormSelect
@@ -150,10 +162,10 @@ export function CommunicationPageContent() {
                     : [{ value: "escola", label: "Toda a escola" }, { value: "turma", label: "Uma turma" }]
                 }
               />
-              {audience === "turma" && <FormSelect label="Turma *" value={sectionId} onValueChange={setSectionId} options={sections.map((s) => ({ value: s.id, label: s.name }))} />}
+              {audience === "turma" && <FormSelect label="Turma *" value={sectionId} onValueChange={(v) => { setTouched((t) => ({ ...t, sectionId: true })); setSectionId(v); }} error={fieldErr("sectionId")} options={sections.map((s) => ({ value: s.id, label: s.name }))} />}
             </div>
           )}
-          <FormTextarea label="Mensagem *" value={body} onChange={setBody} rows={5} placeholder="Escreva o comunicado a publicar no portal..." />
+          <FormTextarea label="Mensagem *" value={body} onChange={(v) => { setTouched((t) => ({ ...t, body: true })); setBody(v); }} error={fieldErr("body")} rows={5} placeholder="Escreva o comunicado a publicar no portal..." />
         </div>
       </FormModal>
 

@@ -13,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { ChevronLeft, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Label } from "@/components/ui/label";
+import { stripControlChars } from "@/schemas/helps";
 
 interface Option {
   label: string;
@@ -98,7 +99,8 @@ export function PaginatedSelect({
             <div className="p-2" onKeyDown={(event) => event.stopPropagation()}>
               <Input
                 value={searchValue}
-                onChange={(event) => onSearchChange(event.target.value)}
+                maxLength={100}
+                onChange={(event) => onSearchChange(stripControlChars(event.target.value).slice(0, 100))}
                 onPointerDown={(event) => event.stopPropagation()}
                 placeholder={searchPlaceholder}
                 disabled={disabled}

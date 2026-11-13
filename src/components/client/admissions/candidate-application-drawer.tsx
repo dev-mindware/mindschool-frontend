@@ -3,7 +3,7 @@
 import { useDiscardGuard } from "@/components/common/discard-guard";
 import React, { useState, useMemo, useEffect } from "react";
 import { formatDateTime, formatIdDocument, formatPhone, cleanIdDocument, cleanPhone } from "@/utils";
-import { validateIdDocumentByType } from "@/schemas/helps";
+import { candidateApplicationPersonalSchema, candidateGuardianNewSchema } from "@/schemas";
 import { useAdmissions } from "@/hooks/school/use-admissions";
 import { useAdmissionSessions } from "@/hooks/school/use-phase6";
 import { useGuardians } from "@/hooks/school/use-guardians";
@@ -139,6 +139,8 @@ export function CandidateApplicationDrawer({
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [submitErrors, setSubmitErrors] = useState<Record<string, string>>({});
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const touch = (key: string) => setTouched((prev) => (prev[key] ? prev : { ...prev, [key]: true }));
   const clearError = (key: string) => setSubmitErrors((prev) => (prev[key] ? { ...prev, [key]: "" } : prev));
 
   // Classes disponíveis para o ciclo selecionado
@@ -239,21 +241,77 @@ export function CandidateApplicationDrawer({
     return allGuardians.find((g) => g.id === selectedGuardianId) ?? null;
   }, [allGuardians, selectedGuardianId]);
 
-  const docError = useMemo(() => {
-    if (!idDocumentNumber || idDocumentNumber.trim().length === 0) return undefined;
-    const res = validateIdDocumentByType(idDocumentNumber, idDocumentType);
-    return res.valid ? undefined : res.message;
-  }, [idDocumentNumber, idDocumentType]);
+  const personalParsed = useMemo(
+    () =>
+      candidateApplicationPersonalSchema.safeParse({
+        fullName,
+        gender,
+        birthDate,
+        idDocumentType,
+        idDocumentNumber,
+        nationality,
+        previousSchoolName,
+      }),
+    [fullName, gender, birthDate, idDocumentType, idDocumentNumber, nationality, previousSchoolName]
+  );
 
-  const guardianPhoneError = useMemo(() => {
-    if (guardianMode === "existing" || !guardianPhone) return undefined;
-    const digits = cleanPhone(guardianPhone).replace(/\D/g, "");
-    if (digits.length < 9) return "O número deve ter 9 dígitos";
-    if (!/^(91|92|93|94|95|97|99)\d{7}$/.test(digits) && !digits.startsWith("244")) {
-      return "Prefixo inválido para operadoras angolanas (91, 92, 93, 94, 95, 97, 99)";
+  const personalErrors = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (!personalParsed.success) {
+      for (const issue of personalParsed.error.issues) {
+        const key = String(issue.path[0] ?? "");
+        if (key && !map[key]) map[key] = issue.message;
+      }
+    }
+    return map;
+  }, [personalParsed]);
+
+  const guardianNewParsed = useMemo(
+    () =>
+      candidateGuardianNewSchema.safeParse({
+        guardianName,
+        guardianPhone,
+        guardianEmail,
+      }),
+    [guardianName, guardianPhone, guardianEmail]
+  );
+
+  const guardianNewErrors = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (!guardianNewParsed.success) {
+      for (const issue of guardianNewParsed.error.issues) {
+        const key = String(issue.path[0] ?? "");
+        if (key && !map[key]) map[key] = issue.message;
+      }
+    }
+    return map;
+  }, [guardianNewParsed]);
+
+  const idDocumentCopyError = useMemo(() => {
+    if (!idDocumentCopy) return touched.idDocumentCopy ? "Anexe a cópia do Documento de Identificação (BI / Cédula)." : undefined;
+    return idDocumentCopy.size > 1000 * 1024 ? "O ficheiro excede o limite de 1000 KB." : undefined;
+  }, [idDocumentCopy, touched.idDocumentCopy]);
+
+  const schoolCertificateError = useMemo(() => {
+    if (schoolCertificate && schoolCertificate.size > 1000 * 1024) {
+      return "O certificado excede o limite de 1000 KB.";
     }
     return undefined;
-  }, [guardianPhone, guardianMode]);
+  }, [schoolCertificate]);
+
+  const isGuardianValid = guardianMode === "existing" ? Boolean(selectedGuardianId) : guardianNewParsed.success;
+  const isFilesValid =
+    Boolean(passportPhoto) &&
+    Boolean(idDocumentCopy) &&
+    (idDocumentCopy ? idDocumentCopy.size <= 1000 * 1024 : false) &&
+    (!schoolCertificate || schoolCertificate.size <= 1000 * 1024);
+
+  const isFormValid =
+    personalParsed.success &&
+    isGuardianValid &&
+    Boolean(selectedExamId) &&
+    availableExams.length > 0 &&
+    isFilesValid;
 
   const handleSelectExistingGuardian = (guardianId: string) => {
     setSelectedGuardianId(guardianId);
@@ -279,24 +337,27 @@ export function CandidateApplicationDrawer({
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setTouched({
+      fullName: true,
+      birthDate: true,
+      idDocumentNumber: true,
+      nationality: true,
+      previousSchoolName: true,
+      guardianName: true,
+      guardianPhone: true,
+      guardianEmail: true,
+      idDocumentCopy: true,
+    });
 
-    // Recolhem-se todos os erros de uma vez e mostram-se no próprio campo (antes só havia um aviso temporário por tentativa).
     const found: Record<string, string> = {};
-    if (!fullName.trim() || fullName.trim().length < 3) found.fullName = "Preencha o nome completo do candidato.";
-    else if (!/^[\p{L}][\p{L}\p{M}' .-]*$/u.test(fullName.trim())) found.fullName = "O nome só pode ter letras, espaços, apóstrofo e hífen.";
-    const cleanDoc = cleanIdDocument(idDocumentNumber);
-    const docValidation = validateIdDocumentByType(cleanDoc, idDocumentType);
-    if (!docValidation.valid) found.idDocumentNumber = docValidation.message ?? "Documento de identificação inválido.";
+    if (!personalParsed.success) {
+      Object.assign(found, personalErrors);
+    }
 
     if (guardianMode === "existing") {
       if (!selectedGuardianId) found.guardian = "Selecione um encarregado existente.";
-    } else {
-      if (!guardianName.trim() || guardianName.trim().length < 3) found.guardianName = "Informe o nome do encarregado de educação.";
-      const digitsPhone = cleanPhone(guardianPhone).replace(/\D/g, "");
-      if (digitsPhone.length < 9) found.guardianPhone = "Informe o telefone do encarregado (mínimo 9 dígitos).";
-      else if (!/^(91|92|93|94|95|97|99)\d{7}$/.test(digitsPhone) && !digitsPhone.startsWith("244")) {
-        found.guardianPhone = "Prefixo inválido para operadoras angolanas (91, 92, 93, 94, 95, 97, 99).";
-      }
+    } else if (!guardianNewParsed.success) {
+      Object.assign(found, guardianNewErrors);
     }
 
     if (!selectedExamId) found.exam = "Selecione a Prova de Acesso. Se o candidato não vai prestar prova, cadastre-o diretamente como Aluno.";
@@ -355,7 +416,7 @@ export function CandidateApplicationDrawer({
           gender,
           birthDate,
           idDocumentType,
-          idDocumentNumber: cleanDoc,
+          idDocumentNumber: cleanIdDocument(idDocumentNumber),
           nationality: nationality.trim() || "Angolana",
           guardianName: guardianName.trim(),
           guardianPhone: cleanPhone(guardianPhone),
@@ -434,8 +495,8 @@ export function CandidateApplicationDrawer({
                   label="Nome Completo do Candidato *"
                   placeholder="Ex: Kiara Luísa Gaspar"
                   value={fullName}
-                  onChange={(e) => { setFullName(e.target.value); clearError("fullName"); }}
-                  error={submitErrors.fullName}
+                  onChange={(e) => { touch("fullName"); setFullName(e.target.value); clearError("fullName"); }}
+                  error={(touched.fullName || fullName ? personalErrors.fullName : undefined) || submitErrors.fullName}
                 />
               </div>
 
@@ -453,7 +514,8 @@ export function CandidateApplicationDrawer({
                 label="Data de Nascimento *"
                 type="date"
                 value={birthDate}
-                onChange={(e) => setBirthDate(e.target.value)}
+                onChange={(e) => { touch("birthDate"); setBirthDate(e.target.value); clearError("birthDate"); }}
+                error={(touched.birthDate ? personalErrors.birthDate : undefined) || submitErrors.birthDate}
                 required
               />
 
@@ -476,15 +538,16 @@ export function CandidateApplicationDrawer({
                 label="Número do Documento *"
                 placeholder="Ex: 008432190LA045"
                 value={idDocumentNumber}
-                onChange={(e) => { setIdDocumentNumber(e.target.value.toUpperCase()); clearError("idDocumentNumber"); }}
-                error={docError || submitErrors.idDocumentNumber}
+                onChange={(e) => { touch("idDocumentNumber"); setIdDocumentNumber(e.target.value.toUpperCase()); clearError("idDocumentNumber"); }}
+                error={(touched.idDocumentNumber || idDocumentNumber ? personalErrors.idDocumentNumber : undefined) || submitErrors.idDocumentNumber}
               />
 
               <Input
                 label="Nacionalidade *"
                 placeholder="Ex.: Angolana"
                 value={nationality}
-                onChange={(e) => setNationality(e.target.value)}
+                onChange={(e) => { touch("nationality"); setNationality(e.target.value); clearError("nationality"); }}
+                error={(touched.nationality ? personalErrors.nationality : undefined) || submitErrors.nationality}
                 required
               />
 
@@ -492,7 +555,8 @@ export function CandidateApplicationDrawer({
                 label="Escola Anterior / Origem"
                 placeholder="Ex: Complexo Escolar n.º 1024"
                 value={previousSchoolName}
-                onChange={(e) => setPreviousSchoolName(e.target.value)}
+                onChange={(e) => { touch("previousSchoolName"); setPreviousSchoolName(e.target.value); }}
+                error={previousSchoolName ? personalErrors.previousSchoolName : undefined}
               />
             </div>
           </div>
@@ -604,17 +668,18 @@ export function CandidateApplicationDrawer({
                     label="Nome do Encarregado de Educação *"
                     placeholder="Ex: Gaspar António Gaspar"
                     value={guardianName}
-                    onChange={(e) => { setGuardianName(e.target.value); clearError("guardianName"); }}
-                    error={submitErrors.guardianName}
+                    onChange={(e) => { touch("guardianName"); setGuardianName(e.target.value); clearError("guardianName"); }}
+                    error={(touched.guardianName || guardianName ? guardianNewErrors.guardianName : undefined) || submitErrors.guardianName}
                   />
                 </div>
 
                 <Input
                   label="Telefone Principal (WhatsApp) *"
+                  type="tel"
                   placeholder="+244 923 000 000"
                   value={guardianPhone}
-                  onChange={(e) => { setGuardianPhone(formatPhone(e.target.value)); clearError("guardianPhone"); }}
-                  error={guardianPhoneError || submitErrors.guardianPhone}
+                  onChange={(e) => { touch("guardianPhone"); setGuardianPhone(formatPhone(e.target.value)); clearError("guardianPhone"); }}
+                  error={(touched.guardianPhone || guardianPhone ? guardianNewErrors.guardianPhone : undefined) || submitErrors.guardianPhone}
                 />
 
                 <Input
@@ -622,7 +687,8 @@ export function CandidateApplicationDrawer({
                   type="email"
                   placeholder="encarregado@exemplo.com"
                   value={guardianEmail}
-                  onChange={(e) => setGuardianEmail(e.target.value)}
+                  onChange={(e) => { touch("guardianEmail"); setGuardianEmail(e.target.value); }}
+                  error={guardianEmail ? guardianNewErrors.guardianEmail : undefined}
                 />
 
                 <SelectField
@@ -758,13 +824,13 @@ export function CandidateApplicationDrawer({
                 </div>
                 <FileUpload
                   value={idDocumentCopy}
-                  onChange={(f) => { setIdDocumentCopy(f); clearError("idDocumentCopy"); }}
+                  onChange={(f) => { touch("idDocumentCopy"); setIdDocumentCopy(f); clearError("idDocumentCopy"); }}
+                  error={idDocumentCopyError || submitErrors.idDocumentCopy}
                   accept={PROOF_ACCEPT}
                   maxBytes={1000 * 1024}
                   label="Anexar cópia do BI / Documento de Identificação"
                   hint="PDF, PNG ou JPEG · Tamanho máximo 1000 KB"
                 />
-                <FieldError message={submitErrors.idDocumentCopy} />
               </div>
 
               {/* 3. Certificado da escola passada (opcional) */}
@@ -779,6 +845,7 @@ export function CandidateApplicationDrawer({
                 <FileUpload
                   value={schoolCertificate}
                   onChange={setSchoolCertificate}
+                  error={schoolCertificateError || submitErrors.schoolCertificate}
                   accept={PROOF_ACCEPT}
                   maxBytes={1000 * 1024}
                   label="Anexar certificado ou declaração anterior"
@@ -801,6 +868,7 @@ export function CandidateApplicationDrawer({
           <ButtonSubmit
             form="candidate-application-form"
             isLoading={isSubmitting}
+            disabled={!isFormValid || isSubmitting}
           >
             <Icon name="Check" className="h-4 w-4" />
             Submeter Candidatura

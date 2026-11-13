@@ -27,11 +27,57 @@ const CODE_HINTS: Record<string, string> = {
 
 /** Nomes legíveis dos campos que a API devolve nos erros de validação (`errors[].field`). */
 const FIELD_LABELS: Record<string, string> = {
-  full_name: "Nome", name: "Nome", birth_date: "Data de nascimento", document_number: "Documento", document_type: "Tipo de documento",
-  phone: "Telefone", email: "E-mail", nif: "NIF", isbn: "ISBN", title: "Título", author: "Autor", code: "Sigla", profession: "Profissão",
-  scheduled_at: "Data e hora", start_date: "Data de início", end_date: "Data de fim", capacity: "Capacidade", copies: "Exemplares",
-  due_day: "Dia limite", due_start_day: "Dia inicial", paid_at: "Data de pagamento", reason: "Motivo", description: "Descrição",
+  full_name: "Nome", fullName: "Nome", name: "Nome", birth_date: "Data de nascimento", birthDate: "Data de nascimento",
+  document_number: "Documento", documentNumber: "Documento", document_type: "Tipo de documento", documentType: "Tipo de documento",
+  phone: "Telefone", email: "E-mail", nif: "NIF", iban: "IBAN", swift: "SWIFT/BIC", account_number: "Número de conta", accountNumber: "Número de conta",
+  bank_name: "Banco", bankName: "Banco", account_holder: "Titular", accountHolder: "Titular",
+  isbn: "ISBN", title: "Título", author: "Autor", code: "Sigla", profession: "Profissão", address: "Morada",
+  scheduled_at: "Data e hora", start_date: "Data de início", startDate: "Data de início", end_date: "Data de fim", endDate: "Data de fim",
+  capacity: "Capacidade", copies: "Exemplares", qualification: "Habilitação",
+  due_day: "Dia limite", dueDay: "Dia limite", due_start_day: "Dia inicial", dueStartDay: "Dia inicial",
+  paid_at: "Data de pagamento", paidOn: "Data de pagamento", reason: "Motivo", description: "Descrição", notes: "Observações",
+  exam_score: "Nota", score: "Nota",
 };
+
+function snakeToCamel(key: string): string {
+  return key.replace(/_([a-z])/g, (_, ch: string) => ch.toUpperCase());
+}
+
+/** Extrai mapa `{ campo -> mensagem }` a partir de `response.data.errors` da API (inclui chaves em snake_case e camelCase). */
+export function extractApiFieldErrors(error: unknown): Record<string, string> {
+  const data = (error as { response?: { data?: { errors?: Array<{ field?: string; message?: string }> } } })?.response?.data;
+  if (!Array.isArray(data?.errors)) return {};
+  const map: Record<string, string> = {};
+  for (const issue of data.errors) {
+    if (!issue?.message) continue;
+    const rawKey = (issue.field ?? "").split(".").pop() ?? "";
+    if (!rawKey) continue;
+    const label = FIELD_LABELS[rawKey];
+    const msg = label && !issue.message.toLowerCase().startsWith(label.toLowerCase())
+      ? `${label}: ${issue.message}`
+      : issue.message;
+    map[rawKey] = msg;
+    const camel = snakeToCamel(rawKey);
+    if (camel !== rawKey) map[camel] = msg;
+  }
+  return map;
+}
+
+/** Aplica erros de campo devolvidos pela API diretamente num formulário `react-hook-form`. */
+export function applyApiFieldErrors<TField extends string = string>(
+  error: unknown,
+  setError: (name: TField, err: { type: string; message: string }) => void,
+  fieldMap?: Record<string, TField>
+): boolean {
+  const extracted = extractApiFieldErrors(error);
+  let applied = false;
+  for (const [key, message] of Object.entries(extracted)) {
+    const target = (fieldMap?.[key] ?? key) as TField;
+    setError(target, { type: "server", message });
+    applied = true;
+  }
+  return applied;
+}
 
 /** «Documento: Minimo de 4 caracteres.» — a mensagem sozinha não diz que campo falhou. */
 function describeFieldError(first: { field?: string; message?: string } | undefined): string | undefined {

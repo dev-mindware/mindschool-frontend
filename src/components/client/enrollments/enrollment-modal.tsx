@@ -5,6 +5,8 @@ import { useSections } from "@/hooks/school/use-sections";
 import { useStudents } from "@/hooks/school/use-students";
 import { useEnrollments } from "@/hooks/school/use-enrollments";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { enrollmentNewStudentSchema } from "@/schemas";
+import { cleanIdDocument } from "@/utils/format-id-document";
 import {
   Input,
   SelectField,
@@ -50,13 +52,31 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
   const [newGender, setNewGender] = useState<"MALE" | "FEMALE">("MALE");
   const [newBirthDate, setNewBirthDate] = useState("");
   const [newIdNumber, setNewIdNumber] = useState("");
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+
+  const touch = (k: string) => setTouched((prev) => (prev[k] ? prev : { ...prev, [k]: true }));
+  const newStudentParsed = enrollmentNewStudentSchema.safeParse({
+    selectedSectionId,
+    newFullName,
+    newGender,
+    newBirthDate,
+    newIdNumber,
+  });
+  const getNewStudentErr = (field: string) =>
+    touched[field] && !newStudentParsed.success
+      ? newStudentParsed.error.issues.find((i) => i.path[0] === field)?.message
+      : undefined;
+  const isFormValid =
+    studentMode === "existing"
+      ? Boolean(selectedStudentId && selectedSectionId)
+      : newStudentParsed.success;
 
   const selectedSection = sections.find((s) => s.id === selectedSectionId);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedSectionId) {
-      ErrorMessage("Por favor, selecione uma turma.");
+    if (!isFormValid) {
+      setTouched({ selectedSectionId: true, newFullName: true, newBirthDate: true, newIdNumber: true });
       return;
     }
 
@@ -217,7 +237,11 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
                     startIcon="User"
                     placeholder="Ex: Ana Sofia de Carvalho"
                     value={newFullName}
-                    onChange={(e) => setNewFullName(e.target.value)}
+                    error={getNewStudentErr("newFullName")}
+                    onChange={(e) => {
+                      touch("newFullName");
+                      setNewFullName(e.target.value);
+                    }}
                   />
                 </div>
 
@@ -230,18 +254,26 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
 
                 <Input
                   type="date"
-                  label="Data de Nascimento"
+                  label="Data de Nascimento *"
                   startIcon="Calendar"
                   value={newBirthDate}
-                  onChange={(e) => setNewBirthDate(e.target.value)}
+                  error={getNewStudentErr("newBirthDate")}
+                  onChange={(e) => {
+                    touch("newBirthDate");
+                    setNewBirthDate(e.target.value);
+                  }}
                 />
 
                 <Input
-                  label="Número de BI / Cédula"
+                  label="Número de BI *"
                   startIcon="CreditCard"
                   placeholder="Ex: 004928172LA041"
                   value={newIdNumber}
-                  onChange={(e) => setNewIdNumber(e.target.value)}
+                  error={getNewStudentErr("newIdNumber")}
+                  onChange={(e) => {
+                    touch("newIdNumber");
+                    setNewIdNumber(cleanIdDocument(e.target.value));
+                  }}
                 />
 
                 <p className="sm:col-span-2 text-xs text-muted-foreground">
@@ -292,7 +324,7 @@ export function EnrollmentModal({ isOpen, onClose }: EnrollmentModalProps) {
           <Button type="button" variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <ButtonSubmit form="enrollment-form" isLoading={isSubmitting}>
+          <ButtonSubmit form="enrollment-form" isLoading={isSubmitting} disabled={!isFormValid || isSubmitting}>
             Confirmar Matrícula
           </ButtonSubmit>
         </SheetFooter>

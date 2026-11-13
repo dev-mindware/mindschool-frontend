@@ -23,6 +23,7 @@ import { useTuition } from "@/modules/finance/hooks/use-tuition";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { formatCurrency } from "@/utils/format-currency";
+import { tuitionPolicySchema } from "@/schemas";
 import { CustomEmolumentsSection } from "./custom-emoluments-section";
 import { EmailTemplateEditor, EMAIL_TEMPLATE_MODAL_ID } from "./email-template-editor";
 
@@ -56,6 +57,24 @@ export function TuitionPlansContent() {
   const [penaltyNotification, setPenaltyNotification] = useState(true);
   const [monthlyFollowup, setMonthlyFollowup] = useState(true);
 
+  const policyParsed = tuitionPolicySchema.safeParse({
+    monthlyAmount: monthly,
+    registrationFee: registration,
+    dueStartDay,
+    dueDay,
+    graceDays,
+    latePenaltyType: penaltyType,
+    latePenaltyValue: penaltyValue,
+    monthlyIncreaseType,
+    monthlyIncreaseValue,
+    emailEnabled,
+    preDueDays: emailEnabled ? preDueDays : 5,
+  });
+  const policyErr = (field: string) =>
+    !policyParsed.success
+      ? policyParsed.error.issues.find((i) => i.path[0] === field)?.message
+      : undefined;
+
   const openEdit = () => {
     setMonthly(policy?.monthlyAmount ?? 0);
     setRegistration(policy?.registrationFee ?? 0);
@@ -79,21 +98,26 @@ export function TuitionPlansContent() {
   };
 
   const save = async () => {
+    if (!policyParsed.success) {
+      ErrorMessage(policyParsed.error.issues[0]?.message ?? "Corrija os campos inválidos antes de guardar.");
+      throw new Error("validation");
+    }
+    const v = policyParsed.data;
     try {
       await savePolicy.mutateAsync({
-        monthlyAmount: Number(monthly) || 0,
-        registrationFee: Number(registration) || 0,
-        dueStartDay: Math.min(28, Math.max(1, Number(dueStartDay) || 1)),
-        dueDay: Math.min(28, Math.max(1, Number(dueDay) || 20)),
-        graceDays: Math.min(30, Math.max(0, Number(graceDays) || 2)),
-        latePenaltyType: penaltyType,
-        latePenaltyValue: Number(penaltyValue) || 0,
-        monthlyIncreaseType,
-        monthlyIncreaseValue: Number(monthlyIncreaseValue) || 0,
+        monthlyAmount: v.monthlyAmount,
+        registrationFee: v.registrationFee,
+        dueStartDay: v.dueStartDay,
+        dueDay: v.dueDay,
+        graceDays: v.graceDays,
+        latePenaltyType: v.latePenaltyType,
+        latePenaltyValue: v.latePenaltyValue,
+        monthlyIncreaseType: v.monthlyIncreaseType,
+        monthlyIncreaseValue: v.monthlyIncreaseValue,
         customEmoluments: policy?.customEmoluments,
         emailCollections: {
-          enabled: emailEnabled,
-          preDueDays: Math.min(15, Math.max(1, Number(preDueDays) || 5)),
+          enabled: v.emailEnabled,
+          preDueDays: v.preDueDays,
           graceWarning,
           penaltyNotification,
           monthlyFollowup,
@@ -189,6 +213,7 @@ export function TuitionPlansContent() {
         description="Defina os prazos mensais de pagamento, tolerâncias de carência, multas progressivas e automações por correio electrónico."
         submitLabel="Guardar política"
         isLoading={savePolicy.isPending}
+        disabled={!policyParsed.success || savePolicy.isPending}
         size="lg"
         onSubmit={save}
       >
@@ -211,6 +236,7 @@ export function TuitionPlansContent() {
                 label="Propina Mensal (Kz) *"
                 currency="Kz"
                 value={monthly}
+                error={policyErr("monthlyAmount")}
                 onValueChange={(val) => setMonthly(val)}
                 placeholder="Ex.: 45.000 Kz"
               />
@@ -218,6 +244,7 @@ export function TuitionPlansContent() {
                 label="Taxa de Matrícula (Kz) *"
                 currency="Kz"
                 value={registration}
+                error={policyErr("registrationFee")}
                 onValueChange={(val) => setRegistration(val)}
                 placeholder="Ex.: 15.000 Kz"
               />
@@ -237,6 +264,7 @@ export function TuitionPlansContent() {
                 min={1}
                 max={28}
                 value={dueStartDay}
+                error={policyErr("dueStartDay")}
                 onChange={(e) => setDueStartDay(e.target.value)}
                 placeholder="1"
               />
@@ -246,6 +274,7 @@ export function TuitionPlansContent() {
                 min={1}
                 max={28}
                 value={dueDay}
+                error={policyErr("dueDay")}
                 onChange={(e) => setDueDay(e.target.value)}
                 placeholder="20"
               />
@@ -255,6 +284,7 @@ export function TuitionPlansContent() {
                 min={0}
                 max={30}
                 value={graceDays}
+                error={policyErr("graceDays")}
                 onChange={(e) => setGraceDays(e.target.value)}
                 placeholder="2"
               />
@@ -290,6 +320,7 @@ export function TuitionPlansContent() {
                       label="Valor da Multa (Kz)"
                       currency="Kz"
                       value={penaltyValue}
+                      error={policyErr("latePenaltyValue")}
                       onValueChange={(val) => setPenaltyValue(val)}
                       placeholder="Ex.: 3.000 Kz"
                     />
@@ -300,6 +331,7 @@ export function TuitionPlansContent() {
                       min={0}
                       max={100}
                       value={String(penaltyValue)}
+                      error={policyErr("latePenaltyValue")}
                       onChange={(e) => setPenaltyValue(Number(e.target.value))}
                       placeholder="10"
                     />
@@ -324,6 +356,7 @@ export function TuitionPlansContent() {
                       label="Acréscimo/Mês (Kz)"
                       currency="Kz"
                       value={monthlyIncreaseValue}
+                      error={policyErr("monthlyIncreaseValue")}
                       onValueChange={(val) => setMonthlyIncreaseValue(val)}
                       placeholder="Ex.: 1.500 Kz"
                     />
@@ -334,6 +367,7 @@ export function TuitionPlansContent() {
                       min={0}
                       max={100}
                       value={String(monthlyIncreaseValue)}
+                      error={policyErr("monthlyIncreaseValue")}
                       onChange={(e) => setMonthlyIncreaseValue(Number(e.target.value))}
                       placeholder="5"
                     />
@@ -383,6 +417,7 @@ export function TuitionPlansContent() {
                           max={15}
                           placeholder="5"
                           value={preDueDays}
+                          error={policyErr("preDueDays")}
                           onChange={(e) => setPreDueDays(e.target.value)}
                           className="h-7 px-2 text-xs text-center"
                         />

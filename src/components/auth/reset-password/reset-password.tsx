@@ -27,7 +27,7 @@ function ResetPasswordForm() {
     handleSubmit,
     setValue,
     watch,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<ResetPasswordFormData>({
     resolver: zodResolver(resetPasswordSchema),
     mode: "onChange",
@@ -145,7 +145,7 @@ function ResetPasswordForm() {
             error={errors.confirmPassword && errors.confirmPassword?.message}
           />
 
-          <ButtonSubmit isLoading={isSubmitting} className="w-full">
+          <ButtonSubmit isLoading={isSubmitting} disabled={!isValid} className="w-full">
             Confirmar e Concluir
           </ButtonSubmit>
 

@@ -143,24 +143,23 @@ export function FormSelect({ label, value, onValueChange, options, placeholder =
     <div className={cn("flex flex-col gap-1.5", className)}>
       <Label>{label}</Label>
       <Select value={value ?? ""} onValueChange={onValueChange} disabled={disabled}>
-        <SelectTrigger className="w-full" aria-label={label || placeholder}><SelectValue placeholder={placeholder} /></SelectTrigger>
+        <SelectTrigger className={cn("w-full", error && "border-red-500 ring-1 ring-red-400")} aria-label={label || placeholder} aria-invalid={Boolean(error) || undefined}><SelectValue placeholder={placeholder} /></SelectTrigger>
         <SelectContent>
           {options.map((o) => <SelectItem key={o.value} value={o.value}>{o.label}</SelectItem>)}
         </SelectContent>
       </Select>
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      {error && <p role="alert" className="text-xs text-destructive">{error}</p>}
     </div>
   );
 }
 
-interface FormTextareaProps { label: string; value: string; onChange: (v: string) => void; placeholder?: string; rows?: number; error?: string; className?: string }
+interface FormTextareaProps { label: string; value: string; onChange: (v: string) => void; placeholder?: string; rows?: number; maxLength?: number; error?: string; className?: string }
 
-export function FormTextarea({ label, value, onChange, placeholder, rows = 3, error, className }: FormTextareaProps) {
+export function FormTextarea({ label, value, onChange, placeholder, rows = 3, maxLength, error, className }: FormTextareaProps) {
   return (
     <div className={cn("flex flex-col gap-1.5 sm:col-span-2", className)}>
       <Label>{label}</Label>
-      <Textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={rows} />
-      {error && <p className="text-xs text-destructive">{error}</p>}
+      <Textarea value={value} onChange={(e) => onChange(e.target.value)} placeholder={placeholder} rows={rows} maxLength={maxLength} error={error} />
     </div>
   );
 }
@@ -194,7 +193,7 @@ export function FormMultiCombobox({ label, values, onValuesChange, options, plac
       <Label>{label}</Label>
       <Popover open={openPopover} onOpenChange={setOpenPopover}>
         <PopoverTrigger asChild>
-          <Button type="button" variant="outline" disabled={disabled} className="w-full justify-between font-normal">
+          <Button type="button" variant="outline" disabled={disabled} aria-invalid={Boolean(error) || undefined} className={cn("w-full justify-between font-normal", error && "border-red-500 ring-1 ring-red-400")}>
             <span className={cn("truncate", chosen.length === 0 && "text-muted-foreground")}>{summary}</span>
             <Icon name="ChevronsUpDown" className="size-4 opacity-50 shrink-0" />
           </Button>
@@ -265,7 +264,7 @@ export function FormCombobox({ label, value, onValueChange, options, placeholder
       <Label>{label}</Label>
       <Popover open={openPopover} onOpenChange={setOpenPopover}>
         <PopoverTrigger asChild>
-          <Button type="button" variant="outline" disabled={disabled} className="w-full justify-between font-normal">
+          <Button type="button" variant="outline" disabled={disabled} aria-invalid={Boolean(error) || undefined} className={cn("w-full justify-between font-normal", error && "border-red-500 ring-1 ring-red-400")}>
             <span className={cn("truncate", !selected && "text-muted-foreground")}>{selected?.label ?? placeholder}</span>
             <Icon name="ChevronsUpDown" className="size-4 opacity-50 shrink-0" />
           </Button>

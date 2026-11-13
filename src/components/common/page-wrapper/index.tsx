@@ -16,6 +16,7 @@ import { useAuth } from "@/hooks/auth";
 import { useNavigation } from "@/hooks/common/use-navigation";
 import { deriveBreadcrumb } from "@/constants/navigation";
 import { OnboardingTourButton } from "@/components/common/onboarding-tour-button";
+import { stripControlChars } from "@/schemas/helps";
 import type { OnboardingTourId } from "@/constants/onboarding-tours";
 
 type Props = {
@@ -79,8 +80,9 @@ export function PageWrapper({
               <Input
                 placeholder="Pesquisar no Menu..."
                 className="pl-8 bg-muted/50 border-0"
+                maxLength={100}
                 value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                onChange={(e) => setSearch(stripControlChars(e.target.value).slice(0, 100))}
                 data-tour="menu-search"
               />
             </div>

@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import QRCode from "qrcode";
 import { Button, Icon, Input, Label } from "@/components";
+import { totpSixDigitSchema } from "@/schemas/helps";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 
 export const TOTP_DIGITS = 6;
@@ -30,18 +31,23 @@ function Step({ n, title, children }: { n: number; title: string; children: Reac
  * com o código de 6 dígitos. O QR é desenhado no navegador a partir da ligação `otpauth://`: a chave não sai daqui. Ao chegar ao 6.º dígito,
  * o formulário é submetido sozinho (`busy` evita um segundo envio).
  */
-export function TotpSetupBody({ secret, code, onCode, busy }: { secret: { secret: string; otpauth_url: string }; code: string; onCode: (v: string) => void; busy: boolean }) {
+export function TotpSetupBody({ secret, code, onCode, busy, error }: { secret: { secret: string; otpauth_url: string }; code: string; onCode: (v: string) => void; busy: boolean; error?: string }) {
   const canvas = useRef<HTMLCanvasElement>(null);
   const input = useRef<HTMLInputElement>(null);
+  const [touched, setTouched] = useState(false);
+
+  const parsedCode = totpSixDigitSchema.safeParse(code);
+  const inlineError = error ?? ((touched || code.length > 0) && !parsedCode.success ? parsedCode.error.issues[0]?.message : undefined);
 
   useEffect(() => {
     if (canvas.current) void QRCode.toCanvas(canvas.current, secret.otpauth_url, { width: 184, margin: 1, color: { dark: "#000000", light: "#ffffff" } });
   }, [secret.otpauth_url]);
 
   const change = (raw: string) => {
+    setTouched(true);
     const v = onlyDigits(raw);
     onCode(v);
-    if (v.length === TOTP_DIGITS && !busy) setTimeout(() => input.current?.form?.requestSubmit(), 0);
+    if (totpSixDigitSchema.safeParse(v).success && !busy) setTimeout(() => input.current?.form?.requestSubmit(), 0);
   };
 
   return (
@@ -72,6 +78,7 @@ export function TotpSetupBody({ secret, code, onCode, busy }: { secret: { secret
             id="totp-code"
             ref={input}
             value={code}
+            error={inlineError}
             onChange={(e) => change(e.target.value)}
             inputMode="numeric"
             autoComplete="one-time-code"

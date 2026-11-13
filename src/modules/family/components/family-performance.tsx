@@ -1,8 +1,10 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { z } from "zod";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { Badge, ButtonOnlyAction, DataList, DynamicMetricCard, EmptyState, FormModal, FormTextarea, Tabs, TabsContent, TabsList, TabsTrigger, type Column } from "@/components";
+import { safeTextSchema } from "@/schemas/helps";
 import { usePortal } from "@/modules/family/hooks/use-portal";
 import type { PortalAssessment } from "@/modules/family/services/portal-service";
 import { useModal } from "@/stores/modal/use-modal-store";
@@ -11,6 +13,9 @@ import { FamilyEvolution } from "./family-evolution";
 import type { FamilyContext } from "./family-shell";
 
 const REVIEW_MODAL = "family-review";
+const gradeReviewSchema = z.object({
+  reason: safeTextSchema(10, 1000, "O motivo"),
+});
 const TYPE_LABEL: Record<string, string> = { avaliacao_continua: "Avaliação contínua", avaliacao_sistematica: "Avaliação sistemática", prova_periodica: "Prova periódica" };
 const grade = (v: number | null) => (v === null ? "—" : v.toFixed(1));
 const uniq = (v: string[]) => [...new Set(v.filter(Boolean))].sort((a, b) => a.localeCompare(b, "pt"));
@@ -24,6 +29,10 @@ export function FamilyPerformance({ studentId }: FamilyContext) {
   const { openModal } = useModal();
   const [target, setTarget] = useState<PortalAssessment | null>(null);
   const [reason, setReason] = useState("");
+  const [reasonTouched, setReasonTouched] = useState(false);
+
+  const reviewParsed = useMemo(() => gradeReviewSchema.safeParse({ reason }), [reason]);
+  const reasonError = reasonTouched && !reviewParsed.success ? reviewParsed.error.issues[0]?.message : undefined;
 
   const rows: GradeRow[] = useMemo(
     () => live.grades.flatMap((t) => t.subjects.map((s) => ({ id: `${t.term.id}:${s.name}`, term: t.term.sequence, closed: t.status === "fechada", subject: s.name, mac: s.mac, mas: s.mas, mt: s.mt }))),
@@ -56,7 +65,7 @@ export function FamilyPerformance({ studentId }: FamilyContext) {
       render: (_, a) => (
         <ButtonOnlyAction data={a} actions={a.review
           ? a.review.status === "pedido" ? [{ label: "Cancelar pedido", icon: "X", variant: "destructive", onClick: (x) => void run(live.cancelReview.mutateAsync(x.review!.id), "Pedido cancelado.") }] : []
-          : [{ label: "Pedir reapreciação", icon: "FilePen", onClick: (x) => { setTarget(x); setReason(""); openModal(REVIEW_MODAL); } }]} />
+          : [{ label: "Pedir reapreciação", icon: "FilePen", onClick: (x) => { setTarget(x); setReason(""); setReasonTouched(false); openModal(REVIEW_MODAL); } }]} />
       ),
     },
   ];
@@ -131,9 +140,32 @@ export function FamilyPerformance({ studentId }: FamilyContext) {
         </TabsContent>
       </Tabs>
 
-      <FormModal id={REVIEW_MODAL} title="Pedir reapreciação" description={target ? `${target.subject} — nota ${target.numeric_value ?? target.qualitative_value ?? target.status}` : undefined} submitLabel="Enviar pedido" isLoading={live.requestReview.isPending} disabled={reason.trim().length < 10}
-        onSubmit={() => (target ? live.requestReview.mutateAsync({ assessmentId: target.assessment_id, reason: reason.trim() }).then(() => { SucessMessage("Pedido enviado."); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; }) : undefined)}>
-        <div className="sm:col-span-2"><FormTextarea label="Motivo (mín. 10 caracteres) *" value={reason} onChange={setReason} rows={3} placeholder="Fundamente detalhadamente o pedido de reapreciação da nota atribuída..." /></div>
+      <FormModal id={REVIEW_MODAL} title="Pedir reapreciação" description={target ? `${target.subject} — nota ${target.numeric_value ?? target.qualitative_value ?? target.status}` : undefined} submitLabel="Enviar pedido" isLoading={live.requestReview.isPending} disabled={!target || !reviewParsed.success || live.requestReview.isPending}
+        onSubmit={() => {
+          if (!target) return undefined;
+          if (!reviewParsed.success) {
+            setReasonTouched(true);
+            return Promise.reject(new Error("Formulário inválido."));
+          }
+          return live.requestReview
+            .mutateAsync({ assessmentId: target.assessment_id, reason: reviewParsed.data.reason })
+            .then(() => { SucessMessage("Pedido enviado."); })
+            .catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; });
+        }}>
+        <div className="sm:col-span-2">
+          <FormTextarea
+            label="Motivo (mín. 10 caracteres) *"
+            maxLength={1000}
+            value={reason}
+            onChange={(v) => {
+              setReasonTouched(true);
+              setReason(v);
+            }}
+            error={reasonError}
+            rows={3}
+            placeholder="Fundamente detalhadamente o pedido de reapreciação da nota atribuída..."
+          />
+        </div>
       </FormModal>
     </>
   );

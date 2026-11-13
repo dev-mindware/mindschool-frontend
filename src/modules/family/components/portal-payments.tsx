@@ -3,6 +3,7 @@
 import { formatIsoDay } from "@/utils/format-date";
 import { useMemo, useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { hasAtMostTwoDecimals, portalPaymentMetaSchema } from "@/schemas";
 import { Badge, Button, ButtonOnlyAction, Checkbox, ConfirmModal, DataList, DynamicMetricCard, EmptyState, FileUpload, FormModal, FormSelect, Icon, Input, FormTextarea, PROOF_ACCEPT, type Column } from "@/components";
 import {
   Sheet,
@@ -39,6 +40,7 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
   const [payer, setPayer] = useState("");
   const [notes, setNotes] = useState("");
   const [file, setFile] = useState<File | null>(null);
+  const [fileTouched, setFileTouched] = useState(false);
   const [cancelTarget, setCancelTarget] = useState<ApiSubmission | null>(null);
   const [replaceFile, setReplaceFile] = useState<File | null>(null);
   const [replaceTarget, setReplaceTarget] = useState<ApiSubmission | null>(null);
@@ -57,13 +59,41 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
     setAmounts(Object.fromEntries(chosen.map((p) => [p.id, p.available])));
     setPaidOn(todayIso());
     setFile(null);
+    setFileTouched(false);
     setReference("");
+    setPayer("");
     setNotes("");
     openModal(PAY_MODAL);
   };
 
-  const validAmounts = chosen.every((p) => { const v = Number(amounts[p.id] ?? p.available); return v > 0 && v <= Number(p.available); });
-  const canSubmit = chosen.length > 0 && validAmounts && Boolean(file) && paidOn <= todayIso();
+  const getAmountError = (p: ApiPayable): string | undefined => {
+    const raw = (amounts[p.id] ?? p.available).trim();
+    if (!raw) return "Informe o valor a pagar.";
+    const v = Number(raw.replace(",", "."));
+    if (!Number.isFinite(v) || v <= 0) return "O valor deve ser superior a zero.";
+    if (!hasAtMostTwoDecimals(v)) return "Máximo de duas casas decimais.";
+    if (v > Number(p.available)) return "Excede o valor em dívida.";
+    return undefined;
+  };
+
+  const metaValidation = useMemo(
+    () => portalPaymentMetaSchema.safeParse({ paidOn, reference, payer, notes }),
+    [paidOn, reference, payer, notes]
+  );
+
+  const metaErrors = useMemo(() => {
+    const map: Record<string, string> = {};
+    if (!metaValidation.success) {
+      for (const issue of metaValidation.error.issues) {
+        const key = String(issue.path[0] ?? "");
+        if (key && !map[key]) map[key] = issue.message;
+      }
+    }
+    return map;
+  }, [metaValidation]);
+
+  const validAmounts = chosen.every((p) => !getAmountError(p));
+  const canSubmit = chosen.length > 0 && validAmounts && Boolean(file) && metaValidation.success;
 
   const submit = async () => {
     try {
@@ -239,18 +269,18 @@ export function PortalPayments({ studentId, studentName }: { studentId: string; 
                 {chosen.map((p) => (
                   <li key={p.id} className="flex flex-wrap items-center justify-between gap-3 px-3 py-2 text-sm">
                     <span className="capitalize">{p.description}<span className="block text-xs text-muted-foreground normal-case">em dívida {formatCurrency(p.available)}</span></span>
-                    <div className="w-40"><Input label="" type="number" placeholder="0.00" value={amounts[p.id] ?? p.available} onChange={(e) => setAmounts((a) => ({ ...a, [p.id]: e.target.value }))} error={Number(amounts[p.id] ?? p.available) > Number(p.available) ? "Excede o valor em dívida" : undefined} /></div>
+                    <div className="w-40"><Input label="" type="number" step="0.01" min={0.01} placeholder="0.00" value={amounts[p.id] ?? p.available} onChange={(e) => setAmounts((a) => ({ ...a, [p.id]: e.target.value }))} error={getAmountError(p)} /></div>
                   </li>
                 ))}
               </ul>
               <div className="grid gap-4 sm:grid-cols-2">
                 <FormSelect label="Como pagou" value={method} onValueChange={(v) => setMethod(v as PaymentMethodApi)} options={Object.entries(METHOD_LABEL).map(([value, label]) => ({ value, label }))} />
-                <Input label="Data do pagamento" type="date" value={paidOn} max={todayIso()} onChange={(e) => setPaidOn(e.target.value)} />
-                <Input label="Referência da transferência" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="N.º da operação (opcional)" />
-                <Input label="Nome do ordenante" value={payer} onChange={(e) => setPayer(e.target.value)} placeholder="Quem fez o pagamento (opcional)" />
+                <Input label="Data do pagamento *" type="date" value={paidOn} max={todayIso()} error={metaErrors.paidOn} onChange={(e) => setPaidOn(e.target.value)} />
+                <Input label="Referência da transferência" value={reference} error={reference ? metaErrors.reference : undefined} onChange={(e) => setReference(e.target.value)} placeholder="N.º da operação (opcional)" />
+                <Input label="Nome do ordenante" value={payer} error={payer ? metaErrors.payer : undefined} onChange={(e) => setPayer(e.target.value)} placeholder="Quem fez o pagamento (opcional)" />
               </div>
-              <FormTextarea label="Nota para a escola" value={notes} onChange={setNotes} rows={2} placeholder="Observações adicionais para a contabilidade escolar..." />
-              <FileUpload value={file} onChange={setFile} accept={PROOF_ACCEPT} maxBytes={8 * 1024 * 1024} label="Anexar o comprovativo" hint="PDF, PNG ou JPEG · máximo 8 MB. Use uma imagem nítida com valor, data e referência." />
+              <FormTextarea label="Nota para a escola" value={notes} error={notes ? metaErrors.notes : undefined} onChange={setNotes} rows={2} placeholder="Observações adicionais para a contabilidade escolar..." />
+              <FileUpload value={file} onChange={(f) => { setFileTouched(true); setFile(f); }} error={fileTouched && !file ? "Anexe o comprovativo de pagamento." : undefined} accept={PROOF_ACCEPT} maxBytes={8 * 1024 * 1024} label="Anexar o comprovativo" hint="PDF, PNG ou JPEG · máximo 8 MB. Use uma imagem nítida com valor, data e referência." />
             </section>
           </div>
 

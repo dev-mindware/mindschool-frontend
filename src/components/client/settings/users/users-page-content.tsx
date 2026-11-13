@@ -1,7 +1,12 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { SucessMessage, ErrorMessage, WarningMessage } from "@/utils/messages";
+import { fullPersonNameSchema, optionalSafeTextSchema, passwordSchema, requiredEmailSchema, sanitizeSearchTerm, stripControlChars } from "@/schemas";
+import { applyApiFieldErrors, getApiErrorMessage } from "@/utils/api-error";
 import {
   Can,
   Badge,
@@ -48,7 +53,6 @@ import {
   type SchoolRole,
 } from "@/services/admin-school-service";
 import { useModal } from "@/stores/modal/use-modal-store";
-import { getApiErrorMessage } from "@/utils/api-error";
 import { formatDate } from "@/utils/format-date";
 
 const ASSIGNABLE: SchoolRole[] = [
@@ -89,42 +93,87 @@ const fail = (e: unknown) => {
   throw e;
 };
 
+const addUserSchema = z
+  .object({
+    email: requiredEmailSchema,
+    name: z.string().optional(),
+    role: z.string().min(1, "Seleccione o papel."),
+    mode: z.enum(["invite", "password", "existing"]),
+    password: z.string().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.mode !== "existing") {
+      const nameRes = fullPersonNameSchema(5, 200, "O nome completo").safeParse(data.name ?? "");
+      if (!nameRes.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["name"],
+          message: nameRes.error.issues[0]?.message ?? "Nome completo inválido.",
+        });
+      }
+    }
+    if (data.mode === "password") {
+      const passRes = passwordSchema.safeParse(data.password ?? "");
+      if (!passRes.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["password"],
+          message: passRes.error.issues[0]?.message ?? "Palavra-passe inválida.",
+        });
+      }
+    }
+  });
+
+type AddUserFormValues = z.infer<typeof addUserSchema>;
+
 function AddUserModal() {
   const { grant } = useMemberships();
-  const [email, setEmail] = useState("");
-  const [name, setName] = useState("");
-  const [role, setRole] = useState<SchoolRole>("professor");
-  const [mode, setMode] = useState<"invite" | "password" | "existing">("invite");
-  const [password, setPassword] = useState("");
+  const {
+    register,
+    watch,
+    setValue,
+    setError,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<AddUserFormValues>({
+    resolver: zodResolver(addUserSchema),
+    mode: "onChange",
+    defaultValues: { email: "", name: "", role: "professor", mode: "invite", password: "" },
+  });
 
-  const submit = () =>
+  const role = watch("role") as SchoolRole;
+  const mode = watch("mode");
+
+  const onSubmit = (data: AddUserFormValues) =>
     grant
       .mutateAsync({
-        email: email.trim(),
-        role,
-        invite: mode === "invite",
-        fullName: mode === "existing" ? undefined : name.trim() || undefined,
-        password: mode === "password" ? password : undefined,
+        email: data.email.trim(),
+        role: data.role as SchoolRole,
+        invite: data.mode === "invite",
+        fullName: data.mode === "existing" ? undefined : data.name?.trim() || undefined,
+        password: data.mode === "password" ? data.password : undefined,
       })
       .then((res) => {
-        if (mode === "invite" && res.invite && !res.invite.sent) {
+        if (data.mode === "invite" && res.invite && !res.invite.sent) {
           WarningMessage(
             `Utilizador criado, mas o convite não foi enviado. ${INVITE_FAILURE[res.invite.reason ?? "falha_no_envio"]} Reenvie o convite na lista quando o e-mail estiver a funcionar.`,
           );
         } else {
           SucessMessage(
-            mode === "invite"
+            data.mode === "invite"
               ? "Convite enviado."
-              : mode === "existing"
+              : data.mode === "existing"
                 ? "Papel atribuído."
                 : "Utilizador criado.",
           );
         }
-        setEmail("");
-        setName("");
-        setPassword("");
+        reset();
       })
-      .catch(fail);
+      .catch((err) => {
+        applyApiFieldErrors(err, setError, { full_name: "name" });
+        fail(err);
+      });
 
   return (
     <FormModal
@@ -133,36 +182,39 @@ function AddUserModal() {
       description="Pessoa nova: «Convite por e-mail» envia-lhe uma ligação para definir a palavra-passe; «Palavra-passe inicial» define-a você e comunica-a (validada pela política de segurança). Pessoa que já tem conta (mesmo e-mail): escolha «Conta existente» e só se atribui o papel."
       submitLabel="Adicionar"
       isLoading={grant.isPending}
-      onSubmit={submit}
-      disabled={!email.trim() || (mode === "password" && password.length < 8)}
+      onSubmit={handleSubmit(onSubmit)}
+      onClose={() => reset()}
+      disabled={!isValid || grant.isPending}
     >
       <Input
         label="E-mail *"
         type="email"
         startIcon="Mail"
         placeholder="exemplo@escola.ao"
-        value={email}
-        onChange={(e) => setEmail(e.target.value)}
+        error={errors.email?.message}
+        {...register("email")}
       />
       {mode !== "existing" && (
         <Input
-          label="Nome * (pessoa nova)"
+          label="Nome completo * (pessoa nova)"
           startIcon="User"
           placeholder="Ex.: João Manuel da Silva"
-          value={name}
-          onChange={(e) => setName(e.target.value)}
+          error={errors.name?.message}
+          {...register("name")}
         />
       )}
       <FormSelect
         label="Papel *"
         value={role}
-        onValueChange={(v) => setRole(v as SchoolRole)}
+        error={errors.role?.message}
+        onValueChange={(v) => setValue("role", v, { shouldValidate: true })}
         options={ASSIGNABLE.map((r) => ({ value: r, label: ROLE_LABEL[r] }))}
       />
       <FormSelect
         label="Acesso"
         value={mode}
-        onValueChange={(v) => setMode(v as "invite" | "password" | "existing")}
+        error={errors.mode?.message}
+        onValueChange={(v) => setValue("mode", v as "invite" | "password" | "existing", { shouldValidate: true })}
         options={[
           { value: "invite", label: "Pessoa nova: convite por e-mail" },
           { value: "password", label: "Pessoa nova: palavra-passe inicial" },
@@ -173,9 +225,9 @@ function AddUserModal() {
         <Input
           label="Palavra-passe inicial *"
           type="password"
-          placeholder="Defina uma palavra-passe forte..."
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
+          placeholder="Mínimo de 8 caracteres"
+          error={errors.password?.message}
+          {...register("password")}
         />
       )}
     </FormModal>
@@ -194,7 +246,7 @@ function EffectivePermissionsSheet({
 
   const filteredSources = useMemo(() => {
     const list = data?.sources ?? [];
-    const q = search.trim().toLowerCase();
+    const q = sanitizeSearchTerm(search, 100).toLowerCase();
     if (!q) return list;
     return list.filter(
       (item) =>
@@ -243,8 +295,9 @@ function EffectivePermissionsSheet({
             <Input
               placeholder="Filtrar permissões por nome ou código..."
               startIcon="Search"
+              maxLength={100}
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => setSearch(stripControlChars(e.target.value).slice(0, 100))}
             />
 
             <div className="space-y-2.5 max-h-[60vh] overflow-y-auto pr-1">
@@ -293,6 +346,7 @@ function RolesAndPermissionsTab() {
   const [search, setSearch] = useState("");
   const [draftPermissions, setDraftPermissions] = useState<Set<string>>(new Set());
   const [reason, setReason] = useState("");
+  const [reasonTouched, setReasonTouched] = useState(false);
 
   const selectedRole: ApiSchoolRoleConfig | undefined = useMemo(
     () => roles.find((r) => r.role === selectedRoleKey) ?? roles[0],
@@ -302,11 +356,22 @@ function RolesAndPermissionsTab() {
   useEffect(() => {
     if (selectedRole) {
       setDraftPermissions(new Set(selectedRole.permissions));
+      setReason("");
+      setReasonTouched(false);
     }
   }, [selectedRole]);
 
+  const reasonResult = useMemo(
+    () => optionalSafeTextSchema(300, 5, "O motivo da alteração").safeParse(reason),
+    [reason],
+  );
+  const reasonError =
+    reasonTouched && !reasonResult.success
+      ? reasonResult.error.issues[0]?.message
+      : undefined;
+
   const groupedCatalog = useMemo(() => {
-    const q = search.trim().toLowerCase();
+    const q = sanitizeSearchTerm(search, 100).toLowerCase();
     const filtered = catalog.filter((item) => {
       if (selectedModule !== "todos" && item.module !== selectedModule) return false;
       if (!q) return true;
@@ -347,7 +412,7 @@ function RolesAndPermissionsTab() {
   };
 
   const handleSave = () => {
-    if (!selectedRole) return;
+    if (!selectedRole || !reasonResult.success) return;
     const assignableCodes = new Set(
       catalog.filter((c) => c.is_assignable).map((c) => c.code),
     );
@@ -362,25 +427,27 @@ function RolesAndPermissionsTab() {
       .mutateAsync({
         role: selectedRole.role,
         permissions: permissionsToSave,
-        reason: reason.trim() || undefined,
+        reason: reasonResult.data || undefined,
       })
       .then(() => {
         SucessMessage(`Permissões de ${selectedRole.name} actualizadas.`);
         setReason("");
+        setReasonTouched(false);
       })
       .catch(fail);
   };
 
   const handleReset = () => {
-    if (!selectedRole) return;
+    if (!selectedRole || !reasonResult.success) return;
     resetRole
       .mutateAsync({
         role: selectedRole.role,
-        reason: reason.trim() || "Reposição do perfil predefinido",
+        reason: reasonResult.data || "Reposição do perfil predefinido",
       })
       .then(() => {
         SucessMessage(`Permissões de ${selectedRole.name} repostas para o padrão.`);
         setReason("");
+        setReasonTouched(false);
       })
       .catch(fail);
   };
@@ -475,7 +542,7 @@ function RolesAndPermissionsTab() {
                         <Button
                           variant="outline"
                           size="sm"
-                          disabled={resetRole.isPending}
+                          disabled={!reasonResult.success || resetRole.isPending}
                           onClick={handleReset}
                         >
                           Repor padrão
@@ -483,7 +550,7 @@ function RolesAndPermissionsTab() {
                       )}
                       <Button
                         size="sm"
-                        disabled={!hasChanges || updateRole.isPending}
+                        disabled={!hasChanges || !reasonResult.success || updateRole.isPending}
                         onClick={handleSave}
                       >
                         Guardar permissões
@@ -498,8 +565,9 @@ function RolesAndPermissionsTab() {
                   label="Pesquisar"
                   placeholder="Pesquisar permissão por nome ou código..."
                   startIcon="Search"
+                  maxLength={100}
                   value={search}
-                  onChange={(e) => setSearch(e.target.value)}
+                  onChange={(e) => setSearch(stripControlChars(e.target.value).slice(0, 100))}
                 />
                 <FormSelect
                   label="Módulo"
@@ -520,8 +588,14 @@ function RolesAndPermissionsTab() {
                   <Input
                     label="Motivo da alteração (registo de auditoria)"
                     placeholder="Ex.: Ajustar perfil da secretaria para o novo fluxo de atendimento"
+                    maxLength={300}
+                    error={reasonError}
                     value={reason}
-                    onChange={(e) => setReason(e.target.value)}
+                    onBlur={() => setReasonTouched(true)}
+                    onChange={(e) => {
+                      setReasonTouched(true);
+                      setReason(e.target.value);
+                    }}
                   />
                 </div>
               )}

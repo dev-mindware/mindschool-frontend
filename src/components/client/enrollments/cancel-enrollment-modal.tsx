@@ -1,12 +1,16 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Enrollment } from "@/types";
 import { useEnrollments } from "@/hooks/school/use-enrollments";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { optionalSafeTextSchema, safeTextSchema } from "@/schemas";
 import {
   GlobalModal,
-  SelectField,
+  FormSelect,
   Button,
   ButtonSubmit,
   Checkbox,
@@ -30,34 +34,94 @@ const COMMON_REASONS = [
   { value: "Outro motivo", label: "Outro motivo específico" },
 ];
 
+const cancelEnrollmentSchema = z
+  .object({
+    selectedPreset: z.string().trim().min(1, "Seleccione o motivo principal."),
+    customReason: z.string(),
+    justified: z.boolean(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.selectedPreset === "Outro motivo") {
+      const res = safeTextSchema(5, 500, "O motivo detalhado").safeParse(data.customReason);
+      if (!res.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["customReason"],
+          message:
+            res.error.issues[0]?.message ??
+            "Descreva o motivo detalhado (mínimo 5 caracteres).",
+        });
+      }
+    } else {
+      const res = optionalSafeTextSchema(400, 2, "Os detalhes adicionais").safeParse(
+        data.customReason
+      );
+      if (!res.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["customReason"],
+          message: res.error.issues[0]?.message ?? "Detalhes adicionais inválidos.",
+        });
+      }
+    }
+  });
+
+type CancelEnrollmentFormData = z.infer<typeof cancelEnrollmentSchema>;
+
 export function CancelEnrollmentModal({
   isOpen,
   onClose,
   enrollment,
 }: CancelEnrollmentModalProps) {
   const { cancel } = useEnrollments();
-  const [selectedPreset, setSelectedPreset] = useState(COMMON_REASONS[0].value);
-  const [customReason, setCustomReason] = useState("");
-  const [justified, setJustified] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  const {
+    watch,
+    setValue,
+    handleSubmit,
+    reset,
+    formState: { errors, isValid },
+  } = useForm<CancelEnrollmentFormData>({
+    resolver: zodResolver(cancelEnrollmentSchema),
+    mode: "onChange",
+    defaultValues: {
+      selectedPreset: COMMON_REASONS[0].value,
+      customReason: "",
+      justified: false,
+    },
+  });
+
+  useEffect(() => {
+    if (isOpen && enrollment) {
+      reset({
+        selectedPreset: COMMON_REASONS[0].value,
+        customReason: "",
+        justified: false,
+      });
+    }
+  }, [isOpen, enrollment, reset]);
+
+  const selectedPreset = watch("selectedPreset");
+  const customReason = watch("customReason") ?? "";
+  const justified = watch("justified");
 
   if (!enrollment) return null;
 
-  const finalReason =
-    selectedPreset === "Outro motivo"
-      ? customReason.trim()
-      : selectedPreset + (customReason ? ` - ${customReason.trim()}` : "");
-
-  const handleConfirm = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!finalReason) {
-      ErrorMessage("Por favor, especifique o motivo do cancelamento.");
-      return;
-    }
+  const onConfirm = async (data: CancelEnrollmentFormData) => {
+    const trimmedCustom = data.customReason.trim();
+    const finalReason =
+      data.selectedPreset === "Outro motivo"
+        ? trimmedCustom
+        : data.selectedPreset + (trimmedCustom ? ` - ${trimmedCustom}` : "");
 
     setIsSubmitting(true);
     try {
-      await cancel.mutateAsync({ id: enrollment.id, reason: finalReason, justified });
+      await cancel.mutateAsync({
+        id: enrollment.id,
+        reason: finalReason,
+        justified: data.justified,
+      });
       SucessMessage("Matrícula anulada e vaga libertada no sistema!");
       onClose();
     } catch (err: unknown) {
@@ -77,7 +141,7 @@ export function CancelEnrollmentModal({
       title="Cancelar Matrícula"
       description="Processo auditado de anulação de vaga escolar"
     >
-      <form onSubmit={handleConfirm} className="space-y-4 pt-2">
+      <form onSubmit={handleSubmit(onConfirm)} noValidate className="space-y-4 pt-2">
         <div className="rounded-xs border border-amber-200 bg-amber-50/50 p-3 text-xs text-amber-800 dark:border-amber-900 dark:bg-amber-950/40 dark:text-amber-300">
           <p className="font-medium">Atenção:</p>
           <p className="mt-0.5">
@@ -95,11 +159,18 @@ export function CancelEnrollmentModal({
           </ul>
         </div>
 
-        <SelectField
+        <FormSelect
           label="Motivo Principal *"
           value={selectedPreset}
           options={COMMON_REASONS}
-          onValueChange={setSelectedPreset}
+          error={errors.selectedPreset?.message}
+          onValueChange={(val) =>
+            setValue("selectedPreset", val, {
+              shouldValidate: true,
+              shouldTouch: true,
+              shouldDirty: true,
+            })
+          }
         />
 
         <FormTextarea
@@ -109,9 +180,17 @@ export function CancelEnrollmentModal({
               : "Detalhes Adicionais (Opcional)"
           }
           rows={3}
+          maxLength={selectedPreset === "Outro motivo" ? 500 : 400}
           placeholder="Observações complementares para registo da secretaria..."
           value={customReason}
-          onChange={setCustomReason}
+          error={errors.customReason?.message}
+          onChange={(val) =>
+            setValue("customReason", val, {
+              shouldValidate: true,
+              shouldTouch: true,
+              shouldDirty: true,
+            })
+          }
         />
 
         <div className="flex items-start gap-2">
@@ -119,7 +198,12 @@ export function CancelEnrollmentModal({
             id="cancel-enrollment-justified"
             className="mt-0.5"
             checked={justified}
-            onCheckedChange={(checked) => setJustified(Boolean(checked))}
+            onCheckedChange={(checked) =>
+              setValue("justified", Boolean(checked), {
+                shouldValidate: true,
+                shouldDirty: true,
+              })
+            }
           />
           <Label htmlFor="cancel-enrollment-justified" className="text-xs font-normal leading-relaxed cursor-pointer">
             <strong>Motivo justificado</strong> (doença comprovada, mudança de localidade). Marque só se houver comprovativo: dá direito a exame especial.
@@ -127,11 +211,12 @@ export function CancelEnrollmentModal({
         </div>
 
         <div className="flex justify-end gap-3 pt-3 border-t">
-          <Button type="button" variant="outline" onClick={onClose}>
+          <Button type="button" variant="outline" onClick={onClose} disabled={isSubmitting}>
             Desistir
           </Button>
           <ButtonSubmit
             isLoading={isSubmitting}
+            disabled={!isValid || isSubmitting}
             className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
           >
             Confirmar Anulação

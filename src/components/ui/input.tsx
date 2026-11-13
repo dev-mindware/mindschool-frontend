@@ -8,6 +8,8 @@ type InputType =
   | "text"
   | "password"
   | "email"
+  | "tel"
+  | "url"
   | "number"
   | "quantity"
   | "date"
@@ -157,6 +159,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
                 type="number"
                 inputMode="numeric"
                 role="spinbutton"
+                aria-invalid={Boolean(error) || undefined}
                 aria-valuenow={numericValue}
                 aria-valuemin={minVal}
                 aria-valuemax={maxVal}
@@ -210,6 +213,7 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
               value={value}
               onChange={onChange}
               disabled={disabled}
+              aria-invalid={Boolean(error) || undefined}
               className={cn(
                 "min-w-0 flex-1 bg-transparent placeholder:text-muted-foreground text-foreground outline-none text-left appearance-none [appearance:none] [&::-webkit-search-decoration]:appearance-none [&::-webkit-search-cancel-button]:appearance-none",
                 "disabled:cursor-not-allowed disabled:opacity-50"

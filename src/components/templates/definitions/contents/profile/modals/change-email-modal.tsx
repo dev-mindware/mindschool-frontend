@@ -7,9 +7,10 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ErrorMessage, SucessMessage } from "@/utils";
+import { requiredEmailSchema } from "@/schemas";
 
 const schema = z.object({
-  email: z.string().email("Formato de email inválido").min(1, "Campo obrigatório"),
+  email: requiredEmailSchema,
 });
 
 type FormData = z.infer<typeof schema>;
@@ -25,9 +26,10 @@ export function ChangeEmailModal({ currentEmail }: Props) {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isValid },
   } = useForm<FormData>({
     resolver: zodResolver(schema),
+    mode: "onChange",
     defaultValues: {
       email: currentEmail,
     },
@@ -82,7 +84,7 @@ export function ChangeEmailModal({ currentEmail }: Props) {
           >
             Cancelar
           </Button>
-          <Button type="submit" disabled={isPending} className="h-9 text-xs font-semibold">
+          <Button type="submit" disabled={isPending || !isValid} className="h-9 text-xs font-semibold">
             {isPending ? "A guardar..." : "Guardar alteração"}
           </Button>
         </div>

@@ -1,12 +1,14 @@
 "use client";
 import { cn } from "@/lib";
-import { Input, Icon } from "@/components";
+import { Input } from "@/components";
+import { stripControlChars } from "@/schemas/helps";
 
 type Props = {
   children?: React.ReactNode;
   search: string;
   className?: string;
   placeholder?: string;
+  maxLength?: number;
   setSearch: (search: string) => void;
 };
 
@@ -14,6 +16,7 @@ export function SearchHandlerWrapper({
   children,
   search,
   placeholder,
+  maxLength = 100,
   setSearch,
   className,
 }: Props) {
@@ -23,7 +26,8 @@ export function SearchHandlerWrapper({
         <div className="w-full">
           <Input
             value={search}
-            onChange={(e) => setSearch(e.target.value)}
+            maxLength={maxLength}
+            onChange={(e) => setSearch(stripControlChars(e.target.value).slice(0, maxLength))}
             placeholder={placeholder ?? "Pesquisar..."}
             startIcon="Search"
             className="w-full h-10 text-sm border rounded-xs border-input bg-background"

@@ -1,7 +1,7 @@
 "use client";
 import { formatDateTime, formatNumber } from "@/utils";
 
-import { useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { Button, FormModal, FormTextarea, Icon, StatusBadge, Textarea, type StatusStyle } from "@/components";
 import { useSecretaryRequest, useSecretaryRequests } from "@/hooks/school/use-secretary-requests";
@@ -11,6 +11,7 @@ import { type OfficialDocumentType } from "@/types/certificate";
 import { REQUEST_STATUS_LABEL, REQUEST_TYPE_LABEL, type ApiRequest, type RequestStatus } from "@/services/secretary-requests-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
+import { optionalSafeTextSchema, safeTextSchema } from "@/schemas";
 
 const EVENT_LABEL: Record<string, string> = { criado: "Pedido aberto", atribuido: "Atribuído", estado: "Estado alterado", comentario: "Mensagem", pagamento: "Pagamento confirmado", aberto: "Pedido aberto" };
 const REQUEST_STATUS_STYLE: Record<RequestStatus, StatusStyle> = {
@@ -47,11 +48,51 @@ export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: Req
   const { data: terms = [] } = useGradeTerms();
   const { openModal } = useModal();
   const [note, setNote] = useState("");
+  const [noteTouched, setNoteTouched] = useState(false);
   const [message, setMessage] = useState("");
+  const [messageTouched, setMessageTouched] = useState(false);
   const [isIssuing, setIsIssuing] = useState(false);
   const run = (p: Promise<unknown>, ok: string, after?: () => void) => p.then(() => { SucessMessage(ok); after?.(); }).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
   const open = request && ["aberto", "em_analise", "aguarda_pagamento"].includes(request.status);
   const unpaid = request?.status === "aguarda_pagamento";
+
+  useEffect(() => {
+    setNote("");
+    setNoteTouched(false);
+    setMessage("");
+    setMessageTouched(false);
+  }, [requestId]);
+
+  const noteRequiredResult = useMemo(
+    () =>
+      safeTextSchema(5, 500, unpaid ? "O motivo da isenção" : "O motivo do indeferimento").safeParse(
+        note
+      ),
+    [note, unpaid]
+  );
+
+  const noteOptionalResult = useMemo(
+    () => optionalSafeTextSchema(500, 5, "A resolução / motivo").safeParse(note),
+    [note]
+  );
+
+  const noteError = useMemo(() => {
+    if (!noteTouched) return undefined;
+    if (unpaid) {
+      return noteRequiredResult.success ? undefined : noteRequiredResult.error.issues[0]?.message;
+    }
+    return noteOptionalResult.success ? undefined : noteOptionalResult.error.issues[0]?.message;
+  }, [noteTouched, unpaid, noteRequiredResult, noteOptionalResult]);
+
+  const messageResult = useMemo(
+    () => safeTextSchema(2, 1000, "A mensagem").safeParse(message),
+    [message]
+  );
+
+  const messageError =
+    messageTouched && !messageResult.success
+      ? messageResult.error.issues[0]?.message
+      : undefined;
 
   const targetDocType = request?.type ? REQUEST_TYPE_TO_OFFICIAL_DOC[request.type] : undefined;
   const canIssueDoc = Boolean(request && request.student_id && targetDocType && !unpaid);
@@ -111,14 +152,25 @@ export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: Req
           {open && (
             <div className="space-y-3 border-t pt-3">
               <div className="flex flex-wrap gap-2">
-                {!request.assigned_to && <Button type="button" size="sm" variant="outline" onClick={() => run(assign.mutateAsync(request.id), "Pedido atribuído a si.")}>Assumir</Button>}
-                {request.status === "aberto" && <Button type="button" size="sm" variant="outline" onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "em_analise" }), "Pedido em análise.")}>Iniciar análise</Button>}
+                {!request.assigned_to && <Button type="button" size="sm" variant="outline" disabled={assign.isPending} onClick={() => run(assign.mutateAsync(request.id), "Pedido atribuído a si.")}>Assumir</Button>}
+                {request.status === "aberto" && <Button type="button" size="sm" variant="outline" disabled={setStatus.isPending} onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "em_analise" }), "Pedido em análise.")}>Iniciar análise</Button>}
               </div>
-              <FormTextarea label={unpaid ? "Motivo da isenção" : "Resolução / motivo"} value={note} onChange={setNote} rows={2} placeholder={unpaid ? "Ex: aluno bolseiro; isento por decisão da direção." : "Ex: declaração emitida; levantar na secretaria."} />
+              <FormTextarea
+                label={unpaid ? "Motivo da isenção *" : "Resolução / motivo"}
+                value={note}
+                maxLength={500}
+                error={noteError}
+                onChange={(val) => {
+                  setNoteTouched(true);
+                  setNote(val);
+                }}
+                rows={2}
+                placeholder={unpaid ? "Ex: aluno bolseiro; isento por decisão da direção." : "Ex: declaração emitida; levantar na secretaria."}
+              />
               {unpaid ? (
                 <div className="space-y-1">
                   <p className="text-xs text-muted-foreground">O pedido aguarda o pagamento da taxa. Só depois de paga segue para tratamento; pode isentar com motivo (a fatura é anulada).</p>
-                  <Button type="button" size="sm" variant="outline" disabled={note.trim().length < 3} onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "em_analise", resolution: note.trim(), waiveFee: true }), "Taxa isenta; pedido em análise.", () => setNote(""))}>Isentar taxa e iniciar análise</Button>
+                  <Button type="button" size="sm" variant="outline" disabled={!noteRequiredResult.success || setStatus.isPending} onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "em_analise", resolution: noteRequiredResult.success ? noteRequiredResult.data : note.trim(), waiveFee: true }), "Taxa isenta; pedido em análise.", () => { setNote(""); setNoteTouched(false); })}>Isentar taxa e iniciar análise</Button>
                 </div>
               ) : (
                 <div className="flex flex-wrap gap-2">
@@ -134,8 +186,8 @@ export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: Req
                       {isIssuing ? "A emitir documento..." : "Emitir Documento Oficial com QR"}
                     </Button>
                   )}
-                  <Button type="button" size="sm" className="gap-1" onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "concluido", resolution: note.trim() || undefined }), "Pedido concluído.", () => setNote(""))}><Icon name="Check" className="size-3.5" />Concluir</Button>
-                  <Button type="button" size="sm" variant="destructive" disabled={note.trim().length < 3} onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "rejeitado", resolution: note.trim() }), "Pedido indeferido.", () => setNote(""))}>Indeferir</Button>
+                  <Button type="button" size="sm" className="gap-1" disabled={!noteOptionalResult.success || setStatus.isPending} onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "concluido", resolution: (noteOptionalResult.success ? noteOptionalResult.data : note.trim()) || undefined }), "Pedido concluído.", () => { setNote(""); setNoteTouched(false); })}><Icon name="Check" className="size-3.5" />Concluir</Button>
+                  <Button type="button" size="sm" variant="destructive" disabled={!noteRequiredResult.success || setStatus.isPending} onClick={() => run(setStatus.mutateAsync({ id: request.id, status: "rejeitado", resolution: noteRequiredResult.success ? noteRequiredResult.data : note.trim() }), "Pedido indeferido.", () => { setNote(""); setNoteTouched(false); })}>Indeferir</Button>
                 </div>
               )}
               <div className="flex items-end gap-2">
@@ -144,11 +196,17 @@ export function RequestDetailsModal({ requestId, studentName, onPrintSlip }: Req
                     label="Mensagem ao requerente"
                     placeholder="Escreva orientações ou esclarecimentos para o requerente..."
                     rows={2}
+                    maxLength={1000}
                     value={message}
-                    onChange={(e) => setMessage(e.target.value)}
+                    error={messageError}
+                    onBlur={() => setMessageTouched(true)}
+                    onChange={(e) => {
+                      setMessageTouched(true);
+                      setMessage(e.target.value);
+                    }}
                   />
                 </div>
-                <Button type="button" size="sm" variant="secondary" className="h-10" disabled={!message.trim() || comment.isPending} onClick={() => run(comment.mutateAsync({ id: request.id, message: message.trim() }), "Mensagem enviada.", () => setMessage(""))}>Enviar</Button>
+                <Button type="button" size="sm" variant="secondary" className="h-10" disabled={!messageResult.success || comment.isPending} onClick={() => run(comment.mutateAsync({ id: request.id, message: messageResult.success ? messageResult.data : message.trim() }), "Mensagem enviada.", () => { setMessage(""); setMessageTouched(false); })}>Enviar</Button>
               </div>
             </div>
           )}

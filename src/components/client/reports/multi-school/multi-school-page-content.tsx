@@ -2,11 +2,13 @@
 import { formatCurrencyCompact, formatIsoDay } from "@/utils";
 
 import { useState } from 'react';
+import { z } from 'zod';
 import { SucessMessage, ErrorMessage } from '@/utils/messages';
 import { Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, DynamicMetricCard, EmptyState, FormModal, FormSelect, Icon, Input, TitleList, type Column } from '@/components';
 import { useGroups } from '@/hooks/school/use-groups';
 import { GROUP_ROLE_LABEL, type ApiGroupMember, type GroupRole } from '@/services/groups-service';
 import { useSchool } from '@/providers/school-provider';
+import { requiredEmailSchema, stripControlChars } from '@/schemas/helps';
 import { usePlanUpgradeModal } from '@/stores/plan/use-plan-upgrade-modal-store';
 import { useModal } from '@/stores/modal/use-modal-store';
 import { getApiErrorMessage } from '@/utils/api-error';
@@ -14,6 +16,12 @@ import { getApiErrorMessage } from '@/utils/api-error';
 const pct = (v: number | null | undefined) => (v === null || v === undefined ? '—' : `${v}%`);
 const fail = (e: unknown, fallback = 'A operação falhou.') => { ErrorMessage(getApiErrorMessage(e, fallback)); throw e; };
 const ROLE_OPTIONS = (Object.keys(GROUP_ROLE_LABEL) as GroupRole[]).map((r) => ({ value: r, label: GROUP_ROLE_LABEL[r] }));
+const ROLE_VALUES = Object.keys(GROUP_ROLE_LABEL) as [GroupRole, ...GroupRole[]];
+
+const addGroupMemberSchema = z.object({
+  email: requiredEmailSchema,
+  role: z.enum(ROLE_VALUES),
+});
 
 type SchoolRow = { id: string } & Record<string, unknown>;
 type MemberRow = ApiGroupMember & { id: string };
@@ -28,10 +36,16 @@ export function MultiSchoolPageContent() {
   const { schools: mySchools, current, switchSchool } = useSchool();
   const planModal = usePlanUpgradeModal();
   const [email, setEmail] = useState('');
+  const [emailTouched, setEmailTouched] = useState(false);
   const [role, setRole] = useState<GroupRole>('group_viewer');
   const [editing, setEditing] = useState<MemberRow | null>(null);
   const [editRole, setEditRole] = useState<GroupRole>('group_viewer');
   const [removing, setRemoving] = useState<MemberRow | null>(null);
+
+  const addMemberResult = addGroupMemberSchema.safeParse({ email, role });
+  const emailError = (emailTouched || email.length > 0) && !addMemberResult.success
+    ? addMemberResult.error.issues.find((i) => i.path[0] === 'email')?.message
+    : undefined;
 
   if (first.isLoading) return <div className="text-sm text-muted-foreground">A carregar…</div>;
   if (first.groups.length === 0) {
@@ -149,7 +163,7 @@ export function MultiSchoolPageContent() {
               <h3 className="text-sm font-semibold">Membros do grupo</h3>
               <p className="text-[11px] text-muted-foreground">Só se adicionam utilizadores que já têm conta; não pode alterar o seu próprio papel.</p>
             </div>
-            <Button size="sm" className="gap-1.5" onClick={() => openModal('group-member-add')}><Icon name="UserPlus" className="size-4" />Adicionar membro</Button>
+            <Button size="sm" className="gap-1.5" onClick={() => { setEmail(''); setEmailTouched(false); openModal('group-member-add'); }}><Icon name="UserPlus" className="size-4" />Adicionar membro</Button>
           </div>
           <DataList<MemberRow>
             prefix="members"
@@ -168,18 +182,22 @@ export function MultiSchoolPageContent() {
         </div>
       )}
 
-      <FormModal id="group-member-add" title="Adicionar membro" description="O utilizador já tem de ter conta na plataforma." submitLabel="Adicionar" isLoading={g.addMember.isPending} disabled={!email.includes('@')}
-        onSubmit={() => g.addMember.mutateAsync({ email: email.trim(), role }).then(() => { SucessMessage('Membro adicionado.'); setEmail(''); }).catch((e) => fail(e))}>
-        <div className="sm:col-span-2"><Input label="E-mail do utilizador *" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="utilizador@exemplo.ao" /></div>
+      <FormModal id="group-member-add" title="Adicionar membro" description="O utilizador já tem de ter conta na plataforma." submitLabel="Adicionar" isLoading={g.addMember.isPending} disabled={!addMemberResult.success || g.addMember.isPending}
+        onSubmit={() => {
+          setEmailTouched(true);
+          if (!addMemberResult.success) return;
+          return g.addMember.mutateAsync({ email: addMemberResult.data.email.toLowerCase(), role: addMemberResult.data.role }).then(() => { SucessMessage('Membro adicionado.'); setEmail(''); setEmailTouched(false); }).catch((e) => fail(e));
+        }}>
+        <div className="sm:col-span-2"><Input label="E-mail do utilizador *" type="email" maxLength={150} value={email} error={emailError} onChange={(e) => { setEmail(stripControlChars(e.target.value)); setEmailTouched(true); }} placeholder="utilizador@exemplo.ao" /></div>
         <div className="sm:col-span-2"><FormSelect label="Papel" value={role} onValueChange={(v) => setRole(v as GroupRole)} options={ROLE_OPTIONS} /></div>
       </FormModal>
 
-      <FormModal id="group-member-role" title="Alterar papel" description={editing?.full_name} submitLabel="Guardar" isLoading={g.setRole.isPending}
+      <FormModal id="group-member-role" title="Alterar papel" description={editing?.full_name} submitLabel="Guardar" isLoading={g.setRole.isPending} disabled={!editing || g.setRole.isPending}
         onSubmit={() => (editing ? g.setRole.mutateAsync({ userId: editing.user_id, role: editRole }).then(() => { SucessMessage('Papel atualizado.'); }).catch((e) => fail(e)) : undefined)}>
         <div className="sm:col-span-2"><FormSelect label="Papel" value={editRole} onValueChange={(v) => setEditRole(v as GroupRole)} options={ROLE_OPTIONS} /></div>
       </FormModal>
 
-      <ConfirmModal id="group-member-remove" title="Remover membro" description={removing ? `Remover ${removing.full_name} do grupo?` : ''} destructive confirmLabel="Remover"
+      <ConfirmModal id="group-member-remove" title="Remover membro" description={removing ? `Remover ${removing.full_name} do grupo?` : ''} destructive confirmLabel="Remover" isLoading={g.removeMember.isPending}
         onConfirm={() => (removing ? g.removeMember.mutateAsync(removing.user_id).then(() => { SucessMessage('Membro removido.'); }).catch((e) => fail(e)) : Promise.resolve())} />
     </div>
   );

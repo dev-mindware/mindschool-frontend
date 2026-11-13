@@ -1,10 +1,20 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { useQueryClient } from "@tanstack/react-query";
 import { useSections } from "@/hooks/school/use-sections";
 import { useSubjects, useTeachers, useTeacherAssignments } from "@/hooks/school/use-academic";
 import { adminSchoolService } from "@/services/admin-school-service";
+import {
+  fullPersonNameSchema,
+  optionalSafeTextSchema,
+  quantitySchema,
+  requiredEmailSchema,
+  validateIdDocumentByType,
+} from "@/schemas/helps";
 import { getApiErrorMessage } from "@/utils/api-error";
 import {
   GlobalModal,
@@ -50,22 +60,55 @@ interface QuickTeacherModalProps {
   allSubjects: Array<{ id: string; name: string; code: string }>;
 }
 
+const quickTeacherSchema = z.object({
+  fullName: fullPersonNameSchema(5, 200, "O nome completo"),
+  email: requiredEmailSchema,
+  docNumber: z
+    .string({ error: "O número do documento é obrigatório." })
+    .trim()
+    .min(1, "O número do documento é obrigatório.")
+    .refine(
+      (v) =>
+        validateIdDocumentByType(v, "IDENTITY_CARD").valid ||
+        validateIdDocumentByType(v, "PASSPORT").valid,
+      "Documento inválido. Use BI angolano (ex.: 007849302LA042) ou Passaporte (ex.: N1234567).",
+    ),
+  qualification: optionalSafeTextSchema(120, 2, "A habilitação académica"),
+});
+
+type QuickTeacherFormInput = z.input<typeof quickTeacherSchema>;
+type QuickTeacherFormData = z.infer<typeof quickTeacherSchema>;
+
 function QuickTeacherModal({ isOpen, onClose, onCreated, allSubjects }: QuickTeacherModalProps) {
   const queryClient = useQueryClient();
-  const [fullName, setFullName] = useState("");
-  const [email, setEmail] = useState("");
-  const [docNumber, setDocNumber] = useState("");
-  const [qualification, setQualification] = useState("");
   const [selectedSubjects, setSelectedSubjects] = useState<string[]>([]);
-  const [isSubmitting, setIsSubmitting] = useState(false);
+  const {
+    register,
+    handleSubmit,
+    reset: resetForm,
+    formState: { errors, isValid, isSubmitting },
+  } = useForm<QuickTeacherFormInput, unknown, QuickTeacherFormData>({
+    resolver: zodResolver(quickTeacherSchema),
+    mode: "onChange",
+    defaultValues: {
+      fullName: "",
+      email: "",
+      docNumber: "",
+      qualification: "",
+    },
+  });
 
-  const reset = () => {
-    setFullName("");
-    setEmail("");
-    setDocNumber("");
-    setQualification("");
+  const resetAll = () => {
+    resetForm({ fullName: "", email: "", docNumber: "", qualification: "" });
     setSelectedSubjects([]);
   };
+
+  useEffect(() => {
+    if (!isOpen) {
+      resetAll();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [isOpen]);
 
   const handleToggleSubject = (subjectId: string) => {
     setSelectedSubjects((prev) =>
@@ -73,18 +116,11 @@ function QuickTeacherModal({ isOpen, onClose, onCreated, allSubjects }: QuickTea
     );
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fullName.trim() || !email.trim() || docNumber.trim().length < 5) {
-      ErrorMessage("Preencha o nome completo, e-mail válido e documento (mín. 5 dígitos).");
-      return;
-    }
-
-    setIsSubmitting(true);
+  const onSubmit = async (data: QuickTeacherFormData) => {
     try {
       const membership = await adminSchoolService.grant({
-        fullName: fullName.trim(),
-        email: email.trim().toLowerCase(),
+        fullName: data.fullName,
+        email: data.email.toLowerCase(),
         role: "professor",
         invite: false,
         password: "Mindschool123!",
@@ -93,8 +129,8 @@ function QuickTeacherModal({ isOpen, onClose, onCreated, allSubjects }: QuickTea
       const userId = membership.user_id || membership.user?.id || membership.id;
       const teacher = await adminSchoolService.createTeacher({
         userId,
-        documentNumber: docNumber.trim(),
-        qualification: qualification.trim() || undefined,
+        documentNumber: data.docNumber,
+        qualification: data.qualification || undefined,
       });
 
       const teacherId = teacher.id || membership.id;
@@ -107,12 +143,10 @@ function QuickTeacherModal({ isOpen, onClose, onCreated, allSubjects }: QuickTea
 
       SucessMessage("Docente registado com sucesso!");
       onCreated(teacherId, selectedSubjects);
-      reset();
+      resetAll();
       onClose();
     } catch (err: unknown) {
       ErrorMessage(getApiErrorMessage(err, "Não foi possível registar o docente."));
-    } finally {
-      setIsSubmitting(false);
     }
   };
 
@@ -125,14 +159,14 @@ function QuickTeacherModal({ isOpen, onClose, onCreated, allSubjects }: QuickTea
       description="Registo rápido de professor com definição prévia das disciplinas que pode ministrar"
       size="lg"
     >
-      <form onSubmit={handleSubmit} className="space-y-4 pt-1">
+      <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 pt-1">
         <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
           <Input
             label="Nome Completo *"
             startIcon="User"
             placeholder="Ex: Manuel António Domingos"
-            value={fullName}
-            onChange={(e) => setFullName(e.target.value)}
+            {...register("fullName")}
+            error={errors.fullName?.message}
           />
 
           <Input
@@ -140,24 +174,24 @@ function QuickTeacherModal({ isOpen, onClose, onCreated, allSubjects }: QuickTea
             startIcon="Mail"
             type="email"
             placeholder="m.domingos@escola.ao"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
+            {...register("email")}
+            error={errors.email?.message}
           />
 
           <Input
             label="N.º do Documento (BI / Passaporte) *"
             startIcon="IdCard"
             placeholder="Ex: 004829103LA042"
-            value={docNumber}
-            onChange={(e) => setDocNumber(e.target.value)}
+            {...register("docNumber")}
+            error={errors.docNumber?.message}
           />
 
           <Input
             label="Habilitação Académica"
             startIcon="GraduationCap"
             placeholder="Ex: Licenciatura em Matemática"
-            value={qualification}
-            onChange={(e) => setQualification(e.target.value)}
+            {...register("qualification")}
+            error={errors.qualification?.message}
           />
         </div>
 
@@ -216,7 +250,7 @@ function QuickTeacherModal({ isOpen, onClose, onCreated, allSubjects }: QuickTea
           <Button type="button" variant="outline" onClick={onClose}>
             Cancelar
           </Button>
-          <ButtonSubmit isLoading={isSubmitting}>
+          <ButtonSubmit isLoading={isSubmitting} disabled={!isValid || isSubmitting}>
             Registar Docente
           </ButtonSubmit>
         </div>
@@ -230,6 +264,13 @@ interface AssignmentModalProps {
   onClose: () => void;
 }
 
+const assignmentSchema = z.object({
+  selectedTeacherId: z.string().trim().min(1, "Seleccione o professor docente."),
+  selectedSectionIds: z.array(z.string()).min(1, "Seleccione pelo menos uma turma."),
+  selectedSubjectIds: z.array(z.string()).min(1, "Seleccione pelo menos uma disciplina."),
+  weeklyHours: quantitySchema(1, 40, "A carga horária semanal"),
+});
+
 export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
   const { data: sections = [] } = useSections();
   const { allSubjects: subjects } = useSubjects();
@@ -239,9 +280,32 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
   const [selectedTeacherId, setSelectedTeacherId] = useState("");
   const [selectedSectionIds, setSelectedSectionIds] = useState<string[]>([]);
   const [selectedSubjectIds, setSelectedSubjectIds] = useState<string[]>([]);
-  const [weeklyHours, setWeeklyHours] = useState(4);
+  const [weeklyHours, setWeeklyHours] = useState<number | string>(4);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isQuickTeacherOpen, setIsQuickTeacherOpen] = useState(false);
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const touch = (k: string) => setTouched((p) => (p[k] ? p : { ...p, [k]: true }));
+
+  useEffect(() => {
+    if (!isOpen) {
+      setTouched({});
+    }
+  }, [isOpen]);
+
+  const assignmentParsed = useMemo(
+    () =>
+      assignmentSchema.safeParse({
+        selectedTeacherId,
+        selectedSectionIds,
+        selectedSubjectIds,
+        weeklyHours,
+      }),
+    [selectedTeacherId, selectedSectionIds, selectedSubjectIds, weeklyHours],
+  );
+  const errOf = (k: string) => {
+    if (!touched[k] || assignmentParsed.success) return undefined;
+    return assignmentParsed.error.issues.find((i) => i.path[0] === k)?.message;
+  };
 
   useEffect(() => {
     if (!selectedTeacherId) {
@@ -274,32 +338,31 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedTeacherId) {
-      ErrorMessage("Por favor, selecione um professor docente.");
+    if (!assignmentParsed.success) {
+      setTouched({
+        selectedTeacherId: true,
+        selectedSectionIds: true,
+        selectedSubjectIds: true,
+        weeklyHours: true,
+      });
+      ErrorMessage(assignmentParsed.error.issues[0]?.message ?? "Verifique os campos da atribuição.");
       return;
     }
-    if (selectedSectionIds.length === 0) {
-      ErrorMessage("Por favor, selecione pelo menos uma turma.");
-      return;
-    }
-    if (selectedSubjectIds.length === 0) {
-      ErrorMessage("Por favor, selecione pelo menos uma disciplina.");
-      return;
-    }
+    const d = assignmentParsed.data;
 
-    const totalCombinations = selectedSectionIds.length * selectedSubjectIds.length;
+    const totalCombinations = d.selectedSectionIds.length * d.selectedSubjectIds.length;
     setIsSubmitting(true);
 
     try {
       const calls: Promise<unknown>[] = [];
-      for (const sectionId of selectedSectionIds) {
-        for (const subjectId of selectedSubjectIds) {
+      for (const sectionId of d.selectedSectionIds) {
+        for (const subjectId of d.selectedSubjectIds) {
           calls.push(
             assign.mutateAsync({
               sectionId,
               subjectId,
-              teacherId: selectedTeacherId,
-              weeklyHours: Number(weeklyHours),
+              teacherId: d.selectedTeacherId,
+              weeklyHours: d.weeklyHours,
             })
           );
         }
@@ -309,6 +372,7 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
       SucessMessage(`${totalCombinations} atribuição(ões) lectiva(s) registada(s) com sucesso!`);
       setSelectedSectionIds([]);
       setSelectedSubjectIds([]);
+      setTouched({});
       onClose();
     } catch (err: unknown) {
       ErrorMessage(getApiErrorMessage(err, "Ocorreu um erro ao atribuir o professor às turmas e disciplinas."));
@@ -342,8 +406,8 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
                 Criar Novo Docente
               </Button>
             </div>
-            <Select value={selectedTeacherId} onValueChange={setSelectedTeacherId}>
-              <SelectTrigger>
+            <Select value={selectedTeacherId} onValueChange={(v) => { touch("selectedTeacherId"); setSelectedTeacherId(v); }}>
+              <SelectTrigger aria-invalid={Boolean(errOf("selectedTeacherId")) || undefined}>
                 <SelectValue placeholder="Selecione o professor para carregar suas disciplinas..." />
               </SelectTrigger>
               <SelectContent>
@@ -354,13 +418,19 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
                 ))}
               </SelectContent>
             </Select>
+            {errOf("selectedTeacherId") && (
+              <p role="alert" className="text-xs text-destructive">
+                {errOf("selectedTeacherId")}
+              </p>
+            )}
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
             <FormMultiCombobox
               label={`Turmas alocadas (${selectedSectionIds.length}) *`}
               values={selectedSectionIds}
-              onValuesChange={setSelectedSectionIds}
+              onValuesChange={(v) => { touch("selectedSectionIds"); setSelectedSectionIds(v); }}
+              error={errOf("selectedSectionIds")}
               placeholder="Seleccione as turmas..."
               searchPlaceholder="Filtrar turmas..."
               options={sections.map((s) => ({ value: s.id, label: `${s.classLevel} ${s.name}`, hint: s.shift === "MORNING" ? "Manhã" : s.shift === "AFTERNOON" ? "Tarde" : "Noite" }))}
@@ -369,7 +439,8 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
             <FormMultiCombobox
               label={`Disciplinas (${selectedSubjectIds.length}) *`}
               values={selectedSubjectIds}
-              onValuesChange={setSelectedSubjectIds}
+              onValuesChange={(v) => { touch("selectedSubjectIds"); setSelectedSubjectIds(v); }}
+              error={errOf("selectedSubjectIds")}
               placeholder="Seleccione as disciplinas..."
               searchPlaceholder="Filtrar disciplinas..."
               options={subjects.map((s) => ({ value: s.id, label: s.name, hint: s.code }))}
@@ -387,7 +458,8 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
                 max={40}
                 step={1}
                 value={weeklyHours}
-                onChange={(e) => setWeeklyHours(Number(e.target.value))}
+                onChange={(e) => { touch("weeklyHours"); setWeeklyHours(e.target.value === "" ? "" : Number(e.target.value)); }}
+                error={errOf("weeklyHours")}
               />
             </div>
 
@@ -409,7 +481,7 @@ export function AssignmentModal({ isOpen, onClose }: AssignmentModalProps) {
             </Button>
             <ButtonSubmit
               isLoading={isSubmitting}
-              disabled={!selectedTeacherId || selectedSectionIds.length === 0 || selectedSubjectIds.length === 0}
+              disabled={!assignmentParsed.success || isSubmitting}
             >
               Atribuir Docente
             </ButtonSubmit>

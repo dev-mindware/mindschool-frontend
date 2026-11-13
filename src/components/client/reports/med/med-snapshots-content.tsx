@@ -2,15 +2,34 @@
 
 import { MED_MAP_LABEL, MED_STATUS_LABEL } from "@/constants/labels";
 import { useState } from "react";
+import { z } from "zod";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { useQuery } from "@tanstack/react-query";
 import { Can, Badge, Button, ButtonOnlyAction, DataList, FormModal, FormSelect, Icon, Input, TitleList, type Column } from "@/components";
 import { MedMapType, MedSnapshot, useMedSnapshots } from "@/hooks/school/use-med-snapshots";
 import { useGradeTerms } from "@/hooks/school/use-grades";
 import { academicService } from "@/services/academic-service";
+import { safeTextSchema, stripControlChars } from "@/schemas/helps";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { formatIsoDay } from "@/utils/format-date";
+
+const medGenerateSchema = z
+  .object({
+    map_type: z.enum(["matriculas", "aproveitamento"]),
+    term_id: z.string().trim().optional(),
+  })
+  .superRefine((data, ctx) => {
+    if (data.map_type === "aproveitamento" && !data.term_id) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["term_id"],
+        message: "Seleccione um período para o mapa de aproveitamento.",
+      });
+    }
+  });
+
+const medSubmissionReferenceSchema = safeTextSchema(3, 80, "O protocolo / referência");
 
 
 /** Mapas estatisticos oficiais do MED a partir de instantaneos imutaveis (nunca recalculados ao vivo). */
@@ -23,14 +42,28 @@ export function MedSnapshotsContent() {
   const [termId, setTermId] = useState("");
   const [submitting, setSubmitting] = useState<MedSnapshot | null>(null);
   const [reference, setReference] = useState("");
+  const [referenceTouched, setReferenceTouched] = useState(false);
+
+  const effectiveTermId = termId || terms[terms.length - 1]?.id || "";
+  const generateResult = medGenerateSchema.safeParse({ map_type: mapType, term_id: effectiveTermId });
+  const generateTermError = !generateResult.success
+    ? generateResult.error.issues.find((i) => i.path[0] === "term_id")?.message
+    : undefined;
+  const referenceResult = medSubmissionReferenceSchema.safeParse(reference);
+  const referenceError = (referenceTouched || reference.length > 0) && !referenceResult.success
+    ? referenceResult.error.issues[0]?.message
+    : undefined;
 
   const run = (p: Promise<unknown>, ok: string) => p.then(() => SucessMessage(ok)).catch((e) => ErrorMessage(getApiErrorMessage(e, "A operação falhou.")));
 
   const generate = () => {
     if (!year) { ErrorMessage("Não há ano letivo ativo."); throw new Error("no-year"); }
-    const term = termId || terms[terms.length - 1]?.id;
-    if (mapType === "aproveitamento" && !term) { ErrorMessage("Escolha o período do corte."); throw new Error("no-term"); }
-    return create.mutateAsync({ academic_year_id: year.id, map_type: mapType, ...(mapType === "aproveitamento" ? { term_id: term } : {}) }).then(() => { SucessMessage("Instantâneo gerado."); });
+    if (!generateResult.success) { ErrorMessage(generateTermError ?? "Dados inválidos."); throw new Error("invalid-form"); }
+    return create.mutateAsync({
+      academic_year_id: year.id,
+      map_type: generateResult.data.map_type,
+      ...(generateResult.data.map_type === "aproveitamento" ? { term_id: generateResult.data.term_id } : {}),
+    }).then(() => { SucessMessage("Instantâneo gerado."); });
   };
 
   const columns: Column<MedSnapshot>[] = [
@@ -72,7 +105,7 @@ export function MedSnapshotsContent() {
                     { label: "Exportar CSV", icon: "FileText" as const, onClick: (x: MedSnapshot) => void run(exportFile.mutateAsync({ id: x.id, format: "csv" }), "Exportado em CSV.") },
                   ]
                 : []),
-              ...(s.status === "exportado" ? [{ permission: "report:med_approve", label: "Registar submissão", icon: "Send" as const, onClick: (x: MedSnapshot) => { setSubmitting(x); setReference(""); openModal("med-submit"); } }] : []),
+              ...(s.status === "exportado" ? [{ permission: "report:med_approve", label: "Registar submissão", icon: "Send" as const, onClick: (x: MedSnapshot) => { setSubmitting(x); setReference(""); setReferenceTouched(false); openModal("med-submit"); } }] : []),
             ]}
           />
         );
@@ -112,10 +145,10 @@ export function MedSnapshotsContent() {
         emptyIcon="Map"
       />
 
-      <FormModal id="med-generate" title="Gerar instantâneo" description="Cria um corte imutável dos dados da escola para o mapa escolhido. O «Aproveitamento» exige a pauta do período fechada; antes de aprovar, veja nas «Verificações» o que falta corrigir (ex.: pautas por fechar, escola sem código MED, alunos sem sexo). Para atualizar os dados gera-se um instantâneo novo (nova versão)." submitLabel="Gerar" isLoading={create.isPending} onSubmit={generate}>
+      <FormModal id="med-generate" title="Gerar instantâneo" description="Cria um corte imutável dos dados da escola para o mapa escolhido. O «Aproveitamento» exige a pauta do período fechada; antes de aprovar, veja nas «Verificações» o que falta corrigir (ex.: pautas por fechar, escola sem código MED, alunos sem sexo). Para atualizar os dados gera-se um instantâneo novo (nova versão)." submitLabel="Gerar" isLoading={create.isPending} disabled={!year || !generateResult.success || create.isPending} onSubmit={generate}>
         <div className="sm:col-span-2"><FormSelect label="Mapa" value={mapType} onValueChange={(v) => setMapType(v as MedMapType)} options={[{ value: "matriculas", label: "Matrículas" }, { value: "aproveitamento", label: "Aproveitamento" }]} /></div>
         {mapType === "aproveitamento" && (
-          <div className="sm:col-span-2"><FormSelect label="Período do corte" value={termId} onValueChange={setTermId} placeholder="Último período" options={terms.map((t) => ({ value: t.id, label: `${t.sequence}.º Trimestre` }))} /></div>
+          <div className="sm:col-span-2"><FormSelect label="Período do corte" value={termId} onValueChange={setTermId} error={generateTermError} placeholder="Último período" options={terms.map((t) => ({ value: t.id, label: `${t.sequence}.º Trimestre` }))} /></div>
         )}
       </FormModal>
 
@@ -125,10 +158,23 @@ export function MedSnapshotsContent() {
         description="Só guarda o protocolo que o Ministério lhe deu depois de entregar o mapa: o sistema não envia nada ao MED."
         submitLabel="Registar"
         isLoading={submit.isPending}
-        disabled={reference.trim().length < 3}
-        onSubmit={() => (submitting ? submit.mutateAsync({ id: submitting.id, reference: reference.trim() }).then(() => { SucessMessage("Submissão registada."); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; }) : undefined)}
+        disabled={!referenceResult.success || submit.isPending}
+        onSubmit={() => {
+          setReferenceTouched(true);
+          if (!submitting || !referenceResult.success) return;
+          return submit.mutateAsync({ id: submitting.id, reference: referenceResult.data }).then(() => { SucessMessage("Submissão registada."); }).catch((e) => { ErrorMessage(getApiErrorMessage(e, "A operação falhou.")); throw e; });
+        }}
       >
-        <div className="sm:col-span-2"><Input label="Protocolo / referência *" value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Ex.: PROT-MED/2026/8492" /></div>
+        <div className="sm:col-span-2">
+          <Input
+            label="Protocolo / referência *"
+            maxLength={80}
+            value={reference}
+            error={referenceError}
+            onChange={(e) => { setReference(stripControlChars(e.target.value)); setReferenceTouched(true); }}
+            placeholder="Ex.: PROT-MED/2026/8492"
+          />
+        </div>
       </FormModal>
     </div>
   );

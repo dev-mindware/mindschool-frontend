@@ -4,7 +4,14 @@ import { useCan } from "@/hooks/auth/use-can";
 import { formatIsoDay } from "@/utils";
 import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import {
+  isoDateSchema,
+  quantitySchema,
+  safeTextSchema,
+  timeHHMMSchema,
+} from "@/schemas/helps";
 import {
   Alert, AlertTitle, AlertDescription, Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, EmptyState, FilterPopover, FormModal, FormSelect, FormTextarea, Icon, Input, Tabs, TabsContent, TabsList, TabsTrigger, TitleList, WeekTimetable,
   type Column, type TimetableBlock, type TimetableSlot,
@@ -56,6 +63,64 @@ const withLessonNo = (slots: Array<{ position: number; start: string; end: strin
 };
 const toBlock = (e: ApiEntry): TimetableBlock<ApiEntry> => ({ id: e.id, weekday: e.weekday, start: e.start, end: e.end, title: e.subject.name, subtitle: e.teacher.full_name, meta: e.room?.code ?? e.location_label ?? undefined, data: e });
 
+const bellSchema = z
+  .object({
+    shift: z.enum(["manha", "tarde", "noite", "diurno"]),
+    name: safeTextSchema(2, 80, "O nome da grelha"),
+    from: isoDateSchema("A data de início"),
+    start: timeHHMMSchema("A hora de início"),
+    minutes: quantitySchema(30, 120, "Os minutos por tempo"),
+    periods: quantitySchema(1, 12, "O n.º de tempos"),
+    breakAfter: quantitySchema(1, 11, "O intervalo após o tempo"),
+    breakMin: quantitySchema(5, 60, "A duração do intervalo"),
+  })
+  .superRefine((d, ctx) => {
+    if (d.breakAfter >= d.periods) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["breakAfter"],
+        message: `A grelha só tem ${d.periods} tempos: o intervalo tem de ser depois de um tempo de 1 a ${Math.max(1, d.periods - 1)}.`,
+      });
+    }
+  });
+
+const roomSchema = z.object({
+  code: safeTextSchema(1, 20, "O código da sala"),
+  name: safeTextSchema(2, 100, "O nome da sala"),
+  type: z.string().trim().min(1, "Seleccione o tipo."),
+  capacity: z.union([z.literal(""), quantitySchema(1, 200, "A lotação")]),
+});
+
+const changeSchema = z
+  .object({
+    type: z.enum(["troca_tempo", "troca_professor", "troca_sala", "anulacao"]),
+    date: isoDateSchema("A data de efeito"),
+    reason: safeTextSchema(5, 500, "O motivo da mudança"),
+    weekday: z.string(),
+    slot: z.string(),
+    teacherId: z.string(),
+    roomId: z.string(),
+  })
+  .superRefine((d, ctx) => {
+    if (d.type === "troca_tempo") {
+      const slotCheck = quantitySchema(1, 12, "O novo tempo").safeParse(d.slot);
+      if (!slotCheck.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["slot"],
+          message: slotCheck.error.issues[0]?.message ?? "Indique um tempo entre 1 e 12.",
+        });
+      }
+    }
+    if (d.type === "troca_professor" && !d.teacherId.trim()) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["teacherId"],
+        message: "Seleccione o novo professor.",
+      });
+    }
+  });
+
 function BellModal() {
   const { createBell } = useTimetables();
   const [f, setF] = useState({
@@ -68,6 +133,7 @@ function BellModal() {
     breakAfter: 3,
     breakMin: 15,
   });
+  const [touched, setTouched] = useState<Partial<Record<keyof typeof f, boolean>>>({});
 
   const onShiftChange = (s: Shift) => {
     const defaults: Record<Shift, { start: string; periods: number; breakAfter: number }> = {
@@ -77,6 +143,7 @@ function BellModal() {
       noite: { start: "17:00", periods: 5, breakAfter: 2 },
     };
     const d = defaults[s] ?? defaults.manha;
+    setTouched((p) => ({ ...p, shift: true }));
     setF((p) => ({
       ...p,
       shift: s,
@@ -87,46 +154,59 @@ function BellModal() {
     }));
   };
 
-  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => setF((p) => ({ ...p, [k]: v }));
-  // o intervalo só existe depois de um tempo que exista e antes do último («intervalo após o tempo 10» com 6 tempos)
+  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => {
+    setTouched((p) => ({ ...p, [k]: true }));
+    setF((p) => ({ ...p, [k]: v }));
+  };
+
+  const parsed = useMemo(() => bellSchema.safeParse(f), [f]);
+  const errOf = (k: keyof typeof f, alwaysShow?: boolean) => {
+    if ((!touched[k] && !alwaysShow) || parsed.success) return undefined;
+    return parsed.error.issues.find((i) => i.path[0] === k)?.message;
+  };
   const breakInvalid = f.breakAfter < 1 || f.breakAfter >= f.periods;
+
   return (
     <FormModal
       id="tt-new-bell"
       title="Nova grelha de tempos"
       description="Define os tempos de aula e o intervalo de um turno."
       submitLabel="Criar grelha"
-      disabled={breakInvalid}
+      disabled={!parsed.success || createBell.isPending}
       isLoading={createBell.isPending}
-      onSubmit={() =>
-        createBell
+      onClose={() => setTouched({})}
+      onSubmit={() => {
+        if (!parsed.success) return;
+        const d = parsed.data;
+        return createBell
           .mutateAsync({
-            shift: f.shift,
-            name: f.name,
-            validFrom: f.from,
-            start: f.start,
-            periodMinutes: f.minutes,
-            periods: f.periods,
-            breakAfter: f.breakAfter,
-            breakMinutes: f.breakMin,
+            shift: d.shift,
+            name: d.name,
+            validFrom: d.from,
+            start: d.start,
+            periodMinutes: d.minutes,
+            periods: d.periods,
+            breakAfter: d.breakAfter,
+            breakMinutes: d.breakMin,
           })
-          .then(() => SucessMessage("Grelha criada."))
-          .catch(fail)
-      }
+          .then(() => { SucessMessage("Grelha criada."); setTouched({}); })
+          .catch(fail);
+      }}
     >
       <FormSelect
         label="Turno"
         value={f.shift}
         onValueChange={(v) => onShiftChange(v as Shift)}
         options={(Object.keys(SHIFT_LABEL) as Shift[]).map((s) => ({ value: s, label: SHIFT_LABEL[s] }))}
+        error={errOf("shift")}
       />
-      <Input label="Nome" value={f.name} onChange={(e) => set("name", e.target.value)} />
-      <Input label="Válida desde" type="date" value={f.from} onChange={(e) => set("from", e.target.value)} />
-      <Input label="Início" type="time" value={f.start} onChange={(e) => set("start", e.target.value)} />
-      <Input label="Minutos por tempo" type="quantity" min={30} max={120} step={5} value={f.minutes} onChange={(e) => set("minutes", Number(e.target.value))} />
-      <Input label="N.º de tempos" type="quantity" min={1} max={12} step={1} value={f.periods} onChange={(e) => set("periods", Number(e.target.value))} />
-      <Input label="Intervalo após o tempo" type="quantity" min={1} max={Math.max(1, f.periods - 1)} step={1} value={f.breakAfter} error={breakInvalid ? `A grelha só tem ${f.periods} tempos: o intervalo tem de ser depois de um tempo de 1 a ${f.periods - 1}.` : undefined} onChange={(e) => set("breakAfter", Number(e.target.value))} />
-      <Input label="Duração do intervalo (min)" type="quantity" min={5} max={60} step={5} value={f.breakMin} onChange={(e) => set("breakMin", Number(e.target.value))} />
+      <Input label="Nome" value={f.name} onChange={(e) => set("name", e.target.value)} error={errOf("name")} />
+      <Input label="Válida desde" type="date" value={f.from} onChange={(e) => set("from", e.target.value)} error={errOf("from")} />
+      <Input label="Início" type="time" value={f.start} onChange={(e) => set("start", e.target.value)} error={errOf("start")} />
+      <Input label="Minutos por tempo" type="quantity" min={30} max={120} step={5} value={f.minutes} onChange={(e) => set("minutes", e.target.value === "" ? 0 : Number(e.target.value))} error={errOf("minutes")} />
+      <Input label="N.º de tempos" type="quantity" min={1} max={12} step={1} value={f.periods} onChange={(e) => set("periods", e.target.value === "" ? 0 : Number(e.target.value))} error={errOf("periods")} />
+      <Input label="Intervalo após o tempo" type="quantity" min={1} max={Math.max(1, f.periods - 1)} step={1} value={f.breakAfter} error={errOf("breakAfter", breakInvalid)} onChange={(e) => set("breakAfter", e.target.value === "" ? 0 : Number(e.target.value))} />
+      <Input label="Duração do intervalo (min)" type="quantity" min={5} max={60} step={5} value={f.breakMin} onChange={(e) => set("breakMin", e.target.value === "" ? 0 : Number(e.target.value))} error={errOf("breakMin")} />
     </FormModal>
   );
 }
@@ -134,13 +214,26 @@ function BellModal() {
 function RoomModal() {
   const { createRoom } = useTimetables();
   const [f, setF] = useState({ code: "", name: "", type: "sala", capacity: "" });
-  const set = <K extends keyof typeof f>(k: K, v: string) => setF((p) => ({ ...p, [k]: v }));
+  const [touched, setTouched] = useState<Partial<Record<keyof typeof f, boolean>>>({});
+  const set = <K extends keyof typeof f>(k: K, v: string) => {
+    setTouched((p) => ({ ...p, [k]: true }));
+    setF((p) => ({ ...p, [k]: v }));
+  };
+  const parsed = useMemo(() => roomSchema.safeParse(f), [f]);
+  const errOf = (k: keyof typeof f) => {
+    if (!touched[k] || parsed.success) return undefined;
+    return parsed.error.issues.find((i) => i.path[0] === k)?.message;
+  };
+  const resetForm = () => {
+    setF({ code: "", name: "", type: "sala", capacity: "" });
+    setTouched({});
+  };
   return (
-    <FormModal id="tt-new-room" title="Nova sala" submitLabel="Adicionar sala" isLoading={createRoom.isPending} disabled={!f.code.trim() || f.name.trim().length < 2} onSubmit={() => createRoom.mutateAsync({ code: f.code.trim(), name: f.name.trim(), type: f.type, capacity: f.capacity ? Number(f.capacity) : undefined }).then(() => { SucessMessage("Sala criada."); setF({ code: "", name: "", type: "sala", capacity: "" }); }).catch(fail)}>
-      <Input label="Código *" placeholder="Ex: B14" value={f.code} onChange={(e) => set("code", e.target.value)} />
-      <Input label="Nome *" value={f.name} onChange={(e) => set("name", e.target.value)} />
-      <FormSelect label="Tipo" value={f.type} onValueChange={(v) => set("type", v)} options={ROOM_TYPES.map((t) => ({ value: t, label: t }))} />
-      <Input label="Lotação" type="quantity" min={1} max={200} step={1} value={f.capacity} onChange={(e) => set("capacity", e.target.value)} />
+    <FormModal id="tt-new-room" title="Nova sala" submitLabel="Adicionar sala" isLoading={createRoom.isPending} disabled={!parsed.success || createRoom.isPending} onClose={resetForm} onSubmit={() => parsed.success ? createRoom.mutateAsync({ code: parsed.data.code, name: parsed.data.name, type: parsed.data.type, capacity: typeof parsed.data.capacity === "number" ? parsed.data.capacity : undefined }).then(() => { SucessMessage("Sala criada."); resetForm(); }).catch(fail) : undefined}>
+      <Input label="Código *" placeholder="Ex: B14" value={f.code} onChange={(e) => set("code", e.target.value)} error={errOf("code")} />
+      <Input label="Nome *" value={f.name} onChange={(e) => set("name", e.target.value)} error={errOf("name")} />
+      <FormSelect label="Tipo" value={f.type} onValueChange={(v) => set("type", v)} options={ROOM_TYPES.map((t) => ({ value: t, label: t }))} error={errOf("type")} />
+      <Input label="Lotação" type="quantity" min={1} max={200} step={1} value={f.capacity} onChange={(e) => set("capacity", e.target.value)} error={errOf("capacity")} />
     </FormModal>
   );
 }
@@ -162,20 +255,37 @@ function ChangeModal({ entry, timetableId }: { entry: ApiEntry | null; timetable
   const [slot, setSlot] = useState("1");
   const [teacherId, setTeacherId] = useState("");
   const [roomId, setRoomId] = useState("none");
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const touch = (k: string) => setTouched((p) => (p[k] ? p : { ...p, [k]: true }));
+
+  const parsed = useMemo(
+    () => changeSchema.safeParse({ type, date, reason, weekday, slot, teacherId, roomId }),
+    [type, date, reason, weekday, slot, teacherId, roomId],
+  );
+  const errOf = (k: string) => {
+    if (!touched[k] || parsed.success) return undefined;
+    return parsed.error.issues.find((i) => i.path[0] === k)?.message;
+  };
+  const resetForm = () => {
+    setReason("");
+    setTeacherId("");
+    setTouched({});
+  };
 
   return (
-    <FormModal id="tt-request-change" title="Pedir mudança ao horário" description="O horário está publicado: a mudança fica registada com efeito na data indicada." submitLabel="Registar mudança" isLoading={requestChange.isPending} disabled={reason.trim().length < 5 || (type === "troca_professor" && !teacherId)} onSubmit={() => (entry ? requestChange.mutateAsync({ type, entryId: entry.id, effectiveDate: date, reason: reason.trim(), weekday: type === "troca_tempo" ? Number(weekday) : undefined, firstSlot: type === "troca_tempo" ? Number(slot) : undefined, teacherId: type === "troca_professor" ? teacherId : undefined, roomId: type === "troca_sala" ? (roomId === "none" ? null : roomId) : undefined }).then(() => SucessMessage("Mudança registada.")).catch(fail) : undefined)}>
-      <FormSelect label="Tipo de mudança" value={type} onValueChange={(v) => setType(v as typeof type)} options={Object.entries(CHANGE_LABEL).filter(([value]) => roomsEnabled || value !== "troca_sala").map(([value, label]) => ({ value, label }))} />
-      <Input label="Em vigor desde" type="date" value={date} onChange={(e) => setDate(e.target.value)} />
-      {type === "troca_tempo" && (<><FormSelect label="Novo dia" value={weekday} onValueChange={setWeekday} options={DAYS.map((d) => ({ value: String(d), label: WEEKDAY[d] ?? "" }))} /><Input label="Novo tempo" type="quantity" min={1} max={12} step={1} value={slot} onChange={(e) => setSlot(e.target.value)} /></>)}
-      {type === "troca_professor" && <div className="sm:col-span-2"><FormSelect label="Novo professor *" value={teacherId} onValueChange={setTeacherId} options={teachers.map((t) => ({ value: t.id, label: t.full_name }))} /></div>}
+    <FormModal id="tt-request-change" title="Pedir mudança ao horário" description="O horário está publicado: a mudança fica registada com efeito na data indicada." submitLabel="Registar mudança" isLoading={requestChange.isPending} disabled={!parsed.success || requestChange.isPending} onClose={resetForm} onSubmit={() => (entry && parsed.success ? requestChange.mutateAsync({ type: parsed.data.type, entryId: entry.id, effectiveDate: parsed.data.date, reason: parsed.data.reason, weekday: parsed.data.type === "troca_tempo" ? Number(parsed.data.weekday) : undefined, firstSlot: parsed.data.type === "troca_tempo" ? Number(parsed.data.slot) : undefined, teacherId: parsed.data.type === "troca_professor" ? parsed.data.teacherId : undefined, roomId: parsed.data.type === "troca_sala" ? (parsed.data.roomId === "none" ? null : parsed.data.roomId) : undefined }).then(() => { SucessMessage("Mudança registada."); resetForm(); }).catch(fail) : undefined)}>
+      <FormSelect label="Tipo de mudança" value={type} onValueChange={(v) => { touch("type"); setType(v as typeof type); }} options={Object.entries(CHANGE_LABEL).filter(([value]) => roomsEnabled || value !== "troca_sala").map(([value, label]) => ({ value, label }))} error={errOf("type")} />
+      <Input label="Em vigor desde" type="date" value={date} onChange={(e) => { touch("date"); setDate(e.target.value); }} error={errOf("date")} />
+      {type === "troca_tempo" && (<><FormSelect label="Novo dia" value={weekday} onValueChange={(v) => { touch("weekday"); setWeekday(v); }} options={DAYS.map((d) => ({ value: String(d), label: WEEKDAY[d] ?? "" }))} /><Input label="Novo tempo" type="quantity" min={1} max={12} step={1} value={slot} onChange={(e) => { touch("slot"); setSlot(e.target.value); }} error={errOf("slot")} /></>)}
+      {type === "troca_professor" && <div className="sm:col-span-2"><FormSelect label="Novo professor *" value={teacherId} onValueChange={(v) => { touch("teacherId"); setTeacherId(v); }} options={teachers.map((t) => ({ value: t.id, label: t.full_name }))} error={errOf("teacherId")} /></div>}
       {type === "troca_sala" && <div className="sm:col-span-2"><FormSelect label="Nova sala" value={roomId} onValueChange={setRoomId} options={[{ value: "none", label: "Sem sala" }, ...rooms.map((r) => ({ value: r.id, label: `${r.code} — ${r.name}` }))]} /></div>}
       <div className="sm:col-span-2">
         <FormTextarea
           label="Motivo da mudança (mín. 5 caracteres) *"
           placeholder="Descreva a fundamentação pedagógica ou logística para esta alteração de horário..."
           value={reason}
-          onChange={setReason}
+          onChange={(v) => { touch("reason"); setReason(v); }}
+          error={errOf("reason")}
           rows={3}
         />
       </div>

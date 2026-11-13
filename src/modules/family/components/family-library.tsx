@@ -2,10 +2,12 @@
 import { familyKeys } from "@/modules/family/query-keys";
 import { formatIsoDay } from "@/utils";
 
-import { useState } from "react";
+import { useMemo, useState } from "react";
+import { z } from "zod";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { Badge, StatusBadge, Button, ButtonOnlyAction, ConfirmModal, DataList, DynamicMetricCard, FormModal, FormTextarea, Icon, Tabs, TabsContent, TabsList, TabsTrigger, type Column } from "@/components";
+import { optionalSafeTextSchema } from "@/schemas/helps";
 import { portalService, type LibraryRequestStatus, type PortalBook, type PortalLibraryRequest, type PortalLoan } from "@/modules/family/services/portal-service";
 import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { useModal } from "@/stores/modal/use-modal-store";
@@ -14,6 +16,9 @@ import type { FamilyContext } from "./family-shell";
 
 const REQUEST_MODAL = "family-book-request";
 const CANCEL_MODAL = "family-book-cancel";
+const libraryRequestSchema = z.object({
+  notes: optionalSafeTextSchema(500, 2, "As observações"),
+});
 const STATUS: Record<LibraryRequestStatus, { label: string; variant: "info" | "success" | "destructive" | "secondary" }> = {
   pedido: { label: "A aguardar a biblioteca", variant: "info" }, aprovado: { label: "Aprovado", variant: "success" }, recusado: { label: "Recusado", variant: "destructive" }, cancelado: { label: "Cancelado", variant: "secondary" },
 };
@@ -32,7 +37,11 @@ export function FamilyLibrary({ studentId, ward }: FamilyContext) {
   const renew = useMutation({ mutationFn: (loanId: string) => portalService.renewLoan(studentId, loanId), onSuccess: refresh });
   const [book, setBook] = useState<PortalBook | null>(null);
   const [notes, setNotes] = useState("");
+  const [notesTouched, setNotesTouched] = useState(false);
   const [cancelling, setCancelling] = useState<PortalLibraryRequest | null>(null);
+
+  const parsed = useMemo(() => libraryRequestSchema.safeParse({ notes }), [notes]);
+  const notesError = notesTouched && !parsed.success ? parsed.error.issues[0]?.message : undefined;
 
   const requests = mine.data?.requests ?? [];
   const loans = mine.data?.loans ?? [];
@@ -49,7 +58,7 @@ export function FamilyLibrary({ studentId, ward }: FamilyContext) {
       key: "actions", header: "Ação",
       render: (_, b) => {
         const requested = open.some((r) => r.book_id === b.id) || activeLoans.some((l) => l.book_id === b.id);
-        return <Button size="sm" variant="outline" className="h-8 gap-1.5" disabled={requested} onClick={() => { setBook(b); setNotes(""); openModal(REQUEST_MODAL); }}><Icon name="BookPlus" className="size-3.5" />{requested ? "Já pedido" : "Pedir"}</Button>;
+        return <Button size="sm" variant="outline" className="h-8 gap-1.5" disabled={requested} onClick={() => { setBook(b); setNotes(""); setNotesTouched(false); openModal(REQUEST_MODAL); }}><Icon name="BookPlus" className="size-3.5" />{requested ? "Já pedido" : "Pedir"}</Button>;
       },
     },
   ];
@@ -123,10 +132,33 @@ export function FamilyLibrary({ studentId, ward }: FamilyContext) {
         </TabsContent>
       </Tabs>
 
-      <FormModal id={REQUEST_MODAL} title="Pedir livro" description={book ? `${book.title} — para ${ward.student.full_name}` : undefined} submitLabel="Enviar pedido" isLoading={request.isPending}
-        onSubmit={() => (book ? request.mutateAsync({ bookId: book.id, ...(notes.trim() ? { notes: notes.trim() } : {}) }).then(() => { SucessMessage("Pedido enviado à biblioteca."); }).catch((e) => fail(e, "Não foi possível enviar o pedido.")) : undefined)}>
+      <FormModal id={REQUEST_MODAL} title="Pedir livro" description={book ? `${book.title} — para ${ward.student.full_name}` : undefined} submitLabel="Enviar pedido" isLoading={request.isPending} disabled={!book || !parsed.success || request.isPending}
+        onSubmit={() => {
+          if (!book) return undefined;
+          if (!parsed.success) {
+            setNotesTouched(true);
+            return Promise.reject(new Error("Formulário inválido."));
+          }
+          return request
+            .mutateAsync({ bookId: book.id, ...(parsed.data.notes ? { notes: parsed.data.notes } : {}) })
+            .then(() => { SucessMessage("Pedido enviado à biblioteca."); })
+            .catch((e) => fail(e, "Não foi possível enviar o pedido."));
+        }}>
         <div className="sm:col-span-2 rounded-xs border bg-muted/30 p-3 text-sm">A biblioteca analisa o pedido e avisa quando o livro estiver pronto para levantar. O prazo de empréstimo é de 14 dias, com até 2 renovações.</div>
-        <div className="sm:col-span-2"><FormTextarea label="Observações" value={notes} onChange={setNotes} rows={3} placeholder="Indique observações ou preferências de levantamento na biblioteca..." /></div>
+        <div className="sm:col-span-2">
+          <FormTextarea
+            label="Observações"
+            maxLength={500}
+            value={notes}
+            onChange={(v) => {
+              setNotesTouched(true);
+              setNotes(v);
+            }}
+            error={notesError}
+            rows={3}
+            placeholder="Indique observações ou preferências de levantamento na biblioteca..."
+          />
+        </div>
       </FormModal>
 
       <ConfirmModal id={CANCEL_MODAL} title="Cancelar pedido" description={cancelling ? `Cancelar o pedido de «${cancelling.book_title}»?` : ""} destructive confirmLabel="Cancelar pedido"

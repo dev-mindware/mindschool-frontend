@@ -2,7 +2,7 @@
 
 import { useDiscardGuard } from "@/components/common/discard-guard";
 import React, { useEffect, useMemo } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
 import { AcademicSection, Shift, EducationCycle } from "@/types";
@@ -10,7 +10,7 @@ import { useAcademicSections, useAcademicYears } from "@/hooks/school/use-academ
 import { getApiErrorMessage } from "@/utils/api-error";
 import {
   Input,
-  SelectField,
+  FormSelect,
   Button,
   ButtonSubmit,
   Badge,
@@ -26,30 +26,44 @@ import {
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { YearSetup } from "./year-setup";
 
-import { quantitySchema } from "@/schemas/helps";
+import { quantitySchema, safeTextSchema, timeHHMMSchema } from "@/schemas/helps";
 
 const classSectionFormSchema = z
   .object({
-    name: z.string().trim().min(2, "O nome da turma é obrigatório (ex: 10ª A)"),
-    classLevel: z.string().min(1, "Selecione o ano de escolaridade"),
+    name: safeTextSchema(2, 80, "O nome da turma"),
+    classLevel: z.string().trim().min(1, "Selecione o ano de escolaridade."),
     cycle: z.enum(["PRIMARY", "LOWER_SECONDARY", "UPPER_SECONDARY"]),
     shift: z.enum(["MORNING", "AFTERNOON", "EVENING", "DIURNO"]),
-    startTime: z.string().optional(),
-    endTime: z.string().optional(),
-    roomNumber: z.string().trim().min(1, "Indique a sala de aulas"),
+    startTime: z.string().trim().optional(),
+    endTime: z.string().trim().optional(),
+    roomNumber: safeTextSchema(1, 50, "A sala de aulas"),
     capacity: quantitySchema(1, 100, "A lotação da turma"),
-    academicYear: z.string().min(1, "Selecione o ano letivo"),
+    academicYear: z.string().trim().min(1, "Selecione o ano letivo."),
   })
   .superRefine((data, ctx) => {
     if (data.shift !== "DIURNO") {
-      if (!data.startTime) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Indique a hora de início do turno", path: ["startTime"] });
+      const startCheck = timeHHMMSchema("A hora de início").safeParse(data.startTime ?? "");
+      if (!startCheck.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: startCheck.error.issues[0]?.message ?? "Indique a hora de início do turno.",
+          path: ["startTime"],
+        });
       }
-      if (!data.endTime) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "Indique a hora de término do turno", path: ["endTime"] });
+      const endCheck = timeHHMMSchema("A hora de término").safeParse(data.endTime ?? "");
+      if (!endCheck.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: endCheck.error.issues[0]?.message ?? "Indique a hora de término do turno.",
+          path: ["endTime"],
+        });
       }
-      if (data.startTime && data.endTime && data.endTime <= data.startTime) {
-        ctx.addIssue({ code: z.ZodIssueCode.custom, message: "A hora de término tem de ser depois da hora de início", path: ["endTime"] });
+      if (startCheck.success && endCheck.success && endCheck.data <= startCheck.data) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          message: "A hora de término tem de ser posterior à hora de início.",
+          path: ["endTime"],
+        });
       }
     }
   });
@@ -103,11 +117,12 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
 
   const {
     register,
+    control,
     handleSubmit,
     setValue,
     watch,
     reset,
-    formState: { errors, isSubmitting, isDirty },
+    formState: { errors, isSubmitting, isDirty, isValid },
   } = useForm<z.input<typeof classSectionFormSchema>, unknown, ClassSectionFormValues>({
     resolver: zodResolver(classSectionFormSchema),
     mode: "onChange",
@@ -192,11 +207,11 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
   ];
 
   const handleShiftChange = (val: Shift) => {
-    setValue("shift", val);
+    setValue("shift", val, { shouldValidate: true, shouldDirty: true });
     const defaults = SHIFT_DEFAULT_TIMES[val];
     if (defaults) {
-      setValue("startTime", defaults.start);
-      setValue("endTime", defaults.end);
+      setValue("startTime", defaults.start, { shouldValidate: true, shouldDirty: true });
+      setValue("endTime", defaults.end, { shouldValidate: true, shouldDirty: true });
     }
   };
 
@@ -229,10 +244,10 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
   };
 
   const handleCycleChange = (val: EducationCycle) => {
-    setValue("cycle", val);
+    setValue("cycle", val, { shouldValidate: true, shouldDirty: true });
     const available = CLASSES_BY_CYCLE[val] || [];
     if (!available.some((c) => c.value === selectedClassLevel)) {
-      setValue("classLevel", available[0]?.value ?? "");
+      setValue("classLevel", available[0]?.value ?? "", { shouldValidate: true, shouldDirty: true });
     }
   };
 
@@ -265,32 +280,36 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
               />
 
               <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                <SelectField
+                <FormSelect
                   label="Ciclo Pedagógico *"
                   value={selectedCycle}
                   options={cycleOptions}
                   onValueChange={(val) => handleCycleChange(val as EducationCycle)}
+                  error={errors.cycle?.message}
                 />
 
-                <SelectField
+                <FormSelect
                   label="Nível / Classe *"
                   value={selectedClassLevel}
                   options={currentClassOptions}
-                  onValueChange={(val) => setValue("classLevel", val)}
+                  onValueChange={(val) => setValue("classLevel", val, { shouldValidate: true, shouldDirty: true })}
+                  error={errors.classLevel?.message}
                 />
 
-                <SelectField
+                <FormSelect
                   label="Turno Letivo *"
                   value={selectedShift}
                   options={shiftOptions}
                   onValueChange={(val) => handleShiftChange(val as Shift)}
+                  error={errors.shift?.message}
                 />
 
-                <SelectField
+                <FormSelect
                   label="Ano Letivo *"
                   value={selectedAcademicYear || activeOrCurrentYear}
                   options={academicYearOptions}
-                  onValueChange={(val) => setValue("academicYear", val, { shouldValidate: true })}
+                  onValueChange={(val) => setValue("academicYear", val, { shouldValidate: true, shouldDirty: true })}
+                  error={errors.academicYear?.message}
                 />
 
                 <Input
@@ -301,21 +320,26 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
                   error={errors.roomNumber?.message}
                 />
 
-                <Input
-                  type="quantity"
-                  min={1}
-                  max={100}
-                  step={1}
-                  label="Capacidade de Alunos *"
-                  startIcon="Users"
-                  placeholder="40"
-                  value={Number(watch("capacity")) || 1}
-                  onChange={(e) =>
-                    setValue("capacity", Math.max(1, Number(e.target.value) || 1), {
-                      shouldValidate: true,
-                    })
-                  }
-                  error={errors.capacity?.message}
+                <Controller
+                  control={control}
+                  name="capacity"
+                  render={({ field }) => (
+                    <Input
+                      type="quantity"
+                      min={1}
+                      max={100}
+                      step={1}
+                      label="Capacidade de Alunos *"
+                      startIcon="Users"
+                      placeholder="40"
+                      value={field.value as number}
+                      onChange={(e) =>
+                        field.onChange(e.target.value === "" ? "" : Number(e.target.value))
+                      }
+                      onBlur={field.onBlur}
+                      error={errors.capacity?.message}
+                    />
+                  )}
                 />
                 <p className="text-[11px] text-muted-foreground sm:col-span-2">
                   <strong>Capacidade</strong> é o limite de matrículas: cheia, o sistema não matricula mais alunos (os aprovados ficam em lista de espera) e não pode ficar abaixo dos alunos já matriculados.
@@ -409,7 +433,7 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
                 <Button type="button" variant="outline" onClick={discard.request}>
                   Cancelar
                 </Button>
-                <ButtonSubmit isLoading={isSubmitting}>
+                <ButtonSubmit isLoading={isSubmitting || save.isPending} disabled={!isValid || isSubmitting || save.isPending}>
                   {sectionToEdit ? "Guardar Alterações" : "Criar Turma"}
                 </ButtonSubmit>
               </SheetFooter>

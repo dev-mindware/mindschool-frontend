@@ -29,6 +29,9 @@ import {
 import { AttendanceExportModal } from "./attendance-export-modal";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { cn } from "@/lib/utils";
+import { pastOrTodayIsoDateSchema, todayLocalIsoDate } from "@/schemas";
+
+const attendanceDateSchema = pastOrTodayIsoDateSchema("A data da aula");
 
 const WEEKDAY_NAMES: Record<number, string> = {
   1: "Segunda-Feira",
@@ -51,10 +54,13 @@ export function StudentAttendanceContent() {
 
   const [pickedClassId, setSelectedClassId] = useState("");
   const [pickedSubjectId, setSelectedSubjectId] = useState("");
-  const [selectedDate, setSelectedDate] = useState(new Date().toISOString().slice(0, 10));
+  const [selectedDate, setSelectedDate] = useState(todayLocalIsoDate);
   const [selectedEntryId, setSelectedEntryId] = useState<string>("");
   const [isManualMode, setIsManualMode] = useState<boolean>(false);
   const [isExportOpen, setIsExportOpen] = useState(false);
+
+  const dateParsed = useMemo(() => attendanceDateSchema.safeParse(selectedDate), [selectedDate]);
+  const dateError = !dateParsed.success ? dateParsed.error.issues[0]?.message : undefined;
 
   const selectedClassId = pickedClassId || sections[0]?.id || "";
   const selectedClass = sections.find((c) => c.id === selectedClassId);
@@ -147,7 +153,7 @@ export function StudentAttendanceContent() {
     );
   }
 
-  const canExportPdf = !isForbidden && rollCall.length > 0 && Boolean(effectiveSubjectId);
+  const canExportPdf = !isForbidden && dateParsed.success && rollCall.length > 0 && Boolean(effectiveSubjectId);
 
   return (
     <div className="space-y-6">
@@ -206,19 +212,23 @@ export function StudentAttendanceContent() {
           <Input
             label="Data da aula"
             type="date"
+            max={todayLocalIsoDate()}
             value={selectedDate}
+            error={dateError}
             onChange={(e) => {
               setSelectedDate(e.target.value);
               setSelectedEntryId("");
               setIsManualMode(false);
             }}
           />
-          <div className="flex items-center gap-1.5 px-0.5 text-xs text-muted-foreground">
-            <Icon name="CalendarDays" className="size-3.5 text-primary" />
-            <span className="font-medium text-foreground">{selectedWeekdayName}</span>
-            <span>•</span>
-            <span>{new Date(`${selectedDate}T00:00:00`).toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric" })}</span>
-          </div>
+          {dateParsed.success && (
+            <div className="flex items-center gap-1.5 px-0.5 text-xs text-muted-foreground">
+              <Icon name="CalendarDays" className="size-3.5 text-primary" />
+              <span className="font-medium text-foreground">{selectedWeekdayName}</span>
+              <span>•</span>
+              <span>{new Date(`${selectedDate}T00:00:00`).toLocaleDateString("pt-PT", { day: "numeric", month: "long", year: "numeric" })}</span>
+            </div>
+          )}
         </div>
 
         {/* Disciplina Manual (visível em modo manual ou se a turma não tiver tempos no horário) */}
@@ -375,7 +385,13 @@ export function StudentAttendanceContent() {
         </TabsList>
 
         <TabsContent value="roll" className="pt-4">
-          {effectiveSubjectId ? (
+          {!dateParsed.success ? (
+            <EmptyState
+              icon="CalendarX2"
+              title="Data de chamada inválida"
+              description={dateError ?? "Seleccione uma data válida (não futura) para registar a chamada."}
+            />
+          ) : effectiveSubjectId ? (
             <RollCallSheet
               key={`${selectedClassId}-${effectiveSubjectId}-${selectedDate}-${activeTimetableLesson?.id || "manual"}`}
               classId={selectedClassId}

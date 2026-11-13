@@ -1,8 +1,9 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { z } from "zod";
 import {
-  SelectField,
+  FormSelect,
   Button,
   ButtonSubmit,
   Badge,
@@ -16,6 +17,7 @@ import {
   SheetHeader,
   SheetTitle,
 } from "@/components";
+import { timeHHMMSchema } from "@/schemas/helps";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { useTimetables } from "@/hooks/school/use-timetables";
@@ -80,6 +82,46 @@ function formatMinutes(mins: number): string {
   return `${String(h).padStart(2, "0")}:${String(m).padStart(2, "0")}`;
 }
 
+const timetableEntrySchema = z
+  .object({
+    sectionId: z.string().trim().min(1, "Seleccione a turma."),
+    weekday: z.number().int().min(1).max(6),
+    timeMode: z.enum(["dynamic", "slots"]),
+    startTime: z.string().trim(),
+    endTime: z.string().trim(),
+    firstSlot: z.number().int().min(1),
+    span: z.number().int().min(1).max(2),
+    subjectId: z.string().trim().min(1, "Seleccione a disciplina."),
+    teacherId: z.string().trim().min(1, "Seleccione o professor responsável."),
+  })
+  .superRefine((data, ctx) => {
+    if (data.timeMode === "dynamic") {
+      const startCheck = timeHHMMSchema("A hora de início").safeParse(data.startTime);
+      if (!startCheck.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["startTime"],
+          message: startCheck.error.issues[0]?.message ?? "Indique a hora de início.",
+        });
+      }
+      const endCheck = timeHHMMSchema("A hora de término").safeParse(data.endTime);
+      if (!endCheck.success) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["endTime"],
+          message: endCheck.error.issues[0]?.message ?? "Indique a hora de término.",
+        });
+      }
+      if (startCheck.success && endCheck.success && toMinutes(endCheck.data) <= toMinutes(startCheck.data)) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["endTime"],
+          message: "A hora de término deve ser posterior à hora de início.",
+        });
+      }
+    }
+  });
+
 export function TimetableEntryModal({
   isOpen,
   onClose,
@@ -109,10 +151,13 @@ export function TimetableEntryModal({
   const [subjectId, setSubjectId] = useState<string>("");
   const [teacherId, setTeacherId] = useState<string>("");
   const [roomId, setRoomId] = useState<string>("");
+  const [touched, setTouched] = useState<Record<string, boolean>>({});
+  const touch = (k: string) => setTouched((p) => (p[k] ? p : { ...p, [k]: true }));
   const roomsEnabled = useEntitled({ feature: "rooms" });
 
   useEffect(() => {
     if (isOpen) {
+      setTouched({});
       if (entryToEdit) {
         setSectionId(entryToEdit.section.id);
         setWeekday(entryToEdit.weekday);
@@ -293,21 +338,39 @@ export function TimetableEntryModal({
     return existingEntries.find((e) => e.room?.id === roomId && hasMinuteOverlap(e));
   }, [existingEntries, roomId, weekday, activeStartMin, activeEndMin, entryToEdit]);
 
+  const entryParsed = useMemo(
+    () =>
+      timetableEntrySchema.safeParse({
+        sectionId,
+        weekday,
+        timeMode,
+        startTime,
+        endTime,
+        firstSlot,
+        span,
+        subjectId,
+        teacherId,
+      }),
+    [sectionId, weekday, timeMode, startTime, endTime, firstSlot, span, subjectId, teacherId],
+  );
+
+  const errOf = (k: string, alwaysShow?: boolean) => {
+    if ((!touched[k] && !alwaysShow) || entryParsed.success) return undefined;
+    return entryParsed.error.issues.find((i) => i.path[0] === k)?.message;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!sectionId || !subjectId || !teacherId) {
-      ErrorMessage("Por favor seleccione a turma, a disciplina e o professor.");
+    if (!entryParsed.success) {
+      setTouched({
+        sectionId: true,
+        startTime: true,
+        endTime: true,
+        subjectId: true,
+        teacherId: true,
+      });
+      ErrorMessage(entryParsed.error.issues[0]?.message ?? "Verifique os campos do horário.");
       return;
-    }
-    if (timeMode === "dynamic") {
-      if (!startTime || !endTime) {
-        ErrorMessage("Por favor defina a hora de início e a hora de término.");
-        return;
-      }
-      if (toMinutes(endTime) <= toMinutes(startTime)) {
-        ErrorMessage("A hora de término deve ser posterior à hora de início.");
-        return;
-      }
     }
     if (sectionConflict) {
       ErrorMessage("Já existe uma aula agendada nesta turma para este dia e horário.");
@@ -421,11 +484,12 @@ export function TimetableEntryModal({
 
         <form onSubmit={handleSubmit} className="flex flex-col gap-4">
           <div>
-            <SelectField
+            <FormSelect
               label="Turma *"
               value={sectionId}
               options={sectionOptions}
-              onValueChange={setSectionId}
+              onValueChange={(v) => { touch("sectionId"); setSectionId(v); }}
+              error={errOf("sectionId")}
             />
           </div>
 
@@ -507,14 +571,16 @@ export function TimetableEntryModal({
                     label="Hora de Início *"
                     type="time"
                     value={startTime}
-                    onChange={(e) => setStartTime(e.target.value)}
+                    onChange={(e) => { touch("startTime"); setStartTime(e.target.value); }}
+                    error={errOf("startTime")}
                     required
                   />
                   <Input
                     label="Hora de Término *"
                     type="time"
                     value={endTime}
-                    onChange={(e) => setEndTime(e.target.value)}
+                    onChange={(e) => { touch("endTime"); setEndTime(e.target.value); }}
+                    error={errOf("endTime", Boolean(startTime && endTime && toMinutes(endTime) <= toMinutes(startTime)))}
                     required
                   />
                 </div>
@@ -564,7 +630,7 @@ export function TimetableEntryModal({
             ) : (
               <div className="grid grid-cols-1 gap-3 pt-1 sm:grid-cols-3">
                 <div className="sm:col-span-2">
-                  <SelectField
+                  <FormSelect
                     label="Tempo Inicial *"
                     value={String(firstSlot)}
                     options={slotOptions}
@@ -573,7 +639,7 @@ export function TimetableEntryModal({
                 </div>
 
                 <div>
-                  <SelectField
+                  <FormSelect
                     label="Duração *"
                     value={String(span)}
                     options={durationOptions}
@@ -587,22 +653,24 @@ export function TimetableEntryModal({
           {/* 3. Disciplina e Professor */}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             <div>
-              <SelectField
+              <FormSelect
                 label="Disciplina Curricular *"
                 value={subjectId}
                 placeholder="Seleccione a disciplina"
                 options={subjectOptions}
-                onValueChange={setSubjectId}
+                onValueChange={(v) => { touch("subjectId"); setSubjectId(v); }}
+                error={errOf("subjectId")}
               />
             </div>
 
             <div>
-              <SelectField
+              <FormSelect
                 label="Professor Responsável *"
                 value={teacherId}
                 placeholder="Seleccione o professor"
                 options={teacherOptions}
-                onValueChange={setTeacherId}
+                onValueChange={(v) => { touch("teacherId"); setTeacherId(v); }}
+                error={errOf("teacherId")}
               />
             </div>
           </div>
@@ -626,7 +694,7 @@ export function TimetableEntryModal({
           {/* 4. Sala de Aulas (Opcional) */}
           {roomsEnabled && (
             <div>
-              <SelectField
+              <FormSelect
                 label="Sala de Aulas (Opcional)"
                 value={roomId}
                 options={roomOptions}
@@ -672,12 +740,12 @@ export function TimetableEntryModal({
             <ButtonSubmit
               isLoading={addLesson.isPending || updateLesson.isPending}
               disabled={
-                !sectionId ||
-                !subjectId ||
-                !teacherId ||
+                !entryParsed.success ||
                 Boolean(sectionConflict) ||
                 Boolean(teacherConflict) ||
-                Boolean(roomConflict)
+                Boolean(roomConflict) ||
+                addLesson.isPending ||
+                updateLesson.isPending
               }
             >
               {entryToEdit ? "Guardar Alterações" : "Adicionar ao Horário"}
