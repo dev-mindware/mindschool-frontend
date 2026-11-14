@@ -24,11 +24,25 @@ type InputProps = {
   endIcon?: keyof typeof icons;
   className?: string;
   type?: InputType;
+  onPasswordVisibilityChange?: (visible: boolean) => void;
 } & React.InputHTMLAttributes<HTMLInputElement>;
 
 const Input = React.forwardRef<HTMLInputElement, InputProps>(
   (
-    { label, error, startIcon, endIcon, className, type = "text", onChange, value, name, disabled, ...props },
+    {
+      label,
+      error,
+      startIcon,
+      endIcon,
+      className,
+      type = "text",
+      onChange,
+      onPasswordVisibilityChange,
+      value,
+      name,
+      disabled,
+      ...props
+    },
     ref
   ) => {
     const [showPassword, setShowPassword] = React.useState(false);
@@ -223,8 +237,14 @@ const Input = React.forwardRef<HTMLInputElement, InputProps>(
             {isPassword && (
               <button
                 type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="ml-2 text-muted-foreground focus:outline-none"
+                aria-label={showPassword ? "Ocultar palavra-passe" : "Mostrar palavra-passe"}
+                onMouseDown={(e) => e.preventDefault()}
+                onClick={() => {
+                  const next = !showPassword;
+                  setShowPassword(next);
+                  onPasswordVisibilityChange?.(next);
+                }}
+                className="ml-2 text-muted-foreground hover:text-foreground transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-primary/40 rounded-xs"
               >
                 {showPassword ? (
                   <EyeOff className="w-5 h-5" />

@@ -11,7 +11,7 @@ export default function ResetPassPage() {
           <ResetPassword />
         </div>
         <div className="flex items-center justify-between text-xs text-muted-foreground pt-6 w-full max-w-sm mx-auto">
-          <span>&copy; {new Date().getFullYear()} MINDWARE — Comércio e Serviços.</span>
+          <span>&copy; {new Date().getFullYear()} MINDWARE - Comércio e Serviços.</span>
           <div className="flex gap-4">
             <Link href="/terms" className="hover:text-foreground transition-colors">Termos</Link>
             <Link href="/privacy" className="hover:text-foreground transition-colors">Privacidade</Link>

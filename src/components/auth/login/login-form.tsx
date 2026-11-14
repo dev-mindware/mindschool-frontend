@@ -1,7 +1,6 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
 import { useRouter } from "next/navigation";
@@ -16,12 +15,26 @@ import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { queryClient } from "@/lib";
 import { safeResumePath } from "@/lib/mindgest-consent";
 import { getApiErrorMessage } from "@/utils";
+import type { LoginFocusTarget, LoginSceneReaction } from "./login-characters-types";
 
-export function LoginForm() {
+export interface LoginFormProps {
+  onFocusTargetChange?: (target: LoginFocusTarget) => void;
+  onPasswordVisibilityChange?: (visible: boolean) => void;
+  onTypingActivity?: (field: "email" | "password" | "totp", length: number) => void;
+  onReactionChange?: (reaction: LoginSceneReaction) => void;
+}
+
+export function LoginForm({
+  onFocusTargetChange,
+  onPasswordVisibilityChange,
+  onTypingActivity,
+  onReactionChange,
+}: LoginFormProps = {}) {
   const router = useRouter();
   const { setUser, setIsAuthenticating } = useAuthStore();
   const [needsMfa, setNeedsMfa] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [errorCount, setErrorCount] = useState(0);
 
   useEffect(() => {
     const errParam = new URLSearchParams(window.location.search).get("error");
@@ -29,6 +42,19 @@ export function LoginForm() {
       ErrorMessage("A ligação de acesso de apoio expirou ou já foi utilizada. Inicie o acesso novamente a partir do painel.");
     }
   }, []);
+
+  useEffect(() => {
+    if (errorCount === 0) return;
+    const timer = window.setTimeout(() => {
+      onReactionChange?.("idle");
+    }, 1800);
+    return () => window.clearTimeout(timer);
+  }, [errorCount, onReactionChange]);
+
+  const triggerErrorReaction = () => {
+    onReactionChange?.("error");
+    setErrorCount((c) => c + 1);
+  };
 
   const {
     register,
@@ -40,20 +66,28 @@ export function LoginForm() {
   });
 
   async function handleLogin({ email, password, totpCode }: LoginFormData) {
+    onReactionChange?.("submitting");
     try {
       const res = await loginAction({ email, password, totpCode });
 
       if (res.requiresMfa) {
         setNeedsMfa(true);
-        if (totpCode) ErrorMessage("O código de verificação está incorrecto. Confira os dígitos e tente novamente.");
+        if (totpCode) {
+          triggerErrorReaction();
+          ErrorMessage("O código de verificação está incorrecto. Confira os dígitos e tente novamente.");
+        } else {
+          onReactionChange?.("idle");
+        }
         return;
       }
 
       if (!res.user) {
+        triggerErrorReaction();
         ErrorMessage(res.message || "Não foi possível iniciar sessão. Verifique o seu e-mail e palavra-passe e tente novamente.");
         return;
       }
 
+      onReactionChange?.("success");
       setIsAuthenticating(true);
       useActiveSchoolStore.getState().setMemberships(res.memberships ?? []);
 
@@ -66,6 +100,7 @@ export function LoginForm() {
       router.replace(resume ?? (res.redirectPath || "/"));
     } catch (error) {
       setIsAuthenticating(false);
+      triggerErrorReaction();
       ErrorMessage(
         getApiErrorMessage(
           error,
@@ -76,11 +111,14 @@ export function LoginForm() {
   }
 
   return (
-    <form onSubmit={handleSubmit(handleLogin)} className="flex flex-col gap-6 w-full max-w-sm">
-      {/* Cabeçalho da marca e título adaptado à referência */}
+    <form
+      onSubmit={handleSubmit(handleLogin, triggerErrorReaction)}
+      className="flex flex-col gap-6 w-full max-w-md"
+    >
+      {/* Cabeçalho da marca e título */}
       <div className="flex flex-col gap-1.5 text-left">
         <div className="flex items-center gap-3 mb-2">
-          <div className="flex items-center justify-center size-20 rounded-xs overflow-hidden bg- p-1">
+          <div className="flex items-center justify-center size-16 sm:size-20 rounded-xs overflow-hidden p-1">
             <MindSchoolLogo size={64} priority />
           </div>
           <div className="flex flex-col">
@@ -93,7 +131,7 @@ export function LoginForm() {
           </div>
         </div>
 
-        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-2">
+        <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-1">
           Bem-vindo(a) de volta
         </h1>
         <p className="text-sm text-muted-foreground">
@@ -107,7 +145,11 @@ export function LoginForm() {
           label="Endereço de Email"
           startIcon="AtSign"
           placeholder="exemplo@escola.ao"
-          {...register("email")}
+          {...register("email", {
+            onChange: (e) => onTypingActivity?.("email", e.target.value.length),
+            onBlur: () => onFocusTargetChange?.("idle"),
+          })}
+          onFocus={() => onFocusTargetChange?.("email")}
           error={errors?.email && errors?.email?.message}
           autoComplete="email"
         />
@@ -118,7 +160,12 @@ export function LoginForm() {
             startIcon="Lock"
             type="password"
             placeholder="••••••••••••"
-            {...register("password")}
+            {...register("password", {
+              onChange: (e) => onTypingActivity?.("password", e.target.value.length),
+              onBlur: () => onFocusTargetChange?.("idle"),
+            })}
+            onFocus={() => onFocusTargetChange?.("password")}
+            onPasswordVisibilityChange={onPasswordVisibilityChange}
             error={errors.password?.message}
             autoComplete="current-password"
           />
@@ -150,8 +197,12 @@ export function LoginForm() {
             placeholder="Código de 6 dígitos ou de recuperação"
             autoComplete="one-time-code"
             inputMode="numeric"
+            {...register("totpCode", {
+              onChange: (e) => onTypingActivity?.("totp", e.target.value.length),
+              onBlur: () => onFocusTargetChange?.("idle"),
+            })}
+            onFocus={() => onFocusTargetChange?.("totp")}
             error={errors.totpCode?.message}
-            {...register("totpCode")}
           />
         )}
 
