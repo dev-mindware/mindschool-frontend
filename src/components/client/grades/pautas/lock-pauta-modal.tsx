@@ -155,7 +155,7 @@ export function LockPautaModal({
           <ButtonSubmit
             isLoading={isSubmitting}
             disabled={hasMissingGrades}
-            className="gap-2"
+            className="w-auto gap-2"
           >
             <Icon name="Lock" className="h-4 w-4" />
             Homologar e Trancar Pauta

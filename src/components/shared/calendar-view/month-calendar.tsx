@@ -2,6 +2,7 @@
 
 import { useMemo } from "react";
 import { Button } from "@/components/ui";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Icon } from "@/components/common/icon";
 import { cn } from "@/lib/utils";
 
@@ -24,7 +25,7 @@ interface MonthCalendarProps {
   onMonthChange: (d: Date) => void;
   onSelectItem?: (item: CalendarItem) => void;
   onSelectDay?: (date: string) => void;
-  /** Datas (AAAA-MM-DD) marcadas como não letivas: fundo destacado. */
+  /** Datas (AAAA-MM-DD) marcadas como não lectivas: fundo destacado. */
   markedDays?: Set<string>;
   className?: string;
 }
@@ -45,7 +46,9 @@ const iso = (d: Date) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart
 export function MonthCalendar({ items, month, onMonthChange, onSelectItem, onSelectDay, markedDays, className }: MonthCalendarProps) {
   const first = new Date(month.getFullYear(), month.getMonth(), 1);
   const offset = (first.getDay() + 6) % 7;
-  const days = useMemo(() => Array.from({ length: 42 }, (_, i) => new Date(first.getFullYear(), first.getMonth(), 1 - offset + i)), [first.getFullYear(), first.getMonth(), offset]);
+  const year = first.getFullYear();
+  const mon = first.getMonth();
+  const days = useMemo(() => Array.from({ length: 42 }, (_, i) => new Date(year, mon, 1 - offset + i)), [year, mon, offset]);
   const today = iso(new Date());
 
   const byDay = useMemo(() => {
@@ -53,7 +56,7 @@ export function MonthCalendar({ items, month, onMonthChange, onSelectItem, onSel
     for (const it of items) {
       const end = it.end && it.end >= it.start ? it.end : it.start;
       const cur = new Date(`${it.start}T00:00:00`);
-      for (let guard = 0; guard < 62 && iso(cur) <= end; guard++) {
+      for (let guard = 0; guard < 180 && iso(cur) <= end; guard++) {
         const k = iso(cur);
         (map.get(k) ?? map.set(k, []).get(k)!).push(it);
         cur.setDate(cur.getDate() + 1);
@@ -111,7 +114,35 @@ export function MonthCalendar({ items, month, onMonthChange, onSelectItem, onSel
                       {it.hint ? `${it.hint} · ` : ""}{it.title}
                     </button>
                   ))}
-                  {list.length > 3 && <p className="px-1 text-[10px] text-muted-foreground">+{list.length - 3} mais</p>}
+                  {list.length > 3 && (
+                    <Popover>
+                      <PopoverTrigger asChild>
+                        <button
+                          type="button"
+                          onClick={(e) => e.stopPropagation()}
+                          className="w-full rounded px-1 py-0.5 text-left text-[10px] font-medium text-primary hover:bg-primary/10"
+                        >
+                          +{list.length - 3} mais
+                        </button>
+                      </PopoverTrigger>
+                      <PopoverContent align="start" className="w-64 p-2 space-y-1.5" onClick={(e) => e.stopPropagation()}>
+                        <p className="px-1 text-[11px] font-semibold text-muted-foreground">Eventos de {k.split("-").reverse().join("/")}</p>
+                        <div className="max-h-56 space-y-1 overflow-y-auto">
+                          {list.map((it) => (
+                            <button
+                              key={`${it.id}-pop-${k}`}
+                              type="button"
+                              onClick={() => onSelectItem?.(it)}
+                              className={cn("block w-full truncate rounded border px-2 py-1 text-left text-xs font-medium", TONE[it.tone ?? "primary"])}
+                              title={it.title}
+                            >
+                              {it.hint ? `${it.hint} · ` : ""}{it.title}
+                            </button>
+                          ))}
+                        </div>
+                      </PopoverContent>
+                    </Popover>
+                  )}
                 </div>
               </div>
             );

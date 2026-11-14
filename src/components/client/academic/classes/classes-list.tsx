@@ -98,10 +98,17 @@ export function ClassesList({ sections, isLoading }: ClassesListProps) {
         };
         const conf = shiftMap[item.shift] || shiftMap.MORNING;
         return (
-          <span className="inline-flex items-center gap-1.5 text-xs font-medium text-foreground">
-            <Icon name={conf.icon as any} className={`size-3.5 ${conf.color}`} />
-            {conf.label}
-          </span>
+          <div className="inline-flex flex-col text-xs">
+            <span className="inline-flex items-center gap-1.5 font-medium text-foreground">
+              <Icon name={conf.icon as any} className={`size-3.5 ${conf.color}`} />
+              {conf.label}
+            </span>
+            {item.startTime && item.endTime && (
+              <span className="text-[11px] tabular-nums text-muted-foreground">
+                {item.startTime}–{item.endTime}
+              </span>
+            )}
+          </div>
         );
       },
     },

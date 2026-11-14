@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import {
   FormSelect,
@@ -22,6 +23,7 @@ import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { getApiErrorMessage } from "@/utils/api-error";
 import { useTimetables } from "@/hooks/school/use-timetables";
 import {
+  timetablesService,
   WEEKDAY,
   type ApiEntry,
   type ApiRoom,
@@ -266,6 +268,17 @@ export function TimetableEntryModal({
       setTeacherId(existingAssignmentForSubject.teacherId);
     }
   }, [existingAssignmentForSubject]);
+
+  const { data: suggestedSlots = [] } = useQuery({
+    queryKey: ["timetable-free-slots", timetableId, existingAssignmentForSubject?.id, span],
+    queryFn: () =>
+      timetablesService.freeSlots(timetableId, {
+        sectionSubjectId: existingAssignmentForSubject!.id,
+        span,
+      }),
+    enabled: isOpen && Boolean(timetableId) && Boolean(existingAssignmentForSubject?.id),
+    staleTime: 30_000,
+  });
 
   useEffect(() => {
     if (selectedSection?.roomNumber && !roomId) {
@@ -688,6 +701,63 @@ export function TimetableEntryModal({
                   Esta disciplina será vinculada à turma e ao professor automaticamente.
                 </span>
               )}
+            </div>
+          )}
+
+          {subjectId && suggestedSlots.length > 0 && (
+            <div className="space-y-1.5 rounded-xs border border-primary/20 bg-primary/[0.03] p-2.5">
+              <div className="flex items-center justify-between gap-2 text-xs">
+                <span className="flex items-center gap-1.5 font-medium text-foreground">
+                  <Icon name="Sparkles" className="size-3.5 text-primary" />
+                  Melhores horários sugeridos pela escola
+                </span>
+                <span className="text-[11px] text-muted-foreground">Clique para aplicar</span>
+              </div>
+              <div className="grid gap-1.5 sm:grid-cols-2">
+                {suggestedSlots.slice(0, 4).map((slot, i) => {
+                  const isCurrent =
+                    weekday === slot.weekday &&
+                    (timeMode === "slots"
+                      ? firstSlot === slot.first_slot
+                      : startTime === slot.start && endTime === slot.end);
+                  return (
+                    <button
+                      key={`${slot.weekday}-${slot.first_slot}-${i}`}
+                      type="button"
+                      onClick={() => {
+                        setWeekday(slot.weekday);
+                        const matchingBellSlot = availableSlots.find((s) => s.position === slot.first_slot);
+                        if (matchingBellSlot) {
+                          setTimeMode("slots");
+                          setFirstSlot(slot.first_slot);
+                        } else {
+                          setTimeMode("dynamic");
+                        }
+                        setStartTime(slot.start);
+                        setEndTime(slot.end);
+                        if (slot.recommended_room && roomsEnabled) {
+                          setRoomId(slot.recommended_room.id);
+                        }
+                      }}
+                      className={cn(
+                        "flex flex-col items-start gap-0.5 rounded-xs border px-2.5 py-1.5 text-left text-xs transition-colors",
+                        isCurrent
+                          ? "border-primary bg-primary/10 text-foreground"
+                          : "border-border bg-background hover:border-primary/50 hover:bg-primary/[0.04]",
+                      )}
+                    >
+                      <div className="flex w-full items-center justify-between gap-1 font-medium">
+                        <span>{slot.weekday_label} · {slot.start}–{slot.end}</span>
+                        <Badge variant="outline" className="font-mono text-[10px]">{slot.score} pts</Badge>
+                      </div>
+                      <span className="text-[11px] text-muted-foreground">
+                        {slot.recommended_room ? `Sala ${slot.recommended_room.code}` : "Sem sala dedicada"}
+                        {slot.reasons[0] ? ` · ${slot.reasons[0]}` : ""}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
             </div>
           )}
 

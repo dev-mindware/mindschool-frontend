@@ -68,7 +68,7 @@ describe("navegação modular", () => {
     const nav = forRole("DIRECTOR_GENERAL");
     expect(nav.modules.map((m) => m.id)).toEqual(["inicio", "secretaria", "academico", "avaliacao", "vida", "financeiro", "relatorios", "configuracoes"]);
     expect(nav.pageCount).toBe(nav.modules.reduce((a, m) => a + m.pageCount, 0));
-    expect(nav.modules.find((m) => m.id === "academico")!.pageCount).toBe(8);
+    expect(nav.modules.find((m) => m.id === "academico")!.pageCount).toBe(9);
   });
 
   it("encarregado e aluno ficam em três grupos rotulados, com Configurações em «Conta»", () => {

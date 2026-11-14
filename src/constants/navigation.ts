@@ -15,7 +15,7 @@ export interface NavModuleDef { id: ModuleId; label: string; icon: string }
 interface StructureSection { label?: string; keys: string[] }
 interface StructureModule extends NavModuleDef { sections: StructureSection[] }
 
-export const MAX_PAGES_PER_MODULE = 8;
+export const MAX_PAGES_PER_MODULE = 9;
 /** Limiares do modo `dual` (constantes: ajustar aqui). */
 export const DUAL_MIN_MODULES = 3;
 export const DUAL_MIN_PAGES = 15;

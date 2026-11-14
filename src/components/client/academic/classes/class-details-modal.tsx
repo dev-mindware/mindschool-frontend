@@ -2,6 +2,7 @@
 
 import React from "react";
 import { AcademicSection } from "@/types";
+import { SHIFT_LABELS } from "@/utils/section-conflicts";
 import {
   Button,
   Badge,
@@ -61,11 +62,7 @@ export function ClassDetailsModal({
                     {section.classLevel} • {section.roomNumber}
                   </span>
                   <Badge variant="outline" className="text-xs">
-                    {section.shift === "MORNING"
-                      ? "Manhã"
-                      : section.shift === "AFTERNOON"
-                      ? "Tarde"
-                      : "Noite"}
+                    {SHIFT_LABELS[section.shift] ?? "Turno"}
                   </Badge>
                   <Badge
                     variant={
@@ -106,15 +103,16 @@ export function ClassDetailsModal({
               </h4>
               <DetailRow label="Sala de Aulas" value={section.roomNumber} />
               <DetailRow
-                label="Turno Letivo"
+                label="Turno Lectivo"
                 value={
-                  section.shift === "MORNING"
-                    ? "Manhã"
-                    : section.shift === "AFTERNOON"
-                    ? "Tarde"
-                    : "Noite / Pós-laboral"
+                  section.shift === "EVENING"
+                    ? "Noite / Pós-laboral"
+                    : SHIFT_LABELS[section.shift] ?? section.shift
                 }
               />
+              {section.startTime && section.endTime && (
+                <DetailRow label="Horário" value={`${section.startTime}–${section.endTime}`} />
+              )}
               <DetailRow
                 label="Diretor de Turma"
                 value={section.mainTeacherName || "Ainda não atribuído"}

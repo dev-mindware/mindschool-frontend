@@ -135,7 +135,7 @@ export function ReopenPautaModal({
           <ButtonSubmit
             isLoading={isSubmitting}
             disabled={!isValid || isSubmitting}
-            className="gap-2"
+            className="w-auto gap-2"
           >
             <Icon name="RotateCcw" className="h-4 w-4" />
             Confirmar Reabertura Auditada

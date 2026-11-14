@@ -11,6 +11,7 @@ import { timetablesService } from "@/services/timetables-service";
 import { RollCallSheet } from "./roll-call-sheet";
 import { AttendanceStatsView } from "./attendance-stats-view";
 import { JustificationsList } from "./justifications-list";
+import { SuspendedYearBanner } from "../year-status-banner";
 import {
   Badge,
   Button,
@@ -170,6 +171,8 @@ export function StudentAttendanceContent() {
           <span>Baixar Folha (PDF)</span>
         </Button>
       </TitleList>
+
+      <SuspendedYearBanner contextMessage="Enquanto o ano lectivo estiver suspenso, não é possível registar novas chamadas de assiduidade." />
 
       <StatusLegend
         title="Legenda da chamada e regras"

@@ -116,6 +116,7 @@ export const PAGES: readonly PageDef[] = [
   { name: "Boletins de Notas", url: "/certificates/report-cards", icon: "ScrollText", module: "secretaria", section: "Documentos Oficiais", roles: PEDAGOGY },
   { name: "Arquivo Documental", url: "/certificates/archive", icon: "Archive", module: "secretaria", section: "Documentos Oficiais", roles: PEDAGOGY, minPlan: "enterprise", feature: "archive_advanced" },
 
+  { name: "Anos Lectivos", url: "/academic/years", icon: "CalendarCog", module: "academico", section: "Gestão Académica", roles: PEDAGOGY },
   { name: "Turmas", url: "/academic/classes", icon: "LayoutGrid", module: "academico", section: "Gestão Académica", roles: PEDAGOGY_T },
   { name: "Disciplinas", url: "/academic/subjects", icon: "BookOpen", module: "academico", section: "Gestão Académica", roles: PEDAGOGY },
   { name: "Professores", url: "/academic/assignments", icon: "UserCog", module: "academico", section: "Gestão Académica", roles: PEDAGOGY },

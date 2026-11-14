@@ -37,6 +37,13 @@ export function useTimetables(timetableId?: string) {
   const entries = useQuery({ queryKey: ["timetable-entries", schoolId, timetableId], queryFn: () => timetablesService.entries(timetableId!), enabled: on && Boolean(timetableId), staleTime: 10 * 1000 });
 
   const subjects = useQuery({ queryKey: ["subjects", schoolId], queryFn: academicService.subjects, enabled: on, staleTime: 60 * 1000 });
+  const readiness = useQuery({
+    queryKey: ["timetable-readiness", schoolId, timetableId ?? "active"],
+    queryFn: () => timetablesService.readiness(timetableId || undefined),
+    enabled: on,
+    staleTime: 20 * 1000,
+    retry: false,
+  });
   // O professor não tem permissão teacher:read da gestão: não pede a lista de todos os professores da escola.
   const { can } = useCan();
   const teachers = useQuery({
@@ -50,6 +57,7 @@ export function useTimetables(timetableId?: string) {
   const refresh = () => {
     qc.invalidateQueries({ queryKey: ["timetables", schoolId] });
     qc.invalidateQueries({ queryKey: ["timetable-entries", schoolId] });
+    qc.invalidateQueries({ queryKey: ["timetable-readiness", schoolId] });
   };
   const create = useMutation({ mutationFn: (cloneFrom?: string) => timetablesService.create(year.data!.id, cloneFrom), onSuccess: refresh });
   const addEntry = useMutation({
@@ -234,7 +242,7 @@ const DEFAULT_SLOTS: Record<Shift, Array<TimetableSlot>> = {
 
   return {
     timetables: list.data ?? [], bells: bells.data ?? [], rooms: rooms.data ?? [], roomsEnabled, sections: sections.data ?? [], assignments: assignments.data ?? [],
-    subjects: subjects.data ?? [], teachers: teachers.data ?? [],
+    subjects: subjects.data ?? [], teachers: teachers.data ?? [], readiness: readiness.data ?? null, readinessLoading: readiness.isLoading,
     entries: entries.data ?? [], isLoading: list.isLoading, hasYear: Boolean(year.data), slotsFor, create, addEntry, addLesson, updateLesson, removeEntry, validate, publish, createBell, createRoom, setRoomActive, requestChange, changes: changes.data ?? [],
   };
 }

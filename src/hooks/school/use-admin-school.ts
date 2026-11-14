@@ -97,6 +97,27 @@ export function useTeacherCredentials(teacherId: string | undefined) {
   return { credentials: q.data ?? [], isLoading: q.isLoading, issue, block };
 }
 
+export function useTeacherAvailability(teacherId: string | undefined) {
+  const schoolId = useActiveSchoolStore((s) => s.schoolId);
+  const qc = useQueryClient();
+  const key = ["teacher-availability", schoolId, teacherId];
+  const q = useQuery({
+    queryKey: key,
+    queryFn: () => adminSchoolService.availability(teacherId!),
+    enabled: Boolean(schoolId && teacherId),
+    ...opts,
+  });
+  const save = useMutation({
+    mutationFn: (blocks: Parameters<typeof adminSchoolService.setAvailability>[1]) =>
+      adminSchoolService.setAvailability(teacherId!, blocks),
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: key });
+      void qc.invalidateQueries({ queryKey: ["timetable-readiness", schoolId] });
+    },
+  });
+  return { blocks: q.data ?? [], isLoading: q.isLoading, refetch: q.refetch, save };
+}
+
 export function useAudit(filters: AuditFilters) {
   const schoolId = useActiveSchoolStore((s) => s.schoolId);
   const key = JSON.stringify(filters);

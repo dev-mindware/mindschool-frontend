@@ -56,6 +56,8 @@ export function useAcademicSections(searchQuery = "", shiftFilter: Shift | "ALL"
       capacity: number;
       academicYear?: string;
       roomNumber?: string;
+      startTime?: string;
+      endTime?: string;
     }) => academicService.saveSection(v.id, v),
     onSuccess: () => queryClient.invalidateQueries({ queryKey: ["sections", schoolId] }),
   });
@@ -175,10 +177,102 @@ export function useAcademic() {
 export function useAcademicYears() {
   const { data: years = [], isLoading, isError, refetch, schoolId } = useAcademicQuery("academic-years", academicService.years);
   const queryClient = useQueryClient();
+  const invalidateAll = () => {
+    queryClient.invalidateQueries({ queryKey: ["academic-years", schoolId] });
+    queryClient.invalidateQueries({ queryKey: ["active-year", schoolId] });
+    queryClient.invalidateQueries({ queryKey: ["academic-terms", schoolId] });
+    queryClient.invalidateQueries({ queryKey: ["calendar-events", schoolId] });
+    queryClient.invalidateQueries({ queryKey: ["school-days", schoolId] });
+  };
+  const currentYear = useMemo(
+    () => years.find((y) => y.status === "activo") ?? years.find((y) => y.status === "suspenso") ?? years[0],
+    [years],
+  );
   const createYear = useMutation({
     mutationFn: (v: AcademicYearDraft) => academicService.createYear(v),
-    onSuccess: () => queryClient.invalidateQueries({ queryKey: ["academic-years", schoolId] }),
+    onSuccess: invalidateAll,
   });
-  return { years, isLoading, isError, refetch, createYear };
+  const updateYear = useMutation({
+    mutationFn: (v: { id: string; data: Parameters<typeof academicService.updateYear>[1] }) => academicService.updateYear(v.id, v.data),
+    onSuccess: invalidateAll,
+  });
+  const activateYear = useMutation({
+    mutationFn: (id: string) => academicService.activateYear(id),
+    onSuccess: invalidateAll,
+  });
+  const changeRegime = useMutation({
+    mutationFn: (v: { id: string; regime: "presencial" | "hibrido" | "remoto"; reason: string }) => academicService.changeRegime(v.id, { regime: v.regime, reason: v.reason }),
+    onSuccess: invalidateAll,
+  });
+  const suspendYear = useMutation({
+    mutationFn: (v: { id: string; reason: string; create_calendar_event?: boolean; event_end_date?: string }) =>
+      academicService.suspendYear(v.id, { reason: v.reason, create_calendar_event: v.create_calendar_event, event_end_date: v.event_end_date }),
+    onSuccess: invalidateAll,
+  });
+  const resumeYear = useMutation({
+    mutationFn: (v: { id: string; regime: "presencial" | "hibrido" | "remoto"; reason: string; new_end_date?: string }) =>
+      academicService.resumeYear(v.id, { regime: v.regime, reason: v.reason, new_end_date: v.new_end_date }),
+    onSuccess: invalidateAll,
+  });
+  const closeYear = useMutation({
+    mutationFn: (v: { id: string; reason?: string }) => academicService.closeYear(v.id, v.reason),
+    onSuccess: invalidateAll,
+  });
+  const reopenYear = useMutation({
+    mutationFn: (v: { id: string; regime: "presencial" | "hibrido" | "remoto"; reason: string }) =>
+      academicService.reopenYear(v.id, { regime: v.regime, reason: v.reason }),
+    onSuccess: invalidateAll,
+  });
+  return {
+    years,
+    currentYear,
+    isLoading,
+    isError,
+    refetch,
+    createYear,
+    updateYear,
+    activateYear,
+    changeRegime,
+    suspendYear,
+    resumeYear,
+    closeYear,
+    reopenYear,
+  };
+}
+
+export function useYearTerms(yearId?: string) {
+  const schoolId = useActiveSchoolStore((s) => s.schoolId);
+  const queryClient = useQueryClient();
+  const termsQuery = useQuery({
+    queryKey: ["academic-terms", schoolId, yearId],
+    queryFn: () => academicService.terms(yearId!),
+    enabled: Boolean(schoolId && yearId),
+    staleTime: 30 * 1000,
+  });
+  const refresh = () => {
+    queryClient.invalidateQueries({ queryKey: ["academic-terms", schoolId, yearId] });
+    queryClient.invalidateQueries({ queryKey: ["school-days", schoolId] });
+    queryClient.invalidateQueries({ queryKey: ["calendar-events", schoolId] });
+  };
+  const createDefaults = useMutation({
+    mutationFn: () => academicService.createDefaultTerms(yearId!),
+    onSuccess: refresh,
+  });
+  const createTerm = useMutation({
+    mutationFn: (v: Parameters<typeof academicService.createTerm>[1]) => academicService.createTerm(yearId!, v),
+    onSuccess: refresh,
+  });
+  const updateTerm = useMutation({
+    mutationFn: (v: { termId: string; data: Parameters<typeof academicService.updateTerm>[2] }) => academicService.updateTerm(yearId!, v.termId, v.data),
+    onSuccess: refresh,
+  });
+  return {
+    terms: termsQuery.data ?? [],
+    isLoading: termsQuery.isLoading,
+    isError: termsQuery.isError,
+    createDefaults,
+    createTerm,
+    updateTerm,
+  };
 }
 

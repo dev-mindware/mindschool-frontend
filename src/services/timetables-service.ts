@@ -3,9 +3,89 @@ import { fetchAllPages } from "./api-pagination";
 
 export type Shift = "manha" | "tarde" | "noite" | "diurno";
 
-export interface GenerateRequest { mode: "preview" | "apply"; replace: boolean; seed: number; sectionIds?: string[] }
+export interface GenerateRequest {
+  mode: "preview" | "apply";
+  replace: boolean;
+  seed: number;
+  sectionIds?: string[];
+  allocateRooms?: boolean;
+  useOppositeShift?: boolean;
+}
+
+export interface ApiReadinessIssue {
+  code: string;
+  severity: "blocker" | "warning" | "info";
+  title: string;
+  description: string;
+  teacher_id?: string;
+  section_id?: string;
+  action_type?: "teacher_availability" | "create_bell" | "assign_subjects" | "create_rooms" | "school_settings";
+}
+
+export interface ApiReadinessReport {
+  ready: boolean;
+  feasibility_score: number;
+  timetable_id?: string | null;
+  summary: {
+    sections_total: number;
+    sections_with_subjects: number;
+    section_subjects_total: number;
+    total_weekly_hours: number;
+    teachers_total: number;
+    teachers_with_availability: number;
+    rooms_active: number;
+    lective_weekdays: number[];
+    missing_shifts: string[];
+  };
+  issues: ApiReadinessIssue[];
+}
+
+export interface ApiSolverSuggestion {
+  id: string;
+  type:
+    | "unblock_availability"
+    | "assign_substitute_teacher"
+    | "swap_existing_entry"
+    | "split_double_period"
+    | "relax_daily_limit"
+    | "configure_bell_schedule"
+    | "assign_or_expand_rooms"
+    | "configure_opposite_shift";
+  priority: "alta" | "media" | "baixa";
+  title: string;
+  description: string;
+  impact_periods: number;
+  target: {
+    section_id?: string;
+    section_subject_id?: string;
+    teacher_id?: string;
+    substitute_teacher_id?: string;
+    weekday?: number;
+    start?: string;
+    end?: string;
+    room_id?: string;
+  };
+}
+
+export interface ApiRankedFreeSlot {
+  weekday: number;
+  weekday_label: string;
+  first_slot: number;
+  start: string;
+  end: string;
+  score: number;
+  reasons: string[];
+  recommended_room: {
+    id: string;
+    code: string;
+    name: string;
+    capacity: number | null;
+    fit: "section_room" | "specialized" | "ideal" | "compatible" | "small";
+  } | null;
+}
 
 export interface ApiGeneration {
+  timetable_id?: string | null;
   mode: "preview" | "apply";
   seed: number;
   replace: boolean;
@@ -13,11 +93,25 @@ export interface ApiGeneration {
   unplaced_periods: number;
   score: number;
   attempts: number;
-  placements: Array<{ section: { id: string; name: string }; subject: string; teacher: string; weekday: number; weekday_label: string; first_slot: number; span: number; start: string; end: string }>;
+  readiness?: ApiReadinessReport;
+  placements: Array<{
+    section: { id: string; name: string };
+    subject: string;
+    teacher: string;
+    weekday: number;
+    weekday_label: string;
+    first_slot: number;
+    span: number;
+    start: string;
+    end: string;
+    room?: { id: string; code: string; name: string } | null;
+    shift?: Shift | null;
+  }>;
   unplaced: Array<{ section: { id: string; name: string }; subject: string; teacher: string; remaining: number; reason: string; message: string }>;
+  suggestions?: ApiSolverSuggestion[];
   hard_violations: number;
   soft: Array<{ code: string; count: number }>;
-  applied: { created: number; replaced: number } | null;
+  applied: { created: number; replaced: number; preserved_locked?: number } | null;
 }
 
 export interface ApiTimetable {
@@ -95,9 +189,42 @@ export const timetablesService = {
   removeEntry: async (id: string, entryId: string) => (await api.delete(`/s/timetables/${id}/entries/${entryId}`)).data,
   validate: async (id: string): Promise<ApiValidation> => (await api.post<ApiValidation>(`/s/timetables/${id}/validate`, {})).data,
   publish: async (id: string) => (await api.post<ApiTimetable>(`/s/timetables/${id}/publish`, {})).data,
+  readiness: async (timetableId?: string): Promise<ApiReadinessReport> =>
+    (await api.get<ApiReadinessReport>("/s/timetables/readiness", { params: timetableId ? { timetable_id: timetableId } : undefined })).data,
+  freeSlots: async (id: string, q: { sectionSubjectId: string; span?: number; roomId?: string }): Promise<ApiRankedFreeSlot[]> =>
+    (
+      await api.get<{ data: ApiRankedFreeSlot[] }>(`/s/timetables/${id}/free-slots`, {
+        params: {
+          section_subject_id: q.sectionSubjectId,
+          ...(q.span ? { span: q.span } : {}),
+          ...(q.roomId ? { room_id: q.roomId } : {}),
+        },
+      })
+    ).data.data,
   /** Gerador automático (Enterprise): `preview` propõe sem gravar; `apply` grava de forma atómica. */
   generate: async (id: string, v: GenerateRequest): Promise<ApiGeneration> =>
-    (await api.post<ApiGeneration>(`/s/timetables/${id}/generate`, { mode: v.mode, replace: v.replace, seed: v.seed, ...(v.sectionIds?.length ? { section_ids: v.sectionIds } : {}) })).data,
+    (
+      await api.post<ApiGeneration>(`/s/timetables/${id}/generate`, {
+        mode: v.mode,
+        replace: v.replace,
+        seed: v.seed,
+        ...(v.sectionIds?.length ? { section_ids: v.sectionIds } : {}),
+        ...(v.allocateRooms !== undefined ? { allocate_rooms: v.allocateRooms } : {}),
+        ...(v.useOppositeShift !== undefined ? { use_opposite_shift: v.useOppositeShift } : {}),
+      })
+    ).data,
+  /** Fluxo com 1 clique: funciona mesmo antes de existir um rascunho criado. */
+  quickGenerate: async (v: GenerateRequest): Promise<ApiGeneration> =>
+    (
+      await api.post<ApiGeneration>("/s/timetables/quick-generate", {
+        mode: v.mode,
+        replace: v.replace,
+        seed: v.seed,
+        ...(v.sectionIds?.length ? { section_ids: v.sectionIds } : {}),
+        ...(v.allocateRooms !== undefined ? { allocate_rooms: v.allocateRooms } : {}),
+        ...(v.useOppositeShift !== undefined ? { use_opposite_shift: v.useOppositeShift } : {}),
+      })
+    ).data,
 
   bells: async (): Promise<ApiBellSchedule[]> => (await api.get<{ data: ApiBellSchedule[] }>("/s/bell-schedules")).data.data,
   createBell: async (v: { shift: Shift; name: string; validFrom: string; start: string; periodMinutes: number; periods: number; breakAfter?: number; breakMinutes?: number }) =>

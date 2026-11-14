@@ -122,7 +122,7 @@ export function BankAccountsPageContent() {
         title="Contas Bancárias da Escola"
         suTitle="Mostradas ao encarregado quando paga propinas por transferência ou depósito. Pode ter várias contas (BAI, BFA, BIC, etc.)."
       >
-        <Can permission="finance:write">
+        <Can permission="bank_account:write">
           <Button onClick={openNew} className="gap-2 text-xs">
             <Icon name="Plus" className="size-4" /> Nova Conta Bancária
           </Button>
@@ -172,7 +172,7 @@ export function BankAccountsPageContent() {
                 {b.swift && <span>SWIFT: {b.swift}</span>}
               </div>
               {b.instructions && <p className="text-xs text-muted-foreground">{b.instructions}</p>}
-              <Can permission="finance:write">
+              <Can permission="bank_account:write">
                 <div className="flex items-center gap-2 pt-1">
                   <Button size="sm" variant="outline" onClick={() => openEdit(b)}>
                     Editar

@@ -3,34 +3,58 @@ import { formatIsoDay } from "@/utils/format-date";
 import { formatDateTime } from "@/utils";
 
 import { useMemo, useState } from "react";
-import { z } from "zod";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { safeTextSchema } from "@/schemas/helps";
 import {
-  isoDateSchema,
-  isValidIsoDate,
-  optionalSafeTextSchema,
-  safeTextSchema,
-  timeHHMMSchema,
-} from "@/schemas/helps";
-import {
-  Badge, Button, ButtonOnlyAction, ConfirmModal, DataList, FormModal, FormSelect, FormTextarea, Icon, Input, ListFilterBar, MonthCalendar, Tabs, TabsContent, TabsList, TabsTrigger, TitleList,
-  applyListFilters, filterKeysOf, type CalendarItem, type Column, type ListFilterDef, type ListSortDef,
+  Badge,
+  Button,
+  ButtonOnlyAction,
+  ConfirmModal,
+  DataList,
+  FormModal,
+  FormTextarea,
+  Icon,
+  ListFilterBar,
+  MonthCalendar,
+  Tabs,
+  TabsContent,
+  TabsList,
+  TabsTrigger,
+  TitleList,
+  applyListFilters,
+  filterKeysOf,
+  type CalendarItem,
+  type Column,
+  type ListFilterDef,
+  type ListSortDef,
   Can,
 } from "@/components";
 import { DynamicMetricCard } from "@/components/shared/dynamic-metric-card";
 import { useListFilters } from "@/hooks/common/use-list-filters";
 import { useCalendar } from "@/hooks/school/use-calendar";
 import { useEntitled } from "@/hooks/common/use-entitled";
+import { AcademicYearSelect } from "./academic-year-select";
 import { SchoolDaysView } from "./school-days-view";
+import {
+  CALENDAR_AUDIENCE_LABEL,
+  CALENDAR_EFFECT_LABEL,
+  CALENDAR_ORIGIN_LABEL,
+  CALENDAR_STATUS_LABEL,
+  CALENDAR_VISIBILITY_LABEL,
+  EventDetailModal,
+  EventFormModal,
+  type EventModalPayload,
+} from "./calendar-event-modals";
+import { SuspendedYearBanner } from "../year-status-banner";
 import { useGoogleReturn } from "@/hooks/school/use-google-return";
 import { EVENT_TYPE_LABEL, type ApiEvent, type ApiHolidayRow } from "@/services/calendar-service";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { getApiErrorMessage } from "@/utils/api-error";
 
-const STATUS: Record<string, string> = { rascunho: "Rascunho", aprovado: "Aprovado", publicado: "Publicado", cancelado: "Cancelado" };
-const EFFECT: Record<string, string> = { lectivo: "Letivo", nao_lectivo: "Não letivo", parcial: "Parcial" };
-const VISIBILITY: Record<string, string> = { interna: "Interna", professores: "Professores", encarregados: "Encarregados", publica: "Pública" };
-const ORIGIN: Record<string, string> = { nacional: "Calendário nacional", institucional: "Institucional", google_proposta: "Proposta do Google" };
+const STATUS = CALENDAR_STATUS_LABEL;
+const EFFECT = CALENDAR_EFFECT_LABEL;
+const VISIBILITY = CALENDAR_VISIBILITY_LABEL;
+const ORIGIN = CALENDAR_ORIGIN_LABEL;
 const HOLIDAY_STATUS: Record<string, string> = { concordam: "Concordam", divergente: "Divergente", confirmado: "Confirmado", rejeitado: "Rejeitado" };
 const fail = (e: unknown) => { ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a alteração no calendário. Tente novamente.")); throw e; };
 
@@ -40,6 +64,7 @@ const EVENT_FILTERS: ListFilterDef<ApiEvent>[] = [
   { key: "type", label: "Tipo", icon: "Tag", options: Object.entries(EVENT_TYPE_LABEL).map(([value, label]) => ({ value, label })), match: (e, v) => e.type === v },
   { key: "status", label: "Estado", icon: "CircleDot", options: Object.entries(STATUS).map(([value, label]) => ({ value, label })), match: (e, v) => e.status === v },
   { key: "effect", label: "Efeito", icon: "CalendarX", options: Object.entries(EFFECT).map(([value, label]) => ({ value, label })), match: (e, v) => e.effect === v },
+  { key: "audience", label: "Destinatários", icon: "Users", options: Object.entries(CALENDAR_AUDIENCE_LABEL).map(([value, label]) => ({ value, label })), match: (e, v) => e.audience === v },
   { key: "visibility", label: "Visibilidade", icon: "Eye", options: Object.entries(VISIBILITY).map(([value, label]) => ({ value, label })), match: (e, v) => e.visibility === v },
   { key: "origin", label: "Origem", icon: "Globe", options: Object.entries(ORIGIN).map(([value, label]) => ({ value, label })), match: (e, v) => e.origin === v },
 ];
@@ -51,148 +76,8 @@ const EVENT_SORTS: ListSortDef<ApiEvent>[] = [
 const EVENT_DATES = [{ key: "date", label: "Evento", getDate: (e: ApiEvent) => e.start_date }];
 const eventText = (e: ApiEvent) => `${e.title} ${EVENT_TYPE_LABEL[e.type] ?? e.type} ${e.location ?? ""}`;
 
-import { usePlanUpgradeModal, isPlanRestrictedError } from "@/stores/plan/use-plan-upgrade-modal-store";
-
-const newEventSchema = z
-  .object({
-    type: z.string().trim().min(1, "Seleccione o tipo de evento."),
-    title: safeTextSchema(3, 150, "O título do evento"),
-    start: isoDateSchema("A data de início"),
-    end: z
-      .string()
-      .trim()
-      .refine((v) => v === "" || isValidIsoDate(v), "A data de fim é inválida (AAAA-MM-DD).")
-      .optional(),
-    startTime: z
-      .string()
-      .trim()
-      .refine((v) => v === "" || timeHHMMSchema("A hora de início").safeParse(v).success, "Hora de início inválida (HH:MM).")
-      .optional(),
-    endTime: z
-      .string()
-      .trim()
-      .refine((v) => v === "" || timeHHMMSchema("A hora de fim").safeParse(v).success, "Hora de fim inválida (HH:MM).")
-      .optional(),
-    visibility: z.enum(["interna", "professores", "encarregados", "publica"]),
-    location: optionalSafeTextSchema(120, 2, "O local"),
-    justification: optionalSafeTextSchema(500, 5, "A justificação"),
-  })
-  .superRefine((data, ctx) => {
-    if (data.end && data.end < data.start) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["end"],
-        message: "A data de fim deve ser igual ou posterior à data de início.",
-      });
-    }
-    if (data.endTime && !data.startTime) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["startTime"],
-        message: "Indique a hora de início quando definir a hora de fim.",
-      });
-    }
-    if (data.startTime && data.endTime && (!data.end || data.end === data.start) && data.endTime <= data.startTime) {
-      ctx.addIssue({
-        code: z.ZodIssueCode.custom,
-        path: ["endTime"],
-        message: "A hora de fim deve ser posterior à hora de início.",
-      });
-    }
-  });
-
 const cancelReasonSchema = safeTextSchema(5, 500, "O motivo do cancelamento");
 const holidayDecisionSchema = safeTextSchema(5, 500, "A fundamentação");
-
-const INITIAL_EVENT_FORM = {
-  type: "actividade_escolar",
-  title: "",
-  start: "",
-  end: "",
-  startTime: "",
-  endTime: "",
-  visibility: "interna" as ApiEvent["visibility"],
-  location: "",
-  justification: "",
-};
-
-function NewEventModal() {
-  const { createEvent } = useCalendar();
-  const { open, modalData } = useModal();
-  const planModal = usePlanUpgradeModal();
-  const preset = (modalData["calendar-new-event"] as { date?: string } | undefined)?.date ?? "";
-  const [f, setF] = useState(INITIAL_EVENT_FORM);
-  const [touched, setTouched] = useState<Partial<Record<keyof typeof INITIAL_EVENT_FORM, boolean>>>({});
-  const set = <K extends keyof typeof f>(k: K, v: (typeof f)[K]) => {
-    setTouched((prev) => ({ ...prev, [k]: true }));
-    setF((p) => ({ ...p, [k]: v }));
-  };
-  const start = f.start || preset;
-
-  const parsed = useMemo(() => newEventSchema.safeParse({ ...f, start }), [f, start]);
-  const fieldError = (key: keyof typeof INITIAL_EVENT_FORM, alsoShowIf?: boolean) => {
-    if ((!touched[key] && !alsoShowIf) || parsed.success) return undefined;
-    return parsed.error.issues.find((i) => i.path[0] === key)?.message;
-  };
-
-  if (!open["calendar-new-event"]) return null;
-  const resetForm = () => {
-    setF(INITIAL_EVENT_FORM);
-    setTouched({});
-  };
-  const submit = () => {
-    if (!parsed.success) return;
-    const d = parsed.data;
-    return createEvent
-      .mutateAsync({
-        type: d.type,
-        title: d.title,
-        startDate: d.start,
-        endDate: d.end || undefined,
-        startTime: d.startTime || undefined,
-        endTime: d.endTime || undefined,
-        visibility: d.visibility,
-        location: d.location || undefined,
-        justification: d.justification || undefined,
-        affectsLessons: false,
-      })
-      .then(() => { SucessMessage("Evento criado (rascunho)."); resetForm(); })
-      .catch((e) => {
-        if (isPlanRestrictedError(e)) {
-          planModal.open({
-            featureName: "Calendário Escolar",
-            requiredPlan: "profissional",
-            description: "O registo de datas e eventos no calendário escolar exige o plano Profissional. Faça upgrade da sua subscrição para desbloquear esta funcionalidade.",
-          });
-          return;
-        }
-        fail(e);
-      });
-  };
-
-  return (
-    <FormModal id="calendar-new-event" title="Novo evento do calendário" description="O evento nasce em rascunho; aprove e publique-o depois." submitLabel="Criar evento" isLoading={createEvent.isPending} onSubmit={submit} onClose={resetForm} disabled={!parsed.success || createEvent.isPending}>
-      <FormSelect label="Tipo *" value={f.type} onValueChange={(v) => set("type", v)} options={Object.entries(EVENT_TYPE_LABEL).map(([value, label]) => ({ value, label }))} error={fieldError("type")} />
-      <Input label="Título *" startIcon="CalendarDays" placeholder="Ex.: Reunião Geral de Encarregados de Educação" value={f.title} onChange={(e) => set("title", e.target.value)} error={fieldError("title")} />
-      <Input label="Início *" type="date" value={start} onChange={(e) => set("start", e.target.value)} error={fieldError("start")} />
-      <Input label="Fim (opcional)" type="date" value={f.end} onChange={(e) => set("end", e.target.value)} error={fieldError("end", Boolean(touched.start && f.end))} />
-      <Input label="Hora de início" type="time" value={f.startTime} onChange={(e) => set("startTime", e.target.value)} error={fieldError("startTime", Boolean(touched.endTime && f.endTime))} />
-      <Input label="Hora de fim" type="time" value={f.endTime} onChange={(e) => set("endTime", e.target.value)} error={fieldError("endTime", Boolean(touched.startTime && f.endTime))} />
-      <FormSelect label="Visibilidade" value={f.visibility} onValueChange={(v) => set("visibility", v as ApiEvent["visibility"])} options={Object.entries(VISIBILITY).map(([value, label]) => ({ value, label }))} error={fieldError("visibility")} />
-      <Input label="Local" startIcon="MapPin" placeholder="Ex.: Auditório Principal / Bloco B" value={f.location} onChange={(e) => set("location", e.target.value)} error={fieldError("location")} />
-      <div className="sm:col-span-2">
-        <FormTextarea
-          label="Justificação (obrigatória se fecha dias lectivos)"
-          placeholder="Descreva a fundamentação legal ou institucional do evento..."
-          value={f.justification}
-          onChange={(v) => set("justification", v)}
-          error={fieldError("justification")}
-          rows={3}
-        />
-      </div>
-    </FormModal>
-  );
-}
 
 function GooglePanel() {
   const c = useCalendar();
@@ -236,7 +121,8 @@ export function CalendarPageContent() {
 
 function FullCalendarContent() {
   useGoogleReturn();
-  const c = useCalendar();
+  const [selectedYearId, setSelectedYearId] = useState<string | undefined>(undefined);
+  const c = useCalendar(selectedYearId);
   const { openModal } = useModal();
   const [month, setMonth] = useState(() => new Date());
   const [selected, setSelected] = useState<ApiEvent | null>(null);
@@ -256,10 +142,15 @@ function FullCalendarContent() {
     const s = new Set<string>();
     for (const e of c.events.filter((x) => x.effect === "nao_lectivo" && x.status !== "cancelado")) {
       const cur = new Date(`${e.start_date}T00:00:00`);
-      for (let i = 0; i < 62 && cur.toISOString().slice(0, 10) <= e.end_date; i++) { s.add(cur.toISOString().slice(0, 10)); cur.setDate(cur.getDate() + 1); }
+      for (let i = 0; i < 180 && cur.toISOString().slice(0, 10) <= e.end_date; i++) { s.add(cur.toISOString().slice(0, 10)); cur.setDate(cur.getDate() + 1); }
     }
     return s;
   }, [c.events]);
+
+  const activeSelected = useMemo(
+    () => (selected ? c.events.find((e) => e.id === selected.id) ?? selected : null),
+    [selected, c.events],
+  );
 
   const open = (e: ApiEvent) => { setSelected(e); openModal("calendar-event-detail"); };
   const publish = async (e: ApiEvent) => {
@@ -278,6 +169,7 @@ function FullCalendarContent() {
       render: (_, e) => (
         <ButtonOnlyAction data={e} actions={[
           { label: "Ver detalhe", icon: "Eye", onClick: open },
+          ...(e.origin !== "nacional" && e.status !== "cancelado" ? [{ permission: "calendar:write", label: "Editar", icon: "Pencil" as const, onClick: (x: ApiEvent) => openModal("calendar-event-form", { editing: x } satisfies EventModalPayload) }] : []),
           ...(e.status === "rascunho" ? [{ permission: "calendar:publish", label: "Aprovar", icon: "CircleCheck" as const, onClick: (x: ApiEvent) => void c.approve.mutateAsync(x.id).then(() => SucessMessage("Evento aprovado.")).catch((er) => ErrorMessage(getApiErrorMessage(er, "Não foi possível aprovar este evento do calendário. Tente novamente."))) }] : []),
           ...(e.status === "aprovado" || e.status === "rascunho" ? [{ permission: "calendar:publish", label: "Publicar", icon: "Send" as const, onClick: (x: ApiEvent) => void publish(x) }] : []),
         ]} />
@@ -306,11 +198,60 @@ function FullCalendarContent() {
   return (
     <div className="space-y-6">
       <TitleList title="Calendário Escolar" suTitle="Gestão de períodos letivos, feriados, exames e eventos.">
-        <div className="flex gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <AcademicYearSelect
+            years={c.years}
+            selectedYearId={c.year?.id}
+            month={month}
+            onSelectYear={setSelectedYearId}
+            onMonthChange={setMonth}
+          />
           <Can permission="calendar:write"><Button size="sm" variant="outline" className="gap-1.5" disabled={!c.year || c.importNational.isPending} onClick={() => c.importNational.mutateAsync("apply").then(() => SucessMessage("Calendário nacional importado.")).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível guardar a alteração no calendário. Tente novamente.")))}><Icon name="Download" className="size-4" />Importar calendário nacional</Button></Can>
-          <Can permission="calendar:write"><Button size="sm" className="gap-1.5" disabled={!c.year} onClick={() => openModal("calendar-new-event")}><Icon name="Plus" className="size-4" />Novo evento</Button></Can>
+          <Can permission="calendar:write">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              disabled={!c.year}
+              onClick={() =>
+                openModal("calendar-event-form", {
+                  template: {
+                    type: "reposicao",
+                    title: "Reposição de Aulas",
+                    effect: "lectivo",
+                    audience: "todos",
+                    justification: "Reposição de dias lectivos ao abrigo do plano de recuperação pedagógica.",
+                  },
+                } satisfies EventModalPayload)
+              }
+            >
+              <Icon name="CalendarPlus" className="size-4" />
+              Reposição
+            </Button>
+          </Can>
+          <Can permission="calendar:write"><Button size="sm" className="gap-1.5" disabled={!c.year} onClick={() => openModal("calendar-event-form")}><Icon name="Plus" className="size-4" />Novo evento</Button></Can>
         </div>
       </TitleList>
+
+      <SuspendedYearBanner year={c.year} showRegimeNote />
+
+      {c.check && (c.check.hard.length > 0 || c.check.stats.lectiveDays > 0) && (
+        <div className="flex flex-wrap items-center justify-between gap-2 rounded-xs border bg-card px-3.5 py-2.5 text-xs">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="font-medium">
+              Previsão anual ({c.year?.name}):{" "}
+              <strong className="font-mono">{c.check.stats.lectiveDays}</strong> dias lectivos (
+              <strong className="font-mono">{c.check.stats.lectiveWeeks}</strong> semanas)
+            </span>
+          </div>
+          {c.check.hard.length > 0 && (
+            <Badge variant="warning" className="gap-1">
+              <Icon name="TriangleAlert" className="size-3.5" />
+              {c.check.hard.length} inconsistência(s) no calendário
+            </Badge>
+          )}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <DynamicMetricCard title={c.events.length} subtitle="Eventos no ano" icon="CalendarDays" description="Todos os estados" />
@@ -341,7 +282,7 @@ function FullCalendarContent() {
 
             <TabsContent value="calendar" className="space-y-6">
               <ListFilterBar<ApiEvent> prefix="events" f={f} searchPlaceholder="Pesquisar eventos" filters={EVENT_FILTERS} dateFilters={EVENT_DATES} shown={filtered.length} total={c.events.length} />
-              <MonthCalendar items={items} month={month} onMonthChange={setMonth} markedDays={nonLective} onSelectItem={(it) => { const e = c.events.find((x) => x.id === it.id); if (e) open(e); }} onSelectDay={(d) => openModal("calendar-new-event", { date: d })} />
+              <MonthCalendar items={items} month={month} onMonthChange={setMonth} markedDays={nonLective} onSelectItem={(it) => { const e = c.events.find((x) => x.id === it.id); if (e) open(e); }} onSelectDay={(d) => openModal("calendar-event-form", { date: d } satisfies EventModalPayload)} />
               <p className="text-xs text-muted-foreground">Dias com fundo âmbar são não letivos. Clique num dia para criar um evento e num evento para ver o detalhe.</p>
             </TabsContent>
 
@@ -373,28 +314,18 @@ function FullCalendarContent() {
         <TabsContent value="google" className="pt-4"><GooglePanel /></TabsContent>
       </Tabs>
 
-      <NewEventModal />
+      <EventFormModal selectedYearId={selectedYearId} />
 
-      <FormModal id="calendar-event-detail" title={selected?.title ?? "Evento"} description={selected ? `${EVENT_TYPE_LABEL[selected.type] ?? selected.type} • ${STATUS[selected.status]}` : undefined} readOnly onSubmit={() => undefined}>
-        {selected && (
-          <div className="space-y-3 text-sm sm:col-span-2">
-            <dl className="grid grid-cols-2 gap-3">
-              <div><dt className="text-[11px] uppercase text-muted-foreground">Data</dt><dd className="font-mono">{formatIsoDay(selected.start_date)}{selected.end_date !== selected.start_date ? ` → ${formatIsoDay(selected.end_date)}` : ""}</dd></div>
-              <div><dt className="text-[11px] uppercase text-muted-foreground">Horário</dt><dd className="font-mono">{selected.start_time ? `${selected.start_time.slice(0, 5)}–${selected.end_time?.slice(0, 5) ?? ""}` : "Dia inteiro"}</dd></div>
-              <div><dt className="text-[11px] uppercase text-muted-foreground">Efeito</dt><dd>{EFFECT[selected.effect]}</dd></div>
-              <div><dt className="text-[11px] uppercase text-muted-foreground">Visibilidade</dt><dd>{VISIBILITY[selected.visibility]}</dd></div>
-              <div><dt className="text-[11px] uppercase text-muted-foreground">Local</dt><dd>{selected.location ?? "—"}</dd></div>
-              <div><dt className="text-[11px] uppercase text-muted-foreground">Origem</dt><dd>{ORIGIN[selected.origin]}</dd></div>
-            </dl>
-            {selected.justification && <p className="text-muted-foreground">{selected.justification}</p>}
-            <div className="flex flex-wrap gap-2 border-t pt-3">
-              {selected.status === "rascunho" && <Button size="sm" variant="outline" onClick={() => c.approve.mutateAsync(selected.id).then(() => SucessMessage("Evento aprovado.")).catch((er) => ErrorMessage(getApiErrorMessage(er, "Não foi possível aprovar este evento do calendário. Tente novamente.")))}>Aprovar</Button>}
-              {(selected.status === "aprovado" || selected.status === "rascunho") && <Can permission="calendar:publish"><Button size="sm" onClick={() => void publish(selected)}>Publicar</Button></Can>}
-              {selected.status !== "cancelado" && <Button size="sm" variant="ghost" className="text-destructive" onClick={() => { setReason(""); setReasonTouched(false); openModal("calendar-cancel-event"); }}>Cancelar evento</Button>}
-            </div>
-          </div>
-        )}
-      </FormModal>
+      <EventDetailModal
+        selected={activeSelected}
+        selectedYearId={selectedYearId}
+        onPublish={publish}
+        onRequestCancel={() => {
+          setReason("");
+          setReasonTouched(false);
+          openModal("calendar-cancel-event");
+        }}
+      />
 
       <FormModal id="calendar-cancel-event" title="Cancelar evento" description="Indique o motivo (mínimo 5 caracteres)." submitLabel="Cancelar evento" isLoading={c.cancel.isPending} disabled={!cancelParsed.success || c.cancel.isPending} onClose={() => { setReason(""); setReasonTouched(false); }} onSubmit={() => (selected && cancelParsed.success ? c.cancel.mutateAsync({ id: selected.id, reason: cancelParsed.data }).then(() => { SucessMessage("Evento cancelado."); setReason(""); setReasonTouched(false); }).catch(fail) : undefined)}>
         <div className="sm:col-span-2">

@@ -27,18 +27,25 @@ import { SucessMessage, ErrorMessage } from "@/utils/messages";
 import { YearSetup } from "./year-setup";
 
 import { quantitySchema, safeTextSchema, timeHHMMSchema } from "@/schemas/helps";
+import {
+  collapseWhitespace,
+  findConflictingRoomSection,
+  findDuplicateSectionName,
+  SHIFT_DEFAULT_HOURS,
+  SHIFT_LABELS,
+} from "@/utils/section-conflicts";
 
 const classSectionFormSchema = z
   .object({
-    name: safeTextSchema(2, 80, "O nome da turma"),
-    classLevel: z.string().trim().min(1, "Selecione o ano de escolaridade."),
+    name: safeTextSchema(1, 20, "O nome da turma"),
+    classLevel: z.string().trim().min(1, "Seleccione o ano de escolaridade."),
     cycle: z.enum(["PRIMARY", "LOWER_SECONDARY", "UPPER_SECONDARY"]),
     shift: z.enum(["MORNING", "AFTERNOON", "EVENING", "DIURNO"]),
     startTime: z.string().trim().optional(),
     endTime: z.string().trim().optional(),
     roomNumber: safeTextSchema(1, 50, "A sala de aulas"),
     capacity: quantitySchema(1, 100, "A lotação da turma"),
-    academicYear: z.string().trim().min(1, "Selecione o ano letivo."),
+    academicYear: z.string().trim().min(1, "Seleccione o ano lectivo."),
   })
   .superRefine((data, ctx) => {
     if (data.shift !== "DIURNO") {
@@ -76,13 +83,6 @@ interface ClassModalProps {
   sectionToEdit?: AcademicSection | null;
 }
 
-const SHIFT_DEFAULT_TIMES: Record<Shift, { start: string; end: string }> = {
-  MORNING: { start: "07:30", end: "12:30" },
-  AFTERNOON: { start: "13:00", end: "18:00" },
-  EVENING: { start: "18:30", end: "22:00" },
-  DIURNO: { start: "07:30", end: "17:30" },
-};
-
 const SHIFT_PRESETS: Record<Shift, Array<{ label: string; start: string; end: string }>> = {
   MORNING: [
     { label: "07:00 - 12:00", start: "07:00", end: "12:00" },
@@ -105,11 +105,11 @@ const SHIFT_PRESETS: Record<Shift, Array<{ label: string; start: string; end: st
 };
 
 export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) {
-  const { save } = useAcademicSections();
+  const { allSections, save } = useAcademicSections();
   const { years, isLoading: yearsLoading, isError: yearsFailed, refetch: refetchYears } = useAcademicYears();
 
   const academicYearOptions = useMemo(
-    () => (years ?? []).map((y) => ({ value: y.name, label: y.status === "activo" ? `${y.name} (Ativo)` : y.name })),
+    () => (years ?? []).map((y) => ({ value: y.name, label: y.status === "activo" ? `${y.name} (Activo)` : y.name })),
     [years],
   );
 
@@ -120,6 +120,7 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
     control,
     handleSubmit,
     setValue,
+    setError,
     watch,
     reset,
     formState: { errors, isSubmitting, isDirty, isValid },
@@ -154,9 +155,9 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
         classLevel: sectionToEdit.classLevel,
         cycle: sectionToEdit.cycle,
         shift: sectionToEdit.shift,
-        startTime: sectionToEdit.startTime || SHIFT_DEFAULT_TIMES[sectionToEdit.shift]?.start || "07:30",
-        endTime: sectionToEdit.endTime || SHIFT_DEFAULT_TIMES[sectionToEdit.shift]?.end || "12:30",
-        roomNumber: sectionToEdit.roomNumber || "Sala 1",
+        startTime: sectionToEdit.startTime || SHIFT_DEFAULT_HOURS[sectionToEdit.shift]?.start || "07:30",
+        endTime: sectionToEdit.endTime || SHIFT_DEFAULT_HOURS[sectionToEdit.shift]?.end || "12:30",
+        roomNumber: sectionToEdit.roomNumber && sectionToEdit.roomNumber !== "—" ? sectionToEdit.roomNumber : "",
         capacity: sectionToEdit.capacity,
         academicYear: sectionToEdit.academicYear || activeOrCurrentYear,
       });
@@ -166,8 +167,8 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
         classLevel: "7ª Classe",
         cycle: "LOWER_SECONDARY",
         shift: "MORNING",
-        startTime: SHIFT_DEFAULT_TIMES.MORNING.start,
-        endTime: SHIFT_DEFAULT_TIMES.MORNING.end,
+        startTime: SHIFT_DEFAULT_HOURS.MORNING.start,
+        endTime: SHIFT_DEFAULT_HOURS.MORNING.end,
         roomNumber: "Sala 1",
         capacity: 40,
         academicYear: activeOrCurrentYear,
@@ -176,17 +177,58 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
   }, [sectionToEdit, isOpen, reset, activeOrCurrentYear]);
 
   const onSubmit = async (data: ClassSectionFormValues) => {
+    const normalizedName = collapseWhitespace(data.name);
+    const normalizedRoom = collapseWhitespace(data.roomNumber);
+    const effectiveStart = data.shift === "DIURNO" ? undefined : data.startTime?.trim() || undefined;
+    const effectiveEnd = data.shift === "DIURNO" ? undefined : data.endTime?.trim() || undefined;
+
+    const dupName = findDuplicateSectionName(
+      {
+        id: sectionToEdit?.id,
+        name: normalizedName,
+        classLevel: data.classLevel,
+        academicYear: data.academicYear,
+      },
+      allSections,
+    );
+    if (dupName) {
+      const msg = `Já existe a turma "${dupName.name}" na classe ${dupName.classLevel} (${dupName.academicYear}).`;
+      setError("name", { type: "manual", message: msg });
+      ErrorMessage(msg);
+      return;
+    }
+
+    const roomConflict = findConflictingRoomSection(
+      {
+        id: sectionToEdit?.id,
+        roomNumber: normalizedRoom,
+        academicYear: data.academicYear,
+        shift: data.shift,
+        startTime: effectiveStart,
+        endTime: effectiveEnd,
+      },
+      allSections,
+    );
+    if (roomConflict) {
+      const msg = `A sala "${roomConflict.section.roomNumber}" já está ocupada pela turma "${roomConflict.section.name}" (${roomConflict.section.classLevel}) no turno ${SHIFT_LABELS[roomConflict.section.shift]} (${roomConflict.existingInterval.start}–${roomConflict.existingInterval.end}).`;
+      setError("roomNumber", { type: "manual", message: msg });
+      ErrorMessage(msg);
+      return;
+    }
+
     try {
       await save.mutateAsync({
         id: sectionToEdit?.id,
-        name: data.name,
+        name: normalizedName,
         classLevelName: data.classLevel,
         shift: data.shift,
         capacity: data.capacity,
         academicYear: data.academicYear,
-        roomNumber: data.roomNumber,
+        roomNumber: normalizedRoom,
+        startTime: effectiveStart,
+        endTime: effectiveEnd,
       });
-      SucessMessage(sectionToEdit ? "Turma atualizada com sucesso!" : "Nova turma criada com sucesso!");
+      SucessMessage(sectionToEdit ? "Turma actualizada com sucesso!" : "Nova turma criada com sucesso!");
       onClose();
     } catch (err: unknown) {
       ErrorMessage(getApiErrorMessage(err, "Ocorreu um erro ao gravar a turma."));
@@ -208,7 +250,7 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
 
   const handleShiftChange = (val: Shift) => {
     setValue("shift", val, { shouldValidate: true, shouldDirty: true });
-    const defaults = SHIFT_DEFAULT_TIMES[val];
+    const defaults = SHIFT_DEFAULT_HOURS[val];
     if (defaults) {
       setValue("startTime", defaults.start, { shouldValidate: true, shouldDirty: true });
       setValue("endTime", defaults.end, { shouldValidate: true, shouldDirty: true });
@@ -284,6 +326,7 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
                   label="Ciclo Pedagógico *"
                   value={selectedCycle}
                   options={cycleOptions}
+                  disabled={Boolean(sectionToEdit)}
                   onValueChange={(val) => handleCycleChange(val as EducationCycle)}
                   error={errors.cycle?.message}
                 />
@@ -292,12 +335,13 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
                   label="Nível / Classe *"
                   value={selectedClassLevel}
                   options={currentClassOptions}
+                  disabled={Boolean(sectionToEdit)}
                   onValueChange={(val) => setValue("classLevel", val, { shouldValidate: true, shouldDirty: true })}
                   error={errors.classLevel?.message}
                 />
 
                 <FormSelect
-                  label="Turno Letivo *"
+                  label="Turno Lectivo *"
                   value={selectedShift}
                   options={shiftOptions}
                   onValueChange={(val) => handleShiftChange(val as Shift)}
@@ -305,9 +349,10 @@ export function ClassModal({ isOpen, onClose, sectionToEdit }: ClassModalProps) 
                 />
 
                 <FormSelect
-                  label="Ano Letivo *"
+                  label="Ano Lectivo *"
                   value={selectedAcademicYear || activeOrCurrentYear}
                   options={academicYearOptions}
+                  disabled={Boolean(sectionToEdit)}
                   onValueChange={(val) => setValue("academicYear", val, { shouldValidate: true, shouldDirty: true })}
                   error={errors.academicYear?.message}
                 />

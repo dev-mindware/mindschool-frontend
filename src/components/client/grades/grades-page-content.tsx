@@ -1,6 +1,7 @@
 "use client";
 
 import { TermsMissingBanner } from "./terms-missing-banner";
+import { SuspendedYearBanner } from "../academic/year-status-banner";
 import React, { useState, useMemo } from "react";
 import {
   Button,
@@ -185,6 +186,7 @@ export function GradesPageContent() {
   return (
     <div className="space-y-6">
       <TermsMissingBanner />
+      <SuspendedYearBanner contextMessage="Enquanto o ano lectivo estiver suspenso, o lançamento e a alteração de notas encontram-se bloqueados." />
       {/* Top Header */}
       <TitleList
         title="Lançamento de Notas (MED)"

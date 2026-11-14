@@ -23,6 +23,7 @@ import { useGoogleReturn } from "@/hooks/school/use-google-return";
 import { useTimetables } from "@/hooks/school/use-timetables";
 import { TeacherGoogleCard } from "./teacher-google-card";
 import { TimetableGenerator } from "./timetable-generator";
+import { TeacherAvailabilitySheet } from "@/components/client/teachers/teacher-availability-sheet";
 import { academicService } from "@/services/academic-service";
 import { SHIFT_LABEL, WEEKDAY, type ApiChange, type ApiEntry, type ApiRoom, type ApiValidation, type Shift } from "@/services/timetables-service";
 import { useModal } from "@/stores/modal/use-modal-store";
@@ -296,11 +297,11 @@ function ChangeModal({ entry, timetableId }: { entry: ApiEntry | null; timetable
 /** Horários: vista semanal em calendário (por turma e por professor), versões, grelhas de tempos, salas e mudanças. */
 
 /** Estado vazio guiado: explica o fluxo (grelha de tempos → salas → horário → aulas → validar e publicar). */
-function TimetableGuide({ hasBells, hasRooms, roomsEnabled, hasYear, creating, onCreate, onBells, onRooms }: { hasBells: boolean; hasRooms: boolean; roomsEnabled: boolean; hasYear: boolean; creating: boolean; onCreate: () => void; onBells: () => void; onRooms: () => void }) {
+function TimetableGuide({ hasBells, hasRooms, roomsEnabled, hasYear, creating, quickGenerator, onCreate, onBells, onRooms }: { hasBells: boolean; hasRooms: boolean; roomsEnabled: boolean; hasYear: boolean; creating: boolean; quickGenerator?: React.ReactNode; onCreate: () => void; onBells: () => void; onRooms: () => void }) {
   const allSteps = [
     { done: hasBells, title: "1. Defina os tempos de aula", text: "Duração, número de tempos e intervalo de cada turno escolar.", action: "Criar grelha de tempos", run: onBells },
     { done: hasRooms, title: "2. Registe as salas escolares", text: "Opcional, mas evita conflitos de ocupação física de turmas.", action: "Adicionar sala", run: onRooms },
-    { done: false, title: "3. Crie a versão do horário", text: "Começa como rascunho; as turmas só veem o horário quando publicado.", action: "Criar horário", run: onCreate, primary: true },
+    { done: false, title: "3. Crie ou gere o horário com 1 clique", text: "Gere automaticamente com base na disponibilidade dos professores ou crie um rascunho manual.", action: "Criar rascunho manual", run: onCreate, primary: false, extra: quickGenerator },
     { done: false, title: "4. Preencha as aulas na grelha", text: "Clique num tempo livre da turma para atribuir disciplina, professor e sala." },
     { done: false, title: "5. Valide e publique oficialmente", text: "O sistema impede automaticamente choques de professor, turma e sala. Valide e publique para todos os utilizadores.", isFinal: true },
   ];
@@ -322,9 +323,12 @@ function TimetableGuide({ hasBells, hasRooms, roomsEnabled, hasYear, creating, o
               <p className="text-xs text-muted-foreground">{st.text}</p>
               {st.action && st.run ? (
                 <Can permission="timetable:write" fallback={<p className="text-[11px] text-muted-foreground">Só consulta: este passo é feito pela direção pedagógica.</p>}>
-                <Button size="sm" variant={st.primary ? "default" : "outline"} className="mt-1 h-7 text-xs" disabled={!hasYear || (st.primary && creating)} onClick={st.run}>
-                  {st.action}
-                </Button>
+                  <div className="mt-1 flex flex-wrap items-center gap-2">
+                    {st.extra}
+                    <Button size="sm" variant={st.primary ? "default" : "outline"} className="h-9 text-xs" disabled={!hasYear || (st.primary && creating)} onClick={st.run}>
+                      {st.action}
+                    </Button>
+                  </div>
                 </Can>
               ) : (
                 <Can permission="timetable:write" fallback={<p className="text-[11px] text-muted-foreground">Só consulta: este passo é feito pela direção pedagógica.</p>}>
@@ -366,6 +370,26 @@ export function TimetablesPageContent() {
   const [picked, setPicked] = useState<ApiEntry | null>(null);
   const [entryToEdit, setEntryToEdit] = useState<ApiEntry | null>(null);
   const [report, setReport] = useState<ApiValidation | null>(null);
+  const [availTeacherId, setAvailTeacherId] = useState<string | null>(null);
+  const [isAvailOpen, setIsAvailOpen] = useState(false);
+
+  const allActiveTeachers = useMemo(
+    () => tt.teachers.filter((t) => t.status === "ativo").map((t) => ({ id: t.id, full_name: t.full_name })),
+    [tt.teachers],
+  );
+  const selectedAvailTeacher = useMemo(
+    () => allActiveTeachers.find((t) => t.id === availTeacherId) ?? allActiveTeachers[0] ?? null,
+    [allActiveTeachers, availTeacherId],
+  );
+  const openTeacherAvailability = (tid?: string) => {
+    if (tid) setAvailTeacherId(tid);
+    else if (!availTeacherId && allActiveTeachers[0]) setAvailTeacherId(allActiveTeachers[0].id);
+    setIsAvailOpen(true);
+  };
+  const readinessBlockers = useMemo(
+    () => (tt.readiness?.issues ?? []).filter((i) => i.severity === "blocker"),
+    [tt.readiness],
+  );
 
   const section = sections.find((s) => s.id === (f.get("section") || sections[0]?.id));
   const teachers = useMemo(() => [...new Map(entries.map((e) => [e.teacher.id, e.teacher.full_name])).entries()], [entries]);
@@ -418,6 +442,18 @@ export function TimetablesPageContent() {
             <Icon name="Download" className="size-4" />
             Exportar Horário (PDF)
           </Button>
+          <Can permission="timetable:write">
+            <Button
+              size="sm"
+              variant="outline"
+              className="gap-1.5"
+              disabled={allActiveTeachers.length === 0}
+              onClick={() => openTeacherAvailability()}
+            >
+              <Icon name="Clock" className="size-4" />
+              Disponibilidade docente
+            </Button>
+          </Can>
           <Can permission="timetable:write"><Button size="sm" className="gap-1.5" disabled={!hasYear || tt.create.isPending} onClick={() => tt.create.mutateAsync(current?.id).then(() => SucessMessage(current ? "Nova versão criada a partir da atual." : "Horário criado.")).catch(fail)}><Icon name="Plus" className="size-4" />{current ? "Nova versão" : "Criar horário"}</Button></Can>
         </div>
       </TitleList>
@@ -435,7 +471,17 @@ export function TimetablesPageContent() {
           <div className="w-64"><FormSelect label="Versão do horário" value={timetableId} onValueChange={setTimetableId} options={timetables.map((t) => ({ value: t.id, label: `v${t.version_number} — ${STATUS_LABEL[t.status]} (${t.entries} aulas)` }))} /></div>
           {editable && (
             <>
-              <Can permission="timetable:write"><TimetableGenerator timetableId={timetableId} sections={sections.map((s) => ({ id: s.id, name: s.name }))} /></Can>
+              <Can permission="timetable:write">
+                <TimetableGenerator
+                  timetableId={timetableId}
+                  sections={sections.map((s) => ({ id: s.id, name: s.name }))}
+                  readiness={tt.readiness}
+                  onOpenTeacherAvailability={openTeacherAvailability}
+                  onApplied={(newId) => {
+                    if (newId) setTimetableId(newId);
+                  }}
+                />
+              </Can>
               <Button size="sm" variant="outline" className="h-10" disabled={tt.validate.isPending} onClick={() => tt.validate.mutateAsync().then(setReport).catch((e) => ErrorMessage(getApiErrorMessage(e, "Não foi possível validar.")))}>Validar</Button>
               <Can permission="timetable:publish"><Button size="sm" className="h-10" disabled={tt.publish.isPending} onClick={() => openModal("tt-publish-confirm")}>Publicar</Button></Can>
               <ConfirmModal
@@ -454,6 +500,32 @@ export function TimetablesPageContent() {
             </>
           )}
         </div>
+      )}
+
+      {canWriteTimetable && readinessBlockers.length > 0 && (
+        <Alert className="border-amber-500/40 bg-amber-500/[0.04]">
+          <Icon name="TriangleAlert" className="size-4 text-amber-600" />
+          <AlertTitle className="text-sm font-semibold">
+            {readinessBlockers.length} bloqueio(s) detectado(s) antes de gerar o horário
+          </AlertTitle>
+          <AlertDescription className="mt-1 space-y-1 text-xs text-muted-foreground">
+            {readinessBlockers.slice(0, 3).map((b, i) => (
+              <p key={i}>• {b.title}: {b.description}</p>
+            ))}
+            {readinessBlockers[0]?.teacher_id && (
+              <div className="pt-1">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  className="h-7 text-xs"
+                  onClick={() => openTeacherAvailability(readinessBlockers[0].teacher_id)}
+                >
+                  Ajustar disponibilidade docente
+                </Button>
+              </div>
+            )}
+          </AlertDescription>
+        </Alert>
       )}
 
       {report && (
@@ -481,6 +553,20 @@ export function TimetablesPageContent() {
               roomsEnabled={tt.roomsEnabled}
               hasYear={hasYear}
               creating={tt.create.isPending}
+              quickGenerator={
+                hasYear ? (
+                  <TimetableGenerator
+                    sections={sections.map((s) => ({ id: s.id, name: s.name }))}
+                    readiness={tt.readiness}
+                    variant="default"
+                    label="Gerar com 1 clique"
+                    onOpenTeacherAvailability={openTeacherAvailability}
+                    onApplied={(newId) => {
+                      if (newId) setTimetableId(newId);
+                    }}
+                  />
+                ) : undefined
+              }
               onCreate={() => tt.create.mutateAsync(undefined).then(() => SucessMessage("Horário criado.")).catch(fail)}
               onBells={() => openModal("tt-new-bell")}
               onRooms={() => openModal("tt-new-room")}
@@ -679,6 +765,16 @@ export function TimetablesPageContent() {
       {current && <ChangeModal entry={picked} timetableId={current.id} />}
       <BellModal />
       <RoomModal />
+      <TeacherAvailabilitySheet
+        open={isAvailOpen}
+        onOpenChange={setIsAvailOpen}
+        teacher={selectedAvailTeacher}
+        teachers={allActiveTeachers}
+        onSelectTeacher={setAvailTeacherId}
+        assignments={tt.assignments}
+        bells={bells}
+        lectiveWeekdays={tt.readiness?.summary.lective_weekdays}
+      />
 
       <FormModal id="tt-entry" title={picked?.subject.name ?? "Aula"} description={picked ? `${picked.section.name} • ${picked.teacher.full_name}` : undefined} readOnly onSubmit={() => undefined}>
         {picked && (

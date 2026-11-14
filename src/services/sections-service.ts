@@ -11,6 +11,8 @@ interface ApiSection {
   name: string;
   room_number?: string | null;
   shift: "manha" | "tarde" | "noite" | "diurno";
+  start_time?: string | null;
+  end_time?: string | null;
   capacity: number;
   enrolled_count: number;
   available_seats: number;
@@ -35,6 +37,8 @@ export const sectionsService = {
       classLevel: s.class_level.name,
       cycle: CYCLE[s.class_level.cycle] ?? "PRIMARY",
       shift: s.shift === "manha" ? "MORNING" : s.shift === "tarde" ? "AFTERNOON" : s.shift === "noite" ? "EVENING" : "DIURNO",
+      startTime: s.start_time ?? undefined,
+      endTime: s.end_time ?? undefined,
       roomNumber: s.room_number?.trim() || "—",
       capacity: s.capacity,
       currentEnrollmentCount: s.enrolled_count,

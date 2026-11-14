@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { SucessMessage, ErrorMessage } from "@/utils/messages";
+import { SuspendedYearBanner } from "../year-status-banner";
 import {
   isoDateSchema,
   optionalSafeTextSchema,
@@ -689,6 +690,11 @@ export function LessonsPageContent() {
           </Can>
         </div>
       </TitleList>
+
+      <SuspendedYearBanner
+        showRegimeNote
+        contextMessage="Enquanto o ano lectivo estiver suspenso, não é possível gerar aulas, registar sumários, substituir ou remarcar lições."
+      />
 
       {/* Widget/Banner estilo Google Keep: A Sua Agenda de Hoje */}
       <TodayAgendaBanner todayLessons={todayLessons} onOpenLesson={openLesson} />

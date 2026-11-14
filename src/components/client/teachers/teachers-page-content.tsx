@@ -9,6 +9,7 @@ import { formatIsoDay } from "@/utils";
 import { Can, Badge, Button, ButtonOnlyAction, DataList, EmptyState, FormCombobox, FormModal, FormTextarea, Icon, Input, PrintDownloadDropdown, TitleList, type Column } from "@/components";
 import { useTeacherCredentials, useTeachersAdmin } from "@/hooks/school/use-admin-school";
 import type { ApiTeacherFull, TeacherStatus } from "@/services/admin-school-service";
+import { TeacherAvailabilitySheet } from "./teacher-availability-sheet";
 import { useSchoolSettingsStore } from "@/stores/school/school-settings-store";
 import { useModal } from "@/stores/modal/use-modal-store";
 import { applyApiFieldErrors, getApiErrorMessage } from "@/utils/api-error";
@@ -228,6 +229,7 @@ export function TeachersPageContent() {
   const t = useTeachersAdmin();
   const { openModal } = useModal();
   const [creds, setCreds] = useState<ApiTeacherFull | null>(null);
+  const [availTeacher, setAvailTeacher] = useState<ApiTeacherFull | null>(null);
 
   if (t.forbidden) return <EmptyState icon="Lock" title="Sem acesso" description="O seu perfil não gere o corpo docente." />;
 
@@ -253,6 +255,7 @@ export function TeachersPageContent() {
         <Can permission="teacher:write"><Button size="sm" variant="outline" onClick={() => openModal("teachers-new")}>Criar ficha</Button></Can>
       ) : (
         <ButtonOnlyAction data={x} actions={[
+          { permission: "timetable:write", label: "Disponibilidade horária", icon: "CalendarClock", onClick: (r) => setAvailTeacher(r) },
           { label: "Credenciais QR", icon: "QrCode", onClick: (r) => { setCreds(r); openModal("teachers-credentials"); } },
           ...(x.status !== "activo" ? [{ permission: "teacher:write", label: "Marcar como ativo", icon: "CircleCheck" as const, onClick: (r: ApiTeacherFull) => void setStatus(r, "activo") }] : []),
           ...(x.status !== "licenca" ? [{ permission: "teacher:write", label: "Colocar em licença", icon: "Clock" as const, onClick: (r: ApiTeacherFull) => void setStatus(r, "licenca") }] : []),
@@ -290,6 +293,13 @@ export function TeachersPageContent() {
 
       <NewTeacherModal />
       <CredentialsModal teacher={creds} />
+      <TeacherAvailabilitySheet
+        open={Boolean(availTeacher)}
+        onOpenChange={(open) => {
+          if (!open) setAvailTeacher(null);
+        }}
+        teacher={availTeacher}
+      />
     </div>
   );
 }
