@@ -1,27 +1,64 @@
 "use client";
 
-import Image from "next/image";
-import { ButtonSubmit, Input, ResetPasswordSkeleton, Button, PasswordStrengthBar, AlertError } from "@/components";
-import { MindSchoolLogo } from "@/components/common/logo/mindschool-logo";
+import { Suspense, useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import { ResetPasswordFormData, resetPasswordSchema } from "@/schemas";
-import { ErrorMessage } from "@/utils/messages";
-import { getApiErrorMessage } from "@/utils/api-error";
 import { useSearchParams } from "next/navigation";
-import { BackToLogin } from "../_components";
-import { Suspense, useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { Wand2 } from "lucide-react";
-import { useModal } from "@/stores";
-import { SuccessResetModal } from "./success-reset-modal";
 import { resetPasswordAndLoginAction } from "@/actions/login";
+import {
+  AlertError,
+  Button,
+  ButtonSubmit,
+  Input,
+  PasswordStrengthBar,
+  ResetPasswordSkeleton,
+} from "@/components";
+import { MindSchoolLogo } from "@/components/common/logo/mindschool-logo";
+import { ResetPasswordFormData, resetPasswordSchema } from "@/schemas";
+import { useModal } from "@/stores";
+import { getApiErrorMessage } from "@/utils/api-error";
+import { ErrorMessage } from "@/utils/messages";
+import {
+  useAuthErrorReaction,
+  useAuthScene,
+  type AuthSceneBindings,
+} from "../_components/auth-interactive-shell";
+import { BackToLogin } from "../_components";
+import { SuccessResetModal } from "./success-reset-modal";
 
-function ResetPasswordForm() {
+export type ResetPasswordProps = Partial<AuthSceneBindings>;
+
+function ResetPasswordForm({
+  onFocusTargetChange: explicitFocusTargetChange,
+  onPasswordVisibilityChange: explicitPasswordVisibilityChange,
+  onTypingActivity: explicitTypingActivity,
+  onReactionChange: explicitReactionChange,
+}: ResetPasswordProps = {}) {
   const searchParams = useSearchParams();
   const token = searchParams.get("token");
   const { openModal } = useModal();
   const [redirectUrl, setRedirectUrl] = useState<string>("/");
   const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
+  const [newPasswordVisible, setNewPasswordVisible] = useState(false);
+  const [confirmPasswordVisible, setConfirmPasswordVisible] = useState(false);
+
+  const {
+    onFocusTargetChange,
+    onPasswordVisibilityChange,
+    onTypingActivity,
+    onReactionChange,
+  } = useAuthScene({
+    onFocusTargetChange: explicitFocusTargetChange,
+    onPasswordVisibilityChange: explicitPasswordVisibilityChange,
+    onTypingActivity: explicitTypingActivity,
+    onReactionChange: explicitReactionChange,
+  });
+  const triggerErrorReaction = useAuthErrorReaction(onReactionChange);
+
+  useEffect(() => {
+    onPasswordVisibilityChange(newPasswordVisible || confirmPasswordVisible);
+  }, [newPasswordVisible, confirmPasswordVisible, onPasswordVisibilityChange]);
 
   const {
     register,
@@ -44,16 +81,19 @@ function ResetPasswordForm() {
     }
     setValue("newPassword", pass, { shouldValidate: true });
     setValue("confirmPassword", pass, { shouldValidate: true });
+    onTypingActivity("password", pass.length);
   };
 
   async function onChangePassword(data: ResetPasswordFormData) {
     if (!token) {
+      triggerErrorReaction();
       ErrorMessage(
         "A ligação para definir a palavra-passe não foi encontrada ou expirou. Peça uma nova recuperação de palavra-passe.",
       );
       return;
     }
 
+    onReactionChange("submitting");
     setIsSubmitting(true);
     try {
       const res = await resetPasswordAndLoginAction({
@@ -62,13 +102,16 @@ function ResetPasswordForm() {
       });
 
       if (!res.user && res.message && res.redirectPath === "/auth/login") {
+        triggerErrorReaction();
         ErrorMessage(res.message);
         return;
       }
 
+      onReactionChange("success");
       setRedirectUrl(res.redirectPath || "/");
       openModal("success-reset-modal");
     } catch (error: unknown) {
+      triggerErrorReaction();
       ErrorMessage(
         getApiErrorMessage(
           error,
@@ -82,10 +125,10 @@ function ResetPasswordForm() {
 
   return (
     <>
-      <div className="mx-auto flex w-full max-w-sm flex-col gap-6">
+      <div className="flex w-full max-w-md flex-col gap-6">
         <div className="flex flex-col gap-1.5 text-left">
           <div className="flex items-center gap-3 mb-2">
-            <div className="flex items-center justify-center size-20 rounded-xs overflow-hidden p-1">
+            <div className="flex items-center justify-center size-16 sm:size-20 rounded-xs overflow-hidden p-1">
               <MindSchoolLogo size={64} priority />
             </div>
             <div className="flex flex-col">
@@ -98,7 +141,7 @@ function ResetPasswordForm() {
             </div>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-1">
             Nova palavra-passe
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -106,7 +149,7 @@ function ResetPasswordForm() {
           </p>
         </div>
 
-        <form onSubmit={handleSubmit(onChangePassword)} className="grid gap-5">
+        <form onSubmit={handleSubmit(onChangePassword, triggerErrorReaction)} className="grid gap-5">
           <div className="space-y-2">
             <div className="flex flex-col gap-1.5">
               <label className="text-sm font-medium text-foreground">
@@ -116,8 +159,15 @@ function ResetPasswordForm() {
                 <div className="flex-1">
                   <Input
                     type="password"
+                    startIcon="Lock"
                     placeholder="Introduza a nova palavra-passe"
-                    {...register("newPassword")}
+                    {...register("newPassword", {
+                      onChange: (e) => onTypingActivity("password", e.target.value.length),
+                      onBlur: () => onFocusTargetChange("idle"),
+                    })}
+                    onFocus={() => onFocusTargetChange("password")}
+                    onPasswordVisibilityChange={setNewPasswordVisible}
+                    autoComplete="new-password"
                   />
                 </div>
                 <Button
@@ -142,10 +192,17 @@ function ResetPasswordForm() {
 
           <Input
             type="password"
+            startIcon="Lock"
             label="Confirmar nova palavra-passe"
             placeholder="Confirme a nova palavra-passe"
-            {...register("confirmPassword")}
+            {...register("confirmPassword", {
+              onChange: (e) => onTypingActivity("password", e.target.value.length),
+              onBlur: () => onFocusTargetChange("idle"),
+            })}
+            onFocus={() => onFocusTargetChange("password")}
+            onPasswordVisibilityChange={setConfirmPasswordVisible}
             error={errors.confirmPassword && errors.confirmPassword?.message}
+            autoComplete="new-password"
           />
 
           <ButtonSubmit isLoading={isSubmitting} disabled={!isValid} className="w-full">
@@ -163,10 +220,10 @@ function ResetPasswordForm() {
   );
 }
 
-export function ResetPassword() {
+export function ResetPassword(props: ResetPasswordProps = {}) {
   return (
     <Suspense fallback={<ResetPasswordSkeleton />}>
-      <ResetPasswordForm />
+      <ResetPasswordForm {...props} />
     </Suspense>
   );
 }

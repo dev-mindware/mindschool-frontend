@@ -15,26 +15,36 @@ import { useActiveSchoolStore } from "@/stores/school/active-school-store";
 import { queryClient } from "@/lib";
 import { safeResumePath } from "@/lib/mindgest-consent";
 import { getApiErrorMessage } from "@/utils";
-import type { LoginFocusTarget, LoginSceneReaction } from "./login-characters-types";
+import {
+  useAuthErrorReaction,
+  useAuthScene,
+  type AuthSceneBindings,
+} from "../_components/auth-interactive-shell";
 
-export interface LoginFormProps {
-  onFocusTargetChange?: (target: LoginFocusTarget) => void;
-  onPasswordVisibilityChange?: (visible: boolean) => void;
-  onTypingActivity?: (field: "email" | "password" | "totp", length: number) => void;
-  onReactionChange?: (reaction: LoginSceneReaction) => void;
-}
+export type LoginFormProps = Partial<AuthSceneBindings>;
 
 export function LoginForm({
-  onFocusTargetChange,
-  onPasswordVisibilityChange,
-  onTypingActivity,
-  onReactionChange,
+  onFocusTargetChange: explicitFocusTargetChange,
+  onPasswordVisibilityChange: explicitPasswordVisibilityChange,
+  onTypingActivity: explicitTypingActivity,
+  onReactionChange: explicitReactionChange,
 }: LoginFormProps = {}) {
+  const {
+    onFocusTargetChange,
+    onPasswordVisibilityChange,
+    onTypingActivity,
+    onReactionChange,
+  } = useAuthScene({
+    onFocusTargetChange: explicitFocusTargetChange,
+    onPasswordVisibilityChange: explicitPasswordVisibilityChange,
+    onTypingActivity: explicitTypingActivity,
+    onReactionChange: explicitReactionChange,
+  });
+
   const router = useRouter();
   const { setUser, setIsAuthenticating } = useAuthStore();
   const [needsMfa, setNeedsMfa] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
-  const [errorCount, setErrorCount] = useState(0);
 
   useEffect(() => {
     const errParam = new URLSearchParams(window.location.search).get("error");
@@ -43,18 +53,7 @@ export function LoginForm({
     }
   }, []);
 
-  useEffect(() => {
-    if (errorCount === 0) return;
-    const timer = window.setTimeout(() => {
-      onReactionChange?.("idle");
-    }, 1800);
-    return () => window.clearTimeout(timer);
-  }, [errorCount, onReactionChange]);
-
-  const triggerErrorReaction = () => {
-    onReactionChange?.("error");
-    setErrorCount((c) => c + 1);
-  };
+  const triggerErrorReaction = useAuthErrorReaction(onReactionChange);
 
   const {
     register,

@@ -1,24 +1,46 @@
 "use client";
 
-import { ButtonSubmit, Input } from "@/components";
-import { useModal } from "@/stores/modal/use-modal-store";
-import { ForgotPasswordFormData } from "@/schemas";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { forgotPasswordSchema } from "@/schemas";
-import { ErrorMessage } from "@/utils/messages";
-import { getApiErrorMessage } from "@/utils/api-error";
-import { OTPModal } from "./otp-modal";
-import { BackToLogin } from "../_components";
-import { cn } from "@/lib";
-import Image from "next/image";
+import { ButtonSubmit, Input } from "@/components";
 import { MindSchoolLogo } from "@/components/common/logo/mindschool-logo";
-import { useState } from "react";
 import { useForgotPassword } from "@/hooks/auth";
+import { cn } from "@/lib";
+import { ForgotPasswordFormData, forgotPasswordSchema } from "@/schemas";
+import { useModal } from "@/stores/modal/use-modal-store";
+import { getApiErrorMessage } from "@/utils/api-error";
+import { ErrorMessage } from "@/utils/messages";
+import {
+  useAuthErrorReaction,
+  useAuthScene,
+  type AuthSceneBindings,
+} from "../_components/auth-interactive-shell";
+import { BackToLogin } from "../_components";
+import { OTPModal } from "./otp-modal";
 
-export function RecoveryPassword() {
+export type RecoveryPasswordProps = Partial<AuthSceneBindings>;
+
+export function RecoveryPassword({
+  onFocusTargetChange: explicitFocusTargetChange,
+  onPasswordVisibilityChange: explicitPasswordVisibilityChange,
+  onTypingActivity: explicitTypingActivity,
+  onReactionChange: explicitReactionChange,
+}: RecoveryPasswordProps = {}) {
   const { openModal } = useModal();
   const [message, setMessage] = useState("");
+  const {
+    onFocusTargetChange,
+    onTypingActivity,
+    onReactionChange,
+  } = useAuthScene({
+    onFocusTargetChange: explicitFocusTargetChange,
+    onPasswordVisibilityChange: explicitPasswordVisibilityChange,
+    onTypingActivity: explicitTypingActivity,
+    onReactionChange: explicitReactionChange,
+  });
+  const triggerErrorReaction = useAuthErrorReaction(onReactionChange);
+
   const {
     register,
     handleSubmit,
@@ -31,11 +53,14 @@ export function RecoveryPassword() {
   const { mutateAsync: forgotPassword, isPending } = useForgotPassword();
 
   async function onSubmit(data: ForgotPasswordFormData) {
+    onReactionChange("submitting");
     try {
       const res = await forgotPassword(data.email);
+      onReactionChange("success");
       setMessage(res.message);
       openModal("information-modal");
     } catch (error: unknown) {
+      triggerErrorReaction();
       ErrorMessage(
         getApiErrorMessage(
           error,
@@ -48,12 +73,12 @@ export function RecoveryPassword() {
   return (
     <>
       <form
-        onSubmit={handleSubmit(onSubmit)}
-        className={cn("mx-auto flex w-full max-w-sm flex-col gap-6")}
+        onSubmit={handleSubmit(onSubmit, triggerErrorReaction)}
+        className={cn("flex w-full max-w-md flex-col gap-6")}
       >
         <div className="flex flex-col gap-1.5 text-left">
           <div className="flex items-center gap-3 mb-2">
-            <div className="flex items-center justify-center size-20 rounded-xs overflow-hidden p-1">
+            <div className="flex items-center justify-center size-16 sm:size-20 rounded-xs overflow-hidden p-1">
               <MindSchoolLogo size={64} priority />
             </div>
             <div className="flex flex-col">
@@ -66,7 +91,7 @@ export function RecoveryPassword() {
             </div>
           </div>
 
-          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-2">
+          <h1 className="text-2xl sm:text-3xl font-semibold tracking-tight text-foreground mt-1">
             Recuperar palavra-passe
           </h1>
           <p className="text-sm text-muted-foreground">
@@ -79,9 +104,14 @@ export function RecoveryPassword() {
             label="Email Institucional"
             type="email"
             startIcon="Mail"
-            {...register("email")}
+            {...register("email", {
+              onChange: (e) => onTypingActivity("email", e.target.value.length),
+              onBlur: () => onFocusTargetChange("idle"),
+            })}
+            onFocus={() => onFocusTargetChange("email")}
             placeholder="exemplo@escola.ao"
             error={errors.email?.message}
+            autoComplete="email"
           />
 
           <ButtonSubmit isLoading={isPending} disabled={!isValid} className="w-full">
